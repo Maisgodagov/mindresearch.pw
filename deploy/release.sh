@@ -6,10 +6,7 @@ cd "$release_dir"
 npm ci
 npm run build
 
-set -a
-# shellcheck disable=SC1091
-source /etc/mindresearch.env
-set +a
+ln -sfn /etc/mindresearch.env "$release_dir/apps/api/.env"
 npm run seed
 
 ln -sfn "$release_dir" /opt/mindresearch/current
