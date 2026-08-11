@@ -25,7 +25,10 @@ for (let s=1;s<=6;s++) {
   }
   if(current.length) questions.push(current.join(' '));
   if(questions.length!==counts[s-1]) throw new Error(`Section ${s}: expected ${counts[s-1]}, got ${questions.length}`);
-  sections.push({code:`test_${s}`,title:names[s-1],questions:questions.map((text,i)=>({code:`test_${s}_${i+1}`,text,type:'single',options:scale}))});
+  const normalizedQuestions=s===4
+    ? questions.map(text=>`Людям станет очевидно, что я… ${text.replace(/^людям станет очевидно, что я\.\.\.\s*/i,'')}`)
+    : questions;
+  sections.push({code:`test_${s}`,title:names[s-1],questions:normalizedQuestions.map((text,i)=>({code:`test_${s}_${i+1}`,text,type:'single',options:scale}))});
 }
 const o=(...labels)=>labels.map((label,i)=>({value:String(i+1),label}));
 const respondent={code:'respondent',title:'О вас',description:'Несколько вопросов о вашей жизненной ситуации',questions:[
