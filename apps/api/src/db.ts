@@ -17,5 +17,5 @@ export async function migrate() {
     `CREATE TABLE IF NOT EXISTS answers (id BIGINT AUTO_INCREMENT PRIMARY KEY, session_id CHAR(36) NOT NULL, question_id CHAR(36) NOT NULL, value JSON NOT NULL, answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE(session_id,question_id), FOREIGN KEY (session_id) REFERENCES response_sessions(id) ON DELETE CASCADE, FOREIGN KEY (question_id) REFERENCES questions(id))`,
     `CREATE TABLE IF NOT EXISTS dashboard_views (id CHAR(36) PRIMARY KEY, user_id CHAR(36) NOT NULL, survey_id CHAR(36) NOT NULL, name VARCHAR(160) NOT NULL, config JSON NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (survey_id) REFERENCES surveys(id) ON DELETE CASCADE)`
   ];
-  for (const sql of statements) await db.execute(sql);
+  for (const sql of statements) await db.query(sql);
 }
