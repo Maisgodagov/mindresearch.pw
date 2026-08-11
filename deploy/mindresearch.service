@@ -1,0 +1,23 @@
+[Unit]
+Description=Mindresearch API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=deploy
+Group=www-data
+WorkingDirectory=/opt/mindresearch/current/apps/api
+EnvironmentFile=/etc/mindresearch.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mindresearch
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+{
+  "name": "opora-survey-platform",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,cyan \"npm run dev -w @opora/api\" \"npm run dev -w @opora/web\"",
+    "build": "npm run build -w @opora/api && npm run build -w @opora/web",
+    "test": "npm run test -w @opora/api && npm run test -w @opora/web",
+    "seed": "npm run seed -w @opora/api"
+  },
+  "devDependencies": {"concurrently": "^9.2.0"}
+}

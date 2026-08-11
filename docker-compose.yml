@@ -1,0 +1,19 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: opora
+      MYSQL_USER: opora
+      MYSQL_PASSWORD: opora
+      MYSQL_ROOT_PASSWORD: root
+    ports: ["3306:3306"]
+    volumes: ["opora_mysql:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uopora", "-popora"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  opora_mysql:
+
