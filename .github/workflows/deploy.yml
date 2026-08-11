@@ -36,5 +36,5 @@ jobs:
         run: |
           release="/opt/mindresearch/releases/${GITHUB_SHA}"
           ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" "mkdir -p '$release'"
-          tar --exclude=.git --exclude=node_modules --exclude='*/dist' -czf - . | ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" "tar -xzf - -C '$release'"
+          tar --exclude=.git --exclude=node_modules -czf - . | ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" "tar -xzf - -C '$release'"
           ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" "bash '$release/deploy/release.sh' '$release'"

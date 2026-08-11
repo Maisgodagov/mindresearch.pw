@@ -4,10 +4,8 @@ set -euo pipefail
 release_dir="$1"
 cd "$release_dir"
 npm ci
-npm run build
-
 ln -sfn /etc/mindresearch.env "$release_dir/apps/api/.env"
-npm run seed
+node apps/api/dist/seed.js
 
 ln -sfn "$release_dir" /opt/mindresearch/current
 sudo /usr/bin/systemctl restart mindresearch
