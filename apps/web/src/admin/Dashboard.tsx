@@ -9,6 +9,8 @@ import { Button, Card, Page } from '../ui';
 type SurveyRow={id:string;slug:string;title:string;responses:number;completed:number};
 type Answer={code:string;question:string;value:unknown;displayValue:string};
 type SectionResult={formulaVersion:string;values:Record<string,unknown>;interpretation:unknown};
+type ScoreValue={label:string;score:number;maxScore:number;level:string;levelLabel:string};
+type SspmValues={instrument:string;complete:true;answered:number;overall:ScoreValue;scales:Record<string,ScoreValue>};
 type AnswerGroup={id:string;code:string;title:string;position:number;result:SectionResult|null;answers:Answer[]};
 type Respondent={id:string;alias:string;status:'in_progress'|'completed'|'abandoned';startedAt:string;lastActivityAt:string;completedAt:string|null;answered:number;groups:AnswerGroup[]};
 type Result={respondents:Respondent[];distribution:{code:string;text:string;value:string|number;count:number}[]};
@@ -26,18 +28,26 @@ const GroupButton=styled.button`width:100%;border:0;background:transparent;paddi
 const Answers=styled.div`padding:0 16px 12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;@media(max-width:760px){grid-template-columns:1fr}`;
 const AnswerRow=styled.div`padding:11px 0;border-top:1px solid #edf1ec;.q{color:#77847b;font-size:12px;line-height:1.35}.a{color:#2f4235;font-size:14px;margin-top:4px}`;
 const ResultBox=styled.div`margin:0 16px 12px;padding:12px;border-radius:12px;background:#edf3eb;color:#45604d;font-size:13px`;
+const ScoreGrid=styled.div`display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px;margin-top:10px;@media(max-width:700px){grid-template-columns:1fr}.score-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #dce7da}.score-name{color:#65766a}.score-value{font-weight:750;white-space:nowrap}`;
 
 const methodCodes=['test_1','test_2','test_3','test_4','test_5','test_6'];
 const shortNames:Record<string,string>={test_1:'MSPSS',test_2:'ССПМ-2011',test_3:'SCCS',test_4:'NSPS',test_5:'ШОПП',test_6:'DEBQ'};
 
 function MethodResult({group}:{group?:AnswerGroup}){
   if(!group?.result)return <span className="pending">Расчёт не настроен</span>;
-  return <span className="score">{Object.values(group.result.values).join(' · ')}</span>;
+  if(group.code==='test_2'){const result=group.result.values as unknown as SspmValues;return <span className="score">{result.overall.score} / {result.overall.maxScore}<br/><small>{result.overall.levelLabel}</small></span>}
+  return <span className="pending">Результат рассчитан</span>;
+}
+
+function DetailedResult({group}:{group:AnswerGroup}){
+  if(!group.result)return <>Формула и интерпретация будут добавлены позже</>;
+  if(group.code==='test_2'){const result=group.result.values as unknown as SspmValues;return <><b>{result.overall.label}: {result.overall.score} из {result.overall.maxScore} — {result.overall.levelLabel.toLowerCase()}</b><ScoreGrid>{Object.values(result.scales).map(scale=><div className="score-row" key={scale.label}><span className="score-name">{scale.label}</span><span className="score-value">{scale.score} / {scale.maxScore} · {scale.levelLabel}</span></div>)}</ScoreGrid></>}
+  return <>Результат рассчитан</>;
 }
 
 function RespondentDetails({respondent}:{respondent:Respondent}){
   const[open,setOpen]=useState<Record<string,boolean>>({});
-  return <Details>{respondent.groups.map(group=><Group key={group.code}><GroupButton onClick={()=>setOpen(x=>({...x,[group.code]:!x[group.code]}))}><span>{group.title}</span><span className="count">{group.answers.length} ответов</span>{open[group.code]?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</GroupButton>{open[group.code]&&<>{group.code!=='respondent'&&<ResultBox>{group.result?<>Результат: <MethodResult group={group}/></>:'Формула и интерпретация будут добавлены позже'}</ResultBox>}<Answers>{group.answers.map(answer=><AnswerRow key={answer.code}><div className="q">{answer.question}</div><div className="a">{answer.displayValue}</div></AnswerRow>)}</Answers></>}</Group>)}</Details>;
+  return <Details>{respondent.groups.map(group=><Group key={group.code}><GroupButton onClick={()=>setOpen(x=>({...x,[group.code]:!x[group.code]}))}><span>{group.title}</span><span className="count">{group.answers.length} ответов</span>{open[group.code]?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</GroupButton>{open[group.code]&&<>{group.code!=='respondent'&&<ResultBox><DetailedResult group={group}/></ResultBox>}<Answers>{group.answers.map(answer=><AnswerRow key={answer.code}><div className="q">{answer.question}</div><div className="a">{answer.displayValue}</div></AnswerRow>)}</Answers></>}</Group>)}</Details>;
 }
 
 export function Dashboard(){

@@ -7,6 +7,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
 import { requireAuth, signToken, type AuthRequest } from './auth.js';
+import { calculateSspm2011ForSession } from './scoring/index.js';
 
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error('JWT_SECRET must contain at least 24 characters');
 const app=express();
@@ -33,9 +34,11 @@ const answerSchema=z.object({questionId:z.string().uuid(),value:z.union([z.strin
 app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   const body=answerSchema.parse(req.body); const [sessions]=await db.query<any[]>('SELECT id,survey_id,status FROM response_sessions WHERE public_token=?',[req.params.token]);
   if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'}); if(sessions[0].status==='completed')return res.status(409).json({message:'Опрос уже завершён'});
-  const [questions]=await db.query<any[]>(`SELECT q.id FROM questions q JOIN sections s ON s.id=q.section_id WHERE q.id=? AND s.survey_id=?`,[body.questionId,sessions[0].survey_id]); if(!questions.length)return res.status(400).json({message:'Некорректный вопрос'});
+  const [questions]=await db.query<any[]>(`SELECT q.id,s.code sectionCode FROM questions q JOIN sections s ON s.id=q.section_id WHERE q.id=? AND s.survey_id=?`,[body.questionId,sessions[0].survey_id]); if(!questions.length)return res.status(400).json({message:'Некорректный вопрос'});
   await db.execute(`INSERT INTO answers (session_id,question_id,value) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),answered_at=CURRENT_TIMESTAMP`,[sessions[0].id,body.questionId,JSON.stringify(body.value)]);
-  await db.execute('UPDATE response_sessions SET current_position=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?',[body.position,sessions[0].id]); res.status(204).end();
+  await db.execute('UPDATE response_sessions SET current_position=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?',[body.position,sessions[0].id]);
+  if(questions[0].sectionCode==='test_2')await calculateSspm2011ForSession(sessions[0].id);
+  res.status(204).end();
 }catch(e){next(e)}});
 app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{const [r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE public_token=? AND status='in_progress'`,[req.params.token]); if(!r.affectedRows)return res.status(404).json({message:'Сессия не найдена'});res.status(204).end()}catch(e){next(e)}});
 
@@ -44,6 +47,7 @@ app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{c
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const [allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);if(!allowed.length)return res.status(404).json({message:'Опрос не найден'});
   const [sessions]=await db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at AS startedAt,rs.last_activity_at AS lastActivityAt,rs.completed_at AS completedAt,COUNT(a.id) answered FROM response_sessions rs LEFT JOIN answers a ON a.session_id=rs.id WHERE rs.survey_id=? GROUP BY rs.id ORDER BY rs.started_at DESC`,[req.params.id]);
+  await Promise.all(sessions.map(session=>calculateSspm2011ForSession(session.id)));
   const [distribution]=await db.query<any[]>(`SELECT q.code,q.text,a.value,COUNT(*) count FROM answers a JOIN questions q ON q.id=a.question_id JOIN response_sessions rs ON rs.id=a.session_id WHERE rs.survey_id=? GROUP BY q.id,a.value ORDER BY q.position`,[req.params.id]);
   const [answerRows]=await db.query<any[]>(`SELECT a.session_id sessionId,s.id sectionId,s.code sectionCode,s.title sectionTitle,s.position sectionPosition,q.code questionCode,q.text questionText,q.options,q.position questionPosition,a.value,ar.formula_version formulaVersion,ar.result,ar.interpretation FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.id=a.session_id LEFT JOIN assessment_results ar ON ar.session_id=a.session_id AND ar.section_id=s.id WHERE rs.survey_id=? ORDER BY rs.started_at DESC,s.position,q.position`,[req.params.id]);
   const parseJson=(value:any)=>{if(value===null||value===undefined)return null;if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}};
