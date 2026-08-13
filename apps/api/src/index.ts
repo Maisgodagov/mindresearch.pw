@@ -7,7 +7,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
 import { requireAuth, signToken, type AuthRequest } from './auth.js';
-import { calculateConfiguredAssessmentsForSession, calculateSccsForSession, calculateSspm2011ForSession } from './scoring/index.js';
+import { calculateConfiguredAssessmentsForSession, calculateMspssForSession, calculateSccsForSession, calculateSspm2011ForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
 
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error('JWT_SECRET must contain at least 24 characters');
@@ -38,6 +38,7 @@ app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   const [questions]=await db.query<any[]>(`SELECT q.id,s.code sectionCode FROM questions q JOIN sections s ON s.id=q.section_id WHERE q.id=? AND s.survey_id=?`,[body.questionId,sessions[0].survey_id]); if(!questions.length)return res.status(400).json({message:'Некорректный вопрос'});
   await db.execute(`INSERT INTO answers (session_id,question_id,value) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),answered_at=CURRENT_TIMESTAMP`,[sessions[0].id,body.questionId,JSON.stringify(body.value)]);
   await db.execute('UPDATE response_sessions SET current_position=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?',[body.position,sessions[0].id]);
+  if(questions[0].sectionCode==='test_1')await calculateMspssForSession(sessions[0].id);
   if(questions[0].sectionCode==='test_2')await calculateSspm2011ForSession(sessions[0].id);
   if(questions[0].sectionCode==='test_3')await calculateSccsForSession(sessions[0].id);
   res.status(204).end();
