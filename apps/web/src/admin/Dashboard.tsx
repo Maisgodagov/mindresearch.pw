@@ -28,7 +28,7 @@ const GroupButton=styled.button`width:100%;border:0;background:transparent;paddi
 const Answers=styled.div`padding:0 16px 12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;@media(max-width:760px){grid-template-columns:1fr}`;
 const AnswerRow=styled.div`padding:11px 0;border-top:1px solid #edf1ec;.q{color:#77847b;font-size:12px;line-height:1.35}.a{color:#2f4235;font-size:14px;margin-top:4px}`;
 const ResultBox=styled.div`margin:0 16px 12px;padding:12px;border-radius:12px;background:#edf3eb;color:#45604d;font-size:13px`;
-const ScoreGrid=styled.div`display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px;margin-top:10px;@media(max-width:700px){grid-template-columns:1fr}.score-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #dce7da}.score-name{color:#65766a}.score-value{font-weight:750;white-space:nowrap}`;
+const ScoreProfile=styled.div`display:grid;gap:14px;margin-top:16px;.scale{display:grid;grid-template-columns:minmax(140px,210px) 1fr 42px;gap:12px;align-items:center}.name{color:#435a49}.value{text-align:right;font-weight:800;font-size:16px}.track{height:22px;border-radius:7px;position:relative;overflow:hidden;background:repeating-linear-gradient(90deg,#eef1ed 0,#eef1ed calc(11.111% - 1px),#fff calc(11.111% - 1px),#fff 11.111%)}.fill{height:100%;border-radius:7px;background:#64876d;transition:width .35s}.limits{grid-column:2;display:flex;justify-content:space-between;color:#849087;font-size:11px;margin-top:-10px}.level{grid-column:2 / 4;color:#6f7e73;font-size:11px;margin-top:-8px}@media(max-width:700px){.scale{grid-template-columns:1fr 38px}.name{grid-column:1 / 3}.limits{grid-column:1}.level{grid-column:1 / 3}}`;
 
 const methodCodes=['test_1','test_2','test_3','test_4','test_5','test_6'];
 const shortNames:Record<string,string>={test_1:'MSPSS',test_2:'ССПМ-2011',test_3:'SCCS',test_4:'NSPS',test_5:'ШОПП',test_6:'DEBQ'};
@@ -41,7 +41,7 @@ function MethodResult({group}:{group?:AnswerGroup}){
 
 function DetailedResult({group}:{group:AnswerGroup}){
   if(!group.result)return <>Формула и интерпретация будут добавлены позже</>;
-  if(group.code==='test_2'){const result=group.result.values as unknown as SspmValues;return <><b>{result.overall.label}: {result.overall.score} из {result.overall.maxScore} — {result.overall.levelLabel.toLowerCase()}</b><ScoreGrid>{Object.values(result.scales).map(scale=><div className="score-row" key={scale.label}><span className="score-name">{scale.label}</span><span className="score-value">{scale.score} / {scale.maxScore} · {scale.levelLabel}</span></div>)}</ScoreGrid></>}
+  if(group.code==='test_2'){const result=group.result.values as unknown as SspmValues;return <><b>{result.overall.label}: {result.overall.score} из {result.overall.maxScore} — {result.overall.levelLabel.toLowerCase()}</b><ScoreProfile>{Object.values(result.scales).map(scale=>{const middle=scale.label==='Программирование'||scale.label==='Гибкость'?{from:5,to:7}:{from:4,to:6};return <div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${scale.score/scale.maxScore*100}%`}}/></div><span className="value">{scale.score}</span><div className="limits"><span>0</span><span>средний: {middle.from}–{middle.to}</span><span>9</span></div><div className="level">{scale.levelLabel}</div></div>})}</ScoreProfile></>}
   return <>Результат рассчитан</>;
 }
 
