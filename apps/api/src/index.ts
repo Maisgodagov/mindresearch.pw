@@ -7,7 +7,8 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
 import { requireAuth, signToken, type AuthRequest } from './auth.js';
-import { calculateSspm2011ForSession } from './scoring/index.js';
+import { calculateConfiguredAssessmentsForSession, calculateSccsForSession, calculateSspm2011ForSession } from './scoring/index.js';
+import { methodologies } from './scoring/methodologies.js';
 
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error('JWT_SECRET must contain at least 24 characters');
 const app=express();
@@ -38,16 +39,18 @@ app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   await db.execute(`INSERT INTO answers (session_id,question_id,value) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),answered_at=CURRENT_TIMESTAMP`,[sessions[0].id,body.questionId,JSON.stringify(body.value)]);
   await db.execute('UPDATE response_sessions SET current_position=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?',[body.position,sessions[0].id]);
   if(questions[0].sectionCode==='test_2')await calculateSspm2011ForSession(sessions[0].id);
+  if(questions[0].sectionCode==='test_3')await calculateSccsForSession(sessions[0].id);
   res.status(204).end();
 }catch(e){next(e)}});
 app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{const [r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE public_token=? AND status='in_progress'`,[req.params.token]); if(!r.affectedRows)return res.status(404).json({message:'Сессия не найдена'});res.status(204).end()}catch(e){next(e)}});
 
 app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0];res.json({token:signToken({id:user.id,role:user.role}),user})}catch(e){next(e)}});
 app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.status,COUNT(rs.id) responses,SUM(rs.status='completed') completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id WHERE s.owner_id=? GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
+app.get('/api/admin/methodologies',requireAuth,(_req,res)=>res.json(methodologies));
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const [allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);if(!allowed.length)return res.status(404).json({message:'Опрос не найден'});
   const [sessions]=await db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at AS startedAt,rs.last_activity_at AS lastActivityAt,rs.completed_at AS completedAt,COUNT(a.id) answered FROM response_sessions rs LEFT JOIN answers a ON a.session_id=rs.id WHERE rs.survey_id=? GROUP BY rs.id ORDER BY rs.started_at DESC`,[req.params.id]);
-  await Promise.all(sessions.map(session=>calculateSspm2011ForSession(session.id)));
+  await Promise.all(sessions.map(session=>calculateConfiguredAssessmentsForSession(session.id)));
   const [distribution]=await db.query<any[]>(`SELECT q.code,q.text,a.value,COUNT(*) count FROM answers a JOIN questions q ON q.id=a.question_id JOIN response_sessions rs ON rs.id=a.session_id WHERE rs.survey_id=? GROUP BY q.id,a.value ORDER BY q.position`,[req.params.id]);
   const [answerRows]=await db.query<any[]>(`SELECT a.session_id sessionId,s.id sectionId,s.code sectionCode,s.title sectionTitle,s.position sectionPosition,q.code questionCode,q.text questionText,q.options,q.position questionPosition,a.value,ar.formula_version formulaVersion,ar.result,ar.interpretation FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.id=a.session_id LEFT JOIN assessment_results ar ON ar.session_id=a.session_id AND ar.section_id=s.id WHERE rs.survey_id=? ORDER BY rs.started_at DESC,s.position,q.position`,[req.params.id]);
   const parseJson=(value:any)=>{if(value===null||value===undefined)return null;if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}};
