@@ -13,7 +13,10 @@ export async function seed() {
   if(!users.length) await db.execute('INSERT INTO users (id,email,password_hash,name) VALUES (?,?,?,?)',[ownerId,email,await bcrypt.hash(password,12),'Евгения']);
   const [surveys]=await db.query<any[]>('SELECT id FROM surveys WHERE slug=?',['anketa']);
   const surveyId=surveys[0]?.id ?? randomUUID();
-  if(!surveys.length) await db.execute(`INSERT INTO surveys (id,owner_id,slug,title,welcome_title,welcome_text,status,settings) VALUES (?,?,?,?,?,?,'active',?)`,[surveyId,ownerId,'anketa','Анкета','Спасибо, что решили принять участие','Опрос анонимный. Здесь нет правильных или неправильных ответов — важен только ваш личный опыт. Прохождение займёт около 25–35 минут, а ответы сохраняются автоматически.',JSON.stringify({showSectionTitles:false,estimatedMinutes:30})]);
+  const welcomeTitle='Спасибо, что решили принять участие';
+  const welcomeText='Данное исследование посвящено особенностям пищевого поведения, отношения к себе и саморегуляции у женщин.\n\nВ исследовании нет «правильных» или «неправильных» ответов. Пожалуйста, выбирайте те варианты, которые наиболее точно отражают ваш личный опыт, чувства и особенности поведения.\n\nПолученные данные будут использоваться исключительно в научных целях и анализироваться только в обобщённом виде.\n\nПрохождение займёт около 25–35 минут. Ответы сохраняются автоматически, поэтому при необходимости можно прерваться и продолжить позже.';
+  if(!surveys.length) await db.execute(`INSERT INTO surveys (id,owner_id,slug,title,welcome_title,welcome_text,status,settings) VALUES (?,?,?,?,?,?,'active',?)`,[surveyId,ownerId,'anketa','Анкета',welcomeTitle,welcomeText,JSON.stringify({showSectionTitles:false,estimatedMinutes:30})]);
+  else await db.execute('UPDATE surveys SET welcome_title=?,welcome_text=? WHERE id=?',[welcomeTitle,welcomeText,surveyId]);
   for(const [si,section] of (data as SeedSection[]).entries()) {
     const [rows]=await db.query<any[]>('SELECT id FROM sections WHERE survey_id=? AND code=?',[surveyId,section.code]);
     const sectionId=rows[0]?.id ?? randomUUID();
