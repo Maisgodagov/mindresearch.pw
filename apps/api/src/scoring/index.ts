@@ -58,7 +58,7 @@ async function calculateFoodAssessment(sessionId:string,sectionCode:'test_5'|'te
   for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const value=Number(parseValue(row.value));if(number&&value)answers.set(number,value)}
   const result=sectionCode==='test_5'?scoreShopp(answers):scoreDebq(answers);
   if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
-  const version=sectionCode==='test_5'?'shopp-ru-2011-v1':'debq-van-strien-v1';
+  const version=sectionCode==='test_5'?'shopp-ru-2011-v1':'debq-van-strien-v2';
   await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?, ?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,version,JSON.stringify(result)]);return result;
 }
 export const calculateShoppForSession=(sessionId:string)=>calculateFoodAssessment(sessionId,'test_5');
