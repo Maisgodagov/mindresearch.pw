@@ -23,7 +23,7 @@ jobs:
       - name: Configure SSH
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: mindresearch.pw
         run: |
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
@@ -31,7 +31,7 @@ jobs:
           ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
       - name: Upload and activate release
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: mindresearch.pw
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           release="/opt/mindresearch/releases/${GITHUB_SHA}"

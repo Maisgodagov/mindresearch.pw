@@ -31,8 +31,9 @@ ADMIN_EMAIL=mgodagov@vk.com
 ADMIN_PASSWORD=CHANGE_ME
 CLIENT_URL=https://mindresearch.pw
 EOF
-  chmod 600 /etc/mindresearch.env
 fi
+chown root:deploy /etc/mindresearch.env
+chmod 640 /etc/mindresearch.env
 
 systemctl daemon-reload
 systemctl enable nginx mindresearch fail2ban
