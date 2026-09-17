@@ -46,7 +46,12 @@ app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   if(questions[0].sectionCode==='test_6')await calculateDebqForSession(sessions[0].id);
   res.status(204).end();
 }catch(e){next(e)}});
-app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{const [r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE public_token=? AND status='in_progress'`,[req.params.token]); if(!r.affectedRows)return res.status(404).json({message:'Сессия не найдена'});res.status(204).end()}catch(e){next(e)}});
+app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{
+  const[sessions]=await db.query<any[]>('SELECT id,status FROM response_sessions WHERE public_token=?',[req.params.token]);if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'});
+  const[missing]=await db.query<any[]>(`SELECT COUNT(*) count FROM questions q JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.survey_id=s.survey_id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? AND q.required=TRUE AND a.id IS NULL`,[sessions[0].id]);
+  if(Number(missing[0].count)>0)return res.status(409).json({message:'Сначала ответьте на все обязательные вопросы',missing:Number(missing[0].count)});
+  const[r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE id=? AND status='in_progress'`,[sessions[0].id]);if(!r.affectedRows)return res.status(409).json({message:'Опрос уже завершён'});res.status(204).end();
+}catch(e){next(e)}});
 app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
   const[sessions]=await db.query<any[]>('SELECT id,status FROM response_sessions WHERE public_token=?',[req.params.token]);
   if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'});
