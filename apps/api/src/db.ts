@@ -19,4 +19,6 @@ export async function migrate() {
     `CREATE TABLE IF NOT EXISTS assessment_results (session_id CHAR(36) NOT NULL, section_id CHAR(36) NOT NULL, formula_version VARCHAR(80) NOT NULL, result JSON NOT NULL, interpretation JSON NULL, calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (session_id,section_id), FOREIGN KEY (session_id) REFERENCES response_sessions(id) ON DELETE CASCADE, FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE)`
   ];
   for (const sql of statements) await db.query(sql);
+  const [deletedAtColumns]=await db.query<any[]>(`SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='response_sessions' AND COLUMN_NAME='deleted_at'`);
+  if(!deletedAtColumns.length) await db.query(`ALTER TABLE response_sessions ADD COLUMN deleted_at TIMESTAMP NULL, ADD INDEX idx_deleted_at (deleted_at)`);
 }
