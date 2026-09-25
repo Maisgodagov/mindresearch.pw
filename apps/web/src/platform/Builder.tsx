@@ -1,6 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import Select from "react-select";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowDown,
   ArrowUp,
@@ -194,7 +212,9 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
   background: #fff;
   overflow: hidden;
   opacity: ${(p) => (p.$dragging ? 0.45 : 1)};
-  transition: opacity 0.15s, border-color 0.15s;
+  transition:
+    opacity 0.15s,
+    border-color 0.15s;
   .section-head {
     padding: 13px;
     display: flex;
@@ -217,7 +237,10 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
     place-items: center;
     color: #839087;
     cursor: grab;
-    padding: 5px 1px;
+    padding: 6px 2px;
+    border: 0;
+    background: transparent;
+    touch-action: none;
   }
   .icon {
     border: 0;
@@ -254,6 +277,10 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
     place-items: center;
     color: #8b978e;
     cursor: grab;
+    border: 0;
+    background: transparent;
+    padding: 4px 1px;
+    touch-action: none;
   }
   .qactions {
     display: flex;
@@ -303,6 +330,34 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
     width: auto;
   }
 `;
+const AddQuestionButton = styled.button`
+  width: 100%;
+  min-height: 52px;
+  margin-top: 12px;
+  border: 1.5px dashed #a9bca9;
+  border-radius: 13px;
+  background: #f7faf5;
+  color: #4d6b56;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-weight: 700;
+  transition: 0.18s;
+  .plus {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e3eee0;
+    display: grid;
+    place-items: center;
+  }
+  &:hover {
+    background: #edf4ea;
+    border-color: #78947e;
+    transform: translateY(-1px);
+  }
+`;
 const Footer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -318,6 +373,120 @@ const Footer = styled.div`
     font-size: 13px;
   }
 `;
+function SortableSection({
+  id,
+  children,
+}: {
+  id: string;
+  children: (handle: ReactNode, dragging: boolean) => ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    position: "relative" as const,
+    zIndex: isDragging ? 3 : 1,
+  };
+  const handle = (
+    <button
+      type="button"
+      className="section-drag"
+      aria-label="Перетащить тест"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical size={17} />
+    </button>
+  );
+  return (
+    <SectionCard ref={setNodeRef} style={style} $dragging={isDragging}>
+      {children(handle, isDragging)}
+    </SectionCard>
+  );
+}
+function SortableQuestion({
+  id,
+  children,
+}: {
+  id: string;
+  children: (handle: ReactNode, dragging: boolean) => ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    position: "relative" as const,
+    zIndex: isDragging ? 3 : 1,
+  };
+  const handle = (
+    <button
+      type="button"
+      className="drag"
+      aria-label="Перетащить вопрос"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical size={16} />
+    </button>
+  );
+  return (
+    <QuestionBox ref={setNodeRef} style={style} $dragging={isDragging}>
+      {children(handle, isDragging)}
+    </QuestionBox>
+  );
+}
+const questionTypeOptions = [
+  { value: "single", label: "Один вариант" },
+  { value: "multiple", label: "Несколько вариантов" },
+  { value: "text", label: "Текстовый ответ" },
+  { value: "number", label: "Числовой ответ" },
+] as const;
+const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    minHeight: 44,
+    borderRadius: 11,
+    borderColor: state.isFocused ? "#78947e" : "#d7e0d5",
+    boxShadow: "none",
+    background: "#fff",
+    "&:hover": { borderColor: "#9caf9d" },
+  }),
+  menu: (base: any) => ({
+    ...base,
+    borderRadius: 12,
+    overflow: "hidden",
+    boxShadow: "0 16px 45px rgba(42,64,48,.16)",
+    zIndex: 10,
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    fontSize: 13,
+    background: state.isSelected
+      ? "#5d7b65"
+      : state.isFocused
+        ? "#edf4ea"
+        : "#fff",
+    color: state.isSelected ? "#fff" : "#34483a",
+    cursor: "pointer",
+  }),
+  singleValue: (base: any) => ({ ...base, color: "#34483a", fontSize: 13 }),
+  indicatorSeparator: () => ({ display: "none" }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 50 }),
+};
 const makeQuestion = (): Question => ({
   id: crypto.randomUUID(),
   text: "",
@@ -339,13 +508,14 @@ export function SurveyBuilder() {
     ),
     [sections, setSections] = useState<Section[]>([]),
     [open, setOpen] = useState<Record<string, boolean>>({}),
-    [draggingSection, setDraggingSection] = useState<string | null>(null),
-    [dragging, setDragging] = useState<{
-      sectionId: string;
-      questionId: string;
-    } | null>(null),
     [saving, setSaving] = useState(false),
     [error, setError] = useState("");
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
   const [meta, setMeta] = useState({
     title: "",
     description: "",
@@ -414,18 +584,13 @@ export function SurveyBuilder() {
       [copy[index], copy[to]] = [copy[to], copy[index]];
       return copy;
     });
-  const dropSection = (targetId: string) => {
-    if (!draggingSection || draggingSection === targetId) return;
+  const reorderSections = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
     setSections((current) => {
-      const copy = [...current],
-        from = copy.findIndex((section) => section.id === draggingSection),
-        to = copy.findIndex((section) => section.id === targetId);
-      if (from < 0 || to < 0) return current;
-      const [item] = copy.splice(from, 1);
-      copy.splice(to, 0, item);
-      return copy;
+      const from = current.findIndex((section) => section.id === active.id),
+        to = current.findIndex((section) => section.id === over.id);
+      return from < 0 || to < 0 ? current : arrayMove(current, from, to);
     });
-    setDraggingSection(null);
   };
   const updateSection = (id: string, fn: (section: Section) => Section) =>
     setSections((s) => s.map((x) => (x.id === id ? fn(x) : x)));
@@ -449,23 +614,18 @@ export function SurveyBuilder() {
       [questions[index], questions[to]] = [questions[to], questions[index]];
       return { ...s, questions };
     });
-  const dropQuestion = (sectionId: string, targetId: string) => {
-    if (
-      !dragging ||
-      dragging.sectionId !== sectionId ||
-      dragging.questionId === targetId
-    )
-      return;
+  const reorderQuestions = (
+    sectionId: string,
+    { active, over }: DragEndEvent,
+  ) => {
+    if (!over || active.id === over.id) return;
     updateSection(sectionId, (s) => {
       const questions = [...(s.questions ?? [])],
-        from = questions.findIndex((x) => x.id === dragging.questionId),
-        to = questions.findIndex((x) => x.id === targetId);
+        from = questions.findIndex((x) => x.id === active.id),
+        to = questions.findIndex((x) => x.id === over.id);
       if (from < 0 || to < 0) return s;
-      const [item] = questions.splice(from, 1);
-      questions.splice(to, 0, item);
-      return { ...s, questions };
+      return { ...s, questions: arrayMove(questions, from, to) };
     });
-    setDragging(null);
   };
   async function submit() {
     if (!meta.title.trim() || !sections.length) {
@@ -642,320 +802,409 @@ export function SurveyBuilder() {
               ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
               : "Добавьте подтверждённую методику или создайте собственный тест."}
           </p>
-          <Stack>
-            {sections.map((section, index) => (
-              <SectionCard
-                key={section.id}
-                $dragging={draggingSection === section.id}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => dropSection(section.id)}
-              >
-                <div className="section-head">
-                  <span
-                    className="section-drag"
-                    draggable
-                    title="Перетащить тест"
-                    onDragStart={(event) => {
-                      event.dataTransfer.effectAllowed = "move";
-                      event.dataTransfer.setData("text/plain", section.id);
-                      setDraggingSection(section.id);
-                    }}
-                    onDragEnd={() => setDraggingSection(null)}
-                  >
-                    <GripVertical size={17} />
-                  </span>
-                  <div className="section-name">
-                    <b>{section.title}</b>
-                    <span>
-                      {section.kind === "library"
-                        ? "Подтверждённая методика · автоматический расчёт"
-                        : `${section.questions?.length ?? 0} собственных вопросов · без автоматического расчёта`}
-                    </span>
-                  </div>
-                  <button
-                    className="icon"
-                    aria-label="Переместить блок выше"
-                    onClick={() => move(index, -1)}
-                  >
-                    <ArrowUp size={15} />
-                  </button>
-                  <button
-                    className="icon"
-                    aria-label="Переместить блок ниже"
-                    onClick={() => move(index, 1)}
-                  >
-                    <ArrowDown size={15} />
-                  </button>
-                  {section.kind === "custom" && (
-                    <button
-                      className="icon"
-                      aria-label="Развернуть блок"
-                      onClick={() =>
-                        setOpen((o) => ({ ...o, [section.id]: !o[section.id] }))
-                      }
-                    >
-                      {open[section.id] ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </button>
-                  )}
-                  <button
-                    className="icon"
-                    aria-label="Удалить блок"
-                    onClick={() =>
-                      setSections((s) => s.filter((x) => x.id !== section.id))
-                    }
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-                {section.kind === "custom" && open[section.id] && (
-                  <div className="body">
-                    <div className="field">
-                      <label>Название собственного теста или блока</label>
-                      <input
-                        value={section.title}
-                        onChange={(e) =>
-                          updateSection(section.id, (s) => ({
-                            ...s,
-                            title: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    {section.questions?.map((q, qi) => (
-                      <QuestionBox
-                        key={q.id}
-                        $dragging={dragging?.questionId === q.id}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(event) => {
-                          event.stopPropagation();
-                          dropQuestion(section.id, q.id);
-                        }}
-                      >
-                        <div className="qhead">
-                          <div className="qtitle">
-                            <span
-                              className="drag"
-                              draggable
-                              onDragStart={(event) => {
-                                event.dataTransfer.effectAllowed = "move";
-                                event.dataTransfer.setData("text/plain", q.id);
-                                setDragging({
-                                  sectionId: section.id,
-                                  questionId: q.id,
-                                });
-                              }}
-                              onDragEnd={() => setDragging(null)}
-                              title="Перетащить вопрос"
-                            >
-                              <GripVertical size={16} />
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={reorderSections}
+          >
+            <SortableContext
+              items={sections.map((section) => section.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <Stack>
+                {sections.map((section, index) => (
+                  <SortableSection key={section.id} id={section.id}>
+                    {(sectionHandle) => (
+                      <>
+                        <div className="section-head">
+                          {sectionHandle}
+                          <div className="section-name">
+                            <b>{section.title}</b>
+                            <span>
+                              {section.kind === "library"
+                                ? "Подтверждённая методика · автоматический расчёт"
+                                : `${section.questions?.length ?? 0} собственных вопросов · без автоматического расчёта`}
                             </span>
-                            <b>Вопрос {qi + 1}</b>
                           </div>
-                          <div className="qactions">
+                          <button
+                            className="icon"
+                            aria-label="Переместить блок выше"
+                            onClick={() => move(index, -1)}
+                          >
+                            <ArrowUp size={15} />
+                          </button>
+                          <button
+                            className="icon"
+                            aria-label="Переместить блок ниже"
+                            onClick={() => move(index, 1)}
+                          >
+                            <ArrowDown size={15} />
+                          </button>
+                          {section.kind === "custom" && (
                             <button
-                              className="tiny"
-                              aria-label="Выше"
-                              onClick={() => moveQuestion(section.id, qi, -1)}
-                            >
-                              <ArrowUp size={14} />
-                            </button>
-                            <button
-                              className="tiny"
-                              aria-label="Ниже"
-                              onClick={() => moveQuestion(section.id, qi, 1)}
-                            >
-                              <ArrowDown size={14} />
-                            </button>
-                            <button
-                              className="tiny"
-                              onClick={() => duplicateQuestion(section.id, q)}
-                            >
-                              <Copy size={14} /> Копировать
-                            </button>
-                            <button
-                              className="tiny"
+                              className="icon"
+                              aria-label="Развернуть блок"
                               onClick={() =>
-                                updateSection(section.id, (s) => ({
-                                  ...s,
-                                  questions: s.questions?.filter(
-                                    (x) => x.id !== q.id,
-                                  ),
+                                setOpen((o) => ({
+                                  ...o,
+                                  [section.id]: !o[section.id],
                                 }))
                               }
                             >
-                              <Trash2 size={14} />
+                              {open[section.id] ? (
+                                <ChevronUp size={16} />
+                              ) : (
+                                <ChevronDown size={16} />
+                              )}
                             </button>
-                          </div>
-                        </div>
-                        <div className="qgrid">
-                          <input
-                            value={q.text}
-                            onChange={(e) =>
-                              updateSection(section.id, (s) => ({
-                                ...s,
-                                questions: s.questions?.map((x) =>
-                                  x.id === q.id
-                                    ? { ...x, text: e.target.value }
-                                    : x,
-                                ),
-                              }))
-                            }
-                            placeholder="Текст вопроса"
-                          />
-                          <select
-                            value={q.type}
-                            onChange={(e) =>
-                              updateSection(section.id, (s) => ({
-                                ...s,
-                                questions: s.questions?.map((x) =>
-                                  x.id === q.id
-                                    ? {
-                                        ...x,
-                                        type: e.target
-                                          .value as Question["type"],
-                                        options:
-                                          e.target.value === "single" ||
-                                          e.target.value === "multiple"
-                                            ? x.options.length
-                                              ? x.options
-                                              : [
-                                                  { value: "1", label: "" },
-                                                  { value: "2", label: "" },
-                                                ]
-                                            : [],
-                                      }
-                                    : x,
-                                ),
-                              }))
+                          )}
+                          <button
+                            className="icon"
+                            aria-label="Удалить блок"
+                            onClick={() =>
+                              setSections((s) =>
+                                s.filter((x) => x.id !== section.id),
+                              )
                             }
                           >
-                            <option value="single">Один вариант</option>
-                            <option value="multiple">
-                              Несколько вариантов
-                            </option>
-                            <option value="text">Текст</option>
-                            <option value="number">Число</option>
-                          </select>
+                            <Trash2 size={15} />
+                          </button>
                         </div>
-                        {(q.type === "single" || q.type === "multiple") && (
-                          <div className="options">
-                            {q.options.map((option, oi) => (
-                              <div className="option" key={option.value}>
-                                <input
-                                  value={option.label}
-                                  onChange={(e) =>
-                                    updateSection(section.id, (s) => ({
-                                      ...s,
-                                      questions: s.questions?.map((x) =>
-                                        x.id === q.id
-                                          ? {
-                                              ...x,
-                                              options: x.options.map((o, i) =>
-                                                i === oi
-                                                  ? {
-                                                      ...o,
-                                                      label: e.target.value,
-                                                    }
-                                                  : o,
-                                              ),
-                                            }
-                                          : x,
-                                      ),
-                                    }))
-                                  }
-                                  placeholder={`Вариант ${oi + 1}`}
-                                />
-                                {q.options.length > 2 && (
-                                  <button
-                                    className="tiny"
-                                    onClick={() =>
-                                      updateSection(section.id, (s) => ({
-                                        ...s,
-                                        questions: s.questions?.map((x) =>
-                                          x.id === q.id
-                                            ? {
-                                                ...x,
-                                                options: x.options.filter(
-                                                  (_, i) => i !== oi,
-                                                ),
-                                              }
-                                            : x,
-                                        ),
-                                      }))
-                                    }
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
+                        {section.kind === "custom" && open[section.id] && (
+                          <div className="body">
+                            <div className="field">
+                              <label>
+                                Название собственного теста или блока
+                              </label>
+                              <input
+                                value={section.title}
+                                onChange={(e) =>
+                                  updateSection(section.id, (s) => ({
+                                    ...s,
+                                    title: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={(event) =>
+                                reorderQuestions(section.id, event)
+                              }
+                            >
+                              <SortableContext
+                                items={(section.questions ?? []).map(
+                                  (question) => question.id,
                                 )}
-                              </div>
-                            ))}
-                            <button
-                              className="tiny"
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {section.questions?.map((q, qi) => (
+                                  <SortableQuestion key={q.id} id={q.id}>
+                                    {(questionHandle) => (
+                                      <>
+                                        <div className="qhead">
+                                          <div className="qtitle">
+                                            {questionHandle}
+                                            <b>Вопрос {qi + 1}</b>
+                                          </div>
+                                          <div className="qactions">
+                                            <button
+                                              className="tiny"
+                                              aria-label="Выше"
+                                              onClick={() =>
+                                                moveQuestion(section.id, qi, -1)
+                                              }
+                                            >
+                                              <ArrowUp size={14} />
+                                            </button>
+                                            <button
+                                              className="tiny"
+                                              aria-label="Ниже"
+                                              onClick={() =>
+                                                moveQuestion(section.id, qi, 1)
+                                              }
+                                            >
+                                              <ArrowDown size={14} />
+                                            </button>
+                                            <button
+                                              className="tiny"
+                                              onClick={() =>
+                                                duplicateQuestion(section.id, q)
+                                              }
+                                            >
+                                              <Copy size={14} /> Копировать
+                                            </button>
+                                            <button
+                                              className="tiny"
+                                              onClick={() =>
+                                                updateSection(
+                                                  section.id,
+                                                  (s) => ({
+                                                    ...s,
+                                                    questions:
+                                                      s.questions?.filter(
+                                                        (x) => x.id !== q.id,
+                                                      ),
+                                                  }),
+                                                )
+                                              }
+                                            >
+                                              <Trash2 size={14} />
+                                            </button>
+                                          </div>
+                                        </div>
+                                        <div className="qgrid">
+                                          <input
+                                            value={q.text}
+                                            onChange={(e) =>
+                                              updateSection(
+                                                section.id,
+                                                (s) => ({
+                                                  ...s,
+                                                  questions: s.questions?.map(
+                                                    (x) =>
+                                                      x.id === q.id
+                                                        ? {
+                                                            ...x,
+                                                            text: e.target
+                                                              .value,
+                                                          }
+                                                        : x,
+                                                  ),
+                                                }),
+                                              )
+                                            }
+                                            placeholder="Текст вопроса"
+                                          />
+                                          <Select
+                                            value={questionTypeOptions.find(
+                                              (option) =>
+                                                option.value === q.type,
+                                            )}
+                                            options={questionTypeOptions}
+                            styles={selectStyles}
+                            isSearchable={false}
+                            menuPlacement="auto"
+                            menuPosition="fixed"
+                            menuPortalTarget={document.body}
+                                            aria-label="Тип вопроса"
+                                            onChange={(option) => {
+                                              if (!option) return;
+                                              const type =
+                                                option.value as Question["type"];
+                                              updateSection(
+                                                section.id,
+                                                (s) => ({
+                                                  ...s,
+                                                  questions: s.questions?.map(
+                                                    (x) =>
+                                                      x.id === q.id
+                                                        ? {
+                                                            ...x,
+                                                            type,
+                                                            options:
+                                                              type ===
+                                                                "single" ||
+                                                              type ===
+                                                                "multiple"
+                                                                ? x.options
+                                                                    .length
+                                                                  ? x.options
+                                                                  : [
+                                                                      {
+                                                                        value:
+                                                                          "1",
+                                                                        label:
+                                                                          "",
+                                                                      },
+                                                                      {
+                                                                        value:
+                                                                          "2",
+                                                                        label:
+                                                                          "",
+                                                                      },
+                                                                    ]
+                                                                : [],
+                                                          }
+                                                        : x,
+                                                  ),
+                                                }),
+                                              );
+                                            }}
+                                          />
+                                        </div>
+                                        {(q.type === "single" ||
+                                          q.type === "multiple") && (
+                                          <div className="options">
+                                            {q.options.map((option, oi) => (
+                                              <div
+                                                className="option"
+                                                key={option.value}
+                                              >
+                                                <input
+                                                  value={option.label}
+                                                  onChange={(e) =>
+                                                    updateSection(
+                                                      section.id,
+                                                      (s) => ({
+                                                        ...s,
+                                                        questions:
+                                                          s.questions?.map(
+                                                            (x) =>
+                                                              x.id === q.id
+                                                                ? {
+                                                                    ...x,
+                                                                    options:
+                                                                      x.options.map(
+                                                                        (
+                                                                          o,
+                                                                          i,
+                                                                        ) =>
+                                                                          i ===
+                                                                          oi
+                                                                            ? {
+                                                                                ...o,
+                                                                                label:
+                                                                                  e
+                                                                                    .target
+                                                                                    .value,
+                                                                              }
+                                                                            : o,
+                                                                      ),
+                                                                  }
+                                                                : x,
+                                                          ),
+                                                      }),
+                                                    )
+                                                  }
+                                                  placeholder={`Вариант ${oi + 1}`}
+                                                />
+                                                {q.options.length > 2 && (
+                                                  <button
+                                                    className="tiny"
+                                                    onClick={() =>
+                                                      updateSection(
+                                                        section.id,
+                                                        (s) => ({
+                                                          ...s,
+                                                          questions:
+                                                            s.questions?.map(
+                                                              (x) =>
+                                                                x.id === q.id
+                                                                  ? {
+                                                                      ...x,
+                                                                      options:
+                                                                        x.options.filter(
+                                                                          (
+                                                                            _,
+                                                                            i,
+                                                                          ) =>
+                                                                            i !==
+                                                                            oi,
+                                                                        ),
+                                                                    }
+                                                                  : x,
+                                                            ),
+                                                        }),
+                                                      )
+                                                    }
+                                                  >
+                                                    <Trash2 size={14} />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            ))}
+                                            <button
+                                              className="tiny"
+                                              onClick={() =>
+                                                updateSection(
+                                                  section.id,
+                                                  (s) => ({
+                                                    ...s,
+                                                    questions: s.questions?.map(
+                                                      (x) =>
+                                                        x.id === q.id
+                                                          ? {
+                                                              ...x,
+                                                              options: [
+                                                                ...x.options,
+                                                                {
+                                                                  value: String(
+                                                                    x.options
+                                                                      .length +
+                                                                      1,
+                                                                  ),
+                                                                  label: "",
+                                                                },
+                                                              ],
+                                                            }
+                                                          : x,
+                                                    ),
+                                                  }),
+                                                )
+                                              }
+                                            >
+                                              + Вариант ответа
+                                            </button>
+                                          </div>
+                                        )}
+                                        <label className="required">
+                                          <input
+                                            type="checkbox"
+                                            checked={q.required}
+                                            onChange={(e) =>
+                                              updateSection(
+                                                section.id,
+                                                (s) => ({
+                                                  ...s,
+                                                  questions: s.questions?.map(
+                                                    (x) =>
+                                                      x.id === q.id
+                                                        ? {
+                                                            ...x,
+                                                            required:
+                                                              e.target.checked,
+                                                          }
+                                                        : x,
+                                                  ),
+                                                }),
+                                              )
+                                            }
+                                          />{" "}
+                                          Обязательный вопрос
+                                        </label>
+                                      </>
+                                    )}
+                                  </SortableQuestion>
+                                ))}
+                              </SortableContext>
+                            </DndContext>
+                            <AddQuestionButton
                               onClick={() =>
                                 updateSection(section.id, (s) => ({
                                   ...s,
-                                  questions: s.questions?.map((x) =>
-                                    x.id === q.id
-                                      ? {
-                                          ...x,
-                                          options: [
-                                            ...x.options,
-                                            {
-                                              value: String(
-                                                x.options.length + 1,
-                                              ),
-                                              label: "",
-                                            },
-                                          ],
-                                        }
-                                      : x,
-                                  ),
+                                  questions: [
+                                    ...(s.questions ?? []),
+                                    makeQuestion(),
+                                  ],
                                 }))
                               }
                             >
-                              + Вариант ответа
-                            </button>
+                              <span className="plus">
+                                <Plus size={15} />
+                              </span>{" "}
+                              Добавить вопрос
+                            </AddQuestionButton>
                           </div>
                         )}
-                        <label className="required">
-                          <input
-                            type="checkbox"
-                            checked={q.required}
-                            onChange={(e) =>
-                              updateSection(section.id, (s) => ({
-                                ...s,
-                                questions: s.questions?.map((x) =>
-                                  x.id === q.id
-                                    ? { ...x, required: e.target.checked }
-                                    : x,
-                                ),
-                              }))
-                            }
-                          />{" "}
-                          Обязательный вопрос
-                        </label>
-                      </QuestionBox>
-                    ))}
-                    <button
-                      className="tiny"
-                      onClick={() =>
-                        updateSection(section.id, (s) => ({
-                          ...s,
-                          questions: [...(s.questions ?? []), makeQuestion()],
-                        }))
-                      }
-                    >
-                      <Plus size={13} /> Добавить вопрос
-                    </button>
-                  </div>
-                )}
-              </SectionCard>
-            ))}
-          </Stack>
+                      </>
+                    )}
+                  </SortableSection>
+                ))}
+              </Stack>
+            </SortableContext>
+          </DndContext>
           <Footer>
             <label>
               <input
