@@ -1,13 +1,14 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { ArchiveRestore, BarChart3, CheckCircle2, ChevronDown, ChevronRight, Clock3, Copy, Download, Info, Leaf, LogOut, Trash2, Users, X } from 'lucide-react';
+import { ArchiveRestore, BarChart3, CheckCircle2, ChevronDown, ChevronRight, Clock3, Copy, Download, Info, Leaf, LogOut, Trash2, Users } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { api } from '../api';
 import { debqDescriptions, shoppDescriptions } from '../shoppDescriptions';
 import { Button, Card, Page } from '../ui';
 import { exportRespondents } from './exportResults';
 import { demoSurveys } from '../platform/demo';
+import { MethodologyModal, type Methodology } from '../MethodologyModal';
 
 type SurveyRow={id:string;slug:string;title:string;responses:number;completed:number};
 type Answer={code:string;question:string;value:unknown;displayValue:string};
@@ -21,7 +22,6 @@ type NspsScore={label:string;score:number;minScore:number;maxScore:number;items:
 type NspsValues={instrument:string;complete:true;answered:number;overall:NspsScore;scales:Record<string,NspsScore>};
 type FoodScore={label:string;score?:number;average?:number;maxScore?:number;min?:number;max?:number;referenceMean?:number;difference?:number;elevated?:boolean;interpretation?:string};
 type FoodValues={instrument:string;complete:true;answered:number;scales:Record<string,FoodScore>};
-type Methodology={code:string;title:string;version:string;summary:string;steps:string[];keys?:{label:string;value:string}[];norms?:{label:string;value:string}[];notes:string[];sources:{title:string;url:string}[]};
 type AnswerGroup={id:string;code:string;title:string;position:number;result:SectionResult|null;answers:Answer[]};
 type Respondent={id:string;alias:string;status:'in_progress'|'completed'|'abandoned';startedAt:string;lastActivityAt:string;completedAt:string|null;deletedAt?:string|null;answered:number;groups:AnswerGroup[]};
 type Result={sections:{code:string;title:string;sectionKind:string}[];respondents:Respondent[];deletedRespondents:Respondent[];distribution:{code:string;text:string;value:string|number;count:number}[]};
@@ -45,8 +45,6 @@ const SupportProfile=styled.div`display:grid;gap:14px;margin-top:16px;.scale{dis
 const MethodButton=styled.button`margin-top:12px;border:1px solid #cbd9cc;background:#fff;color:#526f5b;border-radius:10px;padding:8px 11px;display:inline-flex;align-items:center;gap:7px;font-weight:650;font-size:12px`;
 const TrashToggle=styled.button`margin:12px 0 0 auto;border:0;background:transparent;color:#89938c;font-size:12px;display:flex;align-items:center;gap:6px;padding:6px;cursor:pointer;&:hover{color:#526f5b}`;
 const TrashBox=styled.div`margin-top:10px;border:1px dashed #d8ded8;border-radius:13px;padding:14px;background:#fafbf9;.head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.title{font-weight:700;color:#657269}.items{display:grid;gap:2px}.item{display:grid;grid-template-columns:25px minmax(150px,1fr) 130px 120px;gap:10px;align-items:center;padding:9px 4px;border-top:1px solid #edf0eb;font-size:12px;color:#748078}.item b{color:#45584b}.item input{width:16px;height:16px;accent-color:#5f8269}@media(max-width:650px){.item{grid-template-columns:25px 1fr}.meta{display:none}}`;
-const Overlay=styled.div`position:fixed;inset:0;background:rgba(25,38,29,.48);z-index:20;display:grid;place-items:center;padding:18px;backdrop-filter:blur(3px)`;
-const Modal=styled.div`width:min(760px,100%);max-height:90dvh;overflow:auto;background:#fff;border-radius:22px;padding:clamp(22px,5vw,36px);box-shadow:0 30px 100px rgba(20,35,25,.25);position:relative;color:#304036;.close{position:absolute;right:18px;top:18px;border:0;background:#edf2eb;width:36px;height:36px;border-radius:10px;display:grid;place-items:center}h2{font:500 28px Georgia,serif;margin:0 45px 8px 0}.version{color:#89948c;font-size:12px}h3{font-size:15px;margin:24px 0 10px}p,li{line-height:1.55;font-size:14px}.key{padding:10px 0;border-top:1px solid #edf1ec}.key b{display:block;margin-bottom:3px}.note{background:#f2f5f0;border-radius:12px;padding:11px 13px}.sources{display:grid;gap:8px}.sources a{color:#456d50;text-decoration:underline;text-underline-offset:3px}`;
 
 const methodCodes=['test_1','test_2','test_3','test_4','test_5','test_6'];
 const shortNames:Record<string,string>={test_1:'MSPSS',test_2:'ССПМ-2011',test_3:'SCCS',test_4:'NSPS',test_5:'ШОПП',test_6:'DEBQ'};
@@ -71,8 +69,6 @@ function DetailedResult({group}:{group:AnswerGroup}){
   if(group.code==='test_5'||group.code==='test_6'){const result=group.result.values as unknown as FoodValues;return <><b>{group.code==='test_5'?'Профиль ШОПП':'Профиль DEBQ'}</b><SupportProfile>{Object.values(result.scales).map(scale=>{const value=scale.score??scale.average??0,max=scale.maxScore??scale.max??5;return <div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${value/max*100}%`}}/></div><span className="value">{group.code==='test_6'?value.toFixed(2):value}</span><div className="caption">{group.code==='test_6'?<>{debqDescriptions[scale.label]}<br/>{scale.interpretation}. Ориентир: {scale.referenceMean?.toFixed(1)}; отклонение: {(scale.difference??0)>0?'+':''}{scale.difference?.toFixed(2)}</>:<>{shoppDescriptions[scale.label]} Сырой балл из {max} · чем выше, тем выраженнее признак.</>}</div></div>})}</SupportProfile></>}
   return <>Результат рассчитан</>;
 }
-
-function MethodologyModal({methodology,onClose}:{methodology:Methodology;onClose:()=>void}){return <Overlay onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><Modal role="dialog" aria-modal="true" aria-label={`Расчёт: ${methodology.title}`}><button className="close" aria-label="Закрыть" onClick={onClose}><X size={18}/></button><h2>{methodology.title}</h2><div className="version">Версия расчёта: {methodology.version}</div><p>{methodology.summary}</p><h3>Порядок расчёта</h3><ol>{methodology.steps.map(step=><li key={step}>{step}</li>)}</ol>{methodology.keys?.length&&<><h3>Ключ</h3>{methodology.keys.map(item=><div className="key" key={item.label}><b>{item.label}</b><span>{item.value}</span></div>)}</>}{methodology.norms?.length&&<><h3>Нормативы</h3>{methodology.norms.map(item=><div className="key" key={item.label}><b>{item.label}</b><span>{item.value}</span></div>)}</>}<h3>Важные замечания</h3>{methodology.notes.map(note=><p className="note" key={note}>{note}</p>)}<h3>Источники</h3><div className="sources">{methodology.sources.map(source=><a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title}</a>)}</div></Modal></Overlay>}
 
 function RespondentDetails({respondent,methodologies,onShowMethodology}:{respondent:Respondent;methodologies:Record<string,Methodology>;onShowMethodology:(methodology:Methodology)=>void}){
   const[open,setOpen]=useState<Record<string,boolean>>({});
