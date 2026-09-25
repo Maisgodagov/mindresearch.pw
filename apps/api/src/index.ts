@@ -9,17 +9,19 @@ import { db, migrate } from './db.js';
 import { requireAuth, signToken, type AuthRequest } from './auth.js';
 import { calculateConfiguredAssessmentsForSession, calculateDebqForSession, calculateMspssForSession, calculateNspsForSession, calculateSccsForSession, calculateShoppForSession, calculateSspm2011ForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
+import {platformRouter} from './platform.js';
 
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error('JWT_SECRET must contain at least 24 characters');
 const app=express();
 app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true})); app.use(express.json({limit:'200kb'}));
+app.use('/api',platformRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/public/surveys/:slug',async(req,res,next)=>{try{
-  const [surveys]=await db.query<any[]>(`SELECT id,slug,title,welcome_title AS welcomeTitle,welcome_text AS welcomeText,settings FROM surveys WHERE slug=? AND status='active'`,[req.params.slug]);
+  const [surveys]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.welcome_title AS welcomeTitle,s.welcome_text AS welcomeText,s.settings,IF(s.show_author AND u.is_profile_public,u.name,NULL) authorName,IF(s.show_author AND u.is_profile_public,u.public_slug,NULL) authorSlug,IF(s.show_author AND u.is_profile_public,u.avatar_url,NULL) authorAvatarUrl FROM surveys s JOIN users u ON u.id=s.owner_id WHERE s.slug=? AND s.status='active'`,[req.params.slug]);
   if(!surveys.length) return res.status(404).json({message:'Опрос не найден'});
   const [questions]=await db.query<any[]>(`SELECT q.id,q.code,q.text,q.type,q.required,q.options,q.validation,s.code sectionCode,s.title sectionTitle,s.position sectionPosition,q.position FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position`,[surveys[0].id]);
-  res.json({...surveys[0],questions});
+  const survey=surveys[0],author=survey.authorSlug?{name:survey.authorName,slug:survey.authorSlug,avatarUrl:survey.authorAvatarUrl}:null;delete survey.authorName;delete survey.authorSlug;delete survey.authorAvatarUrl;res.json({...survey,author,questions});
 }catch(e){next(e)}});
 app.post('/api/public/surveys/:slug/sessions',async(req,res,next)=>{try{
   const [rows]=await db.query<any[]>('SELECT id FROM surveys WHERE slug=? AND status=\'active\'',[req.params.slug]); if(!rows.length)return res.status(404).json({message:'Опрос не найден'});
@@ -63,10 +65,11 @@ app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
 }catch(e){next(e)}});
 
 app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0];res.json({token:signToken({id:user.id,role:user.role}),user})}catch(e){next(e)}});
-app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.status,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
+app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
 app.get('/api/admin/methodologies',requireAuth,(_req,res)=>res.json(methodologies));
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const [allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);if(!allowed.length)return res.status(404).json({message:'Опрос не найден'});
+  const [surveySections]=await db.query<any[]>(`SELECT code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`,[req.params.id]);
   const [sessions]=await db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at AS startedAt,rs.last_activity_at AS lastActivityAt,rs.completed_at AS completedAt,rs.deleted_at AS deletedAt,COUNT(a.id) answered FROM response_sessions rs LEFT JOIN answers a ON a.session_id=rs.id WHERE rs.survey_id=? GROUP BY rs.id ORDER BY rs.started_at DESC`,[req.params.id]);
   await Promise.all(sessions.map(session=>calculateConfiguredAssessmentsForSession(session.id)));
   const [distribution]=await db.query<any[]>(`SELECT q.code,q.text,a.value,COUNT(*) count FROM answers a JOIN questions q ON q.id=a.question_id JOIN response_sessions rs ON rs.id=a.session_id WHERE rs.survey_id=? AND rs.deleted_at IS NULL GROUP BY q.id,a.value ORDER BY q.position`,[req.params.id]);
@@ -75,7 +78,7 @@ app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,n
   const grouped=new Map<string,any[]>();
   for(const row of answerRows){const value=parseJson(row.value),options=parseJson(row.options)??[];const labels=(Array.isArray(value)?value:[value]).map(v=>options.find((o:any)=>String(o.value)===String(v))?.label??String(v));let groups=grouped.get(row.sessionId);if(!groups){groups=[];grouped.set(row.sessionId,groups)}let group=groups.find(g=>g.code===row.sectionCode);if(!group){group={id:row.sectionId,code:row.sectionCode,title:row.sectionTitle,position:row.sectionPosition,result:row.result?{formulaVersion:row.formulaVersion,values:parseJson(row.result),interpretation:parseJson(row.interpretation)}:null,answers:[]};groups.push(group)}group.answers.push({code:row.questionCode,question:row.questionText,value,displayValue:labels.join(', ')})}
   const respondents=sessions.map(session=>{const groups=grouped.get(session.id)??[];const alias=groups.find(g=>g.code==='respondent')?.answers.find((a:any)=>a.code==='alias')?.displayValue||'Без псевдонима';return {...session,alias,groups}});
-  res.json({sessions,respondents:respondents.filter(x=>!x.deletedAt),deletedRespondents:respondents.filter(x=>x.deletedAt),distribution});
+  res.json({sessions,sections:surveySections,respondents:respondents.filter(x=>!x.deletedAt),deletedRespondents:respondents.filter(x=>x.deletedAt),distribution});
 }catch(e){next(e)}});
 const sessionIdsSchema=z.object({sessionIds:z.array(z.string().uuid()).min(1).max(1000)});
 app.post('/api/admin/surveys/:id/results/trash',requireAuth,async(req:AuthRequest,res,next)=>{try{
