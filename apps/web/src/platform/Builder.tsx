@@ -188,11 +188,13 @@ const Stack = styled.div`
   gap: 10px;
   margin-top: 15px;
 `;
-const SectionCard = styled.div`
+const SectionCard = styled.div<{ $dragging?: boolean }>`
   border: 1px solid #dce5da;
   border-radius: 15px;
   background: #fff;
   overflow: hidden;
+  opacity: ${(p) => (p.$dragging ? 0.45 : 1)};
+  transition: opacity 0.15s, border-color 0.15s;
   .section-head {
     padding: 13px;
     display: flex;
@@ -209,6 +211,13 @@ const SectionCard = styled.div`
   .section-name span {
     font-size: 11px;
     color: #819087;
+  }
+  .section-drag {
+    display: grid;
+    place-items: center;
+    color: #839087;
+    cursor: grab;
+    padding: 5px 1px;
   }
   .icon {
     border: 0;
@@ -330,6 +339,7 @@ export function SurveyBuilder() {
     ),
     [sections, setSections] = useState<Section[]>([]),
     [open, setOpen] = useState<Record<string, boolean>>({}),
+    [draggingSection, setDraggingSection] = useState<string | null>(null),
     [dragging, setDragging] = useState<{
       sectionId: string;
       questionId: string;
@@ -404,6 +414,19 @@ export function SurveyBuilder() {
       [copy[index], copy[to]] = [copy[to], copy[index]];
       return copy;
     });
+  const dropSection = (targetId: string) => {
+    if (!draggingSection || draggingSection === targetId) return;
+    setSections((current) => {
+      const copy = [...current],
+        from = copy.findIndex((section) => section.id === draggingSection),
+        to = copy.findIndex((section) => section.id === targetId);
+      if (from < 0 || to < 0) return current;
+      const [item] = copy.splice(from, 1);
+      copy.splice(to, 0, item);
+      return copy;
+    });
+    setDraggingSection(null);
+  };
   const updateSection = (id: string, fn: (section: Section) => Section) =>
     setSections((s) => s.map((x) => (x.id === id ? fn(x) : x)));
   const duplicateQuestion = (sectionId: string, question: Question) =>
@@ -616,14 +639,31 @@ export function SurveyBuilder() {
           <h2>3. Структура опроса</h2>
           <p className="hint">
             {sections.length
-              ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте вопросы за значок слева или используйте стрелки.`
+              ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
               : "Добавьте подтверждённую методику или создайте собственный тест."}
           </p>
           <Stack>
             {sections.map((section, index) => (
-              <SectionCard key={section.id}>
+              <SectionCard
+                key={section.id}
+                $dragging={draggingSection === section.id}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => dropSection(section.id)}
+              >
                 <div className="section-head">
-                  <GripVertical size={17} />
+                  <span
+                    className="section-drag"
+                    draggable
+                    title="Перетащить тест"
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData("text/plain", section.id);
+                      setDraggingSection(section.id);
+                    }}
+                    onDragEnd={() => setDraggingSection(null)}
+                  >
+                    <GripVertical size={17} />
+                  </span>
                   <div className="section-name">
                     <b>{section.title}</b>
                     <span>
@@ -690,19 +730,24 @@ export function SurveyBuilder() {
                         key={q.id}
                         $dragging={dragging?.questionId === q.id}
                         onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => dropQuestion(section.id, q.id)}
+                        onDrop={(event) => {
+                          event.stopPropagation();
+                          dropQuestion(section.id, q.id);
+                        }}
                       >
                         <div className="qhead">
                           <div className="qtitle">
                             <span
                               className="drag"
                               draggable
-                              onDragStart={() =>
+                              onDragStart={(event) => {
+                                event.dataTransfer.effectAllowed = "move";
+                                event.dataTransfer.setData("text/plain", q.id);
                                 setDragging({
                                   sectionId: section.id,
                                   questionId: q.id,
-                                })
-                              }
+                                });
+                              }}
                               onDragEnd={() => setDragging(null)}
                               title="Перетащить вопрос"
                             >
