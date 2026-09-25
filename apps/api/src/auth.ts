@@ -9,3 +9,4 @@ export function requireAuth(req:AuthRequest,res:Response,next:NextFunction) {
   try { req.user=jwt.verify(token,process.env.JWT_SECRET!) as AuthRequest['user']; next(); }
   catch { res.status(401).json({message:'Сессия истекла'}); }
 }
+export const requireRole=(...roles:string[])=>(req:AuthRequest,res:Response,next:NextFunction)=>requireAuth(req,res,()=>roles.includes(req.user!.role)?next():res.status(403).json({message:'Недостаточно прав'}));
