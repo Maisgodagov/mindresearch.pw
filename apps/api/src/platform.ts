@@ -4,6 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {db} from './db.js';
 import {requireAuth,signToken,type AuthRequest} from './auth.js';
+import {methodologies} from './scoring/methodologies.js';
 
 export const platformRouter=Router();
 const slugify=(input:string)=>input.toLowerCase().trim().replace(/[^a-z0-9а-яё]+/gi,'-').replace(/^-|-$/g,'').slice(0,90);
@@ -30,7 +31,9 @@ platformRouter.get('/public/profiles/:slug',async(req,res,next)=>{try{
 }catch(e){next(e)}});
 
 platformRouter.get('/account/instruments',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const[rows]=await db.query<any[]>(`SELECT i.id,i.code,i.title,i.description,i.is_verified isVerified,i.scoring_code scoringCode,COUNT(q.id) questionCount FROM instruments i LEFT JOIN instrument_questions q ON q.instrument_id=i.id WHERE i.status='active' AND (i.is_verified=TRUE OR i.owner_id=?) GROUP BY i.id ORDER BY i.is_verified DESC,i.title`,[req.user!.id]);res.json(rows);
+  const[rows]=await db.query<any[]>(`SELECT i.id,i.code,i.title,i.description,i.is_verified isVerified,i.scoring_code scoringCode,COUNT(q.id) questionCount FROM instruments i LEFT JOIN instrument_questions q ON q.instrument_id=i.id WHERE i.status='active' AND (i.is_verified=TRUE OR i.owner_id=?) GROUP BY i.id ORDER BY i.is_verified DESC,i.title`,[req.user!.id]);
+  const authors:Record<string,string>={test_1:'Gregory Zimet, Nancy Dahlem, Sara Zimet, Gordon Farley',test_2:'В. И. Моросанова, Н. Г. Кондратюк',test_3:'Jennifer Campbell и соавторы',test_4:'David Moscovitch, Keith Huyder',test_5:'David Garner, Marion Olmsted, Janet Polivy',test_6:'Tatjana van Strien и соавторы'};
+  res.json(rows.map(row=>({...row,author:authors[row.code]??null,methodology:methodologies[row.code]??null})));
 }catch(e){next(e)}});
 
 const optionSchema=z.object({value:z.string().min(1).max(120),label:z.string().trim().min(1).max(500)});
