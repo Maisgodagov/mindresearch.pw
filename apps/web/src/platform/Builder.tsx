@@ -1,14 +1,946 @@
-import{useEffect,useMemo,useState}from'react';import{useNavigate}from'react-router-dom';import styled from'styled-components';import{ArrowDown,ArrowUp,CheckCircle2,ChevronDown,ChevronUp,Copy,ExternalLink,GripVertical,Info,Plus,ShieldCheck,Trash2}from'lucide-react';import{api}from'../api';import{Button,Card,GhostButton}from'../ui';import{MethodologyModal,type Methodology}from'../MethodologyModal';import{demoInstruments,demoMethodologies}from'./demo';import{PlatformLayout}from'./Layout';
-type Instrument={id:string;code?:string;title:string;description:string;questionCount:number;isVerified:boolean;scoringCode?:string;author?:string};type Option={value:string;label:string};type Question={id:string;text:string;type:'single'|'multiple'|'text'|'number';required:boolean;options:Option[]};type Section={id:string;kind:'library'|'custom';instrumentId?:string;title:string;questionCount?:number;questions?:Question[];isVerified?:boolean};
-const Header=styled.div`margin-bottom:24px;h1{font:500 clamp(32px,5vw,44px) Georgia,serif;color:#304a38;margin:0 0 8px}p{color:#738077}`;const Columns=styled.div`display:grid;grid-template-columns:minmax(300px,.85fr) minmax(380px,1.15fr);gap:18px;align-items:start;@media(max-width:900px){grid-template-columns:1fr}`;
-const Panel=styled(Card)`padding:23px;border-radius:21px;h2{font:600 20px Georgia,serif;margin:0 0 7px;color:#354e3c}.hint{font-size:12px;color:#7c8880;line-height:1.5}.field{margin-top:15px}label{display:block;font-size:12px;font-weight:700;color:#65736a;margin-bottom:6px}input,textarea,select{width:100%;padding:12px;border:1px solid #d7e0d5;border-radius:11px;background:#fff;outline:none}textarea{min-height:92px;resize:vertical}`;
-const Library=styled.div`display:grid;gap:11px;margin-top:16px;.item{border:1px solid #dce5da;border-radius:16px;padding:16px;background:linear-gradient(145deg,#fff,#fafcf9);transition:.18s}.item:hover{border-color:#b9cbb9;box-shadow:0 10px 28px rgba(51,75,58,.07)}.top{display:flex;justify-content:space-between;gap:10px}.title{font-weight:750;color:#3d5544}.verified{color:#52745b;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap}.author{font-size:11px;color:#68776d;margin-top:6px}.description{font-size:12px;color:#78847c;line-height:1.5;margin:9px 0}.bottom{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#89948c;flex-wrap:wrap}.links{display:flex;gap:5px}.more,.source{border:0;background:transparent;color:#526f5b;padding:7px;display:flex;align-items:center;gap:4px;font-weight:650}.add{border:0;background:#e5eee2;color:#46614e;border-radius:9px;padding:8px 11px;font-weight:700}`;
-const Stack=styled.div`display:grid;gap:10px;margin-top:15px`;const SectionCard=styled.div`border:1px solid #dce5da;border-radius:15px;background:#fff;overflow:hidden;.section-head{padding:13px;display:flex;align-items:center;gap:9px}.section-name{flex:1}.section-name b{display:block;color:#3b5242}.section-name span{font-size:11px;color:#819087}.icon{border:0;background:transparent;color:#75847a;padding:5px}.body{padding:0 14px 14px;border-top:1px solid #edf1ec}`;
-const QuestionBox=styled.div<{$dragging?:boolean}>`padding:13px;margin:9px 0;border:1px solid #e2e9e0;border-radius:13px;background:#fcfdfb;opacity:${p=>p.$dragging?.45:1};transition:.15s;.qhead{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px}.qtitle{display:flex;align-items:center;gap:7px}.drag{display:grid;place-items:center;color:#8b978e;cursor:grab}.qactions{display:flex;gap:2px}.qgrid{display:grid;grid-template-columns:1fr 150px;gap:8px}@media(max-width:560px){.qgrid{grid-template-columns:1fr}}.options{display:grid;gap:6px;margin-top:8px}.option{display:flex;gap:6px}.option input{padding:9px}.tiny{border:0;background:transparent;color:#687970;font-size:12px;padding:5px;display:inline-flex;align-items:center;gap:4px}.required{display:flex;align-items:center;gap:6px;font-size:11px;color:#718078;margin-top:8px}.required input{width:auto}`;
-const Footer=styled.div`display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;.actions{display:flex;gap:9px}.error{color:#a05252;font-size:13px}`;
-const makeQuestion=():Question=>({id:crypto.randomUUID(),text:'',type:'single',required:true,options:[{value:'1',label:''},{value:'2',label:''}]});
-const originalSourceIndex:Record<string,number>={test_1:2,test_2:1,test_3:1,test_4:0,test_5:2,test_6:2};
-export function SurveyBuilder(){const nav=useNavigate();const[instruments,setInstruments]=useState<Instrument[]>([]),[methodologies,setMethodologies]=useState<Record<string,Methodology>>({}),[activeMethodology,setActiveMethodology]=useState<Methodology|null>(null),[sections,setSections]=useState<Section[]>([]),[open,setOpen]=useState<Record<string,boolean>>({}),[dragging,setDragging]=useState<{sectionId:string;questionId:string}|null>(null),[saving,setSaving]=useState(false),[error,setError]=useState('');const[meta,setMeta]=useState({title:'',description:'',welcomeTitle:'Спасибо, что решили принять участие',welcomeText:'Здесь нет правильных или неправильных ответов — важен ваш личный опыт.',status:'draft' as 'draft'|'active',showAuthor:true});useEffect(()=>{Promise.all([api.get('/account/instruments'),api.get('/admin/methodologies')]).then(([i,m])=>{setInstruments(i.data);setMethodologies(m.data)}).catch(()=>{if(import.meta.env.DEV){setInstruments(demoInstruments);setMethodologies(demoMethodologies)}})},[]);
-const count=useMemo(()=>sections.reduce((sum,s)=>sum+(s.questionCount??s.questions?.length??0),0),[sections]);const addInstrument=(i:Instrument)=>{if(sections.some(s=>s.instrumentId===i.id))return;setSections(s=>[...s,{id:crypto.randomUUID(),kind:'library',instrumentId:i.id,title:i.title,questionCount:i.questionCount,isVerified:i.isVerified}])};const addCustom=()=>{const id=crypto.randomUUID();setSections(s=>[...s,{id,kind:'custom',title:'Свой блок вопросов',questions:[makeQuestion()]}]);setOpen(o=>({...o,[id]:true}))};const move=(index:number,delta:number)=>setSections(s=>{const copy=[...s],to=index+delta;if(to<0||to>=copy.length)return s;[copy[index],copy[to]]=[copy[to],copy[index]];return copy});const updateSection=(id:string,fn:(section:Section)=>Section)=>setSections(s=>s.map(x=>x.id===id?fn(x):x));const duplicateQuestion=(sectionId:string,question:Question)=>updateSection(sectionId,s=>{const questions=[...(s.questions??[])],index=questions.findIndex(x=>x.id===question.id),copy={...question,id:crypto.randomUUID(),options:question.options.map(option=>({...option}))};questions.splice(index+1,0,copy);return{...s,questions}});const moveQuestion=(sectionId:string,index:number,delta:number)=>updateSection(sectionId,s=>{const questions=[...(s.questions??[])],to=index+delta;if(to<0||to>=questions.length)return s;[questions[index],questions[to]]=[questions[to],questions[index]];return{...s,questions}});const dropQuestion=(sectionId:string,targetId:string)=>{if(!dragging||dragging.sectionId!==sectionId||dragging.questionId===targetId)return;updateSection(sectionId,s=>{const questions=[...(s.questions??[])],from=questions.findIndex(x=>x.id===dragging.questionId),to=questions.findIndex(x=>x.id===targetId);if(from<0||to<0)return s;const[item]=questions.splice(from,1);questions.splice(to,0,item);return{...s,questions}});setDragging(null)};
-async function submit(){if(!meta.title.trim()||!sections.length){setError('Укажите название и добавьте хотя бы один блок.');return}for(const section of sections)if(section.kind==='custom'&&section.questions?.some(q=>!q.text.trim()||((q.type==='single'||q.type==='multiple')&&q.options.some(o=>!o.label.trim())))){setError('Заполните тексты вопросов и варианты ответов.');return}setSaving(true);setError('');const payload={...meta,sections:sections.map(s=>s.kind==='library'?{kind:'library',instrumentId:s.instrumentId}:{kind:'custom',title:s.title,description:'',questions:s.questions?.map(q=>({text:q.text,type:q.type,required:q.required,options:(q.type==='single'||q.type==='multiple')?q.options:undefined}))})};try{await api.post('/account/surveys',payload);nav('/app')}catch(err:any){if(import.meta.env.DEV){nav('/app');return}setError(err.response?.data?.message??'Не удалось создать опрос')}finally{setSaving(false)}}
-return <PlatformLayout><Header><h1>Новый опрос</h1><p>Соберите исследование из проверенных методик и собственных вопросов. Порядок блоков и вопросов можно менять в любой момент.</p></Header><Columns><div><Panel><h2>1. Основная информация</h2><div className="field"><label>Название опроса</label><input value={meta.title} onChange={e=>setMeta({...meta,title:e.target.value})} placeholder="Например, исследование самочувствия"/></div><div className="field"><label>Короткое описание</label><textarea value={meta.description} onChange={e=>setMeta({...meta,description:e.target.value})}/></div><div className="field"><label>Заголовок приветствия</label><input value={meta.welcomeTitle} onChange={e=>setMeta({...meta,welcomeTitle:e.target.value})}/></div><div className="field"><label>Текст перед началом</label><textarea value={meta.welcomeText} onChange={e=>setMeta({...meta,welcomeText:e.target.value})}/></div></Panel><Panel style={{marginTop:14}}><h2>2. Добавьте блоки</h2><p className="hint">Подтверждённые методики защищены от изменений и автоматически рассчитывают результат. Перед добавлением можно изучить описание, ключ и первоисточник.</p><Library>{instruments.map(i=>{const code=i.code??i.scoringCode??'',methodology=methodologies[code],source=methodology?.sources?.[originalSourceIndex[code]??0]??methodology?.sources?.[0];return <div className="item" key={i.id}><div className="top"><span className="title">{i.title}</span>{i.isVerified&&<span className="verified"><ShieldCheck size={13}/> Подтверждён</span>}</div>{i.author&&<div className="author">Авторы оригинальной методики: {i.author}</div>}<div className="description">{i.description}</div><div className="bottom"><span>{i.questionCount} вопросов · автоматический расчёт</span><div className="links">{methodology&&<button className="more" onClick={()=>setActiveMethodology(methodology)}><Info size={13}/> О методике</button>}{source&&<a className="source" href={source.url} target="_blank" rel="noreferrer">Первоисточник <ExternalLink size={12}/></a>}<button className="add" disabled={sections.some(s=>s.instrumentId===i.id)} onClick={()=>addInstrument(i)}>{sections.some(s=>s.instrumentId===i.id)?'Добавлен':'+ Добавить'}</button></div></div></div>})}</Library><GhostButton style={{width:'100%',marginTop:12}} onClick={addCustom}><Plus size={16}/> Создать собственный тест</GhostButton></Panel></div><Panel><h2>3. Структура опроса</h2><p className="hint">{sections.length?`${sections.length} блоков · ${count} вопросов. Перетаскивайте вопросы за значок слева или используйте стрелки.`:'Добавьте подтверждённую методику или создайте собственный тест.'}</p><Stack>{sections.map((section,index)=><SectionCard key={section.id}><div className="section-head"><GripVertical size={17}/><div className="section-name"><b>{section.title}</b><span>{section.kind==='library'?'Подтверждённая методика · автоматический расчёт':`${section.questions?.length??0} собственных вопросов · без автоматического расчёта`}</span></div><button className="icon" aria-label="Переместить блок выше" onClick={()=>move(index,-1)}><ArrowUp size={15}/></button><button className="icon" aria-label="Переместить блок ниже" onClick={()=>move(index,1)}><ArrowDown size={15}/></button>{section.kind==='custom'&&<button className="icon" aria-label="Развернуть блок" onClick={()=>setOpen(o=>({...o,[section.id]:!o[section.id]}))}>{open[section.id]?<ChevronUp size={16}/>:<ChevronDown size={16}/>}</button>}<button className="icon" aria-label="Удалить блок" onClick={()=>setSections(s=>s.filter(x=>x.id!==section.id))}><Trash2 size={15}/></button></div>{section.kind==='custom'&&open[section.id]&&<div className="body"><div className="field"><label>Название собственного теста или блока</label><input value={section.title} onChange={e=>updateSection(section.id,s=>({...s,title:e.target.value}))}/></div>{section.questions?.map((q,qi)=><QuestionBox key={q.id} $dragging={dragging?.questionId===q.id} onDragOver={e=>e.preventDefault()} onDrop={()=>dropQuestion(section.id,q.id)}><div className="qhead"><div className="qtitle"><span className="drag" draggable onDragStart={()=>setDragging({sectionId:section.id,questionId:q.id})} onDragEnd={()=>setDragging(null)} title="Перетащить вопрос"><GripVertical size={16}/></span><b>Вопрос {qi+1}</b></div><div className="qactions"><button className="tiny" aria-label="Выше" onClick={()=>moveQuestion(section.id,qi,-1)}><ArrowUp size={14}/></button><button className="tiny" aria-label="Ниже" onClick={()=>moveQuestion(section.id,qi,1)}><ArrowDown size={14}/></button><button className="tiny" onClick={()=>duplicateQuestion(section.id,q)}><Copy size={14}/> Копировать</button><button className="tiny" onClick={()=>updateSection(section.id,s=>({...s,questions:s.questions?.filter(x=>x.id!==q.id)}))}><Trash2 size={14}/></button></div></div><div className="qgrid"><input value={q.text} onChange={e=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,text:e.target.value}:x)}))} placeholder="Текст вопроса"/><select value={q.type} onChange={e=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,type:e.target.value as Question['type'],options:(e.target.value==='single'||e.target.value==='multiple')?(x.options.length?x.options:[{value:'1',label:''},{value:'2',label:''}]):[]}:x)}))}><option value="single">Один вариант</option><option value="multiple">Несколько вариантов</option><option value="text">Текст</option><option value="number">Число</option></select></div>{(q.type==='single'||q.type==='multiple')&&<div className="options">{q.options.map((option,oi)=><div className="option" key={option.value}><input value={option.label} onChange={e=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,options:x.options.map((o,i)=>i===oi?{...o,label:e.target.value}:o)}:x)}))} placeholder={`Вариант ${oi+1}`}/>{q.options.length>2&&<button className="tiny" onClick={()=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,options:x.options.filter((_,i)=>i!==oi)}:x)}))}><Trash2 size={14}/></button>}</div>)}<button className="tiny" onClick={()=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,options:[...x.options,{value:String(x.options.length+1),label:''}]}:x)}))}>+ Вариант ответа</button></div>}<label className="required"><input type="checkbox" checked={q.required} onChange={e=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,required:e.target.checked}:x)}))}/> Обязательный вопрос</label></QuestionBox>)}<button className="tiny" onClick={()=>updateSection(section.id,s=>({...s,questions:[...(s.questions??[]),makeQuestion()]}))}><Plus size={13}/> Добавить вопрос</button></div>}</SectionCard>)}</Stack><Footer><label><input type="checkbox" checked={meta.status==='active'} onChange={e=>setMeta({...meta,status:e.target.checked?'active':'draft'})}/> Сразу опубликовать</label><div className="actions"><Button disabled={saving} onClick={submit}>{saving?'Сохраняем…':'Создать опрос'} <CheckCircle2 size={16}/></Button></div></Footer>{error&&<p className="error">{error}</p>}</Panel></Columns>{activeMethodology&&<MethodologyModal methodology={activeMethodology} onClose={()=>setActiveMethodology(null)}/>}</PlatformLayout>}
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  GripVertical,
+  Info,
+  Plus,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
+import { api } from "../api";
+import { Button, Card, GhostButton } from "../ui";
+import { MethodologyModal, type Methodology } from "../MethodologyModal";
+import { demoInstruments, demoMethodologies } from "./demo";
+import { PlatformLayout } from "./Layout";
+type Instrument = {
+  id: string;
+  code?: string;
+  title: string;
+  description: string;
+  questionCount: number;
+  isVerified: boolean;
+  scoringCode?: string;
+  author?: string;
+};
+type Option = { value: string; label: string };
+type Question = {
+  id: string;
+  text: string;
+  type: "single" | "multiple" | "text" | "number";
+  required: boolean;
+  options: Option[];
+};
+type Section = {
+  id: string;
+  kind: "library" | "custom";
+  instrumentId?: string;
+  title: string;
+  questionCount?: number;
+  questions?: Question[];
+  isVerified?: boolean;
+};
+const Header = styled.div`
+  margin-bottom: 24px;
+  h1 {
+    font:
+      500 clamp(32px, 5vw, 44px) Georgia,
+      serif;
+    color: #304a38;
+    margin: 0 0 8px;
+  }
+  p {
+    color: #738077;
+  }
+`;
+const Columns = styled.div`
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(380px, 1.15fr);
+  gap: 18px;
+  align-items: start;
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+const Panel = styled(Card)`
+  padding: 23px;
+  border-radius: 21px;
+  h2 {
+    font:
+      600 20px Georgia,
+      serif;
+    margin: 0 0 7px;
+    color: #354e3c;
+  }
+  .hint {
+    font-size: 12px;
+    color: #7c8880;
+    line-height: 1.5;
+  }
+  .field {
+    margin-top: 15px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #65736a;
+    margin-bottom: 6px;
+  }
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d7e0d5;
+    border-radius: 11px;
+    background: #fff;
+    outline: none;
+  }
+  textarea {
+    min-height: 92px;
+    resize: vertical;
+  }
+`;
+const Library = styled.div`
+  display: grid;
+  gap: 11px;
+  margin-top: 16px;
+  .item {
+    border: 1px solid #dce5da;
+    border-radius: 16px;
+    padding: 16px;
+    background: linear-gradient(145deg, #fff, #fafcf9);
+    transition: 0.18s;
+  }
+  .item:hover {
+    border-color: #b9cbb9;
+    box-shadow: 0 10px 28px rgba(51, 75, 58, 0.07);
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .title {
+    font-weight: 750;
+    color: #3d5544;
+  }
+  .verified {
+    color: #52745b;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .author {
+    font-size: 11px;
+    color: #68776d;
+    margin-top: 6px;
+  }
+  .description {
+    font-size: 12px;
+    color: #78847c;
+    line-height: 1.5;
+    margin: 9px 0;
+  }
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #89948c;
+    flex-wrap: wrap;
+  }
+  .links {
+    display: flex;
+    gap: 5px;
+  }
+  .more {
+    border: 0;
+    background: transparent;
+    color: #526f5b;
+    padding: 7px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 650;
+  }
+  .add {
+    border: 0;
+    background: #e5eee2;
+    color: #46614e;
+    border-radius: 9px;
+    padding: 8px 11px;
+    font-weight: 700;
+  }
+`;
+const Stack = styled.div`
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+`;
+const SectionCard = styled.div`
+  border: 1px solid #dce5da;
+  border-radius: 15px;
+  background: #fff;
+  overflow: hidden;
+  .section-head {
+    padding: 13px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .section-name {
+    flex: 1;
+  }
+  .section-name b {
+    display: block;
+    color: #3b5242;
+  }
+  .section-name span {
+    font-size: 11px;
+    color: #819087;
+  }
+  .icon {
+    border: 0;
+    background: transparent;
+    color: #75847a;
+    padding: 5px;
+  }
+  .body {
+    padding: 0 14px 14px;
+    border-top: 1px solid #edf1ec;
+  }
+`;
+const QuestionBox = styled.div<{ $dragging?: boolean }>`
+  padding: 13px;
+  margin: 9px 0;
+  border: 1px solid #e2e9e0;
+  border-radius: 13px;
+  background: #fcfdfb;
+  opacity: ${(p) => (p.$dragging ? 0.45 : 1)};
+  transition: 0.15s;
+  .qhead {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 9px;
+  }
+  .qtitle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .drag {
+    display: grid;
+    place-items: center;
+    color: #8b978e;
+    cursor: grab;
+  }
+  .qactions {
+    display: flex;
+    gap: 2px;
+  }
+  .qgrid {
+    display: grid;
+    grid-template-columns: 1fr 150px;
+    gap: 8px;
+  }
+  @media (max-width: 560px) {
+    .qgrid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .options {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .option {
+    display: flex;
+    gap: 6px;
+  }
+  .option input {
+    padding: 9px;
+  }
+  .tiny {
+    border: 0;
+    background: transparent;
+    color: #687970;
+    font-size: 12px;
+    padding: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .required {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #718078;
+    margin-top: 8px;
+  }
+  .required input {
+    width: auto;
+  }
+`;
+const Footer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  .actions {
+    display: flex;
+    gap: 9px;
+  }
+  .error {
+    color: #a05252;
+    font-size: 13px;
+  }
+`;
+const makeQuestion = (): Question => ({
+  id: crypto.randomUUID(),
+  text: "",
+  type: "single",
+  required: true,
+  options: [
+    { value: "1", label: "" },
+    { value: "2", label: "" },
+  ],
+});
+export function SurveyBuilder() {
+  const nav = useNavigate();
+  const [instruments, setInstruments] = useState<Instrument[]>([]),
+    [methodologies, setMethodologies] = useState<Record<string, Methodology>>(
+      {},
+    ),
+    [activeMethodology, setActiveMethodology] = useState<Methodology | null>(
+      null,
+    ),
+    [sections, setSections] = useState<Section[]>([]),
+    [open, setOpen] = useState<Record<string, boolean>>({}),
+    [dragging, setDragging] = useState<{
+      sectionId: string;
+      questionId: string;
+    } | null>(null),
+    [saving, setSaving] = useState(false),
+    [error, setError] = useState("");
+  const [meta, setMeta] = useState({
+    title: "",
+    description: "",
+    welcomeTitle: "Спасибо, что решили принять участие",
+    welcomeText:
+      "Здесь нет правильных или неправильных ответов — важен ваш личный опыт.",
+    status: "draft" as "draft" | "active",
+    showAuthor: true,
+  });
+  useEffect(() => {
+    Promise.all([
+      api.get("/account/instruments"),
+      api.get("/admin/methodologies"),
+    ])
+      .then(([i, m]) => {
+        setInstruments(i.data);
+        setMethodologies(m.data);
+      })
+      .catch(() => {
+        if (import.meta.env.DEV) {
+          setInstruments(demoInstruments);
+          setMethodologies(demoMethodologies);
+        }
+      });
+  }, []);
+  const count = useMemo(
+    () =>
+      sections.reduce(
+        (sum, s) => sum + (s.questionCount ?? s.questions?.length ?? 0),
+        0,
+      ),
+    [sections],
+  );
+  const addInstrument = (i: Instrument) => {
+    if (sections.some((s) => s.instrumentId === i.id)) return;
+    setSections((s) => [
+      ...s,
+      {
+        id: crypto.randomUUID(),
+        kind: "library",
+        instrumentId: i.id,
+        title: i.title,
+        questionCount: i.questionCount,
+        isVerified: i.isVerified,
+      },
+    ]);
+  };
+  const addCustom = () => {
+    const id = crypto.randomUUID();
+    setSections((s) => [
+      ...s,
+      {
+        id,
+        kind: "custom",
+        title: "Свой блок вопросов",
+        questions: [makeQuestion()],
+      },
+    ]);
+    setOpen((o) => ({ ...o, [id]: true }));
+  };
+  const move = (index: number, delta: number) =>
+    setSections((s) => {
+      const copy = [...s],
+        to = index + delta;
+      if (to < 0 || to >= copy.length) return s;
+      [copy[index], copy[to]] = [copy[to], copy[index]];
+      return copy;
+    });
+  const updateSection = (id: string, fn: (section: Section) => Section) =>
+    setSections((s) => s.map((x) => (x.id === id ? fn(x) : x)));
+  const duplicateQuestion = (sectionId: string, question: Question) =>
+    updateSection(sectionId, (s) => {
+      const questions = [...(s.questions ?? [])],
+        index = questions.findIndex((x) => x.id === question.id),
+        copy = {
+          ...question,
+          id: crypto.randomUUID(),
+          options: question.options.map((option) => ({ ...option })),
+        };
+      questions.splice(index + 1, 0, copy);
+      return { ...s, questions };
+    });
+  const moveQuestion = (sectionId: string, index: number, delta: number) =>
+    updateSection(sectionId, (s) => {
+      const questions = [...(s.questions ?? [])],
+        to = index + delta;
+      if (to < 0 || to >= questions.length) return s;
+      [questions[index], questions[to]] = [questions[to], questions[index]];
+      return { ...s, questions };
+    });
+  const dropQuestion = (sectionId: string, targetId: string) => {
+    if (
+      !dragging ||
+      dragging.sectionId !== sectionId ||
+      dragging.questionId === targetId
+    )
+      return;
+    updateSection(sectionId, (s) => {
+      const questions = [...(s.questions ?? [])],
+        from = questions.findIndex((x) => x.id === dragging.questionId),
+        to = questions.findIndex((x) => x.id === targetId);
+      if (from < 0 || to < 0) return s;
+      const [item] = questions.splice(from, 1);
+      questions.splice(to, 0, item);
+      return { ...s, questions };
+    });
+    setDragging(null);
+  };
+  async function submit() {
+    if (!meta.title.trim() || !sections.length) {
+      setError("Укажите название и добавьте хотя бы один блок.");
+      return;
+    }
+    for (const section of sections)
+      if (
+        section.kind === "custom" &&
+        section.questions?.some(
+          (q) =>
+            !q.text.trim() ||
+            ((q.type === "single" || q.type === "multiple") &&
+              q.options.some((o) => !o.label.trim())),
+        )
+      ) {
+        setError("Заполните тексты вопросов и варианты ответов.");
+        return;
+      }
+    setSaving(true);
+    setError("");
+    const payload = {
+      ...meta,
+      sections: sections.map((s) =>
+        s.kind === "library"
+          ? { kind: "library", instrumentId: s.instrumentId }
+          : {
+              kind: "custom",
+              title: s.title,
+              description: "",
+              questions: s.questions?.map((q) => ({
+                text: q.text,
+                type: q.type,
+                required: q.required,
+                options:
+                  q.type === "single" || q.type === "multiple"
+                    ? q.options
+                    : undefined,
+              })),
+            },
+      ),
+    };
+    try {
+      await api.post("/account/surveys", payload);
+      nav("/app");
+    } catch (err: any) {
+      if (import.meta.env.DEV) {
+        nav("/app");
+        return;
+      }
+      setError(err.response?.data?.message ?? "Не удалось создать опрос");
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <PlatformLayout>
+      <Header>
+        <h1>Новый опрос</h1>
+        <p>
+          Соберите исследование из проверенных методик и собственных вопросов.
+          Порядок блоков и вопросов можно менять в любой момент.
+        </p>
+      </Header>
+      <Columns>
+        <div>
+          <Panel>
+            <h2>1. Основная информация</h2>
+            <div className="field">
+              <label>Название опроса</label>
+              <input
+                value={meta.title}
+                onChange={(e) => setMeta({ ...meta, title: e.target.value })}
+                placeholder="Например, исследование самочувствия"
+              />
+            </div>
+            <div className="field">
+              <label>Короткое описание</label>
+              <textarea
+                value={meta.description}
+                onChange={(e) =>
+                  setMeta({ ...meta, description: e.target.value })
+                }
+              />
+            </div>
+            <div className="field">
+              <label>Заголовок приветствия</label>
+              <input
+                value={meta.welcomeTitle}
+                onChange={(e) =>
+                  setMeta({ ...meta, welcomeTitle: e.target.value })
+                }
+              />
+            </div>
+            <div className="field">
+              <label>Текст перед началом</label>
+              <textarea
+                value={meta.welcomeText}
+                onChange={(e) =>
+                  setMeta({ ...meta, welcomeText: e.target.value })
+                }
+              />
+            </div>
+          </Panel>
+          <Panel style={{ marginTop: 14 }}>
+            <h2>2. Добавьте блоки</h2>
+            <p className="hint">
+              Подтверждённые методики защищены от изменений и автоматически
+              рассчитывают результат. Перед добавлением можно изучить описание,
+              ключ, нормативы и источники.
+            </p>
+            <Library>
+              {instruments.map((i) => {
+                const code = i.code ?? i.scoringCode ?? "",
+                  methodology = methodologies[code];
+                return (
+                  <div className="item" key={i.id}>
+                    <div className="top">
+                      <span className="title">{i.title}</span>
+                      {i.isVerified && (
+                        <span className="verified">
+                          <ShieldCheck size={13} /> Подтверждён
+                        </span>
+                      )}
+                    </div>
+                    {i.author && (
+                      <div className="author">
+                        Авторы оригинальной методики: {i.author}
+                      </div>
+                    )}
+                    <div className="description">{i.description}</div>
+                    <div className="bottom">
+                      <span>
+                        {i.questionCount} вопросов · автоматический расчёт
+                      </span>
+                      <div className="links">
+                        {methodology && (
+                          <button
+                            className="more"
+                            onClick={() => setActiveMethodology(methodology)}
+                          >
+                            <Info size={13} /> О методике
+                          </button>
+                        )}
+                        <button
+                          className="add"
+                          disabled={sections.some(
+                            (s) => s.instrumentId === i.id,
+                          )}
+                          onClick={() => addInstrument(i)}
+                        >
+                          {sections.some((s) => s.instrumentId === i.id)
+                            ? "Добавлен"
+                            : "+ Добавить"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </Library>
+            <GhostButton
+              style={{ width: "100%", marginTop: 12 }}
+              onClick={addCustom}
+            >
+              <Plus size={16} /> Создать собственный тест
+            </GhostButton>
+          </Panel>
+        </div>
+        <Panel>
+          <h2>3. Структура опроса</h2>
+          <p className="hint">
+            {sections.length
+              ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте вопросы за значок слева или используйте стрелки.`
+              : "Добавьте подтверждённую методику или создайте собственный тест."}
+          </p>
+          <Stack>
+            {sections.map((section, index) => (
+              <SectionCard key={section.id}>
+                <div className="section-head">
+                  <GripVertical size={17} />
+                  <div className="section-name">
+                    <b>{section.title}</b>
+                    <span>
+                      {section.kind === "library"
+                        ? "Подтверждённая методика · автоматический расчёт"
+                        : `${section.questions?.length ?? 0} собственных вопросов · без автоматического расчёта`}
+                    </span>
+                  </div>
+                  <button
+                    className="icon"
+                    aria-label="Переместить блок выше"
+                    onClick={() => move(index, -1)}
+                  >
+                    <ArrowUp size={15} />
+                  </button>
+                  <button
+                    className="icon"
+                    aria-label="Переместить блок ниже"
+                    onClick={() => move(index, 1)}
+                  >
+                    <ArrowDown size={15} />
+                  </button>
+                  {section.kind === "custom" && (
+                    <button
+                      className="icon"
+                      aria-label="Развернуть блок"
+                      onClick={() =>
+                        setOpen((o) => ({ ...o, [section.id]: !o[section.id] }))
+                      }
+                    >
+                      {open[section.id] ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    className="icon"
+                    aria-label="Удалить блок"
+                    onClick={() =>
+                      setSections((s) => s.filter((x) => x.id !== section.id))
+                    }
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+                {section.kind === "custom" && open[section.id] && (
+                  <div className="body">
+                    <div className="field">
+                      <label>Название собственного теста или блока</label>
+                      <input
+                        value={section.title}
+                        onChange={(e) =>
+                          updateSection(section.id, (s) => ({
+                            ...s,
+                            title: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    {section.questions?.map((q, qi) => (
+                      <QuestionBox
+                        key={q.id}
+                        $dragging={dragging?.questionId === q.id}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => dropQuestion(section.id, q.id)}
+                      >
+                        <div className="qhead">
+                          <div className="qtitle">
+                            <span
+                              className="drag"
+                              draggable
+                              onDragStart={() =>
+                                setDragging({
+                                  sectionId: section.id,
+                                  questionId: q.id,
+                                })
+                              }
+                              onDragEnd={() => setDragging(null)}
+                              title="Перетащить вопрос"
+                            >
+                              <GripVertical size={16} />
+                            </span>
+                            <b>Вопрос {qi + 1}</b>
+                          </div>
+                          <div className="qactions">
+                            <button
+                              className="tiny"
+                              aria-label="Выше"
+                              onClick={() => moveQuestion(section.id, qi, -1)}
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <button
+                              className="tiny"
+                              aria-label="Ниже"
+                              onClick={() => moveQuestion(section.id, qi, 1)}
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                            <button
+                              className="tiny"
+                              onClick={() => duplicateQuestion(section.id, q)}
+                            >
+                              <Copy size={14} /> Копировать
+                            </button>
+                            <button
+                              className="tiny"
+                              onClick={() =>
+                                updateSection(section.id, (s) => ({
+                                  ...s,
+                                  questions: s.questions?.filter(
+                                    (x) => x.id !== q.id,
+                                  ),
+                                }))
+                              }
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="qgrid">
+                          <input
+                            value={q.text}
+                            onChange={(e) =>
+                              updateSection(section.id, (s) => ({
+                                ...s,
+                                questions: s.questions?.map((x) =>
+                                  x.id === q.id
+                                    ? { ...x, text: e.target.value }
+                                    : x,
+                                ),
+                              }))
+                            }
+                            placeholder="Текст вопроса"
+                          />
+                          <select
+                            value={q.type}
+                            onChange={(e) =>
+                              updateSection(section.id, (s) => ({
+                                ...s,
+                                questions: s.questions?.map((x) =>
+                                  x.id === q.id
+                                    ? {
+                                        ...x,
+                                        type: e.target
+                                          .value as Question["type"],
+                                        options:
+                                          e.target.value === "single" ||
+                                          e.target.value === "multiple"
+                                            ? x.options.length
+                                              ? x.options
+                                              : [
+                                                  { value: "1", label: "" },
+                                                  { value: "2", label: "" },
+                                                ]
+                                            : [],
+                                      }
+                                    : x,
+                                ),
+                              }))
+                            }
+                          >
+                            <option value="single">Один вариант</option>
+                            <option value="multiple">
+                              Несколько вариантов
+                            </option>
+                            <option value="text">Текст</option>
+                            <option value="number">Число</option>
+                          </select>
+                        </div>
+                        {(q.type === "single" || q.type === "multiple") && (
+                          <div className="options">
+                            {q.options.map((option, oi) => (
+                              <div className="option" key={option.value}>
+                                <input
+                                  value={option.label}
+                                  onChange={(e) =>
+                                    updateSection(section.id, (s) => ({
+                                      ...s,
+                                      questions: s.questions?.map((x) =>
+                                        x.id === q.id
+                                          ? {
+                                              ...x,
+                                              options: x.options.map((o, i) =>
+                                                i === oi
+                                                  ? {
+                                                      ...o,
+                                                      label: e.target.value,
+                                                    }
+                                                  : o,
+                                              ),
+                                            }
+                                          : x,
+                                      ),
+                                    }))
+                                  }
+                                  placeholder={`Вариант ${oi + 1}`}
+                                />
+                                {q.options.length > 2 && (
+                                  <button
+                                    className="tiny"
+                                    onClick={() =>
+                                      updateSection(section.id, (s) => ({
+                                        ...s,
+                                        questions: s.questions?.map((x) =>
+                                          x.id === q.id
+                                            ? {
+                                                ...x,
+                                                options: x.options.filter(
+                                                  (_, i) => i !== oi,
+                                                ),
+                                              }
+                                            : x,
+                                        ),
+                                      }))
+                                    }
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            <button
+                              className="tiny"
+                              onClick={() =>
+                                updateSection(section.id, (s) => ({
+                                  ...s,
+                                  questions: s.questions?.map((x) =>
+                                    x.id === q.id
+                                      ? {
+                                          ...x,
+                                          options: [
+                                            ...x.options,
+                                            {
+                                              value: String(
+                                                x.options.length + 1,
+                                              ),
+                                              label: "",
+                                            },
+                                          ],
+                                        }
+                                      : x,
+                                  ),
+                                }))
+                              }
+                            >
+                              + Вариант ответа
+                            </button>
+                          </div>
+                        )}
+                        <label className="required">
+                          <input
+                            type="checkbox"
+                            checked={q.required}
+                            onChange={(e) =>
+                              updateSection(section.id, (s) => ({
+                                ...s,
+                                questions: s.questions?.map((x) =>
+                                  x.id === q.id
+                                    ? { ...x, required: e.target.checked }
+                                    : x,
+                                ),
+                              }))
+                            }
+                          />{" "}
+                          Обязательный вопрос
+                        </label>
+                      </QuestionBox>
+                    ))}
+                    <button
+                      className="tiny"
+                      onClick={() =>
+                        updateSection(section.id, (s) => ({
+                          ...s,
+                          questions: [...(s.questions ?? []), makeQuestion()],
+                        }))
+                      }
+                    >
+                      <Plus size={13} /> Добавить вопрос
+                    </button>
+                  </div>
+                )}
+              </SectionCard>
+            ))}
+          </Stack>
+          <Footer>
+            <label>
+              <input
+                type="checkbox"
+                checked={meta.status === "active"}
+                onChange={(e) =>
+                  setMeta({
+                    ...meta,
+                    status: e.target.checked ? "active" : "draft",
+                  })
+                }
+              />{" "}
+              Сразу опубликовать
+            </label>
+            <div className="actions">
+              <Button disabled={saving} onClick={submit}>
+                {saving ? "Сохраняем…" : "Создать опрос"}{" "}
+                <CheckCircle2 size={16} />
+              </Button>
+            </div>
+          </Footer>
+          {error && <p className="error">{error}</p>}
+        </Panel>
+      </Columns>
+      {activeMethodology && (
+        <MethodologyModal
+          methodology={activeMethodology}
+          onClose={() => setActiveMethodology(null)}
+        />
+      )}
+    </PlatformLayout>
+  );
+}
