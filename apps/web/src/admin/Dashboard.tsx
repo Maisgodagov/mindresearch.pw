@@ -7,6 +7,7 @@ import { api } from '../api';
 import { debqDescriptions, shoppDescriptions } from '../shoppDescriptions';
 import { Button, Card, Page } from '../ui';
 import { exportRespondents } from './exportResults';
+import { demoSurveys } from '../platform/demo';
 
 type SurveyRow={id:string;slug:string;title:string;responses:number;completed:number};
 type Answer={code:string;question:string;value:unknown;displayValue:string};
@@ -92,7 +93,7 @@ export function Dashboard(){
   const[updatingTrash,setUpdatingTrash]=useState(false);
   const[methodologies,setMethodologies]=useState<Record<string,Methodology>>({});
   const[activeMethodology,setActiveMethodology]=useState<Methodology|null>(null);
-  useEffect(()=>{api.get('/admin/surveys').then(async r=>{setSurveys(r.data);const target=r.data.find((s:SurveyRow)=>s.id===surveyId)??r.data[0];if(target){const x=await api.get(`/admin/surveys/${target.id}/results`);setResult(x.data)}}).catch(()=>nav('/login'))},[nav,surveyId]);
+  useEffect(()=>{api.get('/admin/surveys').then(async r=>{setSurveys(r.data);const target=r.data.find((s:SurveyRow)=>s.id===surveyId)??r.data[0];if(target){const x=await api.get(`/admin/surveys/${target.id}/results`);setResult(x.data)}}).catch(()=>{if(import.meta.env.DEV){setSurveys(demoSurveys);setResult(current=>({...current,sections:[{code:'test_1',title:'MSPSS',sectionKind:'verified'},{code:'test_2',title:'ССПМ-2011',sectionKind:'verified'},{code:'custom-demo',title:'Авторские вопросы',sectionKind:'custom'}]}))}else nav('/login')})},[nav,surveyId]);
   useEffect(()=>{api.get('/admin/methodologies').then(r=>setMethodologies(r.data)).catch(()=>{})},[]);
   const survey=surveys.find(s=>s.id===surveyId)??surveys[0];
   const questions=useMemo(()=>[...new Map(result.distribution.map(x=>[x.code,x.text])).entries()],[result]);
