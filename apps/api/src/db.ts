@@ -31,6 +31,7 @@ export async function migrate() {
   await ensureColumn('surveys','show_author','BOOLEAN NOT NULL DEFAULT TRUE');
   await ensureColumn('sections','source_instrument_id','CHAR(36) NULL');
   await ensureColumn('sections','section_kind',"ENUM('custom','verified') NOT NULL DEFAULT 'custom'");
+  await db.query("UPDATE users SET public_slug=CONCAT('user-', LEFT(REPLACE(id, '-', ''), 8)) WHERE public_slug IS NULL");
   const [deletedAtColumns]=await db.query<any[]>(`SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='response_sessions' AND COLUMN_NAME='deleted_at'`);
   if(!deletedAtColumns.length) await db.query(`ALTER TABLE response_sessions ADD COLUMN deleted_at TIMESTAMP NULL, ADD INDEX idx_deleted_at (deleted_at)`);
 }
