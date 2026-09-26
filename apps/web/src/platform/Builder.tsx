@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import Select from "react-select";
 import {
@@ -501,6 +501,7 @@ const makeQuestion = (): Question => ({
 });
 export function SurveyBuilder() {
   const nav = useNavigate();
+  const {surveyId}=useParams();
   const [instruments, setInstruments] = useState<Instrument[]>([]),
     [methodologies, setMethodologies] = useState<Record<string, Methodology>>(
       {},
@@ -511,7 +512,8 @@ export function SurveyBuilder() {
     [sections, setSections] = useState<Section[]>([]),
     [open, setOpen] = useState<Record<string, boolean>>({}),
     [saving, setSaving] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [structureLocked,setStructureLocked]=useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
@@ -548,7 +550,8 @@ export function SurveyBuilder() {
           setMethodologies(demoMethodologies);
         }
       });
-  }, []);
+    if(surveyId)api.get(`/account/surveys/${surveyId}`).then(({data})=>{setMeta({title:data.title,description:data.description??'',welcomeTitle:data.welcomeTitle,welcomeText:data.welcomeText,status:data.status,showAuthor:Boolean(data.showAuthor),resultPresentation:data.resultPresentation});setSections(data.sections.map((section:Section)=>({...section,useSharedOptions:false,sharedOptions:[{value:'1',label:''},{value:'2',label:''}]})));setOpen(Object.fromEntries(data.sections.filter((section:Section)=>section.kind==='custom').map((section:Section)=>[section.id,true])));setStructureLocked(Number(data.responseCount)>0)}).catch(()=>setError('Не удалось загрузить опрос.'));
+  }, [surveyId]);
   const count = useMemo(
     () =>
       sections.reduce(
@@ -685,7 +688,7 @@ export function SurveyBuilder() {
       ),
     };
     try {
-      await api.post("/account/surveys", payload);
+      if(surveyId)await api.put(`/account/surveys/${surveyId}`,payload);else await api.post("/account/surveys", payload);
       nav("/app");
     } catch (err: any) {
       if (import.meta.env.DEV) {
@@ -700,7 +703,7 @@ export function SurveyBuilder() {
   return (
     <PlatformLayout>
       <Header>
-        <h1>Новый опрос</h1>
+        <h1>{surveyId?'Редактирование опроса':'Новый опрос'}</h1>
         <p>
           Соберите исследование из проверенных методик и собственных вопросов.
           Порядок блоков и вопросов можно менять в любой момент.
@@ -769,6 +772,8 @@ export function SurveyBuilder() {
               рассчитывают результат. Перед добавлением можно изучить описание,
               ключ, нормативы и источники.
             </p>
+            {structureLocked&&<p className="hint" style={{padding:12,background:'#f4efe3',borderRadius:10,color:'#766847'}}>В опросе уже есть ответы, поэтому состав и порядок вопросов зафиксированы. Название, приветствие, профиль автора, публикацию и финальный экран можно редактировать.</p>}
+            <div style={structureLocked?{pointerEvents:'none',opacity:.55}:{}}>
             <Library>
               {instruments.map((i) => {
                 const code = i.code ?? i.scoringCode ?? "",
@@ -825,6 +830,7 @@ export function SurveyBuilder() {
             >
               <Plus size={16} /> Создать собственный тест
             </GhostButton>
+            </div>
           </Panel>
         </div>
         <Panel>
@@ -834,6 +840,7 @@ export function SurveyBuilder() {
               ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
               : "Добавьте подтверждённую методику или создайте собственный тест."}
           </p>
+          <div style={structureLocked?{pointerEvents:'none',opacity:.65}:{}}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -1251,6 +1258,7 @@ export function SurveyBuilder() {
               </Stack>
             </SortableContext>
           </DndContext>
+          </div>
           <Footer>
             <label>
               <input
@@ -1267,7 +1275,7 @@ export function SurveyBuilder() {
             </label>
             <div className="actions">
               <Button disabled={saving} onClick={submit}>
-                {saving ? "Сохраняем…" : "Создать опрос"}{" "}
+                {saving ? "Сохраняем…" : surveyId?"Сохранить изменения":"Создать опрос"}{" "}
                 <CheckCircle2 size={16} />
               </Button>
             </div>
