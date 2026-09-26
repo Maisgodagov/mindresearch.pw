@@ -19,9 +19,9 @@ platformRouter.post('/auth/register',async(req,res,next)=>{try{
   const user={id,email:body.email.toLowerCase(),name:body.name,role:'researcher',publicSlug,isProfilePublic:false},token=await createAuthSession(req,res,{id,role:'researcher'});res.status(201).json({token,user});
 }catch(e){next(e)}});
 
-platformRouter.get('/account/me',requireAuth,async(req:AuthRequest,res,next)=>{try{const[rows]=await db.query<any[]>('SELECT id,email,name,role,bio,avatar_seed avatarSeed,public_slug publicSlug,is_profile_public isProfilePublic,created_at createdAt FROM users WHERE id=?',[req.user!.id]);if(!rows.length)return res.status(404).json({message:'Профиль не найден'});res.json(rows[0])}catch(e){next(e)}});
+platformRouter.get('/account/me',requireAuth,async(req:AuthRequest,res,next)=>{try{const[rows]=await db.query<any[]>('SELECT id,email,name,role,bio,avatar_seed avatarSeed,public_slug publicSlug,is_profile_public isProfilePublic,created_at createdAt FROM users WHERE id=?',[req.user!.id]);if(!rows.length)return res.status(404).json({message:'Профиль не найден'});res.json({...rows[0],isProfilePublic:Boolean(rows[0].isProfilePublic)})}catch(e){next(e)}});
 platformRouter.patch('/account/me',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const body=z.object({name:z.string().trim().min(2).max(120),bio:z.string().max(3000).default(''),avatarSeed:z.string().trim().min(1).max(120).default('willow'),publicSlug:z.string().trim().min(3).max(120).regex(/^[a-z0-9-]+$/i),isProfilePublic:z.boolean()}).parse(req.body);
+  const body=z.object({name:z.string().trim().min(2).max(120),bio:z.string().max(3000).default(''),avatarSeed:z.string().trim().min(1).max(120).default('willow'),publicSlug:z.string().trim().min(3).max(120).regex(/^[a-z0-9-]+$/i),isProfilePublic:z.union([z.boolean(),z.literal(0),z.literal(1)]).transform(Boolean)}).parse(req.body);
   const[conflict]=await db.query<any[]>('SELECT id FROM users WHERE public_slug=? AND id<>?',[body.publicSlug,req.user!.id]);if(conflict.length)return res.status(409).json({message:'Этот адрес профиля уже занят'});
   await db.execute('UPDATE users SET name=?,bio=?,avatar_url=NULL,avatar_seed=?,public_slug=?,is_profile_public=? WHERE id=?',[body.name,body.bio,body.avatarSeed,body.publicSlug,body.isProfilePublic,req.user!.id]);res.json({ok:true});
 }catch(e){next(e)}});
