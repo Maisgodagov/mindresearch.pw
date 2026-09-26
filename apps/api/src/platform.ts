@@ -63,6 +63,13 @@ platformRouter.put('/account/surveys/:id',requireAuth,async(req:AuthRequest,res,
   await connection.commit();res.json({ok:true,structureLocked});
 }catch(e:any){if(connection)await connection.rollback();if(e?.status)return res.status(e.status).json({message:e.message});next(e)}finally{connection?.release()}});
 
+platformRouter.post('/account/surveys/:id/publish',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  const[surveys]=await db.query<any[]>(`SELECT s.id,COUNT(q.id) questionCount FROM surveys s LEFT JOIN sections sec ON sec.survey_id=s.id LEFT JOIN questions q ON q.section_id=sec.id WHERE s.id=? AND s.owner_id=? GROUP BY s.id`,[req.params.id,req.user!.id]);
+  if(!surveys.length)return res.status(404).json({message:'Опрос не найден'});
+  if(Number(surveys[0].questionCount)<1)return res.status(409).json({message:'Добавьте хотя бы один вопрос перед публикацией'});
+  await db.execute("UPDATE surveys SET status='active' WHERE id=?",[req.params.id]);res.json({ok:true,status:'active'});
+}catch(e){next(e)}});
+
 platformRouter.post('/account/surveys',requireAuth,async(req:AuthRequest,res,next)=>{let connection;try{
   const body=createSurveySchema.parse(req.body),slug=await uniqueSlug('surveys','slug',body.slug||body.title),surveyId=randomUUID();connection=await db.getConnection();await connection.beginTransaction();
   await connection.execute(`INSERT INTO surveys (id,owner_id,slug,title,welcome_title,welcome_text,status,settings,description,show_author) VALUES (?,?,?,?,?,?,?,?,?,?)`,[surveyId,req.user!.id,slug,body.title,body.welcomeTitle,body.welcomeText,body.status,JSON.stringify({showSectionTitles:false,resultPresentation:body.resultPresentation}),body.description,body.showAuthor]);
