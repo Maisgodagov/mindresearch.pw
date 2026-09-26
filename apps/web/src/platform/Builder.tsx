@@ -202,6 +202,24 @@ const Panel = styled(Card)`
     min-height: 92px;
     resize: vertical;
   }
+  input.invalid,
+  textarea.invalid {
+    border-color:#c96d67;
+    background:#fff8f7;
+    box-shadow:0 0 0 3px rgba(190,83,76,.12);
+  }
+  &.invalid-panel {
+    border-color:#c96d67;
+    box-shadow:0 0 0 3px rgba(190,83,76,.1),0 20px 60px rgba(48,70,54,.08);
+  }
+  > .error {
+    margin:14px 0 0;
+    padding:11px 13px;
+    border-radius:11px;
+    background:#fff0ee;
+    color:#9b4e49;
+    font-size:13px;
+  }
 `;
 const SurveyBasics = styled.div`
   display: grid;
@@ -269,6 +287,8 @@ const PreviewCard = styled.div`
   }
   .preview-title:focus,
   .preview-copy:focus { outline: none; background: #f4f7f1; box-shadow: 0 0 0 6px #f4f7f1; }
+  .preview-title.invalid,
+  .preview-copy.invalid { background:#fff7f6; box-shadow:0 0 0 5px #fff0ee; color:#7d3834; }
   .mock-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; color: #7e8a82; font-size: 10px; }
   .mock-button { display: inline-flex; margin-top: 17px; padding: 9px 14px; border-radius: 10px; background: #56755f; color: white; font-size: 11px; font-weight: 750; }
   .preview-settings { padding: 11px 13px; border-top: 1px solid #e8ede6; background: #f5f8f3; }
@@ -781,6 +801,7 @@ export function SurveyBuilder() {
     [previewQuestions, setPreviewQuestions] = useState<PreviewQuestion[] | null>(null),
     [previewLoading, setPreviewLoading] = useState(false),
     [previewError, setPreviewError] = useState(""),
+    [invalidFields, setInvalidFields] = useState<string[]>([]),
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [structureLocked,setStructureLocked]=useState(false);
@@ -852,6 +873,7 @@ export function SurveyBuilder() {
         isVerified: i.isVerified,
       },
     ]);
+    setInvalidFields((current) => current.filter((key) => key !== "sections"));
   };
   const addCustom = () => {
     const id = crypto.randomUUID();
@@ -870,6 +892,7 @@ export function SurveyBuilder() {
       },
     ]);
     setOpen((o) => ({ ...o, [id]: true }));
+    setInvalidFields((current) => current.filter((key) => key !== "sections"));
   };
   const move = (index: number, delta: number) =>
     setSections((s) => {
@@ -889,6 +912,17 @@ export function SurveyBuilder() {
   };
   const updateSection = (id: string, fn: (section: Section) => Section) =>
     setSections((s) => s.map((x) => (x.id === id ? fn(x) : x)));
+  const clearInvalid = (key: string) =>
+    setInvalidFields((current) => current.filter((item) => item !== key));
+  const showValidation = (keys: string[], message: string) => {
+    setInvalidFields(keys);
+    setError(message);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>('[data-validation-error="true"]');
+      target?.scrollIntoView({behavior:"smooth",block:"center"});
+      window.setTimeout(() => target?.focus({preventScroll:true}), 350);
+    }));
+  };
   const openPreview = async () => {
     setPreviewLoading(true);
     setPreviewError("");
@@ -947,27 +981,28 @@ export function SurveyBuilder() {
     });
   };
   async function submit() {
-    if (!meta.title.trim() || !sections.length) {
-      setError("Укажите название и добавьте хотя бы один блок.");
+    const invalid:string[]=[];
+    if(meta.title.trim().length<2)invalid.push("title");
+    if(meta.welcomeTitle.trim().length<2)invalid.push("welcomeTitle");
+    if(meta.welcomeText.trim().length<2)invalid.push("welcomeText");
+    if(meta.resultPresentation.title.trim().length<2)invalid.push("resultTitle");
+    if(!sections.length)invalid.push("sections");
+    const invalidSections:string[]=[];
+    for(const section of sections)if(section.kind==="custom"){
+      if(!section.title.trim()){invalid.push(`section-${section.id}-title`);invalidSections.push(section.id)}
+      if(section.useSharedOptions)(section.sharedOptions??[]).forEach((option,index)=>{if(!option.label.trim()){invalid.push(`section-${section.id}-shared-${index}`);invalidSections.push(section.id)}});
+      section.questions?.forEach((question)=>{
+        if(!question.text.trim()){invalid.push(`question-${question.id}-text`);invalidSections.push(section.id)}
+        if((question.type==="single"||question.type==="multiple")&&!section.useSharedOptions)question.options.forEach((option,index)=>{if(!option.label.trim()){invalid.push(`question-${question.id}-option-${index}`);invalidSections.push(section.id)}});
+      });
+    }
+    if(invalid.length){
+      if(invalidSections.length)setOpen(current=>({...current,...Object.fromEntries(invalidSections.map(id=>[id,true]))}));
+      showValidation(invalid,invalid.includes("sections")?"Добавьте хотя бы одну методику или собственный тест.":"Заполните выделенные поля.");
       return;
     }
-    for (const section of sections)
-      if (
-        section.kind === "custom" &&
-        section.questions?.some(
-          (q) =>
-            !q.text.trim() ||
-            ((q.type === "single" || q.type === "multiple") &&
-              (section.useSharedOptions
-                ? section.sharedOptions
-                : q.options
-              )?.some((o) => !o.label.trim())),
-        )
-      ) {
-        setError("Заполните тексты вопросов и варианты ответов.");
-        return;
-      }
     setSaving(true);
+    setInvalidFields([]);
     setError("");
     const payload = {
       ...meta,
@@ -1039,7 +1074,7 @@ export function SurveyBuilder() {
             <SurveyBasics>
               <div className="field">
                 <label>Название опроса</label>
-                <input value={meta.title} onChange={(e)=>setMeta({...meta,title:e.target.value})} placeholder="Например, исследование самочувствия" />
+                <input className={invalidFields.includes("title")?"invalid":undefined} data-validation-error={invalidFields.includes("title")||undefined} value={meta.title} onChange={(e)=>{setMeta({...meta,title:e.target.value});clearInvalid("title")}} placeholder="Например, исследование самочувствия" />
               </div>
               <div className="field">
                 <label>Короткое описание в кабинете</label>
@@ -1051,8 +1086,8 @@ export function SurveyBuilder() {
                 <div className="preview-label"><span>Стартовый экран</span><span>Предпросмотр</span></div>
                 <div className="screen">
                   <span className="eyebrow">Анонимное исследование</span>
-                  <textarea className="preview-title" aria-label="Заголовок приветствия" value={meta.welcomeTitle} onChange={(e)=>setMeta({...meta,welcomeTitle:e.target.value})} placeholder="Заголовок приветствия" />
-                  <textarea className="preview-copy" aria-label="Текст перед началом" value={meta.welcomeText} onChange={(e)=>setMeta({...meta,welcomeText:e.target.value})} placeholder="Расскажите участнику об исследовании" />
+                  <textarea className={`preview-title${invalidFields.includes("welcomeTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeTitle")||undefined} aria-label="Заголовок приветствия" value={meta.welcomeTitle} onChange={(e)=>{setMeta({...meta,welcomeTitle:e.target.value});clearInvalid("welcomeTitle")}} placeholder="Заголовок приветствия" />
+                  <textarea className={`preview-copy${invalidFields.includes("welcomeText")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeText")||undefined} aria-label="Текст перед началом" value={meta.welcomeText} onChange={(e)=>{setMeta({...meta,welcomeText:e.target.value});clearInvalid("welcomeText")}} placeholder="Расскажите участнику об исследовании" />
                   <div className="mock-meta"><span>{count || 0} вопросов</span><span>Можно прерваться</span></div>
                   <span className="mock-button">Начать →</span>
                 </div>
@@ -1064,7 +1099,7 @@ export function SurveyBuilder() {
                 <div className="preview-label"><span>Финальный экран</span><span>Предпросмотр</span></div>
                 <div className="screen">
                   <span className="done"><CheckCircle2 size={13}/> Опрос завершён</span>
-                  <textarea className="preview-title" aria-label="Заголовок финального экрана" value={meta.resultPresentation.title} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}})} placeholder="Спасибо за ваши ответы" />
+                  <textarea className={`preview-title${invalidFields.includes("resultTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("resultTitle")||undefined} aria-label="Заголовок финального экрана" value={meta.resultPresentation.title} onChange={(e)=>{setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}});clearInvalid("resultTitle")}} placeholder="Спасибо за ваши ответы" />
                   <textarea className="preview-copy" aria-label="Сообщение после завершения" value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Ваши ответы сохранены" />
                 </div>
                 <div className="preview-settings">
@@ -1144,7 +1179,7 @@ export function SurveyBuilder() {
             </div>
           </Panel>
         </div>
-        <Panel className="structure-panel">
+        <Panel className={`structure-panel${invalidFields.includes("sections")?" invalid-panel":""}`} data-validation-error={invalidFields.includes("sections")||undefined} tabIndex={invalidFields.includes("sections")?-1:undefined}>
           <h2>Содержание опроса</h2>
           <p className="hint">
             {sections.length
@@ -1227,13 +1262,16 @@ export function SurveyBuilder() {
                                 Название собственного теста или блока
                               </label>
                               <input
+                                className={invalidFields.includes(`section-${section.id}-title`)?"invalid":undefined}
+                                data-validation-error={invalidFields.includes(`section-${section.id}-title`)||undefined}
                                 value={section.title}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                  clearInvalid(`section-${section.id}-title`);
                                   updateSection(section.id, (s) => ({
                                     ...s,
                                     title: e.target.value,
-                                  }))
-                                }
+                                  }));
+                                }}
                               />
                             </div>
                             <div className="field" style={{padding:"13px",background:"#f2f6f0",borderRadius:12}}>
@@ -1243,7 +1281,7 @@ export function SurveyBuilder() {
                               </label>
                               {section.useSharedOptions&&<div className="options" style={{marginTop:10}}>
                                 {(section.sharedOptions??[]).map((option,oi)=><div className="option" key={option.value}>
-                                  <input value={option.label} placeholder={`Вариант ${oi+1}`} onChange={(e)=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).map((item,index)=>index===oi?{...item,label:e.target.value}:item)}))}/>
+                                  <input className={invalidFields.includes(`section-${section.id}-shared-${oi}`)?"invalid":undefined} data-validation-error={invalidFields.includes(`section-${section.id}-shared-${oi}`)||undefined} value={option.label} placeholder={`Вариант ${oi+1}`} onChange={(e)=>{clearInvalid(`section-${section.id}-shared-${oi}`);updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).map((item,index)=>index===oi?{...item,label:e.target.value}:item)}))}}/>
                                   {(section.sharedOptions?.length??0)>2&&<button className="tiny" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).filter((_,index)=>index!==oi).map((item,index)=>({...item,value:String(index+1)}))}))}><Trash2 size={14}/></button>}
                                 </div>)}
                                 <button className="add-option" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:[...(s.sharedOptions??[]),{value:String((s.sharedOptions?.length??0)+1),label:""}]}))}><Plus size={14}/> Вариант ответа</button>
@@ -1320,8 +1358,11 @@ export function SurveyBuilder() {
                                         </div>
                                         <div className="qgrid">
                                           <input
+                                            className={invalidFields.includes(`question-${q.id}-text`)?"invalid":undefined}
+                                            data-validation-error={invalidFields.includes(`question-${q.id}-text`)||undefined}
                                             value={q.text}
-                                            onChange={(e) =>
+                                            onChange={(e) => {
+                                              clearInvalid(`question-${q.id}-text`);
                                               updateSection(
                                                 section.id,
                                                 (s) => ({
@@ -1337,8 +1378,8 @@ export function SurveyBuilder() {
                                                         : x,
                                                   ),
                                                 }),
-                                              )
-                                            }
+                                              );
+                                            }}
                                             placeholder="Текст вопроса"
                                           />
                                           <Select
@@ -1407,8 +1448,11 @@ export function SurveyBuilder() {
                                                 key={option.value}
                                               >
                                                 <input
+                                                  className={invalidFields.includes(`question-${q.id}-option-${oi}`)?"invalid":undefined}
+                                                  data-validation-error={invalidFields.includes(`question-${q.id}-option-${oi}`)||undefined}
                                                   value={option.label}
-                                                  onChange={(e) =>
+                                                  onChange={(e) => {
+                                                    clearInvalid(`question-${q.id}-option-${oi}`);
                                                     updateSection(
                                                       section.id,
                                                       (s) => ({
@@ -1440,8 +1484,8 @@ export function SurveyBuilder() {
                                                                 : x,
                                                           ),
                                                       }),
-                                                    )
-                                                  }
+                                                    );
+                                                  }}
                                                   placeholder={`Вариант ${oi + 1}`}
                                                 />
                                                 {q.options.length > 2 && (
