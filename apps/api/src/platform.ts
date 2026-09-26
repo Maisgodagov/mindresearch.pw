@@ -1,10 +1,11 @@
 import {Router} from 'express';
 import bcrypt from 'bcryptjs';
-import {randomUUID} from 'node:crypto';
+import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {db} from './db.js';
 import {createAuthSession,requireAuth,revokeAllUserSessions,type AuthRequest} from './auth.js';
 import {methodologies} from './scoring/methodologies.js';
+import {sendPasswordReset} from './mailer.js';
 
 export const platformRouter=Router();
 const transliteration:Record<string,string>={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
@@ -18,6 +19,20 @@ platformRouter.post('/auth/register',async(req,res,next)=>{try{
   await db.execute('INSERT INTO users (id,email,password_hash,name,role,public_slug) VALUES (?,?,?,?,\'researcher\',?)',[id,body.email.toLowerCase(),await bcrypt.hash(body.password,12),body.name,publicSlug]);
   const user={id,email:body.email.toLowerCase(),name:body.name,role:'researcher',publicSlug,isProfilePublic:false},token=await createAuthSession(req,res,{id,role:'researcher'});res.status(201).json({token,user});
 }catch(e){next(e)}});
+
+const resetHash=(token:string)=>createHash('sha256').update(token).digest('hex');
+const resetResponse={message:'Если аккаунт с такой почтой существует, мы отправили ссылку для смены пароля.'};
+platformRouter.post('/auth/forgot-password',async(req,res,next)=>{try{
+  const{email}=z.object({email:z.string().email().max(255)}).parse(req.body),normalized=email.toLowerCase();
+  const[users]=await db.query<any[]>('SELECT id,email FROM users WHERE email=?',[normalized]);if(!users.length)return res.json(resetResponse);
+  const[count]=await db.query<any[]>('SELECT COUNT(*) count FROM password_reset_tokens WHERE user_id=? AND requested_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)',[users[0].id]);if(Number(count[0].count)>=3)return res.json(resetResponse);
+  const token=randomBytes(32).toString('hex');await db.execute('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=? AND used_at IS NULL',[users[0].id]);await db.execute('INSERT INTO password_reset_tokens (id,user_id,token_hash,expires_at) VALUES (?,?,?,DATE_ADD(NOW(),INTERVAL 30 MINUTE))',[randomUUID(),users[0].id,resetHash(token)]);
+  try{await sendPasswordReset(users[0].email,token)}catch(error){console.error('Password reset email failed',error)}res.json(resetResponse);
+}catch(e){next(e)}});
+platformRouter.post('/auth/reset-password',async(req,res,next)=>{let connection;try{
+  const body=z.object({token:z.string().length(64),password:z.string().min(8).max(100)}).parse(req.body);connection=await db.getConnection();await connection.beginTransaction();const[rows]=await connection.query<any[]>('SELECT id,user_id userId FROM password_reset_tokens WHERE token_hash=? AND used_at IS NULL AND expires_at>NOW() FOR UPDATE',[resetHash(body.token)]);if(!rows.length){await connection.rollback();return res.status(400).json({message:'Ссылка недействительна или срок её действия истёк'});}
+  await connection.execute('UPDATE users SET password_hash=? WHERE id=?',[await bcrypt.hash(body.password,12),rows[0].userId]);await connection.execute('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=? AND used_at IS NULL',[rows[0].userId]);await connection.execute('UPDATE auth_sessions SET revoked_at=NOW() WHERE user_id=? AND revoked_at IS NULL',[rows[0].userId]);await connection.commit();res.json({ok:true});
+}catch(e){if(connection)await connection.rollback();next(e)}finally{connection?.release()}});
 
 platformRouter.get('/account/me',requireAuth,async(req:AuthRequest,res,next)=>{try{const[rows]=await db.query<any[]>('SELECT id,email,name,role,bio,avatar_seed avatarSeed,public_slug publicSlug,is_profile_public isProfilePublic,created_at createdAt FROM users WHERE id=?',[req.user!.id]);if(!rows.length)return res.status(404).json({message:'Профиль не найден'});res.json({...rows[0],isProfilePublic:Boolean(rows[0].isProfilePublic)})}catch(e){next(e)}});
 platformRouter.patch('/account/me',requireAuth,async(req:AuthRequest,res,next)=>{try{

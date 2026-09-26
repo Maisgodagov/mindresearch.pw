@@ -15,12 +15,13 @@ import{SuggestInstrument}from'./platform/SuggestInstrument';
 import{ReviewInstruments}from'./platform/ReviewInstruments';
 import{AuthGuard}from'./platform/AuthGuard';
 import{PlatformLayout}from'./platform/Layout';
+import{ForgotPassword,ResetPassword}from'./platform/PasswordReset';
 
 const protectedPage=(page:React.ReactNode)=><AuthGuard>{page}</AuthGuard>;
 function App(){return <><GlobalStyle/><Routes>
   <Route path="/" element={<Navigate to="/register" replace/>}/>
   <Route path="/s/:slug" element={<SurveyPage/>}/><Route path="/p/:slug" element={<PublicProfile/>}/>
-  <Route path="/login" element={<Login/>}/><Route path="/register" element={<Register/>}/>
+  <Route path="/login" element={<Login/>}/><Route path="/forgot-password" element={<ForgotPassword/>}/><Route path="/reset-password" element={<ResetPassword/>}/><Route path="/register" element={<Register/>}/>
   <Route path="/app" element={protectedPage(<PlatformHome/>)}/>
   <Route path="/app/profile" element={protectedPage(<ProfilePage/>)}/>
   <Route path="/app/methodologies/suggest" element={protectedPage(<SuggestInstrument/>)}/>
