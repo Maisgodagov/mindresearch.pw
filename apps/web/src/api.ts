@@ -1,11 +1,14 @@
 import axios,{type AxiosError,type InternalAxiosRequestConfig} from 'axios';
 const baseURL=import.meta.env.VITE_API_URL??'/api';
-let accessToken:string|null=null,refreshPromise:Promise<string|null>|null=null;
+let accessToken:string|null=null,refreshPromise:Promise<string|null>|null=null,currentUser:Record<string,any>|null=null,currentUserPromise:Promise<Record<string,any>>|null=null;
 const legacyToken=localStorage.getItem('admin_token');if(legacyToken){accessToken=legacyToken;localStorage.removeItem('admin_token')}
 export const api=axios.create({baseURL,withCredentials:true});
 const authApi=axios.create({baseURL,withCredentials:true});
-export function setAccessToken(token:string|null){accessToken=token;localStorage.removeItem('admin_token')}
+export function setAccessToken(token:string|null){accessToken=token;currentUser=null;currentUserPromise=null;localStorage.removeItem('admin_token')}
 export function hasAccessToken(){return Boolean(accessToken)}
+export function getCachedCurrentUser(){return currentUser}
+export function invalidateCurrentUser(){currentUser=null;currentUserPromise=null}
+export function getCurrentUser(){if(currentUser)return Promise.resolve(currentUser);if(!currentUserPromise)currentUserPromise=api.get('/account/me').then(r=>currentUser=r.data).catch(error=>{currentUserPromise=null;throw error});return currentUserPromise}
 async function refreshAccessToken(){if(!refreshPromise)refreshPromise=authApi.post('/auth/refresh').then(r=>{accessToken=r.data.token;return accessToken}).catch(()=>{accessToken=null;return null}).finally(()=>{refreshPromise=null});return refreshPromise}
 export async function initializeAuth(){return accessToken??refreshAccessToken()}
 export async function logout(){try{await authApi.post('/auth/logout')}finally{setAccessToken(null)}}
