@@ -5,7 +5,7 @@ import {db} from './db.js';
 
 export type AuthUser={id:string;role:string};
 export type AuthRequest=Request & {user?:AuthUser};
-const ACCESS_TOKEN_TTL='15m',REFRESH_DAYS=30,REFRESH_COOKIE='mindresearch_refresh';
+const ACCESS_TOKEN_TTL='15m',REFRESH_DAYS=180,REFRESH_COOKIE='mindresearch_refresh';
 const refreshMaxAge=REFRESH_DAYS*24*60*60*1000;
 const hashToken=(token:string)=>createHash('sha256').update(token).digest('hex');
 const cookieOptions={httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax' as const,path:'/api/auth',maxAge:refreshMaxAge};
