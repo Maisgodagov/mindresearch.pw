@@ -18,10 +18,10 @@ app.use('/api',platformRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/public/surveys/:slug',async(req,res,next)=>{try{
-  const [surveys]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.welcome_title AS welcomeTitle,s.welcome_text AS welcomeText,s.settings,IF(s.show_author AND u.is_profile_public,u.name,NULL) authorName,IF(s.show_author AND u.is_profile_public,u.public_slug,NULL) authorSlug,IF(s.show_author AND u.is_profile_public,u.avatar_url,NULL) authorAvatarUrl FROM surveys s JOIN users u ON u.id=s.owner_id WHERE s.slug=? AND s.status='active'`,[req.params.slug]);
+  const [surveys]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.welcome_title AS welcomeTitle,s.welcome_text AS welcomeText,s.settings,IF(s.show_author AND u.is_profile_public,u.name,NULL) authorName,IF(s.show_author AND u.is_profile_public,u.public_slug,NULL) authorSlug,IF(s.show_author AND u.is_profile_public,u.avatar_seed,NULL) authorAvatarSeed FROM surveys s JOIN users u ON u.id=s.owner_id WHERE s.slug=? AND s.status='active'`,[req.params.slug]);
   if(!surveys.length) return res.status(404).json({message:'Опрос не найден'});
   const [questions]=await db.query<any[]>(`SELECT q.id,q.code,q.text,q.type,q.required,q.options,q.validation,s.code sectionCode,s.title sectionTitle,s.position sectionPosition,q.position FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position`,[surveys[0].id]);
-  const survey=surveys[0],author=survey.authorSlug?{name:survey.authorName,slug:survey.authorSlug,avatarUrl:survey.authorAvatarUrl}:null;delete survey.authorName;delete survey.authorSlug;delete survey.authorAvatarUrl;res.json({...survey,author,questions});
+  const survey=surveys[0],author=survey.authorSlug?{name:survey.authorName,slug:survey.authorSlug,avatarSeed:survey.authorAvatarSeed}:null;delete survey.authorName;delete survey.authorSlug;delete survey.authorAvatarSeed;res.json({...survey,author,questions});
 }catch(e){next(e)}});
 app.post('/api/public/surveys/:slug/sessions',async(req,res,next)=>{try{
   const [rows]=await db.query<any[]>('SELECT id FROM surveys WHERE slug=? AND status=\'active\'',[req.params.slug]); if(!rows.length)return res.status(404).json({message:'Опрос не найден'});
