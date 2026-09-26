@@ -12,7 +12,7 @@ export function ProfilePage(){
   const nav=useNavigate();
   const[profile,setProfile]=useState<Profile>(initial),[saved,setSaved]=useState(false),[error,setError]=useState('');
   const[passwords,setPasswords]=useState({currentPassword:'',newPassword:'',confirmation:''}),[passwordMessage,setPasswordMessage]=useState(''),[passwordError,setPasswordError]=useState(''),[passwordSaving,setPasswordSaving]=useState(false);
-  useEffect(()=>{api.get('/account/me').then(r=>setProfile({...r.data,avatarSeed:r.data.avatarSeed||'willow'})).catch(()=>{})},[]);
+  useEffect(()=>{api.get('/account/me').then(r=>setProfile({...r.data,avatarSeed:r.data.avatarSeed||'willow',isProfilePublic:Boolean(r.data.isProfilePublic)})).catch(()=>{})},[]);
   const set=<K extends keyof Profile>(key:K,value:Profile[K])=>setProfile(p=>({...p,[key]:value}));
   async function save(e:React.FormEvent){e.preventDefault();setError('');try{await api.patch('/account/me',profile);setSaved(true);setTimeout(()=>setSaved(false),2000)}catch(err:any){if(import.meta.env.DEV){setSaved(true);return}setError(err.response?.data?.message??'Не удалось сохранить')}}
   async function changePassword(e:React.FormEvent){e.preventDefault();setPasswordError('');setPasswordMessage('');if(passwords.newPassword!==passwords.confirmation){setPasswordError('Новые пароли не совпадают');return}setPasswordSaving(true);try{const response=await api.patch('/account/password',{currentPassword:passwords.currentPassword,newPassword:passwords.newPassword});setAccessToken(response.data.token);setPasswords({currentPassword:'',newPassword:'',confirmation:''});setPasswordMessage('Пароль изменён')}catch(err:any){setPasswordError(err.response?.data?.message??'Не удалось изменить пароль')}finally{setPasswordSaving(false)}}
