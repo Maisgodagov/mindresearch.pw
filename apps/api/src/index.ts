@@ -55,13 +55,15 @@ app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{
   const[r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE id=? AND status='in_progress'`,[sessions[0].id]);if(!r.affectedRows)return res.status(409).json({message:'Опрос уже завершён'});res.status(204).end();
 }catch(e){next(e)}});
 app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
-  const[sessions]=await db.query<any[]>('SELECT id,status FROM response_sessions WHERE public_token=?',[req.params.token]);
+  const[sessions]=await db.query<any[]>('SELECT rs.id,rs.status,s.settings FROM response_sessions rs JOIN surveys s ON s.id=rs.survey_id WHERE rs.public_token=?',[req.params.token]);
   if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'});
   if(sessions[0].status!=='completed')return res.status(409).json({message:'Результаты доступны после завершения опроса'});
   await calculateConfiguredAssessmentsForSession(sessions[0].id);
   const[rows]=await db.query<any[]>(`SELECT s.code,s.title,ar.formula_version formulaVersion,ar.result FROM assessment_results ar JOIN sections s ON s.id=ar.section_id WHERE ar.session_id=? ORDER BY s.position`,[sessions[0].id]);
   const parse=(value:unknown)=>typeof value==='string'?JSON.parse(value):value;
-  res.json({results:rows.map(row=>({code:row.code,title:row.title,formulaVersion:row.formulaVersion,values:parse(row.result)}))});
+  const settings=parse(sessions[0].settings)??{},presentation=settings.resultPresentation??{showResults:true,title:'Спасибо за ваши ответы',text:'',showScores:true};
+  const results=presentation.showResults!==false&&presentation.showScores!==false?rows.map(row=>({code:row.code,title:row.title,formulaVersion:row.formulaVersion,values:parse(row.result)})):[];
+  res.json({results,presentation});
 }catch(e){next(e)}});
 
 app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0];res.json({token:signToken({id:user.id,role:user.role}),user})}catch(e){next(e)}});

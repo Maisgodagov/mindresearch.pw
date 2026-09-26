@@ -63,6 +63,8 @@ type Section = {
   questionCount?: number;
   questions?: Question[];
   isVerified?: boolean;
+  useSharedOptions?: boolean;
+  sharedOptions?: Option[];
 };
 const Header = styled.div`
   margin-bottom: 24px;
@@ -524,6 +526,12 @@ export function SurveyBuilder() {
       "Здесь нет правильных или неправильных ответов — важен ваш личный опыт.",
     status: "draft" as "draft" | "active",
     showAuthor: true,
+    resultPresentation: {
+      showResults: true,
+      showScores: true,
+      title: "Спасибо за ваши ответы",
+      text: "",
+    },
   });
   useEffect(() => {
     Promise.all([
@@ -572,6 +580,11 @@ export function SurveyBuilder() {
         kind: "custom",
         title: "Свой блок вопросов",
         questions: [makeQuestion()],
+        useSharedOptions: false,
+        sharedOptions: [
+          { value: "1", label: "" },
+          { value: "2", label: "" },
+        ],
       },
     ]);
     setOpen((o) => ({ ...o, [id]: true }));
@@ -639,7 +652,10 @@ export function SurveyBuilder() {
           (q) =>
             !q.text.trim() ||
             ((q.type === "single" || q.type === "multiple") &&
-              q.options.some((o) => !o.label.trim())),
+              (section.useSharedOptions
+                ? section.sharedOptions
+                : q.options
+              )?.some((o) => !o.label.trim())),
         )
       ) {
         setError("Заполните тексты вопросов и варианты ответов.");
@@ -662,7 +678,7 @@ export function SurveyBuilder() {
                 required: q.required,
                 options:
                   q.type === "single" || q.type === "multiple"
-                    ? q.options
+                    ? (s.useSharedOptions ? s.sharedOptions : q.options)
                     : undefined,
               })),
             },
@@ -728,6 +744,22 @@ export function SurveyBuilder() {
                   setMeta({ ...meta, welcomeText: e.target.value })
                 }
               />
+            </div>
+            <div className="field">
+              <label style={{display:"flex",gap:9,alignItems:"center"}}>
+                <input type="checkbox" style={{width:18}} checked={meta.showAuthor} onChange={(e)=>setMeta({...meta,showAuthor:e.target.checked})}/>
+                Показывать ссылку на профиль автора перед началом опроса
+              </label>
+              <p className="hint">Ссылка появится только если публичный профиль включён в настройках профиля.</p>
+            </div>
+            <div className="field">
+              <label>Экран после прохождения</label>
+              <input value={meta.resultPresentation.title} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}})} placeholder="Заголовок"/>
+              <textarea style={{marginTop:8}} value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Сообщение участнику после завершения"/>
+              <label style={{display:"flex",gap:9,alignItems:"center",marginTop:9}}>
+                <input type="checkbox" style={{width:18}} checked={meta.resultPresentation.showScores} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,showScores:e.target.checked,showResults:e.target.checked}})}/>
+                Показывать рассчитанные результаты подтверждённых методик
+              </label>
             </div>
           </Panel>
           <Panel style={{ marginTop: 14 }}>
@@ -886,6 +918,20 @@ export function SurveyBuilder() {
                                 }
                               />
                             </div>
+                            <div className="field" style={{padding:"13px",background:"#f2f6f0",borderRadius:12}}>
+                              <label style={{display:"flex",gap:9,alignItems:"center",margin:0}}>
+                                <input type="checkbox" style={{width:18}} checked={Boolean(section.useSharedOptions)} onChange={(e)=>updateSection(section.id,(s)=>({...s,useSharedOptions:e.target.checked}))}/>
+                                Один список вариантов для всех вопросов теста
+                              </label>
+                              {section.useSharedOptions&&<div className="options" style={{marginTop:10}}>
+                                {(section.sharedOptions??[]).map((option,oi)=><div className="option" key={option.value}>
+                                  <input value={option.label} placeholder={`Вариант ${oi+1}`} onChange={(e)=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).map((item,index)=>index===oi?{...item,label:e.target.value}:item)}))}/>
+                                  {(section.sharedOptions?.length??0)>2&&<button className="tiny" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).filter((_,index)=>index!==oi).map((item,index)=>({...item,value:String(index+1)}))}))}><Trash2 size={14}/></button>}
+                                </div>)}
+                                <button className="tiny" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:[...(s.sharedOptions??[]),{value:String((s.sharedOptions?.length??0)+1),label:""}]}))}>+ Вариант ответа</button>
+                                <p className="hint">Список будет применён ко всем вопросам с выбором одного или нескольких вариантов.</p>
+                              </div>}
+                            </div>
                             <DndContext
                               sensors={sensors}
                               collisionDetection={closestCenter}
@@ -1035,7 +1081,7 @@ export function SurveyBuilder() {
                                           />
                                         </div>
                                         {(q.type === "single" ||
-                                          q.type === "multiple") && (
+                                          q.type === "multiple") && !section.useSharedOptions && (
                                           <div className="options">
                                             {q.options.map((option, oi) => (
                                               <div
@@ -1186,7 +1232,7 @@ export function SurveyBuilder() {
                                   ...s,
                                   questions: [
                                     ...(s.questions ?? []),
-                                    makeQuestion(),
+                                    {...makeQuestion(),options:s.useSharedOptions?(s.sharedOptions??[]).map(option=>({...option})):makeQuestion().options},
                                   ],
                                 }))
                               }
