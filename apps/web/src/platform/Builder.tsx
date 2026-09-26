@@ -67,7 +67,7 @@ type Section = {
   sharedOptions?: Option[];
 };
 const Header = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   h1 {
     font:
       500 clamp(32px, 5vw, 44px) var(--font-heading),
@@ -77,15 +77,69 @@ const Header = styled.div`
   }
   p {
     color: #738077;
+    max-width: 720px;
+    line-height: 1.6;
+  }
+`;
+const Flow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 11px 14px;
+    border: 1px solid #dce5da;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.62);
+    color: #65746a;
+  }
+  .number {
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #e4eee1;
+    color: #45614d;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  b { color: #3b5242; font-size: 13px; }
+  span:last-child { font-size: 11px; }
+  @media (max-width: 680px) {
+    grid-template-columns: 1fr;
+    .step { padding: 9px 12px; }
   }
 `;
 const Columns = styled.div`
   display: grid;
-  grid-template-columns: minmax(300px, 0.85fr) minmax(380px, 1.15fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.72fr);
+  grid-template-areas:
+    "meta meta"
+    "structure library";
   gap: 18px;
   align-items: start;
+  > div { display: contents; }
+  .meta-panel { grid-area: meta; }
+  .library-panel {
+    grid-area: library;
+    margin-top: 0 !important;
+    position: sticky;
+    top: 18px;
+  }
+  .structure-panel { grid-area: structure; }
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "meta"
+      "library"
+      "structure";
+    .library-panel { position: static; }
   }
 `;
 const Panel = styled(Card)`
@@ -126,6 +180,26 @@ const Panel = styled(Card)`
   textarea {
     min-height: 92px;
     resize: vertical;
+  }
+  &.meta-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+  }
+  &.meta-panel > h2,
+  &.meta-panel > .panel-intro {
+    grid-column: 1 / -1;
+  }
+  &.meta-panel > .field:nth-of-type(5),
+  &.meta-panel > .field:nth-of-type(6) {
+    padding: 14px;
+    border-radius: 14px;
+    background: #f4f7f1;
+  }
+  @media (max-width: 720px) {
+    &.meta-panel { grid-template-columns: 1fr; }
+    &.meta-panel > h2,
+    &.meta-panel > .panel-intro { grid-column: auto; }
   }
 `;
 const Library = styled.div`
@@ -400,7 +474,10 @@ const Footer = styled.div`
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-top: 18px;
+  margin: 22px -23px -23px;
+  padding: 18px 23px;
+  border-top: 1px solid #e3e9e1;
+  background: #f6f8f4;
   > label {
     display: inline-flex;
     align-items: center;
@@ -418,6 +495,11 @@ const Footer = styled.div`
   .actions {
     display: flex;
     gap: 9px;
+  }
+  @media (max-width: 560px) {
+    align-items: stretch;
+    flex-direction: column;
+    .actions, .actions button { width: 100%; }
   }
   .error {
     color: #a05252;
@@ -758,10 +840,25 @@ export function SurveyBuilder() {
           Порядок блоков и вопросов можно менять в любой момент.
         </p>
       </Header>
+      <Flow aria-label="Этапы создания опроса">
+        <div className="step">
+          <span className="number">1</span>
+          <span><b>Оформление</b><br />Название и экраны</span>
+        </div>
+        <div className="step">
+          <span className="number">2</span>
+          <span><b>Содержание</b><br />Методики и вопросы</span>
+        </div>
+        <div className="step">
+          <span className="number">3</span>
+          <span><b>Публикация</b><br />Проверка и запуск</span>
+        </div>
+      </Flow>
       <Columns>
         <div>
-          <Panel>
-            <h2>1. Основная информация</h2>
+          <Panel className="meta-panel">
+            <h2>Оформление опроса</h2>
+            <p className="hint panel-intro">Эти тексты увидит участник до начала и после завершения опроса.</p>
             <div className="field">
               <label>Название опроса</label>
               <input
@@ -814,8 +911,8 @@ export function SurveyBuilder() {
               </label>
             </div>
           </Panel>
-          <Panel style={{ marginTop: 14 }}>
-            <h2>2. Добавьте блоки</h2>
+          <Panel className="library-panel">
+            <h2>Добавить в опрос</h2>
             <p className="hint">
               Подтверждённые методики защищены от изменений и автоматически
               рассчитывают результат. Перед добавлением можно изучить описание,
@@ -882,8 +979,8 @@ export function SurveyBuilder() {
             </div>
           </Panel>
         </div>
-        <Panel>
-          <h2>3. Структура опроса</h2>
+        <Panel className="structure-panel">
+          <h2>Содержание опроса</h2>
           <p className="hint">
             {sections.length
               ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
