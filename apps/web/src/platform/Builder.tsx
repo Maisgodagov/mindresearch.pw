@@ -27,6 +27,7 @@ import {
   ChevronUp,
   Copy,
   GripVertical,
+  Eye,
   Info,
   Plus,
   Search,
@@ -38,6 +39,7 @@ import { Button, Card } from "../ui";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
 import { demoInstruments, demoMethodologies } from "./demo";
 import { PlatformLayout } from "./Layout";
+import { BuilderPreview, type PreviewQuestion } from "./BuilderPreview";
 type Instrument = {
   id: string;
   code?: string;
@@ -116,6 +118,24 @@ const Flow = styled.div`
     grid-template-columns: 1fr;
     .step { padding: 9px 12px; }
   }
+`;
+const PreviewPrompt = styled.div`
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:18px;
+  padding:15px 17px;
+  border:1px solid #d8e3d6;
+  border-radius:16px;
+  background:linear-gradient(120deg,#edf4ea,#f8faf6);
+  .copy{display:flex;align-items:center;gap:12px;color:#66766b;font-size:12px;line-height:1.45}
+  .copy svg{flex:0 0 auto;color:#54725d}
+  .copy b{display:block;color:#354f3c;font-size:14px;margin-bottom:2px}
+  button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:10px 15px;border:0;border-radius:11px;background:#55745e;color:#fff;font-weight:750;white-space:nowrap}
+  button:disabled{opacity:.6;cursor:wait}
+  .error{color:#9a5a55;font-size:12px}
+  @media(max-width:620px){align-items:stretch;flex-direction:column;button{width:100%}}
 `;
 const Columns = styled.div`
   display: grid;
@@ -758,6 +778,9 @@ export function SurveyBuilder() {
     [sections, setSections] = useState<Section[]>([]),
     [open, setOpen] = useState<Record<string, boolean>>({}),
     [libraryQuery, setLibraryQuery] = useState(""),
+    [previewQuestions, setPreviewQuestions] = useState<PreviewQuestion[] | null>(null),
+    [previewLoading, setPreviewLoading] = useState(false),
+    [previewError, setPreviewError] = useState(""),
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [structureLocked,setStructureLocked]=useState(false);
@@ -866,6 +889,30 @@ export function SurveyBuilder() {
   };
   const updateSection = (id: string, fn: (section: Section) => Section) =>
     setSections((s) => s.map((x) => (x.id === id ? fn(x) : x)));
+  const openPreview = async () => {
+    setPreviewLoading(true);
+    setPreviewError("");
+    try {
+      const blocks = await Promise.all(sections.map(async (section) => {
+        if (section.kind === "custom")
+          return (section.questions ?? []).map((question) => ({
+            ...question,
+            text: question.text || "Текст вопроса",
+            options: question.type === "single" || question.type === "multiple"
+              ? (section.useSharedOptions ? section.sharedOptions ?? [] : question.options)
+              : [],
+            sectionTitle: section.title || "Собственный тест",
+          }));
+        const {data} = await api.get(`/account/instruments/${section.instrumentId}/questions`);
+        return data.questions.map((question: Omit<PreviewQuestion,"sectionTitle">) => ({...question,sectionTitle:section.title}));
+      }));
+      setPreviewQuestions(blocks.flat());
+    } catch {
+      setPreviewError("Не удалось загрузить вопросы для предпросмотра. Попробуйте ещё раз.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
   const duplicateQuestion = (sectionId: string, question: Question) =>
     updateSection(sectionId, (s) => {
       const questions = [...(s.questions ?? [])],
@@ -979,6 +1026,11 @@ export function SurveyBuilder() {
           <span><b>Публикация</b><br />Проверка и запуск</span>
         </div>
       </Flow>
+      <PreviewPrompt>
+        <div className="copy"><Eye size={22}/><span><b>Посмотрите глазами респондента</b>Откройте текущую версию опроса, пройдите несколько вопросов и вернитесь к созданию — введённые данные не потеряются.</span></div>
+        <button disabled={previewLoading} onClick={openPreview}><Eye size={16}/>{previewLoading?'Загружаем…':'Предпросмотр'}</button>
+        {previewError&&<span className="error">{previewError}</span>}
+      </PreviewPrompt>
       <Columns>
         <div>
           <Panel className="meta-panel">
@@ -1548,6 +1600,7 @@ export function SurveyBuilder() {
           onClose={() => setActiveMethodology(null)}
         />
       )}
+      {previewQuestions&&<BuilderPreview meta={meta} questions={previewQuestions} onClose={()=>setPreviewQuestions(null)}/>}
     </PlatformLayout>
   );
 }

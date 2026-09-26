@@ -54,6 +54,11 @@ platformRouter.get('/account/instruments',requireAuth,async(req:AuthRequest,res,
   const authors:Record<string,string>={test_1:'Gregory Zimet, Nancy Dahlem, Sara Zimet, Gordon Farley',test_2:'В. И. Моросанова, Н. Г. Кондратюк',test_3:'Jennifer Campbell и соавторы',test_4:'David Moscovitch, Keith Huyder',test_5:'David Garner, Marion Olmsted, Janet Polivy',test_6:'Tatjana van Strien и соавторы'};
   res.json(rows.map(row=>({...row,author:authors[row.code]??null,methodology:methodologies[row.code]??null})));
 }catch(e){next(e)}});
+platformRouter.get('/account/instruments/:id/questions',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  const[instruments]=await db.query<any[]>(`SELECT id,title FROM instruments WHERE id=? AND status='active' AND (is_verified=TRUE OR owner_id=?)`,[req.params.id,req.user!.id]);if(!instruments.length)return res.status(404).json({message:'Методика не найдена'});
+  const[questions]=await db.query<any[]>(`SELECT id,text,type,required,options,validation FROM instrument_questions WHERE instrument_id=? ORDER BY position`,[req.params.id]);
+  res.json({title:instruments[0].title,questions:questions.map(question=>({...question,required:Boolean(question.required),options:parseJson(question.options)??[],validation:parseJson(question.validation)??null}))});
+}catch(e){next(e)}});
 
 const submissionSchema=z.object({title:z.string().trim().min(2).max(255),originalAuthor:z.string().trim().max(500).default(''),sourceUrl:z.union([z.string().url().max(2000),z.literal('')]).default(''),description:z.string().trim().min(10).max(5000),questionnaireText:z.string().trim().min(20).max(100000),scoringText:z.string().max(50000).default(''),rightsNote:z.string().max(5000).default('')});
 platformRouter.get('/account/instrument-submissions',requireAuth,async(req:AuthRequest,res,next)=>{try{const[rows]=await db.query<any[]>('SELECT id,title,status,admin_note adminNote,created_at createdAt FROM instrument_submissions WHERE user_id=? ORDER BY created_at DESC',[req.user!.id]);res.json(rows)}catch(e){next(e)}});
