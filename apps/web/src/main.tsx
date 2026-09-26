@@ -14,6 +14,7 @@ import{PublicProfile}from'./platform/PublicProfile';
 import{SuggestInstrument}from'./platform/SuggestInstrument';
 import{ReviewInstruments}from'./platform/ReviewInstruments';
 import{AuthGuard}from'./platform/AuthGuard';
+import{PlatformLayout}from'./platform/Layout';
 
 const protectedPage=(page:React.ReactNode)=><AuthGuard>{page}</AuthGuard>;
 function App(){return <><GlobalStyle/><Routes>
@@ -26,7 +27,7 @@ function App(){return <><GlobalStyle/><Routes>
   <Route path="/app/methodologies/review" element={protectedPage(<ReviewInstruments/>)}/>
   <Route path="/app/surveys/new" element={protectedPage(<SurveyBuilder/>)}/>
   <Route path="/app/surveys/:surveyId/edit" element={protectedPage(<SurveyBuilder/>)}/>
-  <Route path="/app/surveys/:surveyId/results" element={protectedPage(<Dashboard/>)}/>
+  <Route path="/app/surveys/:surveyId/results" element={protectedPage(<PlatformLayout><Dashboard embedded/></PlatformLayout>)}/>
   <Route path="/admin/login" element={<LegacyLogin/>}/><Route path="/admin" element={<AuthGuard loginPath="/admin/login"><Dashboard/></AuthGuard>}/>
   <Route path="*" element={<Navigate to="/register" replace/>}/>
 </Routes></>}
