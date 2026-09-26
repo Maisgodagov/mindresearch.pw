@@ -29,11 +29,12 @@ import {
   GripVertical,
   Info,
   Plus,
+  Search,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
 import { api } from "../api";
-import { Button, Card, GhostButton } from "../ui";
+import { Button, Card } from "../ui";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
 import { demoInstruments, demoMethodologies } from "./demo";
 import { PlatformLayout } from "./Layout";
@@ -181,31 +182,113 @@ const Panel = styled(Card)`
     min-height: 92px;
     resize: vertical;
   }
-  &.meta-panel {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 20px;
+`;
+const SurveyBasics = styled.div`
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 12px;
+  margin-top: 15px;
+  .field { margin: 0; }
+  textarea { min-height: 48px; height: 48px; }
+  @media (max-width: 720px) { grid-template-columns: 1fr; }
+`;
+const PreviewGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+  @media (max-width: 820px) { grid-template-columns: 1fr; }
+`;
+const PreviewCard = styled.div`
+  min-width: 0;
+  border: 1px solid #dce5da;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fff, #f8fbf6);
+  overflow: hidden;
+  .preview-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 13px;
+    border-bottom: 1px solid #e8ede6;
+    color: #728077;
+    font-size: 11px;
+    font-weight: 700;
   }
-  &.meta-panel > h2,
-  &.meta-panel > .panel-intro {
-    grid-column: 1 / -1;
+  .screen { padding: 18px; min-height: 255px; }
+  .eyebrow, .done {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 12px;
+    color: #55705e;
+    font-size: 11px;
   }
-  &.meta-panel > .field:nth-of-type(5),
-  &.meta-panel > .field:nth-of-type(6) {
-    padding: 14px;
-    border-radius: 14px;
-    background: #f4f7f1;
+  .done { padding: 5px 8px; border-radius: 999px; background: #e5efe2; }
+  .preview-title,
+  .preview-copy {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #304a38;
+    resize: none;
   }
-  @media (max-width: 720px) {
-    &.meta-panel { grid-template-columns: 1fr; }
-    &.meta-panel > h2,
-    &.meta-panel > .panel-intro { grid-column: auto; }
+  .preview-title {
+    min-height: 66px;
+    font: 500 clamp(25px, 3vw, 36px)/1.08 var(--font-heading), serif;
   }
+  .preview-copy {
+    min-height: 72px;
+    margin-top: 10px;
+    color: #67766c;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .preview-title:focus,
+  .preview-copy:focus { outline: none; background: #f4f7f1; box-shadow: 0 0 0 6px #f4f7f1; }
+  .mock-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; color: #7e8a82; font-size: 10px; }
+  .mock-button { display: inline-flex; margin-top: 17px; padding: 9px 14px; border-radius: 10px; background: #56755f; color: white; font-size: 11px; font-weight: 750; }
+  .preview-settings { padding: 11px 13px; border-top: 1px solid #e8ede6; background: #f5f8f3; }
+  .preview-settings label { display: flex; gap: 8px; align-items: flex-start; margin: 0; line-height: 1.4; }
+  .preview-settings input { width: 16px; height: 16px; flex: 0 0 16px; margin-top: 1px; }
+`;
+const CatalogTools = styled.div`
+  display: grid;
+  gap: 12px;
+  margin-top: 15px;
+  .create-custom {
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #b8cbb9;
+    border-radius: 13px;
+    background: #e8f0e5;
+    color: #3f5c47;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .create-custom:hover { background: #dce9d8; }
+  .divider { display: flex; align-items: center; gap: 9px; color: #829087; font-size: 11px; }
+  .divider::before, .divider::after { content: ""; height: 1px; flex: 1; background: #e1e8df; }
+  .search { position: relative; }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #728178; }
+  .search input { padding-left: 36px; }
 `;
 const Library = styled.div`
   display: grid;
   gap: 11px;
-  margin-top: 16px;
+  max-height: 560px;
+  margin-top: 12px;
+  padding-right: 5px;
+  overflow-y: auto;
+  scrollbar-color: #a9bba9 transparent;
+  scrollbar-width: thin;
   .item {
     border: 1px solid #dce5da;
     border-radius: 16px;
@@ -328,6 +411,38 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
     padding: 0 14px 14px;
     border-top: 1px solid #edf1ec;
   }
+  .options { display: grid; gap: 7px; }
+  .option { display: flex; align-items: center; gap: 7px; }
+  .option input { min-width: 0; flex: 1; }
+  .option .tiny {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #d7e1d5;
+    border-radius: 10px;
+    background: #fff;
+    color: #77867c;
+    cursor: pointer;
+  }
+  .option .tiny:hover { border-color: #c9aaa5; background: #fbf1ef; color: #945f59; }
+  .add-option {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 10px;
+    background: #e2ede0;
+    color: #486451;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  .add-option:hover { background: #d6e5d3; }
 `;
 const QuestionBox = styled.div<{ $dragging?: boolean }>`
   padding: 13px;
@@ -642,6 +757,7 @@ export function SurveyBuilder() {
     ),
     [sections, setSections] = useState<Section[]>([]),
     [open, setOpen] = useState<Record<string, boolean>>({}),
+    [libraryQuery, setLibraryQuery] = useState(""),
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [structureLocked,setStructureLocked]=useState(false);
@@ -691,6 +807,15 @@ export function SurveyBuilder() {
       ),
     [sections],
   );
+  const filteredInstruments = useMemo(() => {
+    const query = libraryQuery.trim().toLocaleLowerCase("ru");
+    if (!query) return instruments;
+    return instruments.filter((instrument) =>
+      `${instrument.title} ${instrument.author ?? ""}`
+        .toLocaleLowerCase("ru")
+        .includes(query),
+    );
+  }, [instruments, libraryQuery]);
   const addInstrument = (i: Instrument) => {
     if (sections.some((s) => s.instrumentId === i.id)) return;
     setSections((s) => [
@@ -858,58 +983,43 @@ export function SurveyBuilder() {
         <div>
           <Panel className="meta-panel">
             <h2>Оформление опроса</h2>
-            <p className="hint panel-intro">Эти тексты увидит участник до начала и после завершения опроса.</p>
-            <div className="field">
-              <label>Название опроса</label>
-              <input
-                value={meta.title}
-                onChange={(e) => setMeta({ ...meta, title: e.target.value })}
-                placeholder="Например, исследование самочувствия"
-              />
-            </div>
-            <div className="field">
-              <label>Короткое описание</label>
-              <textarea
-                value={meta.description}
-                onChange={(e) =>
-                  setMeta({ ...meta, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="field">
-              <label>Заголовок приветствия</label>
-              <input
-                value={meta.welcomeTitle}
-                onChange={(e) =>
-                  setMeta({ ...meta, welcomeTitle: e.target.value })
-                }
-              />
-            </div>
-            <div className="field">
-              <label>Текст перед началом</label>
-              <textarea
-                value={meta.welcomeText}
-                onChange={(e) =>
-                  setMeta({ ...meta, welcomeText: e.target.value })
-                }
-              />
-            </div>
-            <div className="field">
-              <label style={{display:"flex",gap:9,alignItems:"center"}}>
-                <input type="checkbox" style={{width:18}} checked={meta.showAuthor} onChange={(e)=>setMeta({...meta,showAuthor:e.target.checked})}/>
-                Показывать ссылку на профиль автора перед началом опроса
-              </label>
-              <p className="hint">Ссылка появится только если публичный профиль включён в настройках профиля.</p>
-            </div>
-            <div className="field">
-              <label>Экран после прохождения</label>
-              <input value={meta.resultPresentation.title} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}})} placeholder="Заголовок"/>
-              <textarea style={{marginTop:8}} value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Сообщение участнику после завершения"/>
-              <label style={{display:"flex",gap:9,alignItems:"center",marginTop:9}}>
-                <input type="checkbox" style={{width:18}} checked={meta.resultPresentation.showScores} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,showScores:e.target.checked,showResults:e.target.checked}})}/>
-                Показывать рассчитанные результаты подтверждённых методик
-              </label>
-            </div>
+            <p className="hint panel-intro">Редактируйте тексты прямо в макетах — примерно так их увидит респондент.</p>
+            <SurveyBasics>
+              <div className="field">
+                <label>Название опроса</label>
+                <input value={meta.title} onChange={(e)=>setMeta({...meta,title:e.target.value})} placeholder="Например, исследование самочувствия" />
+              </div>
+              <div className="field">
+                <label>Короткое описание в кабинете</label>
+                <textarea value={meta.description} onChange={(e)=>setMeta({...meta,description:e.target.value})} placeholder="Для вас и других авторов" />
+              </div>
+            </SurveyBasics>
+            <PreviewGrid>
+              <PreviewCard>
+                <div className="preview-label"><span>Стартовый экран</span><span>Предпросмотр</span></div>
+                <div className="screen">
+                  <span className="eyebrow">Анонимное исследование</span>
+                  <textarea className="preview-title" aria-label="Заголовок приветствия" value={meta.welcomeTitle} onChange={(e)=>setMeta({...meta,welcomeTitle:e.target.value})} placeholder="Заголовок приветствия" />
+                  <textarea className="preview-copy" aria-label="Текст перед началом" value={meta.welcomeText} onChange={(e)=>setMeta({...meta,welcomeText:e.target.value})} placeholder="Расскажите участнику об исследовании" />
+                  <div className="mock-meta"><span>{count || 0} вопросов</span><span>Можно прерваться</span></div>
+                  <span className="mock-button">Начать →</span>
+                </div>
+                <div className="preview-settings">
+                  <label><input type="checkbox" checked={meta.showAuthor} onChange={(e)=>setMeta({...meta,showAuthor:e.target.checked})}/><span>Показывать ссылку на профиль автора<br/><small>Если профиль опубликован</small></span></label>
+                </div>
+              </PreviewCard>
+              <PreviewCard>
+                <div className="preview-label"><span>Финальный экран</span><span>Предпросмотр</span></div>
+                <div className="screen">
+                  <span className="done"><CheckCircle2 size={13}/> Опрос завершён</span>
+                  <textarea className="preview-title" aria-label="Заголовок финального экрана" value={meta.resultPresentation.title} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}})} placeholder="Спасибо за ваши ответы" />
+                  <textarea className="preview-copy" aria-label="Сообщение после завершения" value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Ваши ответы сохранены" />
+                </div>
+                <div className="preview-settings">
+                  <label><input type="checkbox" checked={meta.resultPresentation.showScores} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,showScores:e.target.checked,showResults:e.target.checked}})}/><span>Показывать рассчитанные результаты подтверждённых методик</span></label>
+                </div>
+              </PreviewCard>
+            </PreviewGrid>
           </Panel>
           <Panel className="library-panel">
             <h2>Добавить в опрос</h2>
@@ -920,8 +1030,16 @@ export function SurveyBuilder() {
             </p>
             {structureLocked&&<p className="hint" style={{padding:12,background:'#f4efe3',borderRadius:10,color:'#766847'}}>В опросе уже есть ответы, поэтому состав и порядок вопросов зафиксированы. Название, приветствие, профиль автора, публикацию и финальный экран можно редактировать.</p>}
             <div style={structureLocked?{pointerEvents:'none',opacity:.55}:{}}>
+            <CatalogTools>
+              <button className="create-custom" onClick={addCustom}><Plus size={17}/> Создать собственный тест</button>
+              <div className="divider">или выберите методику</div>
+              <div className="search">
+                <Search size={16}/>
+                <input value={libraryQuery} onChange={(e)=>setLibraryQuery(e.target.value)} placeholder="Название или автор" aria-label="Поиск методик" />
+              </div>
+            </CatalogTools>
             <Library>
-              {instruments.map((i) => {
+              {filteredInstruments.map((i) => {
                 const code = i.code ?? i.scoringCode ?? "",
                   methodology = methodologies[code];
                 return (
@@ -969,13 +1087,8 @@ export function SurveyBuilder() {
                   </div>
                 );
               })}
+              {!filteredInstruments.length&&<p className="hint" style={{padding:12,textAlign:'center'}}>Методики не найдены. Попробуйте изменить запрос.</p>}
             </Library>
-            <GhostButton
-              style={{ width: "100%", marginTop: 12 }}
-              onClick={addCustom}
-            >
-              <Plus size={16} /> Создать собственный тест
-            </GhostButton>
             </div>
           </Panel>
         </div>
