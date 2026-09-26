@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import Select from "react-select";
@@ -35,7 +35,7 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { api } from "../api";
+import { api, getCurrentUser } from "../api";
 import { Button, Card } from "../ui";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
 import { demoInstruments, demoMethodologies } from "./demo";
@@ -137,6 +137,22 @@ const PreviewPrompt = styled.div`
   button:disabled{opacity:.6;cursor:wait}
   .error{color:#9a5a55;font-size:12px}
   @media(max-width:620px){align-items:stretch;flex-direction:column;button{width:100%}}
+`;
+const AutosaveNotice = styled.div`
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:-6px 0 18px;
+  padding:10px 13px;
+  border-radius:13px;
+  background:#eef4eb;
+  color:#617268;
+  font-size:11px;
+  .status{display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#6e9076;box-shadow:0 0 0 4px rgba(110,144,118,.12)}
+  b{color:#405b48}
+  @media(max-width:620px){align-items:flex-start;flex-direction:column}
 `;
 const Columns = styled.div`
   display: grid;
@@ -819,9 +835,16 @@ export function SurveyBuilder() {
     [previewLoading, setPreviewLoading] = useState(false),
     [previewError, setPreviewError] = useState(""),
     [invalidFields, setInvalidFields] = useState<string[]>([]),
+    [builderReady, setBuilderReady] = useState(false),
+    [draftRestored, setDraftRestored] = useState(false),
+    [lastSaved, setLastSaved] = useState<Date | null>(null),
+    [draftOwnerId, setDraftOwnerId] = useState(""),
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [structureLocked,setStructureLocked]=useState(false);
+  const draftKey=`mindresearch:survey-builder:${draftOwnerId}:${surveyId??"new"}`;
+  const latestDraft=useRef("");
+  const discardDraft=useRef(false);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
@@ -843,7 +866,9 @@ export function SurveyBuilder() {
       text: "",
     },
   });
+  useEffect(()=>{getCurrentUser().then(user=>setDraftOwnerId(String(user.id))).catch(()=>setError("Не удалось подготовить автосохранение."))},[]);
   useEffect(() => {
+    if(!draftOwnerId)return;
     Promise.all([
       api.get("/account/instruments"),
       api.get("/admin/methodologies"),
@@ -858,8 +883,35 @@ export function SurveyBuilder() {
           setMethodologies(demoMethodologies);
         }
       });
-    if(surveyId)api.get(`/account/surveys/${surveyId}`).then(({data})=>{setMeta({title:data.title,description:data.description??'',welcomeTitle:data.welcomeTitle,welcomeText:data.welcomeText,status:data.status,showAuthor:Boolean(data.showAuthor),resultPresentation:data.resultPresentation});setSections(data.sections.map((section:Section)=>({...section,useSharedOptions:false,sharedOptions:[{value:'1',label:''},{value:'2',label:''}]})));setOpen(Object.fromEntries(data.sections.filter((section:Section)=>section.kind==='custom').map((section:Section)=>[section.id,true])));setStructureLocked(Number(data.responseCount)>0)}).catch(()=>setError('Не удалось загрузить опрос.'));
-  }, [surveyId]);
+    const restoreLocalDraft=()=>{
+      try{
+        const raw=localStorage.getItem(draftKey);if(!raw)return false;
+        const draft=JSON.parse(raw);
+        if(!draft?.meta||!Array.isArray(draft?.sections))return false;
+        setMeta(draft.meta);setSections(draft.sections);setOpen(draft.open??{});setDraftRestored(true);
+        if(draft.savedAt)setLastSaved(new Date(draft.savedAt));
+        return true;
+      }catch{localStorage.removeItem(draftKey);return false}
+    };
+    if(surveyId)api.get(`/account/surveys/${surveyId}`).then(({data})=>{
+      const restored=restoreLocalDraft();
+      if(!restored){setMeta({title:data.title,description:data.description??'',welcomeTitle:data.welcomeTitle,welcomeText:data.welcomeText,status:data.status,showAuthor:Boolean(data.showAuthor),resultPresentation:data.resultPresentation});setSections(data.sections.map((section:Section)=>({...section,useSharedOptions:false,sharedOptions:[{value:'1',label:''},{value:'2',label:''}]})));setOpen(Object.fromEntries(data.sections.filter((section:Section)=>section.kind==='custom').map((section:Section)=>[section.id,true])))}
+      setStructureLocked(Number(data.responseCount)>0);setBuilderReady(true);
+    }).catch(()=>{if(!restoreLocalDraft())setError('Не удалось загрузить опрос.');setBuilderReady(true)});
+    else{restoreLocalDraft();setBuilderReady(true)}
+  }, [surveyId,draftKey,draftOwnerId]);
+  useEffect(()=>{
+    if(!builderReady)return;
+    const savedAt=new Date(),serialized=JSON.stringify({version:1,savedAt:savedAt.toISOString(),meta,sections,open});
+    latestDraft.current=serialized;
+    const timer=window.setTimeout(()=>{try{localStorage.setItem(draftKey,serialized);setLastSaved(savedAt)}catch{setError("Не удалось сохранить черновик в браузере.")}},450);
+    return()=>{window.clearTimeout(timer);if(!discardDraft.current)try{localStorage.setItem(draftKey,serialized)}catch{/* storage may be unavailable */}};
+  },[builderReady,draftKey,meta,sections,open]);
+  useEffect(()=>{
+    const persist=()=>{if(builderReady&&latestDraft.current&&!discardDraft.current)try{localStorage.setItem(draftKey,latestDraft.current)}catch{/* storage may be unavailable */}};
+    window.addEventListener("beforeunload",persist);window.addEventListener("pagehide",persist);
+    return()=>{window.removeEventListener("beforeunload",persist);window.removeEventListener("pagehide",persist)};
+  },[builderReady,draftKey]);
   const count = useMemo(
     () =>
       sections.reduce(
@@ -1044,6 +1096,7 @@ export function SurveyBuilder() {
     };
     try {
       if(surveyId)await api.put(`/account/surveys/${surveyId}`,payload);else await api.post("/account/surveys", payload);
+      discardDraft.current=true;localStorage.removeItem(draftKey);latestDraft.current="";
       nav("/app");
     } catch (err: any) {
       if (import.meta.env.DEV) {
@@ -1064,6 +1117,10 @@ export function SurveyBuilder() {
           Порядок блоков и вопросов можно менять в любой момент.
         </p>
       </Header>
+      <AutosaveNotice>
+        <span className="status"><span className="dot"/><span>{draftRestored?<><b>Черновик восстановлен.</b> Можно продолжить с места, где вы остановились.</>:<><b>Автосохранение включено.</b> Изменения не потеряются при обновлении страницы.</>}</span></span>
+        <span>{lastSaved?`Сохранено в ${lastSaved.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}`:"Сохраняем…"}</span>
+      </AutosaveNotice>
       <Flow aria-label="Этапы создания опроса">
         <div className="step">
           <span className="number">1</span>
