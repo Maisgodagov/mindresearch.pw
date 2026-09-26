@@ -306,9 +306,13 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
   .option {
     display: flex;
     gap: 6px;
+    align-items: center;
   }
   .option input {
     padding: 9px;
+    width: auto;
+    min-width: 0;
+    flex: 1;
   }
   .tiny {
     border: 0;
@@ -320,6 +324,37 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
     align-items: center;
     gap: 4px;
   }
+  .option .tiny {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    justify-content: center;
+    border: 1px solid #d7e1d5;
+    border-radius: 10px;
+    background: #fff;
+    color: #77867c;
+    cursor: pointer;
+  }
+  .option .tiny:hover {
+    border-color: #c9aaa5;
+    background: #fbf1ef;
+    color: #945f59;
+  }
+  .add-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-self: start;
+    border: 0;
+    border-radius: 10px;
+    background: #e2ede0;
+    color: #486451;
+    padding: 9px 13px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .add-option:hover { background: #d6e5d3; }
   .required {
     display: flex;
     align-items: center;
@@ -366,6 +401,20 @@ const Footer = styled.div`
   align-items: center;
   gap: 12px;
   margin-top: 18px;
+  > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    margin: 0;
+  }
+  > label input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex: 0 0 18px;
+    accent-color: #5b7a63;
+  }
   .actions {
     display: flex;
     gap: 9px;
@@ -935,7 +984,7 @@ export function SurveyBuilder() {
                                   <input value={option.label} placeholder={`Вариант ${oi+1}`} onChange={(e)=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).map((item,index)=>index===oi?{...item,label:e.target.value}:item)}))}/>
                                   {(section.sharedOptions?.length??0)>2&&<button className="tiny" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).filter((_,index)=>index!==oi).map((item,index)=>({...item,value:String(index+1)}))}))}><Trash2 size={14}/></button>}
                                 </div>)}
-                                <button className="tiny" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:[...(s.sharedOptions??[]),{value:String((s.sharedOptions?.length??0)+1),label:""}]}))}>+ Вариант ответа</button>
+                                <button className="add-option" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:[...(s.sharedOptions??[]),{value:String((s.sharedOptions?.length??0)+1),label:""}]}))}><Plus size={14}/> Вариант ответа</button>
                                 <p className="hint">Список будет применён ко всем вопросам с выбором одного или нескольких вариантов.</p>
                               </div>}
                             </div>
