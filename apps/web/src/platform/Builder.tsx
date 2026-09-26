@@ -30,6 +30,7 @@ import {
   Eye,
   Info,
   Plus,
+  Pencil,
   Search,
   ShieldCheck,
   Trash2,
@@ -253,6 +254,18 @@ const PreviewCard = styled.div`
     font-size: 11px;
     font-weight: 700;
   }
+  .preview-label span { display:inline-flex; align-items:center; gap:4px; }
+  .editable-field { margin-top: 10px; }
+  .editable-field:first-of-type { margin-top: 0; }
+  .edit-label {
+    display:flex;
+    align-items:center;
+    gap:5px;
+    margin:0 0 6px;
+    color:#718078;
+    font-size:10px;
+    font-weight:750;
+  }
   .screen { padding: 18px; min-height: 255px; }
   .eyebrow, .done {
     display: inline-flex;
@@ -267,26 +280,30 @@ const PreviewCard = styled.div`
   .preview-copy {
     display: block;
     width: 100%;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+    padding: 9px 11px;
+    border: 1px dashed #c5d2c3;
+    border-radius: 10px;
+    background: rgba(255,255,255,.72);
     color: #304a38;
     resize: none;
+    overflow: hidden;
+    field-sizing: content;
+    transition: border-color .16s,background .16s,box-shadow .16s;
   }
   .preview-title {
-    min-height: 66px;
+    min-height: 62px;
     font: 500 clamp(25px, 3vw, 36px)/1.08 var(--font-heading), serif;
   }
   .preview-copy {
-    min-height: 72px;
-    margin-top: 10px;
+    min-height: 66px;
     color: #67766c;
     font-size: 13px;
     line-height: 1.6;
   }
+  .preview-title:hover,
+  .preview-copy:hover { border-color:#8fa68f; background:#fff; }
   .preview-title:focus,
-  .preview-copy:focus { outline: none; background: #f4f7f1; box-shadow: 0 0 0 6px #f4f7f1; }
+  .preview-copy:focus { outline: none; border-style:solid; border-color:#6f8d76; background:#fff; box-shadow:0 0 0 3px rgba(95,128,104,.12); }
   .preview-title.invalid,
   .preview-copy.invalid { background:#fff7f6; box-shadow:0 0 0 5px #fff0ee; color:#7d3834; }
   .mock-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; color: #7e8a82; font-size: 10px; }
@@ -1083,11 +1100,11 @@ export function SurveyBuilder() {
             </SurveyBasics>
             <PreviewGrid>
               <PreviewCard>
-                <div className="preview-label"><span>Стартовый экран</span><span>Предпросмотр</span></div>
+                <div className="preview-label"><span>Стартовый экран</span><span><Pencil size={11}/> Редактируется</span></div>
                 <div className="screen">
                   <span className="eyebrow">Анонимное исследование</span>
-                  <textarea className={`preview-title${invalidFields.includes("welcomeTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeTitle")||undefined} aria-label="Заголовок приветствия" value={meta.welcomeTitle} onChange={(e)=>{setMeta({...meta,welcomeTitle:e.target.value});clearInvalid("welcomeTitle")}} placeholder="Заголовок приветствия" />
-                  <textarea className={`preview-copy${invalidFields.includes("welcomeText")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeText")||undefined} aria-label="Текст перед началом" value={meta.welcomeText} onChange={(e)=>{setMeta({...meta,welcomeText:e.target.value});clearInvalid("welcomeText")}} placeholder="Расскажите участнику об исследовании" />
+                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Заголовок — нажмите, чтобы изменить</span><textarea rows={2} className={`preview-title${invalidFields.includes("welcomeTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeTitle")||undefined} aria-label="Заголовок приветствия" value={meta.welcomeTitle} onChange={(e)=>{setMeta({...meta,welcomeTitle:e.target.value});clearInvalid("welcomeTitle")}} placeholder="Заголовок приветствия" /></div>
+                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Текст перед началом</span><textarea rows={2} className={`preview-copy${invalidFields.includes("welcomeText")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeText")||undefined} aria-label="Текст перед началом" value={meta.welcomeText} onChange={(e)=>{setMeta({...meta,welcomeText:e.target.value});clearInvalid("welcomeText")}} placeholder="Расскажите участнику об исследовании" /></div>
                   <div className="mock-meta"><span>{count || 0} вопросов</span><span>Можно прерваться</span></div>
                   <span className="mock-button">Начать →</span>
                 </div>
@@ -1096,11 +1113,11 @@ export function SurveyBuilder() {
                 </div>
               </PreviewCard>
               <PreviewCard>
-                <div className="preview-label"><span>Финальный экран</span><span>Предпросмотр</span></div>
+                <div className="preview-label"><span>Финальный экран</span><span><Pencil size={11}/> Редактируется</span></div>
                 <div className="screen">
                   <span className="done"><CheckCircle2 size={13}/> Опрос завершён</span>
-                  <textarea className={`preview-title${invalidFields.includes("resultTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("resultTitle")||undefined} aria-label="Заголовок финального экрана" value={meta.resultPresentation.title} onChange={(e)=>{setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}});clearInvalid("resultTitle")}} placeholder="Спасибо за ваши ответы" />
-                  <textarea className="preview-copy" aria-label="Сообщение после завершения" value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Ваши ответы сохранены" />
+                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Заголовок — нажмите, чтобы изменить</span><textarea rows={2} className={`preview-title${invalidFields.includes("resultTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("resultTitle")||undefined} aria-label="Заголовок финального экрана" value={meta.resultPresentation.title} onChange={(e)=>{setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}});clearInvalid("resultTitle")}} placeholder="Спасибо за ваши ответы" /></div>
+                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Сообщение после завершения</span><textarea rows={2} className="preview-copy" aria-label="Сообщение после завершения" value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Ваши ответы сохранены" /></div>
                 </div>
                 <div className="preview-settings">
                   <label><input type="checkbox" checked={meta.resultPresentation.showScores} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,showScores:e.target.checked,showResults:e.target.checked}})}/><span>Показывать рассчитанные результаты подтверждённых методик</span></label>
