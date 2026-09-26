@@ -70,7 +70,7 @@ const Header = styled.div`
   margin-bottom: 24px;
   h1 {
     font:
-      500 clamp(32px, 5vw, 44px) Georgia,
+      500 clamp(32px, 5vw, 44px) var(--font-heading),
       serif;
     color: #304a38;
     margin: 0 0 8px;
@@ -93,7 +93,7 @@ const Panel = styled(Card)`
   border-radius: 21px;
   h2 {
     font:
-      600 20px Georgia,
+      600 20px var(--font-heading),
       serif;
     margin: 0 0 7px;
     color: #354e3c;
