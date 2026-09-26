@@ -256,6 +256,8 @@ const PreviewGrid = styled.div`
 `;
 const PreviewCard = styled.div`
   min-width: 0;
+  display:flex;
+  flex-direction:column;
   border: 1px solid #dce5da;
   border-radius: 18px;
   background: linear-gradient(145deg, #fff, #f8fbf6);
@@ -282,7 +284,7 @@ const PreviewCard = styled.div`
     font-size:10px;
     font-weight:750;
   }
-  .screen { padding: 18px; min-height: 255px; }
+  .screen { flex:1; padding:18px; min-height:255px; }
   .eyebrow, .done {
     display: inline-flex;
     align-items: center;
