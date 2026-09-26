@@ -6,14 +6,15 @@ import bcrypt from 'bcryptjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
-import { requireAuth, signToken, type AuthRequest } from './auth.js';
+import { createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
 import { calculateConfiguredAssessmentsForSession, calculateDebqForSession, calculateMspssForSession, calculateNspsForSession, calculateSccsForSession, calculateShoppForSession, calculateSspm2011ForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
 import {platformRouter} from './platform.js';
 
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error('JWT_SECRET must contain at least 24 characters');
 const app=express();
-app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true})); app.use(express.json({limit:'200kb'}));
+app.set('trust proxy',1);
+app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
 app.use('/api',platformRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
@@ -66,7 +67,10 @@ app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
   res.json({results,presentation});
 }catch(e){next(e)}});
 
-app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0];res.json({token:signToken({id:user.id,role:user.role}),user})}catch(e){next(e)}});
+app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email.toLowerCase()]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0],token=await createAuthSession(req,res,{id:user.id,role:user.role});res.json({token,user})}catch(e){next(e)}});
+app.post('/api/auth/refresh',async(req,res,next)=>{try{const token=await rotateAuthSession(req,res);if(!token)return res.status(401).json({message:'Сессия истекла'});res.json({token})}catch(e){next(e)}});
+app.post('/api/auth/logout',async(req,res,next)=>{try{await revokeAuthSession(req,res);res.status(204).end()}catch(e){next(e)}});
+app.post('/api/auth/logout-all',requireAuth,async(req:AuthRequest,res,next)=>{try{await revokeAllUserSessions(req.user!.id);res.clearCookie('mindresearch_refresh',{path:'/api/auth'});res.status(204).end()}catch(e){next(e)}});
 app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
 app.get('/api/admin/methodologies',requireAuth,(_req,res)=>res.json(methodologies));
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{

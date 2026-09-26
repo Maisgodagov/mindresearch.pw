@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {db} from './db.js';
-import {requireAuth,signToken,type AuthRequest} from './auth.js';
+import {createAuthSession,requireAuth,revokeAllUserSessions,type AuthRequest} from './auth.js';
 import {methodologies} from './scoring/methodologies.js';
 
 export const platformRouter=Router();
@@ -16,7 +16,7 @@ platformRouter.post('/auth/register',async(req,res,next)=>{try{
   const[exists]=await db.query<any[]>('SELECT id FROM users WHERE email=?',[body.email.toLowerCase()]);if(exists.length)return res.status(409).json({message:'Пользователь с такой почтой уже зарегистрирован'});
   const id=randomUUID(),publicSlug=await uniqueSlug('users','public_slug',body.name);
   await db.execute('INSERT INTO users (id,email,password_hash,name,role,public_slug) VALUES (?,?,?,?,\'researcher\',?)',[id,body.email.toLowerCase(),await bcrypt.hash(body.password,12),body.name,publicSlug]);
-  const user={id,email:body.email.toLowerCase(),name:body.name,role:'researcher',publicSlug,isProfilePublic:false};res.status(201).json({token:signToken({id,role:'researcher'}),user});
+  const user={id,email:body.email.toLowerCase(),name:body.name,role:'researcher',publicSlug,isProfilePublic:false},token=await createAuthSession(req,res,{id,role:'researcher'});res.status(201).json({token,user});
 }catch(e){next(e)}});
 
 platformRouter.get('/account/me',requireAuth,async(req:AuthRequest,res,next)=>{try{const[rows]=await db.query<any[]>('SELECT id,email,name,role,bio,avatar_seed avatarSeed,public_slug publicSlug,is_profile_public isProfilePublic,created_at createdAt FROM users WHERE id=?',[req.user!.id]);if(!rows.length)return res.status(404).json({message:'Профиль не найден'});res.json(rows[0])}catch(e){next(e)}});
@@ -26,7 +26,7 @@ platformRouter.patch('/account/me',requireAuth,async(req:AuthRequest,res,next)=>
   await db.execute('UPDATE users SET name=?,bio=?,avatar_url=NULL,avatar_seed=?,public_slug=?,is_profile_public=? WHERE id=?',[body.name,body.bio,body.avatarSeed,body.publicSlug,body.isProfilePublic,req.user!.id]);res.json({ok:true});
 }catch(e){next(e)}});
 platformRouter.patch('/account/password',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const body=z.object({currentPassword:z.string().min(1).max(100),newPassword:z.string().min(8).max(100)}).parse(req.body);const[users]=await db.query<any[]>('SELECT password_hash passwordHash FROM users WHERE id=?',[req.user!.id]);if(!users.length)return res.status(404).json({message:'Профиль не найден'});if(!await bcrypt.compare(body.currentPassword,users[0].passwordHash))return res.status(400).json({message:'Текущий пароль указан неверно'});if(await bcrypt.compare(body.newPassword,users[0].passwordHash))return res.status(400).json({message:'Новый пароль должен отличаться от текущего'});await db.execute('UPDATE users SET password_hash=? WHERE id=?',[await bcrypt.hash(body.newPassword,12),req.user!.id]);res.json({ok:true});
+  const body=z.object({currentPassword:z.string().min(1).max(100),newPassword:z.string().min(8).max(100)}).parse(req.body);const[users]=await db.query<any[]>('SELECT password_hash passwordHash FROM users WHERE id=?',[req.user!.id]);if(!users.length)return res.status(404).json({message:'Профиль не найден'});if(!await bcrypt.compare(body.currentPassword,users[0].passwordHash))return res.status(400).json({message:'Текущий пароль указан неверно'});if(await bcrypt.compare(body.newPassword,users[0].passwordHash))return res.status(400).json({message:'Новый пароль должен отличаться от текущего'});await db.execute('UPDATE users SET password_hash=? WHERE id=?',[await bcrypt.hash(body.newPassword,12),req.user!.id]);await revokeAllUserSessions(req.user!.id);const token=await createAuthSession(req,res,{id:req.user!.id,role:req.user!.role});res.json({ok:true,token});
 }catch(e){next(e)}});
 
 platformRouter.get('/public/profiles/:slug',async(req,res,next)=>{try{
