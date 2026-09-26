@@ -26,7 +26,7 @@ platformRouter.post('/auth/forgot-password',async(req,res,next)=>{try{
   const{email}=z.object({email:z.string().email().max(255)}).parse(req.body),normalized=email.toLowerCase();
   const[users]=await db.query<any[]>('SELECT id,email FROM users WHERE email=?',[normalized]);if(!users.length)return res.json(resetResponse);
   const[count]=await db.query<any[]>('SELECT COUNT(*) count FROM password_reset_tokens WHERE user_id=? AND requested_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)',[users[0].id]);if(Number(count[0].count)>=3)return res.json(resetResponse);
-  const token=randomBytes(32).toString('hex');await db.execute('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=? AND used_at IS NULL',[users[0].id]);await db.execute('INSERT INTO password_reset_tokens (id,user_id,token_hash,expires_at) VALUES (?,?,?,DATE_ADD(NOW(),INTERVAL 30 MINUTE))',[randomUUID(),users[0].id,resetHash(token)]);
+  const token=randomBytes(32).toString('hex');await db.execute('INSERT INTO password_reset_tokens (id,user_id,token_hash,expires_at) VALUES (?,?,?,DATE_ADD(NOW(),INTERVAL 30 MINUTE))',[randomUUID(),users[0].id,resetHash(token)]);
   try{await sendPasswordReset(users[0].email,token)}catch(error){console.error('Password reset email failed',error)}res.json(resetResponse);
 }catch(e){next(e)}});
 platformRouter.post('/auth/reset-password',async(req,res,next)=>{let connection;try{
