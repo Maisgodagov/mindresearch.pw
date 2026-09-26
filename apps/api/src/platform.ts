@@ -25,6 +25,9 @@ platformRouter.patch('/account/me',requireAuth,async(req:AuthRequest,res,next)=>
   const[conflict]=await db.query<any[]>('SELECT id FROM users WHERE public_slug=? AND id<>?',[body.publicSlug,req.user!.id]);if(conflict.length)return res.status(409).json({message:'Этот адрес профиля уже занят'});
   await db.execute('UPDATE users SET name=?,bio=?,avatar_url=NULL,avatar_seed=?,public_slug=?,is_profile_public=? WHERE id=?',[body.name,body.bio,body.avatarSeed,body.publicSlug,body.isProfilePublic,req.user!.id]);res.json({ok:true});
 }catch(e){next(e)}});
+platformRouter.patch('/account/password',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  const body=z.object({currentPassword:z.string().min(1).max(100),newPassword:z.string().min(8).max(100)}).parse(req.body);const[users]=await db.query<any[]>('SELECT password_hash passwordHash FROM users WHERE id=?',[req.user!.id]);if(!users.length)return res.status(404).json({message:'Профиль не найден'});if(!await bcrypt.compare(body.currentPassword,users[0].passwordHash))return res.status(400).json({message:'Текущий пароль указан неверно'});if(await bcrypt.compare(body.newPassword,users[0].passwordHash))return res.status(400).json({message:'Новый пароль должен отличаться от текущего'});await db.execute('UPDATE users SET password_hash=? WHERE id=?',[await bcrypt.hash(body.newPassword,12),req.user!.id]);res.json({ok:true});
+}catch(e){next(e)}});
 
 platformRouter.get('/public/profiles/:slug',async(req,res,next)=>{try{
   const[profiles]=await db.query<any[]>('SELECT id,name,bio,avatar_seed avatarSeed,public_slug publicSlug FROM users WHERE public_slug=? AND is_profile_public=TRUE',[req.params.slug]);if(!profiles.length)return res.status(404).json({message:'Публичный профиль не найден'});
