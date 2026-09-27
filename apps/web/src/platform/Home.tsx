@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -59,6 +59,29 @@ const Grid = styled.div`
   gap: 16px;
   @media (max-width: 720px) {
     grid-template-columns: 1fr;
+  }
+`;
+const SectionTitle = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 0 3px;
+  h2 {
+    margin: 0;
+    color: #3a5441;
+    font: 600 24px var(--font-heading), serif;
+  }
+  span {
+    color: #839087;
+    font-size: 12px;
+  }
+  &.drafts {
+    margin-top: 20px;
+    padding-top: 24px;
+    border-top: 1px solid #dce5da;
   }
 `;
 const SurveyCard = styled(Card)`
@@ -508,6 +531,9 @@ export function PlatformHome() {
         <SkeletonScreen variant="cards" />
       </PlatformLayout>
     );
+  const publishedSurveys = surveys.filter((survey) => survey.status !== "draft");
+  const draftSurveys = surveys.filter((survey) => survey.status === "draft");
+  const orderedSurveys = [...publishedSurveys, ...draftSurveys];
   return (
     <PlatformLayout>
       <Head>
@@ -523,8 +549,21 @@ export function PlatformHome() {
       </Head>
       {error && <p style={{ color: "#a25c55" }}>{error}</p>}
       <Grid>
-        {surveys.map((s) => (
-          <SurveyCard key={s.id}>
+        {orderedSurveys.map((s, index) => (
+          <Fragment key={s.id}>
+            {index === 0 && publishedSurveys.length > 0 && (
+              <SectionTitle>
+                <h2>Опубликованные опросы</h2>
+                <span>{publishedSurveys.length}</span>
+              </SectionTitle>
+            )}
+            {index === publishedSurveys.length && draftSurveys.length > 0 && (
+              <SectionTitle className="drafts">
+                <h2>Черновики</h2>
+                <span>{draftSurveys.length}</span>
+              </SectionTitle>
+            )}
+          <SurveyCard>
             <div className="card-head">
               <span
                 className={`status ${s.status === "draft" ? "draft" : s.status === "archived" ? "archived" : ""}`}
@@ -626,6 +665,7 @@ export function PlatformHome() {
               </Link>
             </div>
           </SurveyCard>
+          </Fragment>
         ))}
       </Grid>
       <TrashBar>
