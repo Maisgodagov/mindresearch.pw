@@ -16,7 +16,7 @@
 - [x] 8. Pure Procrastination Scale, PPS — Steel — `done`: оригинальная англоязычная PPS-12
 - [ ] 9. Academic Self-Efficacy Scale — `blocked`: название неоднозначно; существуют несовместимые 5-, 8/9-, 33- и 40-пунктовые методики разных авторов и популяций, а автор и версия в исходном списке не указаны
 - [ ] 10. Student Adaptation to College Questionnaire, SACQ — `blocked`: проприетарная 67-пунктовая методика WPS; на официальном бланке запрещено воспроизведение полностью или частично без письменного разрешения
-- [ ] 11. School Engagement Scale / Student Engagement Instrument
+- [ ] 11. School Engagement Scale / Student Engagement Instrument — `blocked`: строка объединяет разные инструменты — 15-пунктовую School Engagement Scale и 35-пунктовый SEI Appleton et al.; требуется выбрать конкретную методику, возрастную и ответную версию
 - [ ] 12. Utrecht Work Engagement Scale for Students, UWES-S
 - [ ] 13. Academic Burnout Inventory / School Burnout Inventory
 - [ ] 14. Achievement Goal Questionnaire, AGQ
