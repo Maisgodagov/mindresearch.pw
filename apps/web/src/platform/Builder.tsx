@@ -728,16 +728,17 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
     align-items: center;
     gap: 6px;
     padding: 9px 13px;
-    border: 0;
+    border: 1px solid #63816b;
     border-radius: 10px;
-    background: #e2ede0;
-    color: #486451;
-    font-size: 12px;
+    background: #557660;
+    color: #fff;
+    font-size: 13px;
     font-weight: 750;
     cursor: pointer;
+    box-shadow: 0 5px 14px rgba(68, 99, 77, 0.16);
   }
   .add-option:hover {
-    background: #d6e5d3;
+    background: #45644f;
   }
 `;
 const QuestionBox = styled.div<{ $dragging?: boolean }>`
@@ -832,15 +833,62 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
     justify-self: start;
     border: 0;
     border-radius: 10px;
-    background: #e2ede0;
-    color: #486451;
-    padding: 9px 13px;
-    font-size: 12px;
-    font-weight: 700;
+    border: 1px solid #63816b;
+    background: #557660;
+    color: #fff;
+    padding: 10px 15px;
+    font-size: 13px;
+    font-weight: 750;
     cursor: pointer;
+    box-shadow: 0 5px 14px rgba(68, 99, 77, 0.16);
+    transition: 0.16s ease;
   }
   .add-option:hover {
-    background: #d6e5d3;
+    background: #45644f;
+    transform: translateY(-1px);
+  }
+  .library-questions {
+    padding: 4px 14px 15px;
+    border-top: 1px solid #edf1ec;
+    background: #fafcf9;
+  }
+  .library-note {
+    margin: 10px 0 8px;
+    color: #77867c;
+    font-size: 11px;
+  }
+  .readonly-question {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid #e8eee6;
+  }
+  .readonly-question:last-child {
+    border-bottom: 0;
+  }
+  .readonly-question .number {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: #e7f0e4;
+    color: #52705b;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .readonly-question b {
+    display: block;
+    color: #3d5243;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .readonly-options {
+    margin-top: 6px;
+    color: #77847b;
+    font-size: 11px;
+    line-height: 1.5;
   }
   .required {
     display: flex;
@@ -1065,6 +1113,9 @@ export function SurveyBuilder() {
     [previewLoading, setPreviewLoading] = useState(false),
     [previewError, setPreviewError] = useState(""),
     [invalidFields, setInvalidFields] = useState<string[]>([]),
+    [libraryQuestionsLoading, setLibraryQuestionsLoading] = useState<
+      Record<string, boolean>
+    >({}),
     [builderReady, setBuilderReady] = useState(false),
     [catalogLoading, setCatalogLoading] = useState(true),
     [draftRestored, setDraftRestored] = useState(false),
@@ -1281,6 +1332,34 @@ export function SurveyBuilder() {
   };
   const updateSection = (id: string, fn: (section: Section) => Section) =>
     setSections((s) => s.map((x) => (x.id === id ? fn(x) : x)));
+  const toggleLibrarySection = async (section: Section) => {
+    if (open[section.id]) {
+      setOpen((current) => ({ ...current, [section.id]: false }));
+      return;
+    }
+    setOpen((current) => ({ ...current, [section.id]: true }));
+    if (section.questions || !section.instrumentId) return;
+    setLibraryQuestionsLoading((current) => ({
+      ...current,
+      [section.id]: true,
+    }));
+    try {
+      const { data } = await api.get(
+        `/account/instruments/${section.instrumentId}/questions`,
+      );
+      updateSection(section.id, (current) => ({
+        ...current,
+        questions: data.questions,
+      }));
+    } catch {
+      setError("Не удалось загрузить вопросы методики.");
+    } finally {
+      setLibraryQuestionsLoading((current) => ({
+        ...current,
+        [section.id]: false,
+      }));
+    }
+  };
   const clearInvalid = (key: string) =>
     setInvalidFields((current) => current.filter((item) => item !== key));
   const showValidation = (keys: string[], message: string) => {
@@ -1888,24 +1967,33 @@ export function SurveyBuilder() {
                             >
                               <ArrowDown size={15} />
                             </button>
-                            {section.kind === "custom" && (
-                              <button
-                                className="icon"
-                                aria-label="Развернуть блок"
-                                onClick={() =>
-                                  setOpen((o) => ({
-                                    ...o,
-                                    [section.id]: !o[section.id],
-                                  }))
-                                }
-                              >
-                                {open[section.id] ? (
-                                  <ChevronUp size={16} />
-                                ) : (
-                                  <ChevronDown size={16} />
-                                )}
-                              </button>
-                            )}
+                            <button
+                              className="icon"
+                              aria-label={
+                                open[section.id]
+                                  ? "Свернуть блок"
+                                  : "Развернуть блок"
+                              }
+                              title={
+                                section.kind === "library"
+                                  ? "Посмотреть вопросы методики"
+                                  : undefined
+                              }
+                              onClick={() =>
+                                section.kind === "library"
+                                  ? toggleLibrarySection(section)
+                                  : setOpen((o) => ({
+                                      ...o,
+                                      [section.id]: !o[section.id],
+                                    }))
+                              }
+                            >
+                              {open[section.id] ? (
+                                <ChevronUp size={16} />
+                              ) : (
+                                <ChevronDown size={16} />
+                              )}
+                            </button>
                             <button
                               className="icon"
                               aria-label="Удалить блок"
@@ -1918,6 +2006,38 @@ export function SurveyBuilder() {
                               <Trash2 size={15} />
                             </button>
                           </div>
+                          {section.kind === "library" && open[section.id] && (
+                            <div className="library-questions">
+                              <p className="library-note">
+                                Вопросы подтверждённой методики доступны только
+                                для просмотра и не редактируются.
+                              </p>
+                              {libraryQuestionsLoading[section.id] ? (
+                                <p className="library-note">Загружаем вопросы…</p>
+                              ) : (
+                                section.questions?.map((question, qi) => (
+                                  <div
+                                    className="readonly-question"
+                                    key={question.id}
+                                  >
+                                    <span className="number">{qi + 1}</span>
+                                    <div>
+                                      <b>{question.text}</b>
+                                      {(question.type === "single" ||
+                                        question.type === "multiple") &&
+                                        question.options.length > 0 && (
+                                          <div className="readonly-options">
+                                            {question.options
+                                              .map((option) => option.label)
+                                              .join(" · ")}
+                                          </div>
+                                        )}
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
                           {section.kind === "custom" && open[section.id] && (
                             <div className="body">
                               <div className="field">
@@ -2356,7 +2476,7 @@ export function SurveyBuilder() {
                                                   </div>
                                                 ))}
                                                 <button
-                                                  className="tiny"
+                                                  className="add-option"
                                                   onClick={() =>
                                                     updateSection(
                                                       section.id,
@@ -2389,7 +2509,8 @@ export function SurveyBuilder() {
                                                     )
                                                   }
                                                 >
-                                                  + Вариант ответа
+                                                  <Plus size={14} /> Добавить
+                                                  вариант ответа
                                                 </button>
                                               </div>
                                             )}

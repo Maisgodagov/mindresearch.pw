@@ -1,7 +1,7 @@
 import{useEffect,useState,type ReactNode}from'react';
 import{NavLink,useNavigate}from'react-router-dom';
 import styled from'styled-components';
-import{ChevronLeft,ChevronRight,ClipboardList,Leaf,LogOut,Plus,Send,ShieldCheck,UserRound}from'lucide-react';
+import{ClipboardList,Leaf,LogOut,PanelLeftClose,PanelLeftOpen,Plus,Send,ShieldCheck,UserRound}from'lucide-react';
 import{getCachedCurrentUser,getCurrentUser,logout}from'../api';
 
 const Frame=styled.div<{$collapsed:boolean}>`min-height:100dvh;background:#f3f6f0;display:grid;grid-template-columns:${p=>p.$collapsed?'76px':'240px'} minmax(0,1fr);transition:grid-template-columns .22s ease;@media(max-width:760px){grid-template-columns:1fr;padding-bottom:74px}`;
@@ -34,7 +34,7 @@ export function PlatformLayout({children}:{children:ReactNode}){
   const toggle=()=>setCollapsed(value=>{const next=!value;localStorage.setItem('mindresearch_sidebar_collapsed',next?'1':'0');return next});
   const visibleLinks=['owner','admin'].includes(role)?[...links.slice(0,3),{to:'/app/methodologies/review',label:'Заявки на методики',icon:ShieldCheck},links[3]]:links;
   return <Frame $collapsed={collapsed}><Side $collapsed={collapsed}>
-    <div className="top"><div className="brand"><Leaf size={24}/><span>mindresearch</span></div><button className="toggle" type="button" aria-label={collapsed?'Развернуть меню':'Свернуть меню'} title={collapsed?'Развернуть меню':'Свернуть меню'} onClick={toggle}>{collapsed?<ChevronRight size={17}/>:<ChevronLeft size={17}/>}</button></div>
+    <div className="top"><div className="brand"><Leaf size={24}/><span>mindresearch</span></div><button className="toggle" type="button" aria-label={collapsed?'Развернуть боковое меню':'Свернуть боковое меню'} title={collapsed?'Развернуть боковое меню':'Свернуть боковое меню'} onClick={toggle}>{collapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}</button></div>
     <div className="nav">{visibleLinks.map(({to,end,label,icon:Icon})=><NavLink to={to} end={end} aria-label={label} title={collapsed?label:undefined} key={to}><Icon size={18}/><span>{label}</span></NavLink>)}</div>
     <button className="logout" title={collapsed?'Выйти':undefined} aria-label="Выйти" onClick={async()=>{await logout();nav('/login')}}><LogOut size={17}/><span>Выйти</span></button>
   </Side><Main>{children}</Main></Frame>;
