@@ -433,6 +433,17 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_13") {
+    return (
+      <ResultCard>
+        <h2>Краткий профиль Big Five</h2>
+        <p className="summary">BFI-2-S показывает непрерывные средние пяти областей от 1 до 5. Аспекты основаны лишь на двух пунктах каждый и требуют особенно осторожной интерпретации. Это не типы личности, нормы или диагноз.</p>
+        <ScaleBars scales={v.domains} />
+        <h3>Аспекты личностных черт</h3>
+        <ScaleBars scales={v.facets} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 

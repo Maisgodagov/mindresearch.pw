@@ -728,6 +728,7 @@ const methodCodes = [
   "test_10",
   "test_11",
   "test_12",
+  "test_13",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -742,6 +743,7 @@ const shortNames: Record<string, string> = {
   test_10: "GPS",
   test_11: "PPS",
   test_12: "BFI-2",
+  test_13: "BFI-2-S",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -849,6 +851,10 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
     const result = group.result.values as unknown as {domains:Record<string,{average:number}>};
     const values=Object.values(result.domains);
     return <span className="score">5 областей<br /><small>{values.map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
+  }
+  if (group.code === "test_13") {
+    const result = group.result.values as unknown as {domains:Record<string,{average:number}>};
+    return <span className="score">5 областей<br /><small>{Object.values(result.domains).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
@@ -1077,6 +1083,11 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
     const result = group.result.values as unknown as {domains:Record<string,{label:string;average:number}>;facets:Record<string,{label:string;average:number}>};
     const scales=(values:Record<string,{label:string;average:number}>)=><SupportProfile>{Object.values(values).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${((scale.average-1)/4)*100}%`}} /></div><span className="value">{scale.average.toFixed(2)}</span><div className="caption">диапазон 1–5 · без нормативных категорий</div></div>)}</SupportProfile>;
     return <><b>Пять областей Big Five</b>{scales(result.domains)}<b>15 аспектов личностных черт</b>{scales(result.facets)}</>;
+  }
+  if (group.code === "test_13") {
+    const result = group.result.values as unknown as {domains:Record<string,{label:string;average:number}>;facets:Record<string,{label:string;average:number}>};
+    const scales=(values:Record<string,{label:string;average:number}>)=><SupportProfile>{Object.values(values).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${((scale.average-1)/4)*100}%`}} /></div><span className="value">{scale.average.toFixed(2)}</span><div className="caption">диапазон 1–5 · без нормативных категорий</div></div>)}</SupportProfile>;
+    return <><b>Пять областей Big Five (BFI-2-S)</b>{scales(result.domains)}<b>15 аспектов — интерпретировать осторожно</b>{scales(result.facets)}</>;
   }
   return <>Результат рассчитан</>;
 }

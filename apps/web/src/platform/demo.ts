@@ -13,5 +13,6 @@ export const demoInstruments=[
   {id:'test-10',code:'test_10',title:'General Procrastination Scale, GPS — Student Form',description:'Original English 20-item student form.',questionCount:20,isVerified:true,scoringCode:'test_10',author:'Clarry H. Lay'},
   {id:'test-11',code:'test_11',title:'Pure Procrastination Scale, PPS-12',description:'Original English 12-item scale.',questionCount:12,isVerified:true,scoringCode:'test_11',author:'Piers Steel'},
   {id:'test-12',code:'test_12',title:'Big Five Inventory–2, BFI-2 — русская версия',description:'Пять личностных областей и 15 аспектов.',questionCount:60,isVerified:true,scoringCode:'test_12',author:'Christopher J. Soto, Oliver P. John; С. А. Щебетенко и соавторы'},
+  {id:'test-13',code:'test_13',title:'Краткая версия Big Five Inventory–2, BFI-2-S — русская версия',description:'Пять личностных областей и 15 аспектов в 30 пунктах.',questionCount:30,isVerified:true,scoringCode:'test_13',author:'Christopher J. Soto, Oliver P. John; А. М. Мишкевич и соавторы'},
 ];
 export {methodologies as demoMethodologies} from '../../../api/src/scoring/methodologies';

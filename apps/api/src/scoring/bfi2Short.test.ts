@@ -1,0 +1,12 @@
+import{describe,expect,it}from'vitest';
+import{bfi2ShortInstrument}from'../data/bfi2Short.js';
+import{BFI2_SHORT_REVERSE_ITEMS,scoreBfi2Short}from'./bfi2Short.js';
+const answers=(value:number)=>new Map(Array.from({length:30},(_,index)=>[index+1,value]));
+describe('scoreBfi2Short',()=>{
+  it('ships the published 30-item Russian form and response scale',()=>{expect(bfi2ShortInstrument.questions).toHaveLength(30);expect(bfi2ShortInstrument.questions.map(q=>q.code)).toEqual(Array.from({length:30},(_,i)=>`test_13_${i+1}`));expect(bfi2ShortInstrument.questions.every(q=>q.options?.map(o=>o.value).join(',')==='1,2,3,4,5')).toBe(true)});
+  it('contains the complete published reverse key',()=>expect(BFI2_SHORT_REVERSE_ITEMS).toEqual([1,3,7,8,10,14,17,19,20,21,24,26,27,28,30]));
+  it('checks the direction of every item through the domain scorer',()=>{const reverse=new Set<number>(BFI2_SHORT_REVERSE_ITEMS);const baseline=scoreBfi2Short(answers(3))!;const baselineTotal=Object.values(baseline.domains).reduce((sum,x)=>sum+x.score,0);for(let item=1;item<=30;item++){const input=answers(3);input.set(item,4);const total=Object.values(scoreBfi2Short(input)!.domains).reduce((sum,x)=>sum+x.score,0);expect(total-baselineTotal,`item ${item}`).toBe(reverse.has(item)?-1:1)}});
+  it('calculates theoretical minima and maxima',()=>{const min=answers(1);BFI2_SHORT_REVERSE_ITEMS.forEach(i=>min.set(i,5));const minResult=scoreBfi2Short(min)!;expect(Object.values(minResult.domains).every(x=>x.average===1)).toBe(true);expect(Object.values(minResult.facets).every(x=>x.average===1)).toBe(true);const max=answers(5);BFI2_SHORT_REVERSE_ITEMS.forEach(i=>max.set(i,1));const maxResult=scoreBfi2Short(max)!;expect(Object.values(maxResult.domains).every(x=>x.average===5)).toBe(true);expect(Object.values(maxResult.facets).every(x=>x.average===5)).toBe(true)});
+  it('calculates a mixed protocol and distinct facets',()=>{const input=answers(3);input.set(1,5);input.set(16,5);const result=scoreBfi2Short(input)!;expect(result.facets.sociability).toMatchObject({score:6,average:3});expect(result.domains.extraversion).toMatchObject({score:18,average:3});expect(result.domains.agreeableness.average).toBe(3)});
+  it('rejects incomplete, invalid, and wrong-key protocols',()=>{const incomplete=answers(3);incomplete.delete(30);expect(scoreBfi2Short(incomplete)).toBeNull();const invalid=answers(3);invalid.set(30,6);expect(scoreBfi2Short(invalid)).toBeNull();const wrong=answers(3);wrong.delete(1);wrong.set(31,3);expect(scoreBfi2Short(wrong)).toBeNull()});
+});

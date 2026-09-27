@@ -7,7 +7,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
 import { createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
-import { calculateAmsForSession, calculateBfi2ForSession, calculateConfiguredAssessmentsForSession, calculateDebqForSession, calculateGpsForSession, calculateMspssForSession, calculateNspsForSession, calculatePpsForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession, calculateStudyAlienationForSession } from './scoring/index.js';
+import { calculateAmsForSession, calculateBfi2ForSession, calculateBfi2ShortForSession, calculateConfiguredAssessmentsForSession, calculateDebqForSession, calculateGpsForSession, calculateMspssForSession, calculateNspsForSession, calculatePpsForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession, calculateStudyAlienationForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
 import {platformRouter} from './platform.js';
 
@@ -55,6 +55,7 @@ app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   if(questions[0].sectionCode==='test_10')await calculateGpsForSession(sessions[0].id);
   if(questions[0].sectionCode==='test_11')await calculatePpsForSession(sessions[0].id);
   if(questions[0].sectionCode==='test_12')await calculateBfi2ForSession(sessions[0].id);
+  if(questions[0].sectionCode==='test_13')await calculateBfi2ShortForSession(sessions[0].id);
   res.status(204).end();
 }catch(e){next(e)}});
 app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{
