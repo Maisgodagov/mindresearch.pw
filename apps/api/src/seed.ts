@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import data from './data/survey.json' with { type: 'json' };
 import { shamInstrument } from './data/sham.js';
+import { amsInstrument } from './data/ams.js';
 import { db, migrate } from './db.js';
 import type { SeedSection } from './types.js';
 
@@ -38,7 +39,7 @@ export async function seed() {
       if(instrumentId){const[iq]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,q.code]);if(iq.length)await db.execute('UPDATE instrument_questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,iq[0].id]);else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,q.code,...values])}
     }
   }
-  const verifiedInstruments:SeedSection[]=[shamInstrument];
+  const verifiedInstruments:SeedSection[]=[shamInstrument,amsInstrument];
   for(const instrument of verifiedInstruments){
     const[rows]=await db.query<any[]>('SELECT id FROM instruments WHERE code=?',[instrument.code]);
     const instrumentId=rows[0]?.id??randomUUID();

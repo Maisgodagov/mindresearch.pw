@@ -8,5 +8,6 @@ export const demoInstruments=[
   {id:'test-5',code:'test_5',title:'ШОПП',description:'Семь аспектов пищевого поведения и отношения к телу.',questionCount:51,isVerified:true,scoringCode:'test_5',author:'David Garner, Marion Olmsted, Janet Polivy'},
   {id:'test-6',code:'test_6',title:'DEBQ',description:'Ограничительное, эмоциогенное и экстернальное пищевое поведение.',questionCount:33,isVerified:true,scoringCode:'test_6',author:'Tatjana van Strien и соавторы'},
   {id:'test-7',code:'test_7',title:'Шкала академической мотивации, ШАМ',description:'Семь типов академической мотивации студентов.',questionCount:28,isVerified:true,scoringCode:'test_7',author:'Т. О. Гордеева, О. А. Сычев, Е. Н. Осин'},
+  {id:'test-8',code:'test_8',title:'Academic Motivation Scale, AMS-C 28',description:'Official English College Version for research purposes.',questionCount:28,isVerified:true,scoringCode:'test_8',author:'Robert J. Vallerand et al.'},
 ];
 export {methodologies as demoMethodologies} from '../../../api/src/scoring/methodologies';

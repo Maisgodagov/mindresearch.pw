@@ -723,6 +723,7 @@ const methodCodes = [
   "test_5",
   "test_6",
   "test_7",
+  "test_8",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -732,6 +733,7 @@ const shortNames: Record<string, string> = {
   test_5: "ШОПП",
   test_6: "DEBQ",
   test_7: "ШАМ",
+  test_8: "AMS",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -817,6 +819,11 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
         <small>{top.label}</small>
       </span>
     );
+  }
+  if (group.code === "test_8") {
+    const result = group.result.values as unknown as FoodValues;
+    const top = Object.values(result.scales).sort((a, b) => (b.average ?? 0) - (a.average ?? 0))[0];
+    return <span className="score">{top.average?.toFixed(2)} / 7<br /><small>{top.label}</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
@@ -1024,6 +1031,10 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
         </SupportProfile>
       </>
     );
+  }
+  if (group.code === "test_8") {
+    const result = group.result.values as unknown as FoodValues;
+    return <><b>Academic motivation profile</b><SupportProfile>{Object.values(result.scales).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${(((scale.average??1)-1)/6)*100}%`}} /></div><span className="value">{scale.average?.toFixed(2)}</span><div className="caption">range 1–7 · research profile without diagnostic cutoffs</div></div>)}</SupportProfile></>;
   }
   return <>Результат рассчитан</>;
 }

@@ -7,7 +7,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
 import { createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
-import { calculateConfiguredAssessmentsForSession, calculateDebqForSession, calculateMspssForSession, calculateNspsForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession } from './scoring/index.js';
+import { calculateAmsForSession, calculateConfiguredAssessmentsForSession, calculateDebqForSession, calculateMspssForSession, calculateNspsForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
 import {platformRouter} from './platform.js';
 
@@ -50,6 +50,7 @@ app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   if(questions[0].sectionCode==='test_5')await calculateShoppForSession(sessions[0].id);
   if(questions[0].sectionCode==='test_6')await calculateDebqForSession(sessions[0].id);
   if(questions[0].sectionCode==='test_7')await calculateShamForSession(sessions[0].id);
+  if(questions[0].sectionCode==='test_8')await calculateAmsForSession(sessions[0].id);
   res.status(204).end();
 }catch(e){next(e)}});
 app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{

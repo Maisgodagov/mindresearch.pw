@@ -376,6 +376,23 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_8") {
+    const top = Object.values(v.scales as Record<string, Scale>)
+      .sort((a, b) => (b.average ?? 0) - (a.average ?? 0))
+      .slice(0, 2)
+      .map((scale) => scale.label)
+      .join(" и ");
+    return (
+      <ResultCard>
+        <h2>Academic motivation profile</h2>
+        <p className="summary">
+          Highest scores: {top}. The seven scales describe distinct reasons for
+          studying; the authors do not define universal diagnostic cutoffs.
+        </p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 
