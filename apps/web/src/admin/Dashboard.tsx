@@ -726,6 +726,7 @@ const methodCodes = [
   "test_8",
   "test_9",
   "test_10",
+  "test_11",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -738,6 +739,7 @@ const shortNames: Record<string, string> = {
   test_8: "AMS",
   test_9: "Отчуждение",
   test_10: "GPS",
+  test_11: "PPS",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -836,6 +838,10 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
   if (group.code === "test_10") {
     const result = group.result.values as unknown as {overall:{score:number;average:number}};
     return <span className="score">{result.overall.score} / 100<br /><small>среднее {result.overall.average.toFixed(2)} / 5</small></span>;
+  }
+  if (group.code === "test_11") {
+    const result = group.result.values as unknown as {overall:{score:number;average:number}};
+    return <span className="score">{result.overall.average.toFixed(2)} / 5<br /><small>сумма {result.overall.score} / 60</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
@@ -1055,6 +1061,10 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
   if (group.code === "test_10") {
     const result = group.result.values as unknown as {overall:{score:number;average:number}};
     return <><b>General procrastination: {result.overall.score} / 100</b><SupportProfile><div className="scale"><span className="name">Average adjusted response</span><div className="track"><div className="fill" style={{width:`${((result.overall.average-1)/4)*100}%`}} /></div><span className="value">{result.overall.average.toFixed(2)}</span><div className="caption">continuous research score · no diagnostic cutoffs</div></div></SupportProfile></>;
+  }
+  if (group.code === "test_11") {
+    const result = group.result.values as unknown as FoodValues & {overall:{score:number;average:number}};
+    return <><b>Pure procrastination: {result.overall.average.toFixed(2)} / 5</b><SupportProfile>{Object.values(result.scales).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${(((scale.average??1)-1)/4)*100}%`}} /></div><span className="value">{scale.average?.toFixed(2)}</span><div className="caption">range 1–5 · no diagnostic cutoffs</div></div>)}</SupportProfile></>;
   }
   return <>Результат рассчитан</>;
 }

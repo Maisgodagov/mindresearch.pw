@@ -11,5 +11,6 @@ export const demoInstruments=[
   {id:'test-8',code:'test_8',title:'Academic Motivation Scale, AMS-C 28',description:'Official English College Version for research purposes.',questionCount:28,isVerified:true,scoringCode:'test_8',author:'Robert J. Vallerand et al.'},
   {id:'test-9',code:'test_9',title:'Шкала отчуждения от учебы',description:'Четыре формы отчуждения от учебной деятельности.',questionCount:12,isVerified:true,scoringCode:'test_9',author:'Е. Н. Осин'},
   {id:'test-10',code:'test_10',title:'General Procrastination Scale, GPS — Student Form',description:'Original English 20-item student form.',questionCount:20,isVerified:true,scoringCode:'test_10',author:'Clarry H. Lay'},
+  {id:'test-11',code:'test_11',title:'Pure Procrastination Scale, PPS-12',description:'Original English 12-item scale.',questionCount:12,isVerified:true,scoringCode:'test_11',author:'Piers Steel'},
 ];
 export {methodologies as demoMethodologies} from '../../../api/src/scoring/methodologies';

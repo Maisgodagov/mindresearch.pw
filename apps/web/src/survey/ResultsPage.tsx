@@ -412,6 +412,16 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_11") {
+    const overall = v.overall as Scale & {score:number;average:number};
+    return (
+      <ResultCard>
+        <h2>Pure procrastination</h2>
+        <p className="summary">Mean score: {overall.average.toFixed(2)} of 5; raw total: {overall.score} of 60. The PPS is a continuous research measure without diagnostic cutoffs.</p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 

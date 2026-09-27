@@ -13,7 +13,7 @@
 - [ ] 5. Опросник академической компетентности студентов — `blocked`: первоисточник противоречиво задаёт порядок ответов и направление баллов; требуется разъяснение автора
 - [ ] 6. PASS — Procrastination Assessment Scale for Students — `blocked`: не подтверждено право на цифровое воспроизведение полного 44-пунктового бланка
 - [x] 7. General Procrastination Scale, GPS — Lay — `done`: 20-пунктовая англоязычная student form
-- [ ] 8. Pure Procrastination Scale, PPS — Steel
+- [ ] 8. Pure Procrastination Scale, PPS — Steel — `researching`: оригинальная англоязычная PPS-12
 - [ ] 9. Academic Self-Efficacy Scale
 - [ ] 10. Student Adaptation to College Questionnaire, SACQ
 - [ ] 11. School Engagement Scale / Student Engagement Instrument
