@@ -34,6 +34,7 @@ import {
   Search,
   ShieldCheck,
   Trash2,
+  UserRound,
 } from "lucide-react";
 import { api } from "../api";
 import { Button, Card, SkeletonScreen } from "../ui";
@@ -309,6 +310,24 @@ const Panel = styled(Card)`
     background: #fff0ee;
     color: #9b4e49;
     font-size: 13px;
+  }
+  .add-alias {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px dashed #aabca9;
+    border-radius: 12px;
+    background: #f5f9f3;
+    color: #526f5b;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  .add-alias:hover {
+    background: #eaf2e7;
   }
 `;
 const SurveyBasics = styled.div`
@@ -1167,6 +1186,7 @@ export function SurveyBuilder() {
       "Здесь нет правильных или неправильных ответов — важен ваш личный опыт.",
     status: "draft" as "draft" | "active" | "archived",
     showAuthor: true,
+    collectAlias: true,
     resultPresentation: {
       showResults: true,
       showScores: true,
@@ -1210,6 +1230,7 @@ export function SurveyBuilder() {
               welcomeText: data.welcomeText,
               status: data.status,
               showAuthor: Boolean(data.showAuthor),
+              collectAlias: data.collectAlias !== false,
               resultPresentation: data.resultPresentation,
           });
           setSections(
@@ -1287,9 +1308,9 @@ export function SurveyBuilder() {
     () =>
       sections.reduce(
         (sum, s) => sum + (s.questionCount ?? s.questions?.length ?? 0),
-        0,
+        meta.collectAlias ? 1 : 0,
       ),
-    [sections],
+    [sections, meta.collectAlias],
   );
   const filteredInstruments = useMemo(() => {
     const query = libraryQuery.trim().toLocaleLowerCase("ru");
@@ -1430,7 +1451,21 @@ export function SurveyBuilder() {
           );
         }),
       );
-      setPreviewQuestions(blocks.flat());
+      setPreviewQuestions([
+        ...(meta.collectAlias
+          ? [
+              {
+                id: "respondent-alias",
+                text: "Представьтесь или укажите псевдоним",
+                type: "text" as const,
+                required: true,
+                options: [],
+                sectionTitle: "О респонденте",
+              },
+            ]
+          : []),
+        ...blocks.flat(),
+      ]);
     } catch {
       setPreviewError(
         "Не удалось загрузить вопросы для предпросмотра. Попробуйте ещё раз.",
@@ -1946,8 +1981,8 @@ export function SurveyBuilder() {
         >
           <h2>Содержание опроса</h2>
           <p className="hint">
-            {sections.length
-              ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
+            {sections.length || meta.collectAlias
+              ? `${sections.length + (meta.collectAlias ? 1 : 0)} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
               : "Добавьте подтверждённую методику или создайте собственный тест."}
           </p>
           <div
@@ -1955,6 +1990,55 @@ export function SurveyBuilder() {
               structureLocked ? { pointerEvents: "none", opacity: 0.65 } : {}
             }
           >
+            {meta.collectAlias ? (
+              <SectionCard style={{ marginTop: 15 }}>
+                <div className="section-head">
+                  <span className="section-drag" style={{ cursor: "default" }}>
+                    <UserRound size={18} />
+                  </span>
+                  <div className="section-name">
+                    <b>О респонденте</b>
+                    <span>
+                      Системный вопрос · используется как имя в статистике
+                    </span>
+                  </div>
+                  <button
+                    className="icon"
+                    aria-label="Убрать вопрос о псевдониме"
+                    title="Убрать вопрос о псевдониме"
+                    onClick={() =>
+                      setMeta((current) => ({
+                        ...current,
+                        collectAlias: false,
+                      }))
+                    }
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+                <div className="body" style={{ paddingTop: 13 }}>
+                  <div className="readonly-question">
+                    <span className="number">1</span>
+                    <div>
+                      <b>Представьтесь или укажите псевдоним</b>
+                      <div className="question-meta">
+                        Текстовый ответ · обязательный
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+            ) : (
+              <button
+                className="add-alias"
+                type="button"
+                onClick={() =>
+                  setMeta((current) => ({ ...current, collectAlias: true }))
+                }
+              >
+                <UserRound size={16} /> Добавить вопрос о псевдониме
+              </button>
+            )}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
