@@ -12,7 +12,7 @@
 - [x] 4. Шкала отчуждения от учебы — Е. Н. Осин — `done`: краткая 12-пунктовая версия, CC BY-NC 4.0
 - [ ] 5. Опросник академической компетентности студентов — `blocked`: первоисточник противоречиво задаёт порядок ответов и направление баллов; требуется разъяснение автора
 - [ ] 6. PASS — Procrastination Assessment Scale for Students — `blocked`: не подтверждено право на цифровое воспроизведение полного 44-пунктового бланка
-- [ ] 7. General Procrastination Scale, GPS — Lay — `implementing`: 20-пунктовая англоязычная student form
+- [x] 7. General Procrastination Scale, GPS — Lay — `done`: 20-пунктовая англоязычная student form
 - [ ] 8. Pure Procrastination Scale, PPS — Steel
 - [ ] 9. Academic Self-Efficacy Scale
 - [ ] 10. Student Adaptation to College Questionnaire, SACQ
