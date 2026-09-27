@@ -5,6 +5,7 @@ import{scoreMspss}from'./mspss.js';
 import{scoreNsps}from'./nsps.js';
 import{scoreShopp}from'./shopp.js';
 import{scoreDebq}from'./debq.js';
+import{scoreSham}from'./sham.js';
 
 function parseValue(value:unknown):unknown{if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}}
 
@@ -64,4 +65,15 @@ async function calculateFoodAssessment(sessionId:string,sectionCode:'test_5'|'te
 export const calculateShoppForSession=(sessionId:string)=>calculateFoodAssessment(sessionId,'test_5');
 export const calculateDebqForSession=(sessionId:string)=>calculateFoodAssessment(sessionId,'test_6');
 
-export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId)])}
+export async function calculateShamForSession(sessionId:string){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code='test_7' JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[sessionId]);
+  if(!rows.length)return null;
+  const answers=new Map<number,number>();
+  for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const value=Number(parseValue(row.value));if(number&&value)answers.set(number,value)}
+  const result=scoreSham(answers);
+  if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
+  await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?, ?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,'sham-gordeeva-2014-v1',JSON.stringify(result)]);
+  return result;
+}
+
+export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId)])}

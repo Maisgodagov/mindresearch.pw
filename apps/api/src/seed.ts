@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import data from './data/survey.json' with { type: 'json' };
+import { shamInstrument } from './data/sham.js';
 import { db, migrate } from './db.js';
 import type { SeedSection } from './types.js';
 
@@ -35,6 +36,19 @@ export async function seed() {
       if(existing.length) await db.execute('UPDATE questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,existing[0].id]);
       else await db.execute('INSERT INTO questions (id,section_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),sectionId,q.code,...values]);
       if(instrumentId){const[iq]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,q.code]);if(iq.length)await db.execute('UPDATE instrument_questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,iq[0].id]);else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,q.code,...values])}
+    }
+  }
+  const verifiedInstruments:SeedSection[]=[shamInstrument];
+  for(const instrument of verifiedInstruments){
+    const[rows]=await db.query<any[]>('SELECT id FROM instruments WHERE code=?',[instrument.code]);
+    const instrumentId=rows[0]?.id??randomUUID();
+    if(!rows.length)await db.execute('INSERT INTO instruments (id,code,title,description,is_verified,scoring_code) VALUES (?,?,?,?,TRUE,?)',[instrumentId,instrument.code,instrument.title,instrument.description??null,instrument.code]);
+    else await db.execute('UPDATE instruments SET title=?,description=?,is_verified=TRUE,scoring_code=?,status=\'active\' WHERE id=?',[instrument.title,instrument.description??null,instrument.code,instrumentId]);
+    for(const[position,question]of instrument.questions.entries()){
+      const[existing]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,question.code]);
+      const values=[question.text,question.type,question.required!==false,position,question.options?JSON.stringify(question.options):null,question.validation?JSON.stringify(question.validation):null];
+      if(existing.length)await db.execute('UPDATE instrument_questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,existing[0].id]);
+      else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,question.code,...values]);
     }
   }
   console.log(`Survey ready: ${data.reduce((n,s)=>n+s.questions.length,0)} questions; /s/anketa`);

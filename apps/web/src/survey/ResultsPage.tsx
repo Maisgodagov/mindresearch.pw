@@ -359,6 +359,23 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_7") {
+    const top = Object.values(v.scales as Record<string, Scale>)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 2)
+      .map((scale) => scale.label.toLowerCase())
+      .join(" и ");
+    return (
+      <ResultCard>
+        <h2>Профиль академической мотивации</h2>
+        <p className="summary">
+          Наиболее выражены: {top}. Шкалы описывают разные причины учебной
+          деятельности; универсальных диагностических порогов у методики нет.
+        </p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 

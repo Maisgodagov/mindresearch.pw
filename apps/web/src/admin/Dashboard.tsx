@@ -722,6 +722,7 @@ const methodCodes = [
   "test_4",
   "test_5",
   "test_6",
+  "test_7",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -730,6 +731,7 @@ const shortNames: Record<string, string> = {
   test_4: "NSPS",
   test_5: "ШОПП",
   test_6: "DEBQ",
+  test_7: "ШАМ",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -802,6 +804,17 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
             ? `выше ориентира: ${elevated} из 3`
             : "ориентиры не превышены"}
         </small>
+      </span>
+    );
+  }
+  if (group.code === "test_7") {
+    const result = group.result.values as unknown as NspsValues;
+    const top = Object.values(result.scales).sort((a, b) => b.score - a.score)[0];
+    return (
+      <span className="score">
+        {top.score} / {top.maxScore}
+        <br />
+        <small>{top.label}</small>
       </span>
     );
   }
@@ -983,6 +996,31 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
               </div>
             );
           })}
+        </SupportProfile>
+      </>
+    );
+  }
+  if (group.code === "test_7") {
+    const result = group.result.values as unknown as NspsValues;
+    return (
+      <>
+        <b>Профиль академической мотивации</b>
+        <SupportProfile>
+          {Object.values(result.scales).map((scale) => (
+            <div className="scale" key={scale.label}>
+              <span className="name">{scale.label}</span>
+              <div className="track">
+                <div
+                  className="fill"
+                  style={{ width: `${((scale.score - 4) / 16) * 100}%` }}
+                />
+              </div>
+              <span className="value">{scale.score}</span>
+              <div className="caption">
+                диапазон 4–20 · чем выше балл, тем сильнее выражен мотив
+              </div>
+            </div>
+          ))}
         </SupportProfile>
       </>
     );
