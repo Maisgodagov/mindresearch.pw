@@ -22,7 +22,7 @@ const Main=styled.main`width:min(100% - 36px,1180px);margin:0 auto;padding:34px 
 const links=[
   {to:'/app',end:true,label:'Мои опросы',icon:ClipboardList},
   {to:'/app/surveys/new',label:'Создать',icon:Plus},
-  {to:'/app/methodologies/suggest',label:'Предложить тест',icon:Send},
+  {to:'/app/methodologies/suggest',label:'Запросить методику',icon:Send},
   {to:'/app/profile',label:'Профиль',icon:UserRound},
 ];
 
@@ -32,7 +32,7 @@ export function PlatformLayout({children}:{children:ReactNode}){
   const[collapsed,setCollapsed]=useState(()=>localStorage.getItem('mindresearch_sidebar_collapsed')==='1');
   useEffect(()=>{if(!cached)getCurrentUser().then(user=>setRole(String(user.role??''))).catch(()=>{})},[]);
   const toggle=()=>setCollapsed(value=>{const next=!value;localStorage.setItem('mindresearch_sidebar_collapsed',next?'1':'0');return next});
-  const visibleLinks=['owner','admin'].includes(role)?[...links.slice(0,3),{to:'/app/methodologies/review',label:'Проверка',icon:ShieldCheck},links[3]]:links;
+  const visibleLinks=['owner','admin'].includes(role)?[...links.slice(0,3),{to:'/app/methodologies/review',label:'Заявки на методики',icon:ShieldCheck},links[3]]:links;
   return <Frame $collapsed={collapsed}><Side $collapsed={collapsed}>
     <div className="top"><div className="brand"><Leaf size={24}/><span>mindresearch</span></div><button className="toggle" type="button" aria-label={collapsed?'Развернуть меню':'Свернуть меню'} title={collapsed?'Развернуть меню':'Свернуть меню'} onClick={toggle}>{collapsed?<ChevronRight size={17}/>:<ChevronLeft size={17}/>}</button></div>
     <div className="nav">{visibleLinks.map(({to,end,label,icon:Icon})=><NavLink to={to} end={end} aria-label={label} title={collapsed?label:undefined} key={to}><Icon size={18}/><span>{label}</span></NavLink>)}</div>
