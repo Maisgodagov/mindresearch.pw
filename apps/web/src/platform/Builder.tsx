@@ -859,7 +859,7 @@ export function SurveyBuilder() {
     welcomeTitle: "Спасибо, что решили принять участие",
     welcomeText:
       "Здесь нет правильных или неправильных ответов — важен ваш личный опыт.",
-    status: "draft" as "draft" | "active",
+    status: "draft" as "draft" | "active" | "archived",
     showAuthor: true,
     resultPresentation: {
       showResults: true,
