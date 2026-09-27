@@ -247,6 +247,31 @@ const SurveyBasics = styled.div`
   textarea { min-height: 48px; height: 48px; }
   @media (max-width: 720px) { grid-template-columns: 1fr; }
 `;
+const MetaStack = styled.div`
+  display:grid !important;
+  gap:18px;
+`;
+const SectionHeading = styled.div`
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  .copy{min-width:0}
+  .audience{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 9px;
+    border-radius:999px;
+    background:#edf3ea;
+    color:#56705e;
+    font-size:11px;
+    font-weight:750;
+  }
+  .audience.private{background:#f3efe5;color:#766946}
+  @media(max-width:620px){flex-direction:column;gap:8px}
+`;
 const PreviewGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1144,20 +1169,29 @@ export function SurveyBuilder() {
       </PreviewPrompt>
       <Columns>
         <div>
-          <Panel className="meta-panel">
-            <h2>Оформление опроса</h2>
-            <p className="hint panel-intro">Редактируйте тексты прямо в макетах — примерно так их увидит респондент.</p>
-            <SurveyBasics>
-              <div className="field">
-                <label>Название опроса</label>
-                <input className={invalidFields.includes("title")?"invalid":undefined} data-validation-error={invalidFields.includes("title")||undefined} value={meta.title} onChange={(e)=>{setMeta({...meta,title:e.target.value});clearInvalid("title")}} placeholder="Например, исследование самочувствия" />
-              </div>
-              <div className="field">
-                <label>Короткое описание в кабинете</label>
-                <textarea value={meta.description} onChange={(e)=>setMeta({...meta,description:e.target.value})} placeholder="Для вас и других авторов" />
-              </div>
-            </SurveyBasics>
-            <PreviewGrid>
+          <MetaStack className="meta-panel">
+            <Panel>
+              <SectionHeading>
+                <div className="copy"><h2>Данные опроса для автора</h2><p className="hint panel-intro">Название и заметка для организации опросов в личном кабинете. Респонденты эти данные не увидят.</p></div>
+                <span className="audience private"><ShieldCheck size={13}/> Только для автора</span>
+              </SectionHeading>
+              <SurveyBasics>
+                <div className="field">
+                  <label>Название опроса в кабинете</label>
+                  <input className={invalidFields.includes("title")?"invalid":undefined} data-validation-error={invalidFields.includes("title")||undefined} value={meta.title} onChange={(e)=>{setMeta({...meta,title:e.target.value});clearInvalid("title")}} placeholder="Например, исследование самочувствия" />
+                </div>
+                <div className="field">
+                  <label>Внутреннее описание</label>
+                  <textarea value={meta.description} onChange={(e)=>setMeta({...meta,description:e.target.value})} placeholder="Короткая заметка о цели или аудитории опроса" />
+                </div>
+              </SurveyBasics>
+            </Panel>
+            <Panel>
+              <SectionHeading>
+                <div className="copy"><h2>Экраны для респондента</h2><p className="hint panel-intro">Эти тексты участник увидит перед началом опроса и после отправки ответов. Редактируйте их прямо в макетах.</p></div>
+                <span className="audience"><Eye size={13}/> Видит респондент</span>
+              </SectionHeading>
+              <PreviewGrid>
               <PreviewCard>
                 <div className="preview-label"><span>Стартовый экран</span><span><Pencil size={11}/> Редактируется</span></div>
                 <div className="screen">
@@ -1182,8 +1216,9 @@ export function SurveyBuilder() {
                   <label><input type="checkbox" checked={meta.resultPresentation.showScores} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,showScores:e.target.checked,showResults:e.target.checked}})}/><span>Показывать рассчитанные результаты подтверждённых методик</span></label>
                 </div>
               </PreviewCard>
-            </PreviewGrid>
-          </Panel>
+              </PreviewGrid>
+            </Panel>
+          </MetaStack>
           <Panel className="library-panel">
             <h2>Добавить в опрос</h2>
             <p className="hint">
