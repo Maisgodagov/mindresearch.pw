@@ -14,7 +14,7 @@
 - [ ] 6. PASS — Procrastination Assessment Scale for Students — `blocked`: не подтверждено право на цифровое воспроизведение полного 44-пунктового бланка
 - [x] 7. General Procrastination Scale, GPS — Lay — `done`: 20-пунктовая англоязычная student form
 - [x] 8. Pure Procrastination Scale, PPS — Steel — `done`: оригинальная англоязычная PPS-12
-- [ ] 9. Academic Self-Efficacy Scale
+- [ ] 9. Academic Self-Efficacy Scale — `blocked`: название неоднозначно; существуют несовместимые 5-, 8/9-, 33- и 40-пунктовые методики разных авторов и популяций, а автор и версия в исходном списке не указаны
 - [ ] 10. Student Adaptation to College Questionnaire, SACQ
 - [ ] 11. School Engagement Scale / Student Engagement Instrument
 - [ ] 12. Utrecht Work Engagement Scale for Students, UWES-S
