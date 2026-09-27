@@ -422,6 +422,17 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_12") {
+    return (
+      <ResultCard>
+        <h2>Профиль Big Five</h2>
+        <p className="summary">Показаны непрерывные средние значения пяти личностных областей от 1 до 5. Это не типы личности, нормативные категории или диагноз.</p>
+        <ScaleBars scales={v.domains} />
+        <h3>Аспекты личностных черт</h3>
+        <ScaleBars scales={v.facets} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 

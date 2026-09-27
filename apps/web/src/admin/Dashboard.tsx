@@ -727,6 +727,7 @@ const methodCodes = [
   "test_9",
   "test_10",
   "test_11",
+  "test_12",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -740,6 +741,7 @@ const shortNames: Record<string, string> = {
   test_9: "Отчуждение",
   test_10: "GPS",
   test_11: "PPS",
+  test_12: "BFI-2",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -842,6 +844,11 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
   if (group.code === "test_11") {
     const result = group.result.values as unknown as {overall:{score:number;average:number}};
     return <span className="score">{result.overall.average.toFixed(2)} / 5<br /><small>сумма {result.overall.score} / 60</small></span>;
+  }
+  if (group.code === "test_12") {
+    const result = group.result.values as unknown as {domains:Record<string,{average:number}>};
+    const values=Object.values(result.domains);
+    return <span className="score">5 областей<br /><small>{values.map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
@@ -1065,6 +1072,11 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
   if (group.code === "test_11") {
     const result = group.result.values as unknown as FoodValues & {overall:{score:number;average:number}};
     return <><b>Pure procrastination: {result.overall.average.toFixed(2)} / 5</b><SupportProfile>{Object.values(result.scales).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${(((scale.average??1)-1)/4)*100}%`}} /></div><span className="value">{scale.average?.toFixed(2)}</span><div className="caption">range 1–5 · no diagnostic cutoffs</div></div>)}</SupportProfile></>;
+  }
+  if (group.code === "test_12") {
+    const result = group.result.values as unknown as {domains:Record<string,{label:string;average:number}>;facets:Record<string,{label:string;average:number}>};
+    const scales=(values:Record<string,{label:string;average:number}>)=><SupportProfile>{Object.values(values).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${((scale.average-1)/4)*100}%`}} /></div><span className="value">{scale.average.toFixed(2)}</span><div className="caption">диапазон 1–5 · без нормативных категорий</div></div>)}</SupportProfile>;
+    return <><b>Пять областей Big Five</b>{scales(result.domains)}<b>15 аспектов личностных черт</b>{scales(result.facets)}</>;
   }
   return <>Результат рассчитан</>;
 }
