@@ -740,6 +740,75 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
   .add-option:hover {
     background: #45644f;
   }
+  .library-questions {
+    padding: 14px;
+    border-top: 1px solid #e4ebe2;
+    background: linear-gradient(180deg, #f8fbf7 0%, #f3f7f1 100%);
+  }
+  .library-note {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 12px;
+    padding: 9px 11px;
+    border: 1px solid #dce7d9;
+    border-radius: 10px;
+    background: #fff;
+    color: #6d7d72;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .readonly-question {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 11px;
+    padding: 13px;
+    margin-top: 8px;
+    border: 1px solid #dce6da;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 4px 14px rgba(52, 75, 57, 0.04);
+  }
+  .readonly-question .number {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: #e3eee0;
+    color: #496652;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .readonly-question b {
+    display: block;
+    color: #344b3a;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .question-meta {
+    margin-top: 4px;
+    color: #849087;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .readonly-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 9px;
+  }
+  .readonly-options span {
+    padding: 5px 8px;
+    border: 1px solid #dce5da;
+    border-radius: 999px;
+    background: #f5f8f3;
+    color: #617268;
+    font-size: 11px;
+    line-height: 1.2;
+  }
 `;
 const QuestionBox = styled.div<{ $dragging?: boolean }>`
   padding: 13px;
@@ -846,49 +915,6 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
   .add-option:hover {
     background: #45644f;
     transform: translateY(-1px);
-  }
-  .library-questions {
-    padding: 4px 14px 15px;
-    border-top: 1px solid #edf1ec;
-    background: #fafcf9;
-  }
-  .library-note {
-    margin: 10px 0 8px;
-    color: #77867c;
-    font-size: 11px;
-  }
-  .readonly-question {
-    display: grid;
-    grid-template-columns: 26px minmax(0, 1fr);
-    gap: 10px;
-    padding: 11px 0;
-    border-bottom: 1px solid #e8eee6;
-  }
-  .readonly-question:last-child {
-    border-bottom: 0;
-  }
-  .readonly-question .number {
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: #e7f0e4;
-    color: #52705b;
-    font-size: 11px;
-    font-weight: 800;
-  }
-  .readonly-question b {
-    display: block;
-    color: #3d5243;
-    font-size: 13px;
-    line-height: 1.45;
-  }
-  .readonly-options {
-    margin-top: 6px;
-    color: #77847b;
-    font-size: 11px;
-    line-height: 1.5;
   }
   .required {
     display: flex;
@@ -2023,13 +2049,27 @@ export function SurveyBuilder() {
                                     <span className="number">{qi + 1}</span>
                                     <div>
                                       <b>{question.text}</b>
+                                      <div className="question-meta">
+                                        {question.type === "multiple"
+                                          ? "Несколько вариантов"
+                                          : question.type === "single"
+                                            ? "Один вариант"
+                                            : question.type === "number"
+                                              ? "Числовой ответ"
+                                              : "Текстовый ответ"}
+                                        {question.required
+                                          ? " · обязательный"
+                                          : ""}
+                                      </div>
                                       {(question.type === "single" ||
                                         question.type === "multiple") &&
                                         question.options.length > 0 && (
                                           <div className="readonly-options">
-                                            {question.options
-                                              .map((option) => option.label)
-                                              .join(" · ")}
+                                            {question.options.map((option) => (
+                                              <span key={option.value}>
+                                                {option.label}
+                                              </span>
+                                            ))}
                                           </div>
                                         )}
                                     </div>
