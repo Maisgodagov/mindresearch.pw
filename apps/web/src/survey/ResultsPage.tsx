@@ -393,6 +393,16 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_9") {
+    const overall = v.overall as Scale;
+    return (
+      <ResultCard>
+        <h2>Отчуждение от учебы</h2>
+        <p className="summary">Общий показатель: {(overall.average ?? overall.score ?? 0).toFixed(2)} из 5. Методика описывает исследовательский профиль и не задаёт диагностических порогов.</p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 
