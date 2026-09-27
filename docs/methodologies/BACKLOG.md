@@ -18,7 +18,7 @@
 - [ ] 10. Student Adaptation to College Questionnaire, SACQ — `blocked`: проприетарная 67-пунктовая методика WPS; на официальном бланке запрещено воспроизведение полностью или частично без письменного разрешения
 - [ ] 11. School Engagement Scale / Student Engagement Instrument — `blocked`: строка объединяет разные инструменты — 15-пунктовую School Engagement Scale и 35-пунктовый SEI Appleton et al.; требуется выбрать конкретную методику, возрастную и ответную версию
 - [ ] 12. Utrecht Work Engagement Scale for Students, UWES-S — `blocked`: авторская лицензия допускает бесплатное использование только в академических целях и требует передачи авторам данных; каталог не может гарантировать эти условия, версия 17/9 пунктов также не указана
-- [ ] 13. Academic Burnout Inventory / School Burnout Inventory
+- [ ] 13. Academic Burnout Inventory / School Burnout Inventory — `blocked`: строка смешивает разные инструменты; SBI-9 Salmela-Aro опубликована Hogrefe, который требует письменного разрешения и лицензионную плату за воспроизведение пунктов
 - [ ] 14. Achievement Goal Questionnaire, AGQ
 - №15 отсутствует в исходном списке и не считается методикой.
 
