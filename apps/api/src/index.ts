@@ -66,7 +66,13 @@ app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
   const parse=(value:unknown)=>typeof value==='string'?JSON.parse(value):value;
   const settings=parse(sessions[0].settings)??{},presentation=settings.resultPresentation??{showResults:true,title:'Спасибо за ваши ответы',text:'',showScores:true};
   const results=presentation.showResults!==false&&presentation.showScores!==false?rows.map(row=>({code:row.code,title:row.title,formulaVersion:row.formulaVersion,values:parse(row.result)})):[];
-  res.json({results,presentation});
+  const usedMethodologies=Array.from(new Map(rows.map(row=>[row.code,methodologies[row.code]])).values()).filter(Boolean);
+  const sourceGroups=usedMethodologies.map(methodology=>({
+    code:methodology.code,
+    title:methodology.title,
+    sources:Array.from(new Map(methodology.sources.map(source=>[source.url,source])).values())
+  })).filter(group=>group.sources.length>0);
+  res.json({results,presentation,sourceGroups});
 }catch(e){next(e)}});
 
 app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email.toLowerCase()]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0],token=await createAuthSession(req,res,{id:user.id,role:user.role});res.json({token,user})}catch(e){next(e)}});
