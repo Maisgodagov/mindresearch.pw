@@ -36,7 +36,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { api, getCurrentUser } from "../api";
-import { Button, Card } from "../ui";
+import { Button, Card, SkeletonScreen } from "../ui";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
 import { demoInstruments, demoMethodologies } from "./demo";
 import { PlatformLayout } from "./Layout";
@@ -849,6 +849,7 @@ export function SurveyBuilder() {
     [previewError, setPreviewError] = useState(""),
     [invalidFields, setInvalidFields] = useState<string[]>([]),
     [builderReady, setBuilderReady] = useState(false),
+    [catalogLoading, setCatalogLoading] = useState(true),
     [draftRestored, setDraftRestored] = useState(false),
     [lastSaved, setLastSaved] = useState<Date | null>(null),
     [draftOwnerId, setDraftOwnerId] = useState(""),
@@ -879,7 +880,7 @@ export function SurveyBuilder() {
       text: "",
     },
   });
-  useEffect(()=>{getCurrentUser().then(user=>setDraftOwnerId(String(user.id))).catch(()=>setError("Не удалось подготовить автосохранение."))},[]);
+  useEffect(()=>{getCurrentUser().then(user=>setDraftOwnerId(String(user.id))).catch(()=>{setError("Не удалось подготовить автосохранение.");setCatalogLoading(false);setBuilderReady(true)})},[]);
   useEffect(() => {
     if(!draftOwnerId)return;
     Promise.all([
@@ -895,7 +896,8 @@ export function SurveyBuilder() {
           setInstruments(demoInstruments);
           setMethodologies(demoMethodologies);
         }
-      });
+      })
+      .finally(() => setCatalogLoading(false));
     const restoreLocalDraft=()=>{
       try{
         const raw=localStorage.getItem(draftKey);if(!raw)return false;
@@ -942,6 +944,7 @@ export function SurveyBuilder() {
         .includes(query),
     );
   }, [instruments, libraryQuery]);
+  if(!builderReady||catalogLoading)return <PlatformLayout><SkeletonScreen variant="form"/></PlatformLayout>;
   const addInstrument = (i: Instrument) => {
     if (sections.some((s) => s.instrumentId === i.id)) return;
     setSections((s) => [
