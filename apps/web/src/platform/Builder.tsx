@@ -71,88 +71,74 @@ type Section = {
   sharedOptions?: Option[];
 };
 const Header = styled.div`
-  margin-bottom: 18px;
+  margin-bottom: 10px;
   h1 {
     font:
-      500 clamp(32px, 5vw, 44px) var(--font-heading),
+      500 clamp(30px, 4vw, 40px) var(--font-heading),
       serif;
     color: #304a38;
-    margin: 0 0 8px;
+    margin: 0 0 4px;
   }
   p {
     color: #738077;
-    max-width: 720px;
-    line-height: 1.6;
+    margin:0;
+    font-size:13px;
+    line-height: 1.45;
   }
 `;
 const Flow = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 18px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:10px;
   .step {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-    padding: 11px 14px;
-    border: 1px solid #dce5da;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.62);
+    display:flex;
+    align-items:center;
+    gap:6px;
     color: #65746a;
   }
+  .step:not(:last-child)::after{content:'›';margin-left:7px;color:#a0aca4}
   .number {
-    width: 25px;
-    height: 25px;
-    flex: 0 0 25px;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
     display: grid;
     place-items: center;
     border-radius: 50%;
     background: #e4eee1;
     color: #45614d;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 800;
   }
-  b { color: #3b5242; font-size: 13px; }
-  span:last-child { font-size: 11px; }
+  b { color: #53675a; font-size: 11px; }
   @media (max-width: 680px) {
-    grid-template-columns: 1fr;
-    .step { padding: 9px 12px; }
+    overflow-x:auto;
+    padding-bottom:2px;
+    .step{flex:none}
   }
 `;
-const PreviewPrompt = styled.div`
+const WorkspaceBar = styled.div`
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:18px;
-  margin-bottom:18px;
-  padding:15px 17px;
+  gap:14px;
+  margin-bottom:14px;
+  padding:9px 11px 9px 13px;
   border:1px solid #d8e3d6;
-  border-radius:16px;
+  border-radius:13px;
   background:linear-gradient(120deg,#edf4ea,#f8faf6);
-  .copy{display:flex;align-items:center;gap:12px;color:#66766b;font-size:12px;line-height:1.45}
-  .copy svg{flex:0 0 auto;color:#54725d}
-  .copy b{display:block;color:#354f3c;font-size:14px;margin-bottom:2px}
-  button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:10px 15px;border:0;border-radius:11px;background:#55745e;color:#fff;font-weight:750;white-space:nowrap}
+  .save{display:flex;align-items:center;gap:8px;min-width:0;color:#65756a;font-size:11px}
+  .save-copy{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dot{width:7px;height:7px;flex:none;border-radius:50%;background:#6e9076;box-shadow:0 0 0 4px rgba(110,144,118,.12)}
+  .saved-at{color:#87938b;white-space:nowrap}
+  .tools{display:flex;align-items:center;gap:10px;flex:none}
+  .preview-note{display:inline-flex;align-items:center;gap:5px;color:#66766b;font-size:11px}
+  .preview-note svg{color:#55745e}
+  b{color:#405b48}
+  button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 12px;border:0;border-radius:10px;background:#55745e;color:#fff;font-size:12px;font-weight:750;white-space:nowrap}
   button:disabled{opacity:.6;cursor:wait}
   .error{color:#9a5a55;font-size:12px}
-  @media(max-width:620px){align-items:stretch;flex-direction:column;button{width:100%}}
-`;
-const AutosaveNotice = styled.div`
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:-6px 0 18px;
-  padding:10px 13px;
-  border-radius:13px;
-  background:#eef4eb;
-  color:#617268;
-  font-size:11px;
-  .status{display:flex;align-items:center;gap:7px}
-  .dot{width:7px;height:7px;border-radius:50%;background:#6e9076;box-shadow:0 0 0 4px rgba(110,144,118,.12)}
-  b{color:#405b48}
-  @media(max-width:620px){align-items:flex-start;flex-direction:column}
+  @media(max-width:700px){align-items:stretch;flex-direction:column;.tools{justify-content:space-between}.preview-note{display:none}.saved-at{margin-left:auto}}
 `;
 const Columns = styled.div`
   display: grid;
@@ -1139,34 +1125,18 @@ export function SurveyBuilder() {
     <PlatformLayout>
       <Header>
         <h1>{surveyId?'Редактирование опроса':'Новый опрос'}</h1>
-        <p>
-          Соберите исследование из проверенных методик и собственных вопросов.
-          Порядок блоков и вопросов можно менять в любой момент.
-        </p>
+        <p>Соберите исследование из проверенных методик и собственных вопросов.</p>
       </Header>
-      <AutosaveNotice>
-        <span className="status"><span className="dot"/><span>{draftRestored?<><b>Черновик восстановлен.</b> Можно продолжить с места, где вы остановились.</>:<><b>Автосохранение включено.</b> Изменения не потеряются при обновлении страницы.</>}</span></span>
-        <span>{lastSaved?`Сохранено в ${lastSaved.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}`:"Сохраняем…"}</span>
-      </AutosaveNotice>
       <Flow aria-label="Этапы создания опроса">
-        <div className="step">
-          <span className="number">1</span>
-          <span><b>Оформление</b><br />Название и экраны</span>
-        </div>
-        <div className="step">
-          <span className="number">2</span>
-          <span><b>Содержание</b><br />Методики и вопросы</span>
-        </div>
-        <div className="step">
-          <span className="number">3</span>
-          <span><b>Публикация</b><br />Проверка и запуск</span>
-        </div>
+        <div className="step"><span className="number">1</span><b>Оформление</b></div>
+        <div className="step"><span className="number">2</span><b>Содержание</b></div>
+        <div className="step"><span className="number">3</span><b>Публикация</b></div>
       </Flow>
-      <PreviewPrompt>
-        <div className="copy"><Eye size={22}/><span><b>Посмотрите глазами респондента</b>Откройте текущую версию опроса, пройдите несколько вопросов и вернитесь к созданию — введённые данные не потеряются.</span></div>
-        <button disabled={previewLoading} onClick={openPreview}><Eye size={16}/>{previewLoading?'Загружаем…':'Предпросмотр'}</button>
+      <WorkspaceBar>
+        <div className="save"><span className="dot"/><span className="save-copy">{draftRestored?<><b>Черновик восстановлен.</b> Можно продолжить работу.</>:<><b>Автосохранение включено.</b></>}</span><span className="saved-at">{lastSaved?`Сохранено в ${lastSaved.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}`:"Сохраняем…"}</span></div>
+        <div className="tools"><span className="preview-note"><Eye size={14}/> Как увидит респондент</span><button disabled={previewLoading} onClick={openPreview}><Eye size={15}/>{previewLoading?'Загружаем…':'Предпросмотр'}</button></div>
         {previewError&&<span className="error">{previewError}</span>}
-      </PreviewPrompt>
+      </WorkspaceBar>
       <Columns>
         <div>
           <MetaStack className="meta-panel">
