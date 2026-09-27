@@ -13,7 +13,14 @@ sudo /usr/bin/systemctl reload nginx
 
 for attempt in {1..15}; do
   if curl --fail --silent http://127.0.0.1:4000/api/health >/dev/null; then
-    find /opt/mindresearch/releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | tail -n +6 | cut -d' ' -f2- | xargs -r rm -rf
+    current_release="$(readlink -f /opt/mindresearch/current)"
+    while IFS= read -r old_release; do
+      [ -z "$old_release" ] && continue
+      [ "$(readlink -f "$old_release")" = "$current_release" ] && continue
+      if ! rm -rf -- "$old_release"; then
+        echo "Warning: could not remove old release: $old_release" >&2
+      fi
+    done < <(find /opt/mindresearch/releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | tail -n +6 | cut -d' ' -f2-)
     exit 0
   fi
   sleep 2
