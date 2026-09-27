@@ -6,6 +6,7 @@ import {
   ArchiveRestore,
   ArrowRight,
   BarChart3,
+  CalendarDays,
   CheckCircle2,
   Clock3,
   Copy,
@@ -32,6 +33,8 @@ type Survey = {
   description?: string;
   deletedAt?: string;
   hasBuilderState?: boolean | number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 const Head = styled.div`
   display: flex;
@@ -147,6 +150,17 @@ const SurveyCard = styled(Card)`
     min-height: 42px;
     font-size: 13px;
     line-height: 1.5;
+  }
+  .survey-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    color: #87928b;
+    font-size: 11px;
+  }
+  .survey-date svg {
+    flex: none;
   }
   .metrics {
     display: flex;
@@ -396,6 +410,18 @@ const Confirm = styled(Card)`
   }
 `;
 
+const formatSurveyDate = (value?: string, includeTime = false) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    ...(includeTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  }).format(date);
+};
+
 export function PlatformHome() {
   const [surveys, setSurveys] = useState<Survey[]>([]),
     [trash, setTrash] = useState<Survey[]>([]),
@@ -603,6 +629,14 @@ export function PlatformHome() {
             <div className="description">
               {s.description || "Описание пока не добавлено"}
             </div>
+            {(s.status === "draft" ? s.updatedAt : s.createdAt) && (
+              <div className="survey-date">
+                <CalendarDays size={13} />
+                {s.status === "draft"
+                  ? `Изменён ${formatSurveyDate(s.updatedAt, true)}`
+                  : `Создан ${formatSurveyDate(s.createdAt)}`}
+              </div>
+            )}
             <div className="metrics">
               <span>
                 <BarChart3 size={14} />
