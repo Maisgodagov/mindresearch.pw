@@ -33,6 +33,7 @@ export async function migrate() {
   await ensureColumn('users','updated_at','TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
   await ensureColumn('surveys','description','TEXT NULL');
   await ensureColumn('surveys','show_author','BOOLEAN NOT NULL DEFAULT TRUE');
+  await ensureColumn('surveys','builder_state','JSON NULL');
   await ensureColumn('surveys','deleted_at','TIMESTAMP NULL');
   await ensureColumn('sections','source_instrument_id','CHAR(36) NULL');
   await ensureColumn('sections','section_kind',"ENUM('custom','verified') NOT NULL DEFAULT 'custom'");

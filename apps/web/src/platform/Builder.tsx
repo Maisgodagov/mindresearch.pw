@@ -35,7 +35,7 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { api, getCurrentUser } from "../api";
+import { api } from "../api";
 import { Button, Card, SkeletonScreen } from "../ui";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
 import { demoInstruments, demoMethodologies } from "./demo";
@@ -81,23 +81,27 @@ const Header = styled.div`
   }
   p {
     color: #738077;
-    margin:0;
-    font-size:13px;
+    margin: 0;
+    font-size: 13px;
     line-height: 1.45;
   }
 `;
 const Flow = styled.div`
-  display:flex;
-  align-items:center;
-  gap:7px;
-  margin-bottom:10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
   .step {
-    display:flex;
-    align-items:center;
-    gap:6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     color: #65746a;
   }
-  .step:not(:last-child)::after{content:'›';margin-left:7px;color:#a0aca4}
+  .step:not(:last-child)::after {
+    content: "›";
+    margin-left: 7px;
+    color: #a0aca4;
+  }
   .number {
     width: 20px;
     height: 20px;
@@ -110,35 +114,108 @@ const Flow = styled.div`
     font-size: 10px;
     font-weight: 800;
   }
-  b { color: #53675a; font-size: 11px; }
+  b {
+    color: #53675a;
+    font-size: 11px;
+  }
   @media (max-width: 680px) {
-    overflow-x:auto;
-    padding-bottom:2px;
-    .step{flex:none}
+    overflow-x: auto;
+    padding-bottom: 2px;
+    .step {
+      flex: none;
+    }
   }
 `;
 const WorkspaceBar = styled.div`
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  margin-bottom:14px;
-  padding:9px 11px 9px 13px;
-  border:1px solid #d8e3d6;
-  border-radius:13px;
-  background:linear-gradient(120deg,#edf4ea,#f8faf6);
-  .save{display:flex;align-items:center;gap:8px;min-width:0;color:#65756a;font-size:11px}
-  .save-copy{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dot{width:7px;height:7px;flex:none;border-radius:50%;background:#6e9076;box-shadow:0 0 0 4px rgba(110,144,118,.12)}
-  .saved-at{color:#87938b;white-space:nowrap}
-  .tools{display:flex;align-items:center;gap:10px;flex:none}
-  .preview-note{display:inline-flex;align-items:center;gap:5px;color:#66766b;font-size:11px}
-  .preview-note svg{color:#55745e}
-  b{color:#405b48}
-  button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 12px;border:0;border-radius:10px;background:#55745e;color:#fff;font-size:12px;font-weight:750;white-space:nowrap}
-  button:disabled{opacity:.6;cursor:wait}
-  .error{color:#9a5a55;font-size:12px}
-  @media(max-width:700px){align-items:stretch;flex-direction:column;.tools{justify-content:space-between}.preview-note{display:none}.saved-at{margin-left:auto}}
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 9px 11px 9px 13px;
+  border: 1px solid #d8e3d6;
+  border-radius: 13px;
+  background: linear-gradient(120deg, #edf4ea, #f8faf6);
+  .save {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: #65756a;
+    font-size: 11px;
+  }
+  .save-copy {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 50%;
+    background: #6e9076;
+    box-shadow: 0 0 0 4px rgba(110, 144, 118, 0.12);
+  }
+  .saved-at {
+    color: #87938b;
+    white-space: nowrap;
+  }
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+  }
+  .preview-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #66766b;
+    font-size: 11px;
+  }
+  .preview-note svg {
+    color: #55745e;
+  }
+  b {
+    color: #405b48;
+  }
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: #55745e;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+  button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .error {
+    color: #9a5a55;
+    font-size: 12px;
+  }
+  @media (max-width: 700px) {
+    align-items: stretch;
+    flex-direction: column;
+    .tools {
+      justify-content: space-between;
+    }
+    .preview-note {
+      display: none;
+    }
+    .saved-at {
+      margin-left: auto;
+    }
+  }
 `;
 const Columns = styled.div`
   display: grid;
@@ -148,22 +225,30 @@ const Columns = styled.div`
     "structure library";
   gap: 18px;
   align-items: start;
-  > div { display: contents; }
-  .meta-panel { grid-area: meta; }
+  > div {
+    display: contents;
+  }
+  .meta-panel {
+    grid-area: meta;
+  }
   .library-panel {
     grid-area: library;
     margin-top: 0 !important;
     position: sticky;
     top: 18px;
   }
-  .structure-panel { grid-area: structure; }
+  .structure-panel {
+    grid-area: structure;
+  }
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
     grid-template-areas:
       "meta"
       "library"
       "structure";
-    .library-panel { position: static; }
+    .library-panel {
+      position: static;
+    }
   }
 `;
 const Panel = styled(Card)`
@@ -207,21 +292,23 @@ const Panel = styled(Card)`
   }
   input.invalid,
   textarea.invalid {
-    border-color:#c96d67;
-    background:#fff8f7;
-    box-shadow:0 0 0 3px rgba(190,83,76,.12);
+    border-color: #c96d67;
+    background: #fff8f7;
+    box-shadow: 0 0 0 3px rgba(190, 83, 76, 0.12);
   }
   &.invalid-panel {
-    border-color:#c96d67;
-    box-shadow:0 0 0 3px rgba(190,83,76,.1),0 20px 60px rgba(48,70,54,.08);
+    border-color: #c96d67;
+    box-shadow:
+      0 0 0 3px rgba(190, 83, 76, 0.1),
+      0 20px 60px rgba(48, 70, 54, 0.08);
   }
   > .error {
-    margin:14px 0 0;
-    padding:11px 13px;
-    border-radius:11px;
-    background:#fff0ee;
-    color:#9b4e49;
-    font-size:13px;
+    margin: 14px 0 0;
+    padding: 11px 13px;
+    border-radius: 11px;
+    background: #fff0ee;
+    color: #9b4e49;
+    font-size: 13px;
   }
 `;
 const SurveyBasics = styled.div`
@@ -229,46 +316,63 @@ const SurveyBasics = styled.div`
   grid-template-columns: 0.9fr 1.1fr;
   gap: 12px;
   margin-top: 15px;
-  .field { margin: 0; }
-  textarea { min-height: 48px; height: 48px; }
-  @media (max-width: 720px) { grid-template-columns: 1fr; }
+  .field {
+    margin: 0;
+  }
+  textarea {
+    min-height: 48px;
+    height: 48px;
+  }
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const MetaStack = styled.div`
-  display:grid !important;
-  gap:18px;
+  display: grid !important;
+  gap: 18px;
 `;
 const SectionHeading = styled.div`
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:18px;
-  .copy{min-width:0}
-  .audience{
-    flex:none;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 9px;
-    border-radius:999px;
-    background:#edf3ea;
-    color:#56705e;
-    font-size:11px;
-    font-weight:750;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  .copy {
+    min-width: 0;
   }
-  .audience.private{background:#f3efe5;color:#766946}
-  @media(max-width:620px){flex-direction:column;gap:8px}
+  .audience {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    background: #edf3ea;
+    color: #56705e;
+    font-size: 11px;
+    font-weight: 750;
+  }
+  .audience.private {
+    background: #f3efe5;
+    color: #766946;
+  }
+  @media (max-width: 620px) {
+    flex-direction: column;
+    gap: 8px;
+  }
 `;
 const PreviewGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
-  @media (max-width: 820px) { grid-template-columns: 1fr; }
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const PreviewCard = styled.div`
   min-width: 0;
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #dce5da;
   border-radius: 18px;
   background: linear-gradient(145deg, #fff, #f8fbf6);
@@ -283,20 +387,33 @@ const PreviewCard = styled.div`
     font-size: 11px;
     font-weight: 700;
   }
-  .preview-label span { display:inline-flex; align-items:center; gap:4px; }
-  .editable-field { margin-top: 10px; }
-  .editable-field:first-of-type { margin-top: 0; }
-  .edit-label {
-    display:flex;
-    align-items:center;
-    gap:5px;
-    margin:0 0 6px;
-    color:#718078;
-    font-size:10px;
-    font-weight:750;
+  .preview-label span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
-  .screen { flex:1; padding:18px; min-height:255px; }
-  .eyebrow, .done {
+  .editable-field {
+    margin-top: 10px;
+  }
+  .editable-field:first-of-type {
+    margin-top: 0;
+  }
+  .edit-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 0 6px;
+    color: #718078;
+    font-size: 10px;
+    font-weight: 750;
+  }
+  .screen {
+    flex: 1;
+    padding: 18px;
+    min-height: 255px;
+  }
+  .eyebrow,
+  .done {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -304,7 +421,11 @@ const PreviewCard = styled.div`
     color: #55705e;
     font-size: 11px;
   }
-  .done { padding: 5px 8px; border-radius: 999px; background: #e5efe2; }
+  .done {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #e5efe2;
+  }
   .preview-title,
   .preview-copy {
     display: block;
@@ -312,16 +433,21 @@ const PreviewCard = styled.div`
     padding: 9px 11px;
     border: 1px dashed #c5d2c3;
     border-radius: 10px;
-    background: rgba(255,255,255,.72);
+    background: rgba(255, 255, 255, 0.72);
     color: #304a38;
     resize: none;
     overflow: hidden;
     field-sizing: content;
-    transition: border-color .16s,background .16s,box-shadow .16s;
+    transition:
+      border-color 0.16s,
+      background 0.16s,
+      box-shadow 0.16s;
   }
   .preview-title {
     min-height: 62px;
-    font: 500 clamp(25px, 3vw, 36px)/1.08 var(--font-heading), serif;
+    font:
+      500 clamp(25px, 3vw, 36px)/1.08 var(--font-heading),
+      serif;
   }
   .preview-copy {
     min-height: 66px;
@@ -330,16 +456,60 @@ const PreviewCard = styled.div`
     line-height: 1.6;
   }
   .preview-title:hover,
-  .preview-copy:hover { border-color:#8fa68f; background:#fff; }
+  .preview-copy:hover {
+    border-color: #8fa68f;
+    background: #fff;
+  }
   .preview-title:focus,
-  .preview-copy:focus { outline: none; border-style:solid; border-color:#6f8d76; background:#fff; box-shadow:0 0 0 3px rgba(95,128,104,.12); }
+  .preview-copy:focus {
+    outline: none;
+    border-style: solid;
+    border-color: #6f8d76;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(95, 128, 104, 0.12);
+  }
   .preview-title.invalid,
-  .preview-copy.invalid { background:#fff7f6; box-shadow:0 0 0 5px #fff0ee; color:#7d3834; }
-  .mock-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; color: #7e8a82; font-size: 10px; }
-  .mock-button { display: inline-flex; margin-top: 17px; padding: 9px 14px; border-radius: 10px; background: #56755f; color: white; font-size: 11px; font-weight: 750; }
-  .preview-settings { padding: 11px 13px; border-top: 1px solid #e8ede6; background: #f5f8f3; }
-  .preview-settings label { display: flex; gap: 8px; align-items: flex-start; margin: 0; line-height: 1.4; }
-  .preview-settings input { width: 16px; height: 16px; flex: 0 0 16px; margin-top: 1px; }
+  .preview-copy.invalid {
+    background: #fff7f6;
+    box-shadow: 0 0 0 5px #fff0ee;
+    color: #7d3834;
+  }
+  .mock-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    color: #7e8a82;
+    font-size: 10px;
+  }
+  .mock-button {
+    display: inline-flex;
+    margin-top: 17px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    background: #56755f;
+    color: white;
+    font-size: 11px;
+    font-weight: 750;
+  }
+  .preview-settings {
+    padding: 11px 13px;
+    border-top: 1px solid #e8ede6;
+    background: #f5f8f3;
+  }
+  .preview-settings label {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 0;
+    line-height: 1.4;
+  }
+  .preview-settings input {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    margin-top: 1px;
+  }
 `;
 const CatalogTools = styled.div`
   display: grid;
@@ -359,12 +529,36 @@ const CatalogTools = styled.div`
     font-weight: 800;
     cursor: pointer;
   }
-  .create-custom:hover { background: #dce9d8; }
-  .divider { display: flex; align-items: center; gap: 9px; color: #829087; font-size: 11px; }
-  .divider::before, .divider::after { content: ""; height: 1px; flex: 1; background: #e1e8df; }
-  .search { position: relative; }
-  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #728178; }
-  .search input { padding-left: 36px; }
+  .create-custom:hover {
+    background: #dce9d8;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #829087;
+    font-size: 11px;
+  }
+  .divider::before,
+  .divider::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #e1e8df;
+  }
+  .search {
+    position: relative;
+  }
+  .search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #728178;
+  }
+  .search input {
+    padding-left: 36px;
+  }
 `;
 const Library = styled.div`
   display: grid;
@@ -497,9 +691,19 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
     padding: 0 14px 14px;
     border-top: 1px solid #edf1ec;
   }
-  .options { display: grid; gap: 7px; }
-  .option { display: flex; align-items: center; gap: 7px; }
-  .option input { min-width: 0; flex: 1; }
+  .options {
+    display: grid;
+    gap: 7px;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .option input {
+    min-width: 0;
+    flex: 1;
+  }
   .option .tiny {
     width: 40px;
     height: 40px;
@@ -513,7 +717,11 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
     color: #77867c;
     cursor: pointer;
   }
-  .option .tiny:hover { border-color: #c9aaa5; background: #fbf1ef; color: #945f59; }
+  .option .tiny:hover {
+    border-color: #c9aaa5;
+    background: #fbf1ef;
+    color: #945f59;
+  }
   .add-option {
     justify-self: start;
     display: inline-flex;
@@ -528,7 +736,9 @@ const SectionCard = styled.div<{ $dragging?: boolean }>`
     font-weight: 750;
     cursor: pointer;
   }
-  .add-option:hover { background: #d6e5d3; }
+  .add-option:hover {
+    background: #d6e5d3;
+  }
 `;
 const QuestionBox = styled.div<{ $dragging?: boolean }>`
   padding: 13px;
@@ -629,7 +839,9 @@ const QuestionBox = styled.div<{ $dragging?: boolean }>`
     font-weight: 700;
     cursor: pointer;
   }
-  .add-option:hover { background: #d6e5d3; }
+  .add-option:hover {
+    background: #d6e5d3;
+  }
   .required {
     display: flex;
     align-items: center;
@@ -700,7 +912,10 @@ const Footer = styled.div`
   @media (max-width: 560px) {
     align-items: stretch;
     flex-direction: column;
-    .actions, .actions button { width: 100%; }
+    .actions,
+    .actions button {
+      width: 100%;
+    }
   }
   .error {
     color: #a05252;
@@ -833,7 +1048,7 @@ const makeQuestion = (): Question => ({
 });
 export function SurveyBuilder() {
   const nav = useNavigate();
-  const {surveyId}=useParams();
+  const { surveyId } = useParams();
   const [instruments, setInstruments] = useState<Instrument[]>([]),
     [methodologies, setMethodologies] = useState<Record<string, Methodology>>(
       {},
@@ -844,7 +1059,9 @@ export function SurveyBuilder() {
     [sections, setSections] = useState<Section[]>([]),
     [open, setOpen] = useState<Record<string, boolean>>({}),
     [libraryQuery, setLibraryQuery] = useState(""),
-    [previewQuestions, setPreviewQuestions] = useState<PreviewQuestion[] | null>(null),
+    [previewQuestions, setPreviewQuestions] = useState<
+      PreviewQuestion[] | null
+    >(null),
     [previewLoading, setPreviewLoading] = useState(false),
     [previewError, setPreviewError] = useState(""),
     [invalidFields, setInvalidFields] = useState<string[]>([]),
@@ -852,13 +1069,13 @@ export function SurveyBuilder() {
     [catalogLoading, setCatalogLoading] = useState(true),
     [draftRestored, setDraftRestored] = useState(false),
     [lastSaved, setLastSaved] = useState<Date | null>(null),
-    [draftOwnerId, setDraftOwnerId] = useState(""),
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
-    [structureLocked,setStructureLocked]=useState(false);
-  const draftKey=`mindresearch:survey-builder:${draftOwnerId}:${surveyId??"new"}`;
-  const latestDraft=useRef("");
-  const discardDraft=useRef(false);
+    [structureLocked, setStructureLocked] = useState(false);
+  const draftSurveyId = useRef("");
+  const draftCreation = useRef<Promise<string> | null>(null);
+  const autosaveStarted = useRef(false);
+  const autosaveDraft = useRef(!surveyId);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
@@ -880,9 +1097,9 @@ export function SurveyBuilder() {
       text: "",
     },
   });
-  useEffect(()=>{getCurrentUser().then(user=>setDraftOwnerId(String(user.id))).catch(()=>{setError("Не удалось подготовить автосохранение.");setCatalogLoading(false);setBuilderReady(true)})},[]);
+  const initialMeta = useRef(meta);
   useEffect(() => {
-    if(!draftOwnerId)return;
+    setCatalogLoading(true);
     Promise.all([
       api.get("/account/instruments"),
       api.get("/admin/methodologies"),
@@ -898,35 +1115,97 @@ export function SurveyBuilder() {
         }
       })
       .finally(() => setCatalogLoading(false));
-    const restoreLocalDraft=()=>{
-      try{
-        const raw=localStorage.getItem(draftKey);if(!raw)return false;
-        const draft=JSON.parse(raw);
-        if(!draft?.meta||!Array.isArray(draft?.sections))return false;
-        setMeta(draft.meta);setSections(draft.sections);setOpen(draft.open??{});setDraftRestored(true);
-        if(draft.savedAt)setLastSaved(new Date(draft.savedAt));
-        return true;
-      }catch{localStorage.removeItem(draftKey);return false}
-    };
-    if(surveyId)api.get(`/account/surveys/${surveyId}`).then(({data})=>{
-      const restored=restoreLocalDraft();
-      if(!restored){setMeta({title:data.title,description:data.description??'',welcomeTitle:data.welcomeTitle,welcomeText:data.welcomeText,status:data.status,showAuthor:Boolean(data.showAuthor),resultPresentation:data.resultPresentation});setSections(data.sections.map((section:Section)=>({...section,useSharedOptions:false,sharedOptions:[{value:'1',label:''},{value:'2',label:''}]})));setOpen(Object.fromEntries(data.sections.filter((section:Section)=>section.kind==='custom').map((section:Section)=>[section.id,true])))}
-      setStructureLocked(Number(data.responseCount)>0);setBuilderReady(true);
-    }).catch(()=>{if(!restoreLocalDraft())setError('Не удалось загрузить опрос.');setBuilderReady(true)});
-    else{restoreLocalDraft();setBuilderReady(true)}
-  }, [surveyId,draftKey,draftOwnerId]);
-  useEffect(()=>{
-    if(!builderReady)return;
-    const savedAt=new Date(),serialized=JSON.stringify({version:1,savedAt:savedAt.toISOString(),meta,sections,open});
-    latestDraft.current=serialized;
-    const timer=window.setTimeout(()=>{try{localStorage.setItem(draftKey,serialized);setLastSaved(savedAt)}catch{setError("Не удалось сохранить черновик в браузере.")}},450);
-    return()=>{window.clearTimeout(timer);if(!discardDraft.current)try{localStorage.setItem(draftKey,serialized)}catch{/* storage may be unavailable */}};
-  },[builderReady,draftKey,meta,sections,open]);
-  useEffect(()=>{
-    const persist=()=>{if(builderReady&&latestDraft.current&&!discardDraft.current)try{localStorage.setItem(draftKey,latestDraft.current)}catch{/* storage may be unavailable */}};
-    window.addEventListener("beforeunload",persist);window.addEventListener("pagehide",persist);
-    return()=>{window.removeEventListener("beforeunload",persist);window.removeEventListener("pagehide",persist)};
-  },[builderReady,draftKey]);
+    setBuilderReady(false);
+    autosaveStarted.current = false;
+    autosaveDraft.current = !surveyId;
+    draftSurveyId.current = surveyId ?? "";
+    draftCreation.current = null;
+    setDraftRestored(false);
+    setLastSaved(null);
+    if (surveyId)
+      api
+        .get(`/account/surveys/${surveyId}`)
+        .then(({ data }) => {
+          setMeta({
+              title: data.title,
+              description: data.description ?? "",
+              welcomeTitle: data.welcomeTitle,
+              welcomeText: data.welcomeText,
+              status: data.status,
+              showAuthor: Boolean(data.showAuthor),
+              resultPresentation: data.resultPresentation,
+          });
+          setSections(
+              data.sections.map((section: Section) => ({
+                ...section,
+                useSharedOptions: section.useSharedOptions ?? false,
+                sharedOptions: section.sharedOptions ?? [
+                  { value: "1", label: "" },
+                  { value: "2", label: "" },
+                ],
+              })),
+          );
+          setOpen(
+            data.builderOpen ??
+              Object.fromEntries(
+                data.sections
+                  .filter((section: Section) => section.kind === "custom")
+                  .map((section: Section) => [section.id, true]),
+              ),
+          );
+          autosaveDraft.current =
+            Boolean(data.builderState) || data.status === "draft";
+          setDraftRestored(Boolean(data.builderState));
+          setStructureLocked(Number(data.responseCount) > 0);
+          setBuilderReady(true);
+        })
+        .catch(() => {
+          setError("Не удалось загрузить опрос.");
+          setBuilderReady(true);
+        });
+    else {
+      setMeta({ ...initialMeta.current });
+      setSections([]);
+      setOpen({});
+      setStructureLocked(false);
+      setBuilderReady(true);
+    }
+  }, [surveyId]);
+  useEffect(() => {
+    if (!builderReady || !autosaveDraft.current) return;
+    if (!autosaveStarted.current) {
+      autosaveStarted.current = true;
+      return;
+    }
+    const state = { meta, sections, open };
+    const timer = window.setTimeout(async () => {
+      try {
+        const id = surveyId || draftSurveyId.current;
+        if (id) await api.put(`/account/surveys/${id}/draft-state`, state);
+        else {
+          if (!draftCreation.current)
+            draftCreation.current = api
+              .post("/account/surveys/draft", state)
+              .then(({ data }) => {
+                draftSurveyId.current = data.id;
+                window.history.replaceState(
+                  window.history.state,
+                  "",
+                  `/app/surveys/${data.id}/edit`,
+                );
+                return data.id as string;
+              });
+          const createdId = await draftCreation.current;
+          await api.put(`/account/surveys/${createdId}/draft-state`, state);
+        }
+        setLastSaved(new Date());
+      } catch {
+        if (!draftSurveyId.current) draftCreation.current = null;
+        setError("Не удалось сохранить черновик на сервере.");
+      }
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [builderReady, surveyId, meta, sections, open]);
   const count = useMemo(
     () =>
       sections.reduce(
@@ -944,7 +1223,12 @@ export function SurveyBuilder() {
         .includes(query),
     );
   }, [instruments, libraryQuery]);
-  if(!builderReady||catalogLoading)return <PlatformLayout><SkeletonScreen variant="form"/></PlatformLayout>;
+  if (!builderReady || catalogLoading)
+    return (
+      <PlatformLayout>
+        <SkeletonScreen variant="form" />
+      </PlatformLayout>
+    );
   const addInstrument = (i: Instrument) => {
     if (sections.some((s) => s.instrumentId === i.id)) return;
     setSections((s) => [
@@ -1002,32 +1286,50 @@ export function SurveyBuilder() {
   const showValidation = (keys: string[], message: string) => {
     setInvalidFields(keys);
     setError(message);
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      const target = document.querySelector<HTMLElement>('[data-validation-error="true"]');
-      target?.scrollIntoView({behavior:"smooth",block:"center"});
-      window.setTimeout(() => target?.focus({preventScroll:true}), 350);
-    }));
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => {
+        const target = document.querySelector<HTMLElement>(
+          '[data-validation-error="true"]',
+        );
+        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.setTimeout(() => target?.focus({ preventScroll: true }), 350);
+      }),
+    );
   };
   const openPreview = async () => {
     setPreviewLoading(true);
     setPreviewError("");
     try {
-      const blocks = await Promise.all(sections.map(async (section) => {
-        if (section.kind === "custom")
-          return (section.questions ?? []).map((question) => ({
-            ...question,
-            text: question.text || "Текст вопроса",
-            options: question.type === "single" || question.type === "multiple"
-              ? (section.useSharedOptions ? section.sharedOptions ?? [] : question.options)
-              : [],
-            sectionTitle: section.title || "Собственный тест",
-          }));
-        const {data} = await api.get(`/account/instruments/${section.instrumentId}/questions`);
-        return data.questions.map((question: Omit<PreviewQuestion,"sectionTitle">) => ({...question,sectionTitle:section.title}));
-      }));
+      const blocks = await Promise.all(
+        sections.map(async (section) => {
+          if (section.kind === "custom")
+            return (section.questions ?? []).map((question) => ({
+              ...question,
+              text: question.text || "Текст вопроса",
+              options:
+                question.type === "single" || question.type === "multiple"
+                  ? section.useSharedOptions
+                    ? (section.sharedOptions ?? [])
+                    : question.options
+                  : [],
+              sectionTitle: section.title || "Собственный тест",
+            }));
+          const { data } = await api.get(
+            `/account/instruments/${section.instrumentId}/questions`,
+          );
+          return data.questions.map(
+            (question: Omit<PreviewQuestion, "sectionTitle">) => ({
+              ...question,
+              sectionTitle: section.title,
+            }),
+          );
+        }),
+      );
       setPreviewQuestions(blocks.flat());
     } catch {
-      setPreviewError("Не удалось загрузить вопросы для предпросмотра. Попробуйте ещё раз.");
+      setPreviewError(
+        "Не удалось загрузить вопросы для предпросмотра. Попробуйте ещё раз.",
+      );
     } finally {
       setPreviewLoading(false);
     }
@@ -1066,24 +1368,56 @@ export function SurveyBuilder() {
     });
   };
   async function submit() {
-    const invalid:string[]=[];
-    if(meta.title.trim().length<2)invalid.push("title");
-    if(meta.welcomeTitle.trim().length<2)invalid.push("welcomeTitle");
-    if(meta.welcomeText.trim().length<2)invalid.push("welcomeText");
-    if(meta.resultPresentation.title.trim().length<2)invalid.push("resultTitle");
-    if(!sections.length)invalid.push("sections");
-    const invalidSections:string[]=[];
-    for(const section of sections)if(section.kind==="custom"){
-      if(!section.title.trim()){invalid.push(`section-${section.id}-title`);invalidSections.push(section.id)}
-      if(section.useSharedOptions)(section.sharedOptions??[]).forEach((option,index)=>{if(!option.label.trim()){invalid.push(`section-${section.id}-shared-${index}`);invalidSections.push(section.id)}});
-      section.questions?.forEach((question)=>{
-        if(!question.text.trim()){invalid.push(`question-${question.id}-text`);invalidSections.push(section.id)}
-        if((question.type==="single"||question.type==="multiple")&&!section.useSharedOptions)question.options.forEach((option,index)=>{if(!option.label.trim()){invalid.push(`question-${question.id}-option-${index}`);invalidSections.push(section.id)}});
-      });
-    }
-    if(invalid.length){
-      if(invalidSections.length)setOpen(current=>({...current,...Object.fromEntries(invalidSections.map(id=>[id,true]))}));
-      showValidation(invalid,invalid.includes("sections")?"Добавьте хотя бы одну методику или собственный тест.":"Заполните выделенные поля.");
+    const invalid: string[] = [];
+    if (meta.title.trim().length < 2) invalid.push("title");
+    if (meta.welcomeTitle.trim().length < 2) invalid.push("welcomeTitle");
+    if (meta.welcomeText.trim().length < 2) invalid.push("welcomeText");
+    if (meta.resultPresentation.title.trim().length < 2)
+      invalid.push("resultTitle");
+    if (!sections.length) invalid.push("sections");
+    const invalidSections: string[] = [];
+    for (const section of sections)
+      if (section.kind === "custom") {
+        if (!section.title.trim()) {
+          invalid.push(`section-${section.id}-title`);
+          invalidSections.push(section.id);
+        }
+        if (section.useSharedOptions)
+          (section.sharedOptions ?? []).forEach((option, index) => {
+            if (!option.label.trim()) {
+              invalid.push(`section-${section.id}-shared-${index}`);
+              invalidSections.push(section.id);
+            }
+          });
+        section.questions?.forEach((question) => {
+          if (!question.text.trim()) {
+            invalid.push(`question-${question.id}-text`);
+            invalidSections.push(section.id);
+          }
+          if (
+            (question.type === "single" || question.type === "multiple") &&
+            !section.useSharedOptions
+          )
+            question.options.forEach((option, index) => {
+              if (!option.label.trim()) {
+                invalid.push(`question-${question.id}-option-${index}`);
+                invalidSections.push(section.id);
+              }
+            });
+        });
+      }
+    if (invalid.length) {
+      if (invalidSections.length)
+        setOpen((current) => ({
+          ...current,
+          ...Object.fromEntries(invalidSections.map((id) => [id, true])),
+        }));
+      showValidation(
+        invalid,
+        invalid.includes("sections")
+          ? "Добавьте хотя бы одну методику или собственный тест."
+          : "Заполните выделенные поля.",
+      );
       return;
     }
     setSaving(true);
@@ -1104,15 +1438,19 @@ export function SurveyBuilder() {
                 required: q.required,
                 options:
                   q.type === "single" || q.type === "multiple"
-                    ? (s.useSharedOptions ? s.sharedOptions : q.options)
+                    ? s.useSharedOptions
+                      ? s.sharedOptions
+                      : q.options
                     : undefined,
               })),
             },
       ),
     };
     try {
-      if(surveyId)await api.put(`/account/surveys/${surveyId}`,payload);else await api.post("/account/surveys", payload);
-      discardDraft.current=true;localStorage.removeItem(draftKey);latestDraft.current="";
+      const targetId = surveyId || draftSurveyId.current;
+      if (targetId) await api.put(`/account/surveys/${targetId}`, payload);
+      else await api.post("/account/surveys", payload);
+      autosaveDraft.current = false;
       nav("/app");
     } catch (err: any) {
       if (import.meta.env.DEV) {
@@ -1127,68 +1465,267 @@ export function SurveyBuilder() {
   return (
     <PlatformLayout>
       <Header>
-        <h1>{surveyId?'Редактирование опроса':'Новый опрос'}</h1>
-        <p>Соберите исследование из проверенных методик и собственных вопросов.</p>
+        <h1>{surveyId ? "Редактирование опроса" : "Новый опрос"}</h1>
+        <p>
+          Соберите исследование из проверенных методик и собственных вопросов.
+        </p>
       </Header>
       <Flow aria-label="Этапы создания опроса">
-        <div className="step"><span className="number">1</span><b>Оформление</b></div>
-        <div className="step"><span className="number">2</span><b>Содержание</b></div>
-        <div className="step"><span className="number">3</span><b>Публикация</b></div>
+        <div className="step">
+          <span className="number">1</span>
+          <b>Оформление</b>
+        </div>
+        <div className="step">
+          <span className="number">2</span>
+          <b>Содержание</b>
+        </div>
+        <div className="step">
+          <span className="number">3</span>
+          <b>Публикация</b>
+        </div>
       </Flow>
       <WorkspaceBar>
-        <div className="save"><span className="dot"/><span className="save-copy">{draftRestored?<><b>Черновик восстановлен.</b> Можно продолжить работу.</>:<><b>Автосохранение включено.</b></>}</span><span className="saved-at">{lastSaved?`Сохранено в ${lastSaved.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}`:"Сохраняем…"}</span></div>
-        <div className="tools"><span className="preview-note"><Eye size={14}/> Как увидит респондент</span><button disabled={previewLoading} onClick={openPreview}><Eye size={15}/>{previewLoading?'Загружаем…':'Предпросмотр'}</button></div>
-        {previewError&&<span className="error">{previewError}</span>}
+        <div className="save">
+          <span className="dot" />
+          <span className="save-copy">
+            {draftRestored ? (
+              <>
+                <b>Черновик восстановлен.</b> Можно продолжить работу.
+              </>
+            ) : (
+              <>
+                <b>Автосохранение включено.</b>
+              </>
+            )}
+          </span>
+          <span className="saved-at">
+            {lastSaved
+              ? `Сохранено в ${lastSaved.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`
+              : "Сохраняем…"}
+          </span>
+        </div>
+        <div className="tools">
+          <span className="preview-note">
+            <Eye size={14} /> Как увидит респондент
+          </span>
+          <button disabled={previewLoading} onClick={openPreview}>
+            <Eye size={15} />
+            {previewLoading ? "Загружаем…" : "Предпросмотр"}
+          </button>
+        </div>
+        {previewError && <span className="error">{previewError}</span>}
       </WorkspaceBar>
       <Columns>
         <div>
           <MetaStack className="meta-panel">
             <Panel>
               <SectionHeading>
-                <div className="copy"><h2>Данные опроса для автора</h2><p className="hint panel-intro">Название и заметка для организации опросов в личном кабинете. Респонденты эти данные не увидят.</p></div>
-                <span className="audience private"><ShieldCheck size={13}/> Только для автора</span>
+                <div className="copy">
+                  <h2>Данные опроса для автора</h2>
+                  <p className="hint panel-intro">
+                    Название и заметка для организации опросов в личном
+                    кабинете. Респонденты эти данные не увидят.
+                  </p>
+                </div>
+                <span className="audience private">
+                  <ShieldCheck size={13} /> Только для автора
+                </span>
               </SectionHeading>
               <SurveyBasics>
                 <div className="field">
                   <label>Название опроса в кабинете</label>
-                  <input className={invalidFields.includes("title")?"invalid":undefined} data-validation-error={invalidFields.includes("title")||undefined} value={meta.title} onChange={(e)=>{setMeta({...meta,title:e.target.value});clearInvalid("title")}} placeholder="Например, исследование самочувствия" />
+                  <input
+                    className={
+                      invalidFields.includes("title") ? "invalid" : undefined
+                    }
+                    data-validation-error={
+                      invalidFields.includes("title") || undefined
+                    }
+                    value={meta.title}
+                    onChange={(e) => {
+                      setMeta({ ...meta, title: e.target.value });
+                      clearInvalid("title");
+                    }}
+                    placeholder="Например, исследование самочувствия"
+                  />
                 </div>
                 <div className="field">
                   <label>Внутреннее описание</label>
-                  <textarea value={meta.description} onChange={(e)=>setMeta({...meta,description:e.target.value})} placeholder="Короткая заметка о цели или аудитории опроса" />
+                  <textarea
+                    value={meta.description}
+                    onChange={(e) =>
+                      setMeta({ ...meta, description: e.target.value })
+                    }
+                    placeholder="Короткая заметка о цели или аудитории опроса"
+                  />
                 </div>
               </SurveyBasics>
             </Panel>
             <Panel>
               <SectionHeading>
-                <div className="copy"><h2>Экраны для респондента</h2><p className="hint panel-intro">Эти тексты участник увидит перед началом опроса и после отправки ответов. Редактируйте их прямо в макетах.</p></div>
-                <span className="audience"><Eye size={13}/> Видит респондент</span>
+                <div className="copy">
+                  <h2>Экраны для респондента</h2>
+                  <p className="hint panel-intro">
+                    Эти тексты участник увидит перед началом опроса и после
+                    отправки ответов. Редактируйте их прямо в макетах.
+                  </p>
+                </div>
+                <span className="audience">
+                  <Eye size={13} /> Видит респондент
+                </span>
               </SectionHeading>
               <PreviewGrid>
-              <PreviewCard>
-                <div className="preview-label"><span>Стартовый экран</span><span><Pencil size={11}/> Редактируется</span></div>
-                <div className="screen">
-                  <span className="eyebrow">Анонимное исследование</span>
-                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Заголовок — нажмите, чтобы изменить</span><textarea rows={2} className={`preview-title${invalidFields.includes("welcomeTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeTitle")||undefined} aria-label="Заголовок приветствия" value={meta.welcomeTitle} onChange={(e)=>{setMeta({...meta,welcomeTitle:e.target.value});clearInvalid("welcomeTitle")}} placeholder="Заголовок приветствия" /></div>
-                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Текст перед началом</span><textarea rows={2} className={`preview-copy${invalidFields.includes("welcomeText")?" invalid":""}`} data-validation-error={invalidFields.includes("welcomeText")||undefined} aria-label="Текст перед началом" value={meta.welcomeText} onChange={(e)=>{setMeta({...meta,welcomeText:e.target.value});clearInvalid("welcomeText")}} placeholder="Расскажите участнику об исследовании" /></div>
-                  <div className="mock-meta"><span>{count || 0} вопросов</span><span>Можно прерваться</span></div>
-                  <span className="mock-button">Начать →</span>
-                </div>
-                <div className="preview-settings">
-                  <label><input type="checkbox" checked={meta.showAuthor} onChange={(e)=>setMeta({...meta,showAuthor:e.target.checked})}/><span>Показывать ссылку на профиль автора<br/><small>Если профиль опубликован</small></span></label>
-                </div>
-              </PreviewCard>
-              <PreviewCard>
-                <div className="preview-label"><span>Финальный экран</span><span><Pencil size={11}/> Редактируется</span></div>
-                <div className="screen">
-                  <span className="done"><CheckCircle2 size={13}/> Опрос завершён</span>
-                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Заголовок — нажмите, чтобы изменить</span><textarea rows={2} className={`preview-title${invalidFields.includes("resultTitle")?" invalid":""}`} data-validation-error={invalidFields.includes("resultTitle")||undefined} aria-label="Заголовок финального экрана" value={meta.resultPresentation.title} onChange={(e)=>{setMeta({...meta,resultPresentation:{...meta.resultPresentation,title:e.target.value}});clearInvalid("resultTitle")}} placeholder="Спасибо за ваши ответы" /></div>
-                  <div className="editable-field"><span className="edit-label"><Pencil size={11}/> Сообщение после завершения</span><textarea rows={2} className="preview-copy" aria-label="Сообщение после завершения" value={meta.resultPresentation.text} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,text:e.target.value}})} placeholder="Ваши ответы сохранены" /></div>
-                </div>
-                <div className="preview-settings">
-                  <label><input type="checkbox" checked={meta.resultPresentation.showScores} onChange={(e)=>setMeta({...meta,resultPresentation:{...meta.resultPresentation,showScores:e.target.checked,showResults:e.target.checked}})}/><span>Показывать рассчитанные результаты подтверждённых методик</span></label>
-                </div>
-              </PreviewCard>
+                <PreviewCard>
+                  <div className="preview-label">
+                    <span>Стартовый экран</span>
+                    <span>
+                      <Pencil size={11} /> Редактируется
+                    </span>
+                  </div>
+                  <div className="screen">
+                    <span className="eyebrow">Анонимное исследование</span>
+                    <div className="editable-field">
+                      <span className="edit-label">
+                        <Pencil size={11} /> Заголовок — нажмите, чтобы изменить
+                      </span>
+                      <textarea
+                        rows={2}
+                        className={`preview-title${invalidFields.includes("welcomeTitle") ? " invalid" : ""}`}
+                        data-validation-error={
+                          invalidFields.includes("welcomeTitle") || undefined
+                        }
+                        aria-label="Заголовок приветствия"
+                        value={meta.welcomeTitle}
+                        onChange={(e) => {
+                          setMeta({ ...meta, welcomeTitle: e.target.value });
+                          clearInvalid("welcomeTitle");
+                        }}
+                        placeholder="Заголовок приветствия"
+                      />
+                    </div>
+                    <div className="editable-field">
+                      <span className="edit-label">
+                        <Pencil size={11} /> Текст перед началом
+                      </span>
+                      <textarea
+                        rows={2}
+                        className={`preview-copy${invalidFields.includes("welcomeText") ? " invalid" : ""}`}
+                        data-validation-error={
+                          invalidFields.includes("welcomeText") || undefined
+                        }
+                        aria-label="Текст перед началом"
+                        value={meta.welcomeText}
+                        onChange={(e) => {
+                          setMeta({ ...meta, welcomeText: e.target.value });
+                          clearInvalid("welcomeText");
+                        }}
+                        placeholder="Расскажите участнику об исследовании"
+                      />
+                    </div>
+                    <div className="mock-meta">
+                      <span>{count || 0} вопросов</span>
+                      <span>Можно прерваться</span>
+                    </div>
+                    <span className="mock-button">Начать →</span>
+                  </div>
+                  <div className="preview-settings">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={meta.showAuthor}
+                        onChange={(e) =>
+                          setMeta({ ...meta, showAuthor: e.target.checked })
+                        }
+                      />
+                      <span>
+                        Показывать ссылку на профиль автора
+                        <br />
+                        <small>Если профиль опубликован</small>
+                      </span>
+                    </label>
+                  </div>
+                </PreviewCard>
+                <PreviewCard>
+                  <div className="preview-label">
+                    <span>Финальный экран</span>
+                    <span>
+                      <Pencil size={11} /> Редактируется
+                    </span>
+                  </div>
+                  <div className="screen">
+                    <span className="done">
+                      <CheckCircle2 size={13} /> Опрос завершён
+                    </span>
+                    <div className="editable-field">
+                      <span className="edit-label">
+                        <Pencil size={11} /> Заголовок — нажмите, чтобы изменить
+                      </span>
+                      <textarea
+                        rows={2}
+                        className={`preview-title${invalidFields.includes("resultTitle") ? " invalid" : ""}`}
+                        data-validation-error={
+                          invalidFields.includes("resultTitle") || undefined
+                        }
+                        aria-label="Заголовок финального экрана"
+                        value={meta.resultPresentation.title}
+                        onChange={(e) => {
+                          setMeta({
+                            ...meta,
+                            resultPresentation: {
+                              ...meta.resultPresentation,
+                              title: e.target.value,
+                            },
+                          });
+                          clearInvalid("resultTitle");
+                        }}
+                        placeholder="Спасибо за ваши ответы"
+                      />
+                    </div>
+                    <div className="editable-field">
+                      <span className="edit-label">
+                        <Pencil size={11} /> Сообщение после завершения
+                      </span>
+                      <textarea
+                        rows={2}
+                        className="preview-copy"
+                        aria-label="Сообщение после завершения"
+                        value={meta.resultPresentation.text}
+                        onChange={(e) =>
+                          setMeta({
+                            ...meta,
+                            resultPresentation: {
+                              ...meta.resultPresentation,
+                              text: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Ваши ответы сохранены"
+                      />
+                    </div>
+                  </div>
+                  <div className="preview-settings">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={meta.resultPresentation.showScores}
+                        onChange={(e) =>
+                          setMeta({
+                            ...meta,
+                            resultPresentation: {
+                              ...meta.resultPresentation,
+                              showScores: e.target.checked,
+                              showResults: e.target.checked,
+                            },
+                          })
+                        }
+                      />
+                      <span>
+                        Показывать рассчитанные результаты подтверждённых
+                        методик
+                      </span>
+                    </label>
+                  </div>
+                </PreviewCard>
               </PreviewGrid>
             </Panel>
           </MetaStack>
@@ -1199,228 +1736,296 @@ export function SurveyBuilder() {
               рассчитывают результат. Перед добавлением можно изучить описание,
               ключ, нормативы и источники.
             </p>
-            {structureLocked&&<p className="hint" style={{padding:12,background:'#f4efe3',borderRadius:10,color:'#766847'}}>В опросе уже есть ответы, поэтому состав и порядок вопросов зафиксированы. Название, приветствие, профиль автора, публикацию и финальный экран можно редактировать.</p>}
-            <div style={structureLocked?{pointerEvents:'none',opacity:.55}:{}}>
-            <CatalogTools>
-              <button className="create-custom" onClick={addCustom}><Plus size={17}/> Создать собственный тест</button>
-              <div className="divider">или выберите методику</div>
-              <div className="search">
-                <Search size={16}/>
-                <input value={libraryQuery} onChange={(e)=>setLibraryQuery(e.target.value)} placeholder="Название или автор" aria-label="Поиск методик" />
-              </div>
-            </CatalogTools>
-            <Library>
-              {filteredInstruments.map((i) => {
-                const code = i.code ?? i.scoringCode ?? "",
-                  methodology = methodologies[code];
-                return (
-                  <div className="item" key={i.id}>
-                    <div className="top">
-                      <span className="title">{i.title}</span>
-                      {i.isVerified && (
-                        <span className="verified">
-                          <ShieldCheck size={13} /> Подтверждён
-                        </span>
-                      )}
-                    </div>
-                    {i.author && (
-                      <div className="author">
-                        Авторы оригинальной методики: {i.author}
-                      </div>
-                    )}
-                    <div className="description">{i.description}</div>
-                    <div className="bottom">
-                      <span>
-                        {i.questionCount} вопросов · автоматический расчёт
-                      </span>
-                      <div className="links">
-                        {methodology && (
-                          <button
-                            className="more"
-                            onClick={() => setActiveMethodology(methodology)}
-                          >
-                            <Info size={13} /> О методике
-                          </button>
+            {structureLocked && (
+              <p
+                className="hint"
+                style={{
+                  padding: 12,
+                  background: "#f4efe3",
+                  borderRadius: 10,
+                  color: "#766847",
+                }}
+              >
+                В опросе уже есть ответы, поэтому состав и порядок вопросов
+                зафиксированы. Название, приветствие, профиль автора, публикацию
+                и финальный экран можно редактировать.
+              </p>
+            )}
+            <div
+              style={
+                structureLocked ? { pointerEvents: "none", opacity: 0.55 } : {}
+              }
+            >
+              <CatalogTools>
+                <button className="create-custom" onClick={addCustom}>
+                  <Plus size={17} /> Создать собственный тест
+                </button>
+                <div className="divider">или выберите методику</div>
+                <div className="search">
+                  <Search size={16} />
+                  <input
+                    value={libraryQuery}
+                    onChange={(e) => setLibraryQuery(e.target.value)}
+                    placeholder="Название или автор"
+                    aria-label="Поиск методик"
+                  />
+                </div>
+              </CatalogTools>
+              <Library>
+                {filteredInstruments.map((i) => {
+                  const code = i.code ?? i.scoringCode ?? "",
+                    methodology = methodologies[code];
+                  return (
+                    <div className="item" key={i.id}>
+                      <div className="top">
+                        <span className="title">{i.title}</span>
+                        {i.isVerified && (
+                          <span className="verified">
+                            <ShieldCheck size={13} /> Подтверждён
+                          </span>
                         )}
-                        <button
-                          className="add"
-                          disabled={sections.some(
-                            (s) => s.instrumentId === i.id,
+                      </div>
+                      {i.author && (
+                        <div className="author">
+                          Авторы оригинальной методики: {i.author}
+                        </div>
+                      )}
+                      <div className="description">{i.description}</div>
+                      <div className="bottom">
+                        <span>
+                          {i.questionCount} вопросов · автоматический расчёт
+                        </span>
+                        <div className="links">
+                          {methodology && (
+                            <button
+                              className="more"
+                              onClick={() => setActiveMethodology(methodology)}
+                            >
+                              <Info size={13} /> О методике
+                            </button>
                           )}
-                          onClick={() => addInstrument(i)}
-                        >
-                          {sections.some((s) => s.instrumentId === i.id)
-                            ? "Добавлен"
-                            : "+ Добавить"}
-                        </button>
+                          <button
+                            className="add"
+                            disabled={sections.some(
+                              (s) => s.instrumentId === i.id,
+                            )}
+                            onClick={() => addInstrument(i)}
+                          >
+                            {sections.some((s) => s.instrumentId === i.id)
+                              ? "Добавлен"
+                              : "+ Добавить"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-              {!filteredInstruments.length&&<p className="hint" style={{padding:12,textAlign:'center'}}>Методики не найдены. Попробуйте изменить запрос.</p>}
-            </Library>
+                  );
+                })}
+                {!filteredInstruments.length && (
+                  <p
+                    className="hint"
+                    style={{ padding: 12, textAlign: "center" }}
+                  >
+                    Методики не найдены. Попробуйте изменить запрос.
+                  </p>
+                )}
+              </Library>
             </div>
           </Panel>
         </div>
-        <Panel className={`structure-panel${invalidFields.includes("sections")?" invalid-panel":""}`} data-validation-error={invalidFields.includes("sections")||undefined} tabIndex={invalidFields.includes("sections")?-1:undefined}>
+        <Panel
+          className={`structure-panel${invalidFields.includes("sections") ? " invalid-panel" : ""}`}
+          data-validation-error={
+            invalidFields.includes("sections") || undefined
+          }
+          tabIndex={invalidFields.includes("sections") ? -1 : undefined}
+        >
           <h2>Содержание опроса</h2>
           <p className="hint">
             {sections.length
               ? `${sections.length} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
               : "Добавьте подтверждённую методику или создайте собственный тест."}
           </p>
-          <div style={structureLocked?{pointerEvents:'none',opacity:.65}:{}}>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={reorderSections}
+          <div
+            style={
+              structureLocked ? { pointerEvents: "none", opacity: 0.65 } : {}
+            }
           >
-            <SortableContext
-              items={sections.map((section) => section.id)}
-              strategy={verticalListSortingStrategy}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={reorderSections}
             >
-              <Stack>
-                {sections.map((section, index) => (
-                  <SortableSection key={section.id} id={section.id}>
-                    {(sectionHandle) => (
-                      <>
-                        <div className="section-head">
-                          {sectionHandle}
-                          <div className="section-name">
-                            <b>{section.title}</b>
-                            <span>
-                              {section.kind === "library"
-                                ? "Подтверждённая методика · автоматический расчёт"
-                                : `${section.questions?.length ?? 0} собственных вопросов · без автоматического расчёта`}
-                            </span>
-                          </div>
-                          <button
-                            className="icon"
-                            aria-label="Переместить блок выше"
-                            onClick={() => move(index, -1)}
-                          >
-                            <ArrowUp size={15} />
-                          </button>
-                          <button
-                            className="icon"
-                            aria-label="Переместить блок ниже"
-                            onClick={() => move(index, 1)}
-                          >
-                            <ArrowDown size={15} />
-                          </button>
-                          {section.kind === "custom" && (
+              <SortableContext
+                items={sections.map((section) => section.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <Stack>
+                  {sections.map((section, index) => (
+                    <SortableSection key={section.id} id={section.id}>
+                      {(sectionHandle) => (
+                        <>
+                          <div className="section-head">
+                            {sectionHandle}
+                            <div className="section-name">
+                              <b>{section.title}</b>
+                              <span>
+                                {section.kind === "library"
+                                  ? "Подтверждённая методика · автоматический расчёт"
+                                  : `${section.questions?.length ?? 0} собственных вопросов · без автоматического расчёта`}
+                              </span>
+                            </div>
                             <button
                               className="icon"
-                              aria-label="Развернуть блок"
-                              onClick={() =>
-                                setOpen((o) => ({
-                                  ...o,
-                                  [section.id]: !o[section.id],
-                                }))
-                              }
+                              aria-label="Переместить блок выше"
+                              onClick={() => move(index, -1)}
                             >
-                              {open[section.id] ? (
-                                <ChevronUp size={16} />
-                              ) : (
-                                <ChevronDown size={16} />
-                              )}
+                              <ArrowUp size={15} />
                             </button>
-                          )}
-                          <button
-                            className="icon"
-                            aria-label="Удалить блок"
-                            onClick={() =>
-                              setSections((s) =>
-                                s.filter((x) => x.id !== section.id),
-                              )
-                            }
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                        {section.kind === "custom" && open[section.id] && (
-                          <div className="body">
-                            <div className="field">
-                              <label>
-                                Название собственного теста или блока
-                              </label>
-                              <input
-                                className={invalidFields.includes(`section-${section.id}-title`)?"invalid":undefined}
-                                data-validation-error={invalidFields.includes(`section-${section.id}-title`)||undefined}
-                                value={section.title}
-                                onChange={(e) => {
-                                  clearInvalid(`section-${section.id}-title`);
-                                  updateSection(section.id, (s) => ({
-                                    ...s,
-                                    title: e.target.value,
-                                  }));
-                                }}
-                              />
-                            </div>
-                            <div className="field" style={{padding:"13px",background:"#f2f6f0",borderRadius:12}}>
-                              <label style={{display:"flex",gap:9,alignItems:"center",margin:0}}>
-                                <input type="checkbox" style={{width:18}} checked={Boolean(section.useSharedOptions)} onChange={(e)=>updateSection(section.id,(s)=>({...s,useSharedOptions:e.target.checked}))}/>
-                                Один список вариантов для всех вопросов теста
-                              </label>
-                              {section.useSharedOptions&&<div className="options" style={{marginTop:10}}>
-                                {(section.sharedOptions??[]).map((option,oi)=><div className="option" key={option.value}>
-                                  <input className={invalidFields.includes(`section-${section.id}-shared-${oi}`)?"invalid":undefined} data-validation-error={invalidFields.includes(`section-${section.id}-shared-${oi}`)||undefined} value={option.label} placeholder={`Вариант ${oi+1}`} onChange={(e)=>{clearInvalid(`section-${section.id}-shared-${oi}`);updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).map((item,index)=>index===oi?{...item,label:e.target.value}:item)}))}}/>
-                                  {(section.sharedOptions?.length??0)>2&&<button className="tiny" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:(s.sharedOptions??[]).filter((_,index)=>index!==oi).map((item,index)=>({...item,value:String(index+1)}))}))}><Trash2 size={14}/></button>}
-                                </div>)}
-                                <button className="add-option" onClick={()=>updateSection(section.id,(s)=>({...s,sharedOptions:[...(s.sharedOptions??[]),{value:String((s.sharedOptions?.length??0)+1),label:""}]}))}><Plus size={14}/> Вариант ответа</button>
-                                <p className="hint">Список будет применён ко всем вопросам с выбором одного или нескольких вариантов.</p>
-                              </div>}
-                            </div>
-                            <DndContext
-                              sensors={sensors}
-                              collisionDetection={closestCenter}
-                              onDragEnd={(event) =>
-                                reorderQuestions(section.id, event)
+                            <button
+                              className="icon"
+                              aria-label="Переместить блок ниже"
+                              onClick={() => move(index, 1)}
+                            >
+                              <ArrowDown size={15} />
+                            </button>
+                            {section.kind === "custom" && (
+                              <button
+                                className="icon"
+                                aria-label="Развернуть блок"
+                                onClick={() =>
+                                  setOpen((o) => ({
+                                    ...o,
+                                    [section.id]: !o[section.id],
+                                  }))
+                                }
+                              >
+                                {open[section.id] ? (
+                                  <ChevronUp size={16} />
+                                ) : (
+                                  <ChevronDown size={16} />
+                                )}
+                              </button>
+                            )}
+                            <button
+                              className="icon"
+                              aria-label="Удалить блок"
+                              onClick={() =>
+                                setSections((s) =>
+                                  s.filter((x) => x.id !== section.id),
+                                )
                               }
                             >
-                              <SortableContext
-                                items={(section.questions ?? []).map(
-                                  (question) => question.id,
-                                )}
-                                strategy={verticalListSortingStrategy}
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                          {section.kind === "custom" && open[section.id] && (
+                            <div className="body">
+                              <div className="field">
+                                <label>
+                                  Название собственного теста или блока
+                                </label>
+                                <input
+                                  className={
+                                    invalidFields.includes(
+                                      `section-${section.id}-title`,
+                                    )
+                                      ? "invalid"
+                                      : undefined
+                                  }
+                                  data-validation-error={
+                                    invalidFields.includes(
+                                      `section-${section.id}-title`,
+                                    ) || undefined
+                                  }
+                                  value={section.title}
+                                  onChange={(e) => {
+                                    clearInvalid(`section-${section.id}-title`);
+                                    updateSection(section.id, (s) => ({
+                                      ...s,
+                                      title: e.target.value,
+                                    }));
+                                  }}
+                                />
+                              </div>
+                              <div
+                                className="field"
+                                style={{
+                                  padding: "13px",
+                                  background: "#f2f6f0",
+                                  borderRadius: 12,
+                                }}
                               >
-                                {section.questions?.map((q, qi) => (
-                                  <SortableQuestion key={q.id} id={q.id}>
-                                    {(questionHandle) => (
-                                      <>
-                                        <div className="qhead">
-                                          <div className="qtitle">
-                                            {questionHandle}
-                                            <b>Вопрос {qi + 1}</b>
-                                          </div>
-                                          <div className="qactions">
-                                            <button
-                                              className="tiny"
-                                              aria-label="Выше"
-                                              onClick={() =>
-                                                moveQuestion(section.id, qi, -1)
-                                              }
-                                            >
-                                              <ArrowUp size={14} />
-                                            </button>
-                                            <button
-                                              className="tiny"
-                                              aria-label="Ниже"
-                                              onClick={() =>
-                                                moveQuestion(section.id, qi, 1)
-                                              }
-                                            >
-                                              <ArrowDown size={14} />
-                                            </button>
-                                            <button
-                                              className="tiny"
-                                              onClick={() =>
-                                                duplicateQuestion(section.id, q)
-                                              }
-                                            >
-                                              <Copy size={14} /> Копировать
-                                            </button>
+                                <label
+                                  style={{
+                                    display: "flex",
+                                    gap: 9,
+                                    alignItems: "center",
+                                    margin: 0,
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    style={{ width: 18 }}
+                                    checked={Boolean(section.useSharedOptions)}
+                                    onChange={(e) =>
+                                      updateSection(section.id, (s) => ({
+                                        ...s,
+                                        useSharedOptions: e.target.checked,
+                                      }))
+                                    }
+                                  />
+                                  Один список вариантов для всех вопросов теста
+                                </label>
+                                {section.useSharedOptions && (
+                                  <div
+                                    className="options"
+                                    style={{ marginTop: 10 }}
+                                  >
+                                    {(section.sharedOptions ?? []).map(
+                                      (option, oi) => (
+                                        <div
+                                          className="option"
+                                          key={option.value}
+                                        >
+                                          <input
+                                            className={
+                                              invalidFields.includes(
+                                                `section-${section.id}-shared-${oi}`,
+                                              )
+                                                ? "invalid"
+                                                : undefined
+                                            }
+                                            data-validation-error={
+                                              invalidFields.includes(
+                                                `section-${section.id}-shared-${oi}`,
+                                              ) || undefined
+                                            }
+                                            value={option.label}
+                                            placeholder={`Вариант ${oi + 1}`}
+                                            onChange={(e) => {
+                                              clearInvalid(
+                                                `section-${section.id}-shared-${oi}`,
+                                              );
+                                              updateSection(
+                                                section.id,
+                                                (s) => ({
+                                                  ...s,
+                                                  sharedOptions: (
+                                                    s.sharedOptions ?? []
+                                                  ).map((item, index) =>
+                                                    index === oi
+                                                      ? {
+                                                          ...item,
+                                                          label: e.target.value,
+                                                        }
+                                                      : item,
+                                                  ),
+                                                }),
+                                              );
+                                            }}
+                                          />
+                                          {(section.sharedOptions?.length ??
+                                            0) > 2 && (
                                             <button
                                               className="tiny"
                                               onClick={() =>
@@ -1428,115 +2033,331 @@ export function SurveyBuilder() {
                                                   section.id,
                                                   (s) => ({
                                                     ...s,
-                                                    questions:
-                                                      s.questions?.filter(
-                                                        (x) => x.id !== q.id,
-                                                      ),
+                                                    sharedOptions: (
+                                                      s.sharedOptions ?? []
+                                                    )
+                                                      .filter(
+                                                        (_, index) =>
+                                                          index !== oi,
+                                                      )
+                                                      .map((item, index) => ({
+                                                        ...item,
+                                                        value: String(
+                                                          index + 1,
+                                                        ),
+                                                      })),
                                                   }),
                                                 )
                                               }
                                             >
                                               <Trash2 size={14} />
                                             </button>
-                                          </div>
+                                          )}
                                         </div>
-                                        <div className="qgrid">
-                                          <input
-                                            className={invalidFields.includes(`question-${q.id}-text`)?"invalid":undefined}
-                                            data-validation-error={invalidFields.includes(`question-${q.id}-text`)||undefined}
-                                            value={q.text}
-                                            onChange={(e) => {
-                                              clearInvalid(`question-${q.id}-text`);
-                                              updateSection(
-                                                section.id,
-                                                (s) => ({
-                                                  ...s,
-                                                  questions: s.questions?.map(
-                                                    (x) =>
-                                                      x.id === q.id
-                                                        ? {
-                                                            ...x,
-                                                            text: e.target
-                                                              .value,
-                                                          }
-                                                        : x,
-                                                  ),
-                                                }),
-                                              );
-                                            }}
-                                            placeholder="Текст вопроса"
-                                          />
-                                          <Select
-                                            value={questionTypeOptions.find(
-                                              (option) =>
-                                                option.value === q.type,
-                                            )}
-                                            options={questionTypeOptions}
-                            styles={selectStyles}
-                            isSearchable={false}
-                            menuPlacement="auto"
-                            menuPosition="fixed"
-                            menuPortalTarget={document.body}
-                                            aria-label="Тип вопроса"
-                                            onChange={(option) => {
-                                              if (!option) return;
-                                              const type =
-                                                option.value as Question["type"];
-                                              updateSection(
-                                                section.id,
-                                                (s) => ({
-                                                  ...s,
-                                                  questions: s.questions?.map(
-                                                    (x) =>
-                                                      x.id === q.id
-                                                        ? {
-                                                            ...x,
-                                                            type,
-                                                            options:
-                                                              type ===
-                                                                "single" ||
-                                                              type ===
-                                                                "multiple"
-                                                                ? x.options
-                                                                    .length
-                                                                  ? x.options
-                                                                  : [
-                                                                      {
-                                                                        value:
-                                                                          "1",
-                                                                        label:
-                                                                          "",
-                                                                      },
-                                                                      {
-                                                                        value:
-                                                                          "2",
-                                                                        label:
-                                                                          "",
-                                                                      },
-                                                                    ]
-                                                                : [],
-                                                          }
-                                                        : x,
-                                                  ),
-                                                }),
-                                              );
-                                            }}
-                                          />
-                                        </div>
-                                        {(q.type === "single" ||
-                                          q.type === "multiple") && !section.useSharedOptions && (
-                                          <div className="options">
-                                            {q.options.map((option, oi) => (
-                                              <div
-                                                className="option"
-                                                key={option.value}
+                                      ),
+                                    )}
+                                    <button
+                                      className="add-option"
+                                      onClick={() =>
+                                        updateSection(section.id, (s) => ({
+                                          ...s,
+                                          sharedOptions: [
+                                            ...(s.sharedOptions ?? []),
+                                            {
+                                              value: String(
+                                                (s.sharedOptions?.length ?? 0) +
+                                                  1,
+                                              ),
+                                              label: "",
+                                            },
+                                          ],
+                                        }))
+                                      }
+                                    >
+                                      <Plus size={14} /> Вариант ответа
+                                    </button>
+                                    <p className="hint">
+                                      Список будет применён ко всем вопросам с
+                                      выбором одного или нескольких вариантов.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={(event) =>
+                                  reorderQuestions(section.id, event)
+                                }
+                              >
+                                <SortableContext
+                                  items={(section.questions ?? []).map(
+                                    (question) => question.id,
+                                  )}
+                                  strategy={verticalListSortingStrategy}
+                                >
+                                  {section.questions?.map((q, qi) => (
+                                    <SortableQuestion key={q.id} id={q.id}>
+                                      {(questionHandle) => (
+                                        <>
+                                          <div className="qhead">
+                                            <div className="qtitle">
+                                              {questionHandle}
+                                              <b>Вопрос {qi + 1}</b>
+                                            </div>
+                                            <div className="qactions">
+                                              <button
+                                                className="tiny"
+                                                aria-label="Выше"
+                                                onClick={() =>
+                                                  moveQuestion(
+                                                    section.id,
+                                                    qi,
+                                                    -1,
+                                                  )
+                                                }
                                               >
-                                                <input
-                                                  className={invalidFields.includes(`question-${q.id}-option-${oi}`)?"invalid":undefined}
-                                                  data-validation-error={invalidFields.includes(`question-${q.id}-option-${oi}`)||undefined}
-                                                  value={option.label}
-                                                  onChange={(e) => {
-                                                    clearInvalid(`question-${q.id}-option-${oi}`);
+                                                <ArrowUp size={14} />
+                                              </button>
+                                              <button
+                                                className="tiny"
+                                                aria-label="Ниже"
+                                                onClick={() =>
+                                                  moveQuestion(
+                                                    section.id,
+                                                    qi,
+                                                    1,
+                                                  )
+                                                }
+                                              >
+                                                <ArrowDown size={14} />
+                                              </button>
+                                              <button
+                                                className="tiny"
+                                                onClick={() =>
+                                                  duplicateQuestion(
+                                                    section.id,
+                                                    q,
+                                                  )
+                                                }
+                                              >
+                                                <Copy size={14} /> Копировать
+                                              </button>
+                                              <button
+                                                className="tiny"
+                                                onClick={() =>
+                                                  updateSection(
+                                                    section.id,
+                                                    (s) => ({
+                                                      ...s,
+                                                      questions:
+                                                        s.questions?.filter(
+                                                          (x) => x.id !== q.id,
+                                                        ),
+                                                    }),
+                                                  )
+                                                }
+                                              >
+                                                <Trash2 size={14} />
+                                              </button>
+                                            </div>
+                                          </div>
+                                          <div className="qgrid">
+                                            <input
+                                              className={
+                                                invalidFields.includes(
+                                                  `question-${q.id}-text`,
+                                                )
+                                                  ? "invalid"
+                                                  : undefined
+                                              }
+                                              data-validation-error={
+                                                invalidFields.includes(
+                                                  `question-${q.id}-text`,
+                                                ) || undefined
+                                              }
+                                              value={q.text}
+                                              onChange={(e) => {
+                                                clearInvalid(
+                                                  `question-${q.id}-text`,
+                                                );
+                                                updateSection(
+                                                  section.id,
+                                                  (s) => ({
+                                                    ...s,
+                                                    questions: s.questions?.map(
+                                                      (x) =>
+                                                        x.id === q.id
+                                                          ? {
+                                                              ...x,
+                                                              text: e.target
+                                                                .value,
+                                                            }
+                                                          : x,
+                                                    ),
+                                                  }),
+                                                );
+                                              }}
+                                              placeholder="Текст вопроса"
+                                            />
+                                            <Select
+                                              value={questionTypeOptions.find(
+                                                (option) =>
+                                                  option.value === q.type,
+                                              )}
+                                              options={questionTypeOptions}
+                                              styles={selectStyles}
+                                              isSearchable={false}
+                                              menuPlacement="auto"
+                                              menuPosition="fixed"
+                                              menuPortalTarget={document.body}
+                                              aria-label="Тип вопроса"
+                                              onChange={(option) => {
+                                                if (!option) return;
+                                                const type =
+                                                  option.value as Question["type"];
+                                                updateSection(
+                                                  section.id,
+                                                  (s) => ({
+                                                    ...s,
+                                                    questions: s.questions?.map(
+                                                      (x) =>
+                                                        x.id === q.id
+                                                          ? {
+                                                              ...x,
+                                                              type,
+                                                              options:
+                                                                type ===
+                                                                  "single" ||
+                                                                type ===
+                                                                  "multiple"
+                                                                  ? x.options
+                                                                      .length
+                                                                    ? x.options
+                                                                    : [
+                                                                        {
+                                                                          value:
+                                                                            "1",
+                                                                          label:
+                                                                            "",
+                                                                        },
+                                                                        {
+                                                                          value:
+                                                                            "2",
+                                                                          label:
+                                                                            "",
+                                                                        },
+                                                                      ]
+                                                                  : [],
+                                                            }
+                                                          : x,
+                                                    ),
+                                                  }),
+                                                );
+                                              }}
+                                            />
+                                          </div>
+                                          {(q.type === "single" ||
+                                            q.type === "multiple") &&
+                                            !section.useSharedOptions && (
+                                              <div className="options">
+                                                {q.options.map((option, oi) => (
+                                                  <div
+                                                    className="option"
+                                                    key={option.value}
+                                                  >
+                                                    <input
+                                                      className={
+                                                        invalidFields.includes(
+                                                          `question-${q.id}-option-${oi}`,
+                                                        )
+                                                          ? "invalid"
+                                                          : undefined
+                                                      }
+                                                      data-validation-error={
+                                                        invalidFields.includes(
+                                                          `question-${q.id}-option-${oi}`,
+                                                        ) || undefined
+                                                      }
+                                                      value={option.label}
+                                                      onChange={(e) => {
+                                                        clearInvalid(
+                                                          `question-${q.id}-option-${oi}`,
+                                                        );
+                                                        updateSection(
+                                                          section.id,
+                                                          (s) => ({
+                                                            ...s,
+                                                            questions:
+                                                              s.questions?.map(
+                                                                (x) =>
+                                                                  x.id === q.id
+                                                                    ? {
+                                                                        ...x,
+                                                                        options:
+                                                                          x.options.map(
+                                                                            (
+                                                                              o,
+                                                                              i,
+                                                                            ) =>
+                                                                              i ===
+                                                                              oi
+                                                                                ? {
+                                                                                    ...o,
+                                                                                    label:
+                                                                                      e
+                                                                                        .target
+                                                                                        .value,
+                                                                                  }
+                                                                                : o,
+                                                                          ),
+                                                                      }
+                                                                    : x,
+                                                              ),
+                                                          }),
+                                                        );
+                                                      }}
+                                                      placeholder={`Вариант ${oi + 1}`}
+                                                    />
+                                                    {q.options.length > 2 && (
+                                                      <button
+                                                        className="tiny"
+                                                        onClick={() =>
+                                                          updateSection(
+                                                            section.id,
+                                                            (s) => ({
+                                                              ...s,
+                                                              questions:
+                                                                s.questions?.map(
+                                                                  (x) =>
+                                                                    x.id ===
+                                                                    q.id
+                                                                      ? {
+                                                                          ...x,
+                                                                          options:
+                                                                            x.options.filter(
+                                                                              (
+                                                                                _,
+                                                                                i,
+                                                                              ) =>
+                                                                                i !==
+                                                                                oi,
+                                                                            ),
+                                                                        }
+                                                                      : x,
+                                                                ),
+                                                            }),
+                                                          )
+                                                        }
+                                                      >
+                                                        <Trash2 size={14} />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                                <button
+                                                  className="tiny"
+                                                  onClick={() =>
                                                     updateSection(
                                                       section.id,
                                                       (s) => ({
@@ -1547,69 +2368,36 @@ export function SurveyBuilder() {
                                                               x.id === q.id
                                                                 ? {
                                                                     ...x,
-                                                                    options:
-                                                                      x.options.map(
-                                                                        (
-                                                                          o,
-                                                                          i,
-                                                                        ) =>
-                                                                          i ===
-                                                                          oi
-                                                                            ? {
-                                                                                ...o,
-                                                                                label:
-                                                                                  e
-                                                                                    .target
-                                                                                    .value,
-                                                                              }
-                                                                            : o,
-                                                                      ),
+                                                                    options: [
+                                                                      ...x.options,
+                                                                      {
+                                                                        value:
+                                                                          String(
+                                                                            x
+                                                                              .options
+                                                                              .length +
+                                                                              1,
+                                                                          ),
+                                                                        label:
+                                                                          "",
+                                                                      },
+                                                                    ],
                                                                   }
                                                                 : x,
                                                           ),
                                                       }),
-                                                    );
-                                                  }}
-                                                  placeholder={`Вариант ${oi + 1}`}
-                                                />
-                                                {q.options.length > 2 && (
-                                                  <button
-                                                    className="tiny"
-                                                    onClick={() =>
-                                                      updateSection(
-                                                        section.id,
-                                                        (s) => ({
-                                                          ...s,
-                                                          questions:
-                                                            s.questions?.map(
-                                                              (x) =>
-                                                                x.id === q.id
-                                                                  ? {
-                                                                      ...x,
-                                                                      options:
-                                                                        x.options.filter(
-                                                                          (
-                                                                            _,
-                                                                            i,
-                                                                          ) =>
-                                                                            i !==
-                                                                            oi,
-                                                                        ),
-                                                                    }
-                                                                  : x,
-                                                            ),
-                                                        }),
-                                                      )
-                                                    }
-                                                  >
-                                                    <Trash2 size={14} />
-                                                  </button>
-                                                )}
+                                                    )
+                                                  }
+                                                >
+                                                  + Вариант ответа
+                                                </button>
                                               </div>
-                                            ))}
-                                            <button
-                                              className="tiny"
-                                              onClick={() =>
+                                            )}
+                                          <label className="required">
+                                            <input
+                                              type="checkbox"
+                                              checked={q.required}
+                                              onChange={(e) =>
                                                 updateSection(
                                                   section.id,
                                                   (s) => ({
@@ -1619,84 +2407,56 @@ export function SurveyBuilder() {
                                                         x.id === q.id
                                                           ? {
                                                               ...x,
-                                                              options: [
-                                                                ...x.options,
-                                                                {
-                                                                  value: String(
-                                                                    x.options
-                                                                      .length +
-                                                                      1,
-                                                                  ),
-                                                                  label: "",
-                                                                },
-                                                              ],
+                                                              required:
+                                                                e.target
+                                                                  .checked,
                                                             }
                                                           : x,
                                                     ),
                                                   }),
                                                 )
                                               }
-                                            >
-                                              + Вариант ответа
-                                            </button>
-                                          </div>
-                                        )}
-                                        <label className="required">
-                                          <input
-                                            type="checkbox"
-                                            checked={q.required}
-                                            onChange={(e) =>
-                                              updateSection(
-                                                section.id,
-                                                (s) => ({
-                                                  ...s,
-                                                  questions: s.questions?.map(
-                                                    (x) =>
-                                                      x.id === q.id
-                                                        ? {
-                                                            ...x,
-                                                            required:
-                                                              e.target.checked,
-                                                          }
-                                                        : x,
-                                                  ),
-                                                }),
-                                              )
-                                            }
-                                          />{" "}
-                                          Обязательный вопрос
-                                        </label>
-                                      </>
-                                    )}
-                                  </SortableQuestion>
-                                ))}
-                              </SortableContext>
-                            </DndContext>
-                            <AddQuestionButton
-                              onClick={() =>
-                                updateSection(section.id, (s) => ({
-                                  ...s,
-                                  questions: [
-                                    ...(s.questions ?? []),
-                                    {...makeQuestion(),options:s.useSharedOptions?(s.sharedOptions??[]).map(option=>({...option})):makeQuestion().options},
-                                  ],
-                                }))
-                              }
-                            >
-                              <span className="plus">
-                                <Plus size={15} />
-                              </span>{" "}
-                              Добавить вопрос
-                            </AddQuestionButton>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </SortableSection>
-                ))}
-              </Stack>
-            </SortableContext>
-          </DndContext>
+                                            />{" "}
+                                            Обязательный вопрос
+                                          </label>
+                                        </>
+                                      )}
+                                    </SortableQuestion>
+                                  ))}
+                                </SortableContext>
+                              </DndContext>
+                              <AddQuestionButton
+                                onClick={() =>
+                                  updateSection(section.id, (s) => ({
+                                    ...s,
+                                    questions: [
+                                      ...(s.questions ?? []),
+                                      {
+                                        ...makeQuestion(),
+                                        options: s.useSharedOptions
+                                          ? (s.sharedOptions ?? []).map(
+                                              (option) => ({ ...option }),
+                                            )
+                                          : makeQuestion().options,
+                                      },
+                                    ],
+                                  }))
+                                }
+                              >
+                                <span className="plus">
+                                  <Plus size={15} />
+                                </span>{" "}
+                                Добавить вопрос
+                              </AddQuestionButton>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </SortableSection>
+                  ))}
+                </Stack>
+              </SortableContext>
+            </DndContext>
           </div>
           <Footer>
             <label>
@@ -1714,7 +2474,11 @@ export function SurveyBuilder() {
             </label>
             <div className="actions">
               <Button disabled={saving} onClick={submit}>
-                {saving ? "Сохраняем…" : surveyId?"Сохранить изменения":"Создать опрос"}{" "}
+                {saving
+                  ? "Сохраняем…"
+                  : surveyId
+                    ? "Сохранить изменения"
+                    : "Создать опрос"}{" "}
                 <CheckCircle2 size={16} />
               </Button>
             </div>
@@ -1728,7 +2492,13 @@ export function SurveyBuilder() {
           onClose={() => setActiveMethodology(null)}
         />
       )}
-      {previewQuestions&&<BuilderPreview meta={meta} questions={previewQuestions} onClose={()=>setPreviewQuestions(null)}/>}
+      {previewQuestions && (
+        <BuilderPreview
+          meta={meta}
+          questions={previewQuestions}
+          onClose={() => setPreviewQuestions(null)}
+        />
+      )}
     </PlatformLayout>
   );
 }

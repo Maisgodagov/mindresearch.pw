@@ -31,6 +31,7 @@ type Survey = {
   completed: number;
   description?: string;
   deletedAt?: string;
+  hasBuilderState?: boolean | number;
 };
 const Head = styled.div`
   display: flex;
@@ -156,6 +157,7 @@ const SurveyCard = styled(Card)`
   a,
   .copy,
   .publish,
+  .continue,
   .archive-action {
     color: #45624e;
     text-decoration: none;
@@ -167,6 +169,7 @@ const SurveyCard = styled(Card)`
   }
   .copy,
   .publish,
+  .continue,
   .archive-action {
     border: 0;
     background: #edf3eb;
@@ -177,6 +180,12 @@ const SurveyCard = styled(Card)`
   .publish {
     background: #557660;
     color: #fff;
+  }
+  .continue {
+    background: #557660;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 9px;
   }
   .publish:hover {
     background: #45644f;
@@ -536,8 +545,8 @@ export function PlatformHome() {
               <div className="card-tools">
                 <Link
                   to={`/app/surveys/${s.id}/edit`}
-                  aria-label={`Редактировать опрос ${s.title}`}
-                  title="Редактировать"
+                  aria-label={`${s.hasBuilderState ? "Продолжить создание" : "Редактировать опрос"} ${s.title}`}
+                  title={s.hasBuilderState ? "Продолжить создание" : "Редактировать"}
                 >
                   <Pencil size={15} />
                 </Link>
@@ -597,6 +606,10 @@ export function PlatformHome() {
                     <ArchiveRestore size={14} />
                     {working === s.id ? "Возвращаем…" : "Вернуть из архива"}
                   </button>
+                ) : s.hasBuilderState ? (
+                  <Link className="continue" to={`/app/surveys/${s.id}/edit`}>
+                    <Pencil size={14} /> Продолжить
+                  </Link>
                 ) : (
                   <button
                     className="publish"
