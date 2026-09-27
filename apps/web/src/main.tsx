@@ -15,6 +15,7 @@ import{ProfilePage}from'./platform/Profile';
 import{PublicProfile}from'./platform/PublicProfile';
 import{SuggestInstrument}from'./platform/SuggestInstrument';
 import{ReviewInstruments}from'./platform/ReviewInstruments';
+import{AdminCenter}from'./platform/AdminCenter';
 import{AuthGuard}from'./platform/AuthGuard';
 import{PlatformLayout}from'./platform/Layout';
 import{ForgotPassword,ResetPassword}from'./platform/PasswordReset';
@@ -28,6 +29,7 @@ function App(){return <><GlobalStyle/><Routes>
   <Route path="/app/profile" element={protectedPage(<ProfilePage/>)}/>
   <Route path="/app/methodologies/suggest" element={protectedPage(<SuggestInstrument/>)}/>
   <Route path="/app/methodologies/review" element={protectedPage(<ReviewInstruments/>)}/>
+  <Route path="/app/admin" element={protectedPage(<AdminCenter/>)}/>
   <Route path="/app/surveys/new" element={protectedPage(<SurveyBuilder/>)}/>
   <Route path="/app/surveys/:surveyId/edit" element={protectedPage(<SurveyBuilder/>)}/>
   <Route path="/app/surveys/:surveyId/results" element={protectedPage(<PlatformLayout><Dashboard embedded/></PlatformLayout>)}/>
