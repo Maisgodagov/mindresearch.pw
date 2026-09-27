@@ -565,6 +565,24 @@ const CatalogTools = styled.div`
     flex: 1;
     background: #e1e8df;
   }
+  .catalog-count {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #66786b;
+    font-size: 12px;
+  }
+  .catalog-count strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 6px 9px;
+    background: #e8f0e5;
+    color: #46614e;
+    font-size: 12px;
+  }
   .search {
     position: relative;
   }
@@ -1901,6 +1919,12 @@ export function SurveyBuilder() {
                   <Plus size={17} /> Создать собственный тест
                 </button>
                 <div className="divider">или выберите методику</div>
+                <div className="catalog-count">
+                  <span>Каталог подтверждённых методик</span>
+                  <strong>
+                    <ShieldCheck size={13} /> Доступно: {instruments.length}
+                  </strong>
+                </div>
                 <div className="search">
                   <Search size={16} />
                   <input
