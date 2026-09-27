@@ -24,7 +24,7 @@
 
 ## Личность
 
-- [ ] 16. Big Five Inventory-2, BFI-2 — `implementing`: официальная русская 60-пунктовая версия
+- [x] 16. Big Five Inventory-2, BFI-2 — `done`: официальная русская 60-пунктовая версия, 5 областей и 15 аспектов
 - [ ] 17. BFI-2-S
 - [ ] 18. TIPI / TIPI-RU
 - [ ] 19. NEO-FFI
