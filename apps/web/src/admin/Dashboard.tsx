@@ -725,6 +725,7 @@ const methodCodes = [
   "test_7",
   "test_8",
   "test_9",
+  "test_10",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -736,6 +737,7 @@ const shortNames: Record<string, string> = {
   test_7: "ШАМ",
   test_8: "AMS",
   test_9: "Отчуждение",
+  test_10: "GPS",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -830,6 +832,10 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
   if (group.code === "test_9") {
     const result = group.result.values as unknown as FoodValues & {overall:{average:number}};
     return <span className="score">{result.overall.average.toFixed(2)} / 5<br /><small>общее отчуждение</small></span>;
+  }
+  if (group.code === "test_10") {
+    const result = group.result.values as unknown as {overall:{score:number;average:number}};
+    return <span className="score">{result.overall.score} / 100<br /><small>среднее {result.overall.average.toFixed(2)} / 5</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
@@ -1045,6 +1051,10 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
   if (group.code === "test_9") {
     const result = group.result.values as unknown as FoodValues & {overall:{average:number}};
     return <><b>Общее отчуждение от учебы: {result.overall.average.toFixed(2)} из 5</b><SupportProfile>{Object.values(result.scales).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${(((scale.average??1)-1)/4)*100}%`}} /></div><span className="value">{scale.average?.toFixed(2)}</span><div className="caption">диапазон 1–5 · без диагностических порогов</div></div>)}</SupportProfile></>;
+  }
+  if (group.code === "test_10") {
+    const result = group.result.values as unknown as {overall:{score:number;average:number}};
+    return <><b>General procrastination: {result.overall.score} / 100</b><SupportProfile><div className="scale"><span className="name">Average adjusted response</span><div className="track"><div className="fill" style={{width:`${((result.overall.average-1)/4)*100}%`}} /></div><span className="value">{result.overall.average.toFixed(2)}</span><div className="caption">continuous research score · no diagnostic cutoffs</div></div></SupportProfile></>;
   }
   return <>Результат рассчитан</>;
 }

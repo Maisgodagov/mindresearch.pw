@@ -403,6 +403,15 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_10") {
+    const overall = v.overall as Scale & {score:number;average:number};
+    return (
+      <ResultCard>
+        <h2>General procrastination</h2>
+        <p className="summary">Total score: {overall.score} of 100; average adjusted response: {overall.average.toFixed(2)} of 5. This is a continuous research score without diagnostic cutoffs.</p>
+      </ResultCard>
+    );
+  }
   return null;
 }
 
