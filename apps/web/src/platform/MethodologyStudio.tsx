@@ -527,16 +527,16 @@ export function MethodologyStudio() {
     const max = usableOptions.length ? Math.max(...usableOptions) : state.scoring.max;
     const steps = [
       `Ответы кодируются целыми значениями от ${min} до ${max}.`,
-      `Для обратно кодируемых пунктов используется преобразование ${min} + ${max} − ответ.`,
+      `Для обратно кодируемых вопросов используется преобразование ${min} + ${max} − ответ.`,
       ...scales.map(
         (scale) =>
-          `Шкала «${scale.label}»: ${scale.aggregation === "sum" ? "сумма" : "среднее"} баллов по пунктам ${scale.items.join(", ") || "не выбраны"}.`,
+          `Шкала «${scale.label}»: ${scale.aggregation === "sum" ? "сумма" : "среднее"} баллов по вопросам ${scale.items.join(", ") || "не выбраны"}.`,
       ),
-      "Расчёт отображается только при наличии ответов на все пункты, включённые в шкалы.",
+      "Расчёт отображается только при наличии ответов на все вопросы, включённые в шкалы.",
     ];
     const keys = scales.map((scale) => ({
       label: scale.label,
-      value: `Пункты: ${scale.items.join(", ") || "не выбраны"}. Обратные: ${scale.reverseItems.join(", ") || "нет"}. Подсчёт: ${scale.aggregation === "sum" ? "сумма" : "среднее"}.`,
+      value: `Вопросы: ${scale.items.join(", ") || "не выбраны"}. Обратно кодируемые: ${scale.reverseItems.join(", ") || "нет"}. Подсчёт: ${scale.aggregation === "sum" ? "сумма" : "среднее"}.`,
     }));
     return {
       methodology: { ...state.methodology, steps, keys },
@@ -785,7 +785,7 @@ export function MethodologyStudio() {
               {locked ? "Опубликованная методика" : "Конструктор методики"}
             </h2>
             <p className="intro">
-              Заполняйте по источнику. Автоподсчёт ограничен числовыми пунктами,
+              Заполняйте по источнику. Автоподсчёт ограничен числовыми ответами,
               обратным кодированием и суммой или средним по шкалам.
             </p>
           </div>
@@ -942,17 +942,16 @@ export function MethodologyStudio() {
             <div>
               <h2>2. Вопросы и варианты ответа</h2>
               <p>
-                Одинаковая числовая шкала применяется к каждому пункту; текст
-                пункта можно менять отдельно.
+                Одинаковая числовая шкала применяется к каждому вопросу; формулировку можно менять отдельно.
               </p>
             </div>
-            <span className="pill">{state.questions.length} пунктов</span>
+            <span className="pill">{state.questions.length} вопросов</span>
           </div>
           <p className="muted">
             Числовой диапазон автоматически определяется по вариантам ниже.
             Значения должны быть целыми и непрерывными. В конструкторе
-            поддерживаются один ответ на пункт, одинаковый числовой диапазон,
-            равный вес пунктов, обратное кодирование и шкалы «сумма» или
+            поддерживаются один ответ на вопрос, одинаковый числовой диапазон,
+            равный вес вопросов, обратное кодирование и шкалы «сумма» или
             «среднее».
           </p>
           <div className="rows">
@@ -1035,7 +1034,7 @@ export function MethodologyStudio() {
                       ),
                     }))
                   }
-                  placeholder={`Текст пункта ${index + 1}`}
+                  placeholder={`Текст вопроса ${index + 1}`}
                 />
                 <button
                   className="icon-button"
@@ -1064,7 +1063,7 @@ export function MethodologyStudio() {
                       },
                     }))
                   }
-                  aria-label="Удалить пункт"
+                  aria-label="Удалить вопрос"
                 >
                   <Trash2 size={15} />
                 </button>
@@ -1081,7 +1080,7 @@ export function MethodologyStudio() {
               }))
             }
           >
-            <Plus size={15} /> Добавить пункт методики
+            <Plus size={15} /> Добавить вопрос
           </button>
         </section>
         <section className="section">
@@ -1089,7 +1088,7 @@ export function MethodologyStudio() {
             <div>
               <h2>3. Настройка автоподсчёта</h2>
               <p>
-                Для каждой шкалы выберите пункты, обратное кодирование и способ
+                Для каждой шкалы выберите вопросы, обратное кодирование и способ
                 агрегирования.
               </p>
             </div>
@@ -1137,7 +1136,7 @@ export function MethodologyStudio() {
                 </button>
               </div>
               <div>
-                <p className="muted">Пункты, входящие в шкалу</p>
+                <p className="muted">Вопросы, входящие в шкалу</p>
                 <div className="chips">
                   {state.questions.map((_, itemIndex) => (
                     <label className="chip" key={itemIndex}>
@@ -1169,7 +1168,7 @@ export function MethodologyStudio() {
               </div>
               <div>
                 <p className="muted">
-                  Обратно кодируемые пункты (после выбора шкалы)
+                  Обратно кодируемые вопросы (после выбора шкалы)
                 </p>
                 <div className="chips">
                   {scale.items.map((item) => (
@@ -1234,11 +1233,11 @@ export function MethodologyStudio() {
                 disabled={locked}
                 value={testCase.title}
                 onChange={(e) => setCase(index, { title: e.target.value })}
-                placeholder="Например: проверка обратного пункта"
+                placeholder="Например: проверка обратно кодируемого вопроса"
               />
               <div className="grid">
                 <label className="field">
-                  Ответы по номерам пунктов
+                  Ответы по номерам вопросов
                   <textarea
                     disabled={locked}
                     value={testCase.answersText}
@@ -1282,7 +1281,7 @@ export function MethodologyStudio() {
             <Plus size={15} /> Добавить контрольный пример
           </button>
           <p className="muted">
-            Формат: в ответах ключ — номер пункта, значение — выбранный числовой
+            Формат: в ответах ключ — номер вопроса, значение — выбранный числовой
             балл; в ожидаемом результате ключ — код шкалы, значение — сумма или
             среднее после обратного кодирования.
           </p>
@@ -1320,7 +1319,7 @@ export function MethodologyStudio() {
                     </div>
                     {!!result.missingItems?.length && (
                       <small className="bad">
-                        Не заданы ответы на пункты:{" "}
+                        Не заданы ответы на вопросы:{" "}
                         {result.missingItems.join(", ")}
                       </small>
                     )}
