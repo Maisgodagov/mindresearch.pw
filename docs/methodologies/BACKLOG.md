@@ -42,7 +42,7 @@
 
 ## Самооценка, Я-концепция и идентичность
 
-- [ ] 31. Rosenberg Self-Esteem Scale, RSES
+- [x] 31. Rosenberg Self-Esteem Scale, RSES — `implemented` as `test_17`
 - [x] 32. Self-Concept Clarity Scale, SCCS
 - [x] 33. Negative Self-Portrayal Scale, NSPS
 - [ ] 34. Методика Дембо—Рубинштейн

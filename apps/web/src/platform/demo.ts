@@ -17,5 +17,6 @@ export const demoInstruments=[
   {id:'test-14',code:'test_14',title:'Краткий пятифакторный опросник личности, TIPI-RU',description:'Пять областей личности по двум пунктам.',questionCount:10,isVerified:true,scoringCode:'test_14',author:'Samuel D. Gosling, Peter J. Rentfrow, William B. Swann Jr.; А. С. Сергеева и соавторы'},
   {id:'test-15',code:'test_15',title:'IPIP-NEO-120 — public-domain five-factor inventory',description:'Original English 120-item public-domain Big Five domains and 30 facets.',questionCount:120,isVerified:true,scoringCode:'test_15',author:'John A. Johnson; Lewis R. Goldberg and IPIP collaborators'},
   {id:'test-16',code:'test_16',title:'Mini-IPIP — 20-item public-domain Big Five inventory',description:'Original English 20-item public-domain Big Five short form.',questionCount:20,isVerified:true,scoringCode:'test_16',author:'M. Brent Donnellan, Frederick L. Oswald, Brendan M. Baird, Richard E. Lucas'},
+  {id:'test-17',code:'test_17',title:'Шкала самооценки Розенберга, RSES',description:'10-пунктовая шкала глобальной самооценки; сумма 0–30.',questionCount:10,isVerified:true,scoringCode:'test_17',author:'Morris Rosenberg; русская версия: А. А. Золотарёва'},
 ];
 export {methodologies as demoMethodologies} from '../../../api/src/scoring/methodologies';

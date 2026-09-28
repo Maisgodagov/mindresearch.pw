@@ -474,6 +474,14 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_17") {
+    return (
+      <ResultCard>
+        <h2>Самооценка по шкале Розенберга</h2>
+        <p className="summary">Итоговый балл: {v.score} из {v.max}. {v.levelLabel}. Это исследовательский показатель глобальной самооценки, а не медицинский диагноз.</p>
+      </ResultCard>
+    );
+  }
   return null;
 }
 
