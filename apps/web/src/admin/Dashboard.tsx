@@ -34,6 +34,7 @@ import { Button, Card, Page, SkeletonScreen } from "../ui";
 import { exportRespondents } from "./exportResults";
 import { demoSurveys } from "../platform/demo";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
+import { ConfiguredMethodologyResult } from "../platform/ConfiguredMethodologyResult";
 
 type SurveyRow = {
   id: string;
@@ -757,6 +758,7 @@ const shortNames: Record<string, string> = {
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
+  if(group?.code.startsWith("custom_method_")&&group.result)return <ConfiguredMethodologyResult title={group.title} values={group.result.values} compact/>;
   if (!group?.result)
     return <span className="pending">Расчёт не настроен</span>;
   if (group.code === "test_1") {
@@ -892,6 +894,7 @@ function IpipNeo120Summary({ group }: { group: AnswerGroup }) {
 }
 
 function DetailedResult({ group }: { group: AnswerGroup }) {
+  if(group.code.startsWith("custom_method_")&&group.result)return <ConfiguredMethodologyResult title={group.title} values={group.result.values}/>;
   if (!group.result) return <>Формула и интерпретация будут добавлены позже</>;
   if (group.code === "test_1") {
     const result = group.result.values as unknown as MspssValues;

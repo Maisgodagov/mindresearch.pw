@@ -4,6 +4,7 @@ import { CheckCircle2, ExternalLink, Leaf, ShieldCheck } from "lucide-react";
 import { api } from "../api";
 import { debqDescriptions, shoppDescriptions } from "../shoppDescriptions";
 import { Card, Page, Shell, SkeletonScreen } from "../ui";
+import { ConfiguredMethodologyResult } from "../platform/ConfiguredMethodologyResult";
 
 type Scale = {
   label: string;
@@ -490,6 +491,14 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (v?.scales && typeof v.scales === "object")
+    return (
+      <ResultCard>
+        <h2>{result.title}</h2>
+        <p className="summary">Показаны рассчитанные значения шкал. Числа отображаются в диапазоне, заданном автором методики.</p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
   return null;
 }
 
@@ -572,7 +581,9 @@ export function ResultsPage({ token }: { token: string }) {
         ) : results.length ? (
           <Grid>
             {results.map((result) => (
-              <ResultContent result={result} key={result.code} />
+              result.code.startsWith("custom_method_")
+                ? <ConfiguredMethodologyResult title={result.title} values={result.values} key={result.code}/>
+                : <ResultContent result={result} key={result.code} />
             ))}
           </Grid>
         ) : presentation.showResults === false ||

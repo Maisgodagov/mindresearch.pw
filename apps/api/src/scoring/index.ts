@@ -17,6 +17,7 @@ import{scoreIpipNeo120}from'./ipipNeo120.js';
 import{scoreMiniIpip}from'./miniIpip.js';
 import{scoreRses}from'./rses.js';
 import{scoreCses}from'./cses.js';
+import{calculateConfigurableScores}from'./configurable.js';
 
 function parseValue(value:unknown):unknown{if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}}
 
@@ -208,4 +209,19 @@ export async function calculateCsesForSession(sessionId:string){
   return result;
 }
 
-export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId)])}
+async function calculateConfiguredMethodologiesForSession(sessionId:string){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,s.code sectionCode,q.code questionCode,a.value,i.title,i.formula_version formulaVersion,i.scoring_config scoringConfig FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.source_instrument_id IS NOT NULL JOIN instruments i ON i.id=s.source_instrument_id AND i.is_verified=TRUE AND i.scoring_config IS NOT NULL JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY s.position,q.position`,[sessionId]);
+  const groups=new Map<string,any[]>();for(const row of rows){const group=groups.get(row.sectionId)??[];group.push(row);groups.set(row.sectionId,group)}
+  return Promise.all([...groups.values()].map(async group=>{
+    const first=group[0],scoring=parseValue(first.scoringConfig) as {min:number;max:number;scales:{key:string;label:string;items:number[];reverseItems:number[];aggregation:'sum'|'mean'}[]};
+    const answers:Record<string,unknown>={};
+    for(const row of group){const number=Number(String(row.questionCode).match(/(\d+)$/)?.[1]);const value=parseValue(row.value);if(Number.isInteger(number)&&value!==null&&value!==undefined&&Number.isFinite(Number(value)))answers[String(number)]=Number(value)}
+    const values=calculateConfigurableScores(scoring,answers);
+    if(!values){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,first.sectionId]);return null}
+    const scales=Object.fromEntries(scoring.scales.map(scale=>{const score=values[scale.key],items=scale.items.map(item=>answers[String(item)] as number),minimum=scale.aggregation==='sum'?scoring.min*items.length:scoring.min,maximum=scale.aggregation==='sum'?scoring.max*items.length:scoring.max;return[scale.key,{label:scale.label,score,average:scale.aggregation==='mean'?score:score/items.length,min:minimum,max:maximum,minScore:minimum,maxScore:maximum,aggregation:scale.aggregation,itemCount:items.length}]}));
+    const result={instrument:first.title,complete:true,answered:Object.keys(answers).length,scales};
+    await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?,?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,first.sectionId,first.formulaVersion,JSON.stringify(result)]);return result;
+  }));
+}
+
+export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId),calculateConfiguredMethodologiesForSession(sessionId)])}

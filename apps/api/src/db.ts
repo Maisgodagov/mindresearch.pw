@@ -41,6 +41,10 @@ export async function migrate() {
   await ensureColumn('sections','section_kind',"ENUM('custom','verified') NOT NULL DEFAULT 'custom'");
   await ensureColumn('instrument_submissions','publication_year','SMALLINT UNSIGNED NULL');
   await ensureColumn('instrument_submissions','has_russian_adaptation','BOOLEAN NULL');
+  await ensureColumn('instruments','methodology','JSON NULL');
+  await ensureColumn('instruments','scoring_config','JSON NULL');
+  await ensureColumn('instruments','validation_cases','JSON NULL');
+  await ensureColumn('instruments','formula_version','VARCHAR(100) NULL');
   await db.query("UPDATE users SET public_slug=CONCAT('user-', LEFT(REPLACE(id, '-', ''), 8)) WHERE public_slug IS NULL");
   const [deletedAtColumns]=await db.query<any[]>(`SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='response_sessions' AND COLUMN_NAME='deleted_at'`);
   if(!deletedAtColumns.length) await db.query(`ALTER TABLE response_sessions ADD COLUMN deleted_at TIMESTAMP NULL, ADD INDEX idx_deleted_at (deleted_at)`);

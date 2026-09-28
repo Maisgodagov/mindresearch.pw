@@ -5,6 +5,7 @@ import {z} from 'zod';
 import {db} from './db.js';
 import {createAuthSession,requireAuth,requireRole,revokeAllUserSessions,type AuthRequest} from './auth.js';
 import {methodologies} from './scoring/methodologies.js';
+import {checkConfigurableCases, validateConfigurableMethodology} from './scoring/configurable.js';
 import {sendPasswordReset} from './mailer.js';
 
 export const platformRouter=Router();
@@ -50,9 +51,9 @@ platformRouter.get('/public/profiles/:slug',async(req,res,next)=>{try{
 }catch(e){next(e)}});
 
 platformRouter.get('/account/instruments',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const[rows]=await db.query<any[]>(`SELECT i.id,i.code,i.title,i.description,i.is_verified isVerified,i.scoring_code scoringCode,COUNT(q.id) questionCount FROM instruments i LEFT JOIN instrument_questions q ON q.instrument_id=i.id WHERE i.status='active' AND (i.is_verified=TRUE OR i.owner_id=?) GROUP BY i.id ORDER BY i.is_verified DESC,i.title`,[req.user!.id]);
+  const[rows]=await db.query<any[]>(`SELECT i.id,i.code,i.title,i.description,i.is_verified isVerified,i.scoring_code scoringCode,i.methodology,COUNT(q.id) questionCount FROM instruments i LEFT JOIN instrument_questions q ON q.instrument_id=i.id WHERE i.status='active' AND (i.is_verified=TRUE OR i.owner_id=?) GROUP BY i.id ORDER BY i.is_verified DESC,i.title`,[req.user!.id]);
   const authors:Record<string,string>={test_1:'Gregory Zimet, Nancy Dahlem, Sara Zimet, Gordon Farley',test_2:'В. И. Моросанова, Н. Г. Кондратюк',test_3:'Jennifer Campbell и соавторы',test_4:'David Moscovitch, Keith Huyder',test_5:'David Garner, Marion Olmsted, Janet Polivy',test_6:'Tatjana van Strien и соавторы',test_7:'Т. О. Гордеева, О. А. Сычев, Е. Н. Осин',test_8:'Robert J. Vallerand, Luc G. Pelletier, Marc R. Blais, Nathalie M. Brière, Caroline B. Senécal, Évelyne F. Vallières',test_9:'Е. Н. Осин',test_10:'Clarry H. Lay',test_11:'Piers Steel',test_12:'Christopher J. Soto, Oliver P. John; русская версия: С. А. Щебетенко и соавторы',test_13:'Christopher J. Soto, Oliver P. John; русская версия: А. М. Мишкевич и соавторы',test_14:'Samuel D. Gosling, Peter J. Rentfrow, William B. Swann Jr.; русская версия: А. С. Сергеева, Б. А. Кириллов, А. Ф. Джумагулова',test_15:'John A. Johnson; IPIP item pool: Lewis R. Goldberg и соавторы',test_16:'M. Brent Donnellan, Frederick L. Oswald, Brendan M. Baird, Richard E. Lucas',test_17:'Morris Rosenberg; русская версия: А. А. Золотарёва',test_18:'Timothy A. Judge, Amir Erez, Joyce E. Bono, Carl J. Thoresen'};
-  res.json(rows.map(row=>({...row,author:authors[row.code]??null,methodology:methodologies[row.code]??null})));
+  res.json(rows.map(row=>{const configured=parseJson(row.methodology);const base=methodologies[row.code];return {...row,author:configured?.author||authors[row.code]||null,methodology:base?{...base,...configured,code:row.code,title:row.title,summary:row.description??configured?.summary??base.summary}:configured?{...configured,code:row.code,title:row.title}:null}}));
 }catch(e){next(e)}});
 platformRouter.get('/account/instruments/:id/questions',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const[instruments]=await db.query<any[]>(`SELECT id,title FROM instruments WHERE id=? AND status='active' AND (is_verified=TRUE OR owner_id=?)`,[req.params.id,req.user!.id]);if(!instruments.length)return res.status(404).json({message:'Методика не найдена'});
@@ -80,6 +81,101 @@ const createSurveySchema=z.object({title:z.string().trim().min(2).max(255),slug:
 const builderStateSchema=z.object({meta:z.object({title:z.string().max(255),description:z.string().max(3000),welcomeTitle:z.string().max(255),welcomeText:z.string().max(5000),status:z.enum(['draft','active','archived']),showAuthor:z.boolean(),collectAlias:z.boolean().default(true),resultPresentation:resultPresentationSchema}),sections:z.array(z.unknown()).max(30),open:z.record(z.string(),z.boolean()).default({})});
 
 const parseJson=(value:unknown)=>typeof value==='string'?JSON.parse(value):value;
+const studioSchema=z.object({
+  methodology:z.object({title:z.string().max(255).default(''),author:z.string().max(500).default(''),version:z.string().max(80).default(''),year:z.union([z.number().int().min(1800).max(new Date().getFullYear()+1),z.null()]).default(null),summary:z.string().max(5000).default(''),adaptation:z.string().max(2000).default(''),rightsNote:z.string().max(3000).default(''),steps:z.array(z.string().max(2000)).max(30).default([]),keys:z.array(z.object({label:z.string().max(255),value:z.string().max(2000)})).max(100).default([]),notes:z.array(z.string().max(2000)).max(30).default([]),sources:z.array(z.object({title:z.string().max(500).default(''),url:z.string().max(2000).default('')})).max(30).default([])}),
+  questions:z.array(z.object({text:z.string().max(5000).default(''),options:z.array(z.object({value:z.string().max(30),label:z.string().max(500)})).max(30).default([])})).max(300).default([]),
+  scoring:z.object({min:z.number().int().min(-1000).max(1000).default(1),max:z.number().int().min(-1000).max(1000).default(5),scales:z.array(z.object({key:z.string().max(100),label:z.string().max(255),items:z.array(z.number().int()).max(300),reverseItems:z.array(z.number().int()).max(300),aggregation:z.enum(['sum','mean'])})).max(100).default([])}),
+  cases:z.array(z.object({title:z.string().max(255),answers:z.record(z.string(),z.number()),expected:z.record(z.string(),z.number())})).max(30).default([]),
+});
+const readStudioInstrument=async(id:string)=>{
+  const[rows]=await db.query<any[]>(`SELECT id,code,title,description,is_verified isVerified,status,methodology,scoring_config scoringConfig,validation_cases validationCases,formula_version formulaVersion FROM instruments WHERE id=?`,[id]);
+  if(!rows.length)return null;
+  const[questions]=await db.query<any[]>(`SELECT text,options FROM instrument_questions WHERE instrument_id=? ORDER BY position`,[id]);
+  const base=methodologies[rows[0].code]??{};
+  const configured=parseJson(rows[0].methodology)??{};
+  const questionOptions=questions.map(question=>parseJson(question.options)??[]);
+  const firstOptions=questionOptions[0]??[];
+  const uniformOptions=firstOptions.every((option:any)=>Number.isFinite(Number(option.value)))&&questionOptions.every(options=>JSON.stringify(options.map((option:any)=>[String(option.value),option.label]))===JSON.stringify(firstOptions.map((option:any)=>[String(option.value),option.label])));
+  return {...rows[0],isVerified:Boolean(rows[0].isVerified),isBuiltin:Boolean(base.code),uniformOptions,methodology:{...base,...configured,code:rows[0].code,title:rows[0].title,summary:rows[0].description??configured.summary??base.summary??''},scoring:parseJson(rows[0].scoringConfig)??{min:1,max:5,scales:[]},cases:parseJson(rows[0].validationCases)??[],questions:questions.map((question,index)=>({text:question.text,options:questionOptions[index]}))};
+};
+platformRouter.get('/admin/methodology-studio',requireRole('owner','admin'),async(_req,res,next)=>{try{
+  const[rows]=await db.query<any[]>(`SELECT id FROM instruments WHERE is_verified=TRUE OR code LIKE 'custom_method_%' ORDER BY is_verified DESC,updated_at DESC`);
+  const instruments=await Promise.all(rows.map(row=>readStudioInstrument(row.id)));
+  res.json(instruments.filter(Boolean));
+}catch(e){next(e)}});
+platformRouter.post('/admin/methodology-studio',requireRole('owner','admin'),async(req,res,next)=>{try{
+  const body=studioSchema.parse(req.body),id=randomUUID(),code=`custom_method_${randomUUID().replaceAll('-','').slice(0,12)}`;
+  await db.execute(`INSERT INTO instruments (id,owner_id,code,title,description,is_verified,scoring_code,status,methodology,scoring_config,validation_cases,formula_version) VALUES (?,NULL,?,?,?,FALSE,?,'archived',?,?,?,?)`,[id,code,body.methodology.title.trim()||'Новая методика',body.methodology.summary||null,code,JSON.stringify(body.methodology),JSON.stringify(body.scoring),JSON.stringify(body.cases),body.methodology.version||'draft']);
+  res.status(201).json(await readStudioInstrument(id));
+}catch(e){next(e)}});
+platformRouter.put('/admin/methodology-studio/:id',requireRole('owner','admin'),async(req,res,next)=>{let connection:any;try{
+  const body=studioSchema.parse(req.body),id=String(req.params.id);connection=await db.getConnection();await connection.beginTransaction();
+  const[rows]=await connection.query(`SELECT id,code,title,description,is_verified isVerified,status,methodology FROM instruments WHERE id=? FOR UPDATE`,[id]);
+  if(!rows.length){await connection.rollback();return res.status(404).json({message:'Методика не найдена'});}
+  if(rows[0].status==='archived'&&rows[0].isVerified){await connection.rollback();return res.status(409).json({message:'Сначала восстановите методику из архива.'});}
+  if(rows[0].isVerified){
+    const existing=parseJson(rows[0].methodology)??{},base=methodologies[rows[0].code]??{};
+    const metadata={...base,...existing,...body.methodology,title:body.methodology.title,steps:existing.steps??base.steps??[],keys:existing.keys??base.keys??[],norms:existing.norms??base.norms??[]};
+    const[questions]=await connection.query(`SELECT id,options FROM instrument_questions WHERE instrument_id=? ORDER BY position FOR UPDATE`,[id]);
+    if(questions.length!==body.questions.length){await connection.rollback();return res.status(409).json({message:'Нельзя менять число или порядок пунктов: от них зависит ключ автоподсчёта.'});}
+    await connection.execute(`UPDATE instruments SET title=?,description=?,methodology=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`,[body.methodology.title.trim()||rows[0].title,body.methodology.summary||null,JSON.stringify(metadata),id]);
+    const firstOptions=parseJson(questions[0]?.options)??[];
+    const canEditOptionLabels=firstOptions.length>0&&firstOptions.every((option:any)=>Number.isFinite(Number(option.value)))&&questions.every((row:any)=>JSON.stringify((parseJson(row.options)??[]).map((option:any)=>[String(option.value),option.label]))===JSON.stringify(firstOptions.map((option:any)=>[String(option.value),option.label])));
+    for(const[index,question]of body.questions.entries()){
+      if(canEditOptionLabels){const requested=question.options??[];if(requested.length!==firstOptions.length||requested.some((option:any,optionIndex:number)=>Number(option.value)!==Number(firstOptions[optionIndex].value))){await connection.rollback();return res.status(409).json({message:'Нельзя менять значения вариантов ответа: они связаны с ключом автоподсчёта.'});}const existingOptions=parseJson(questions[index].options)??[],updatedOptions=existingOptions.map((option:any,optionIndex:number)=>({...option,label:requested[optionIndex].label}));await connection.execute(`UPDATE instrument_questions SET text=?,options=? WHERE id=?`,[question.text,JSON.stringify(updatedOptions),questions[index].id]);}
+      else await connection.execute(`UPDATE instrument_questions SET text=? WHERE id=?`,[question.text,questions[index].id]);
+    }
+  }else{
+    await connection.execute(`UPDATE instruments SET title=?,description=?,methodology=?,scoring_config=?,validation_cases=?,formula_version=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`,[body.methodology.title.trim()||'Новая методика',body.methodology.summary||null,JSON.stringify(body.methodology),JSON.stringify(body.scoring),JSON.stringify(body.cases),body.methodology.version||'draft',id]);
+    await connection.execute('DELETE FROM instrument_questions WHERE instrument_id=?',[id]);
+    for(const[index,question]of body.questions.entries())await connection.execute(`INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options) VALUES (?,?,?,?,'single',TRUE,?,?)`,[randomUUID(),id,`q${index+1}`,question.text||`Пункт ${index+1}`,index,JSON.stringify(question.options)]);
+  }
+  await connection.commit();res.json(await readStudioInstrument(id));
+}catch(e){if(connection)await connection.rollback();next(e)}finally{connection?.release()}});
+platformRouter.put('/admin/methodology-studio/:id',requireRole('owner','admin'),async(req,res,next)=>{let connection:any;try{
+  const body=studioSchema.parse(req.body);connection=await db.getConnection();await connection.beginTransaction();
+  const[rows]=await connection.query(`SELECT id,is_verified isVerified FROM instruments WHERE id=? AND code LIKE 'custom_method_%' FOR UPDATE`,[String(req.params.id)]);
+  if(!rows.length){await connection.rollback();return res.status(404).json({message:'Черновик методики не найден'});}
+  if(rows[0].isVerified){await connection.rollback();return res.status(409).json({message:'Опубликованную версию нельзя редактировать. Создайте отдельную новую версию.'});}
+  await connection.execute(`UPDATE instruments SET title=?,description=?,methodology=?,scoring_config=?,validation_cases=?,formula_version=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`,[body.methodology.title.trim()||'Новая методика',body.methodology.summary||null,JSON.stringify(body.methodology),JSON.stringify(body.scoring),JSON.stringify(body.cases),body.methodology.version||'draft',String(req.params.id)]);
+  await connection.execute('DELETE FROM instrument_questions WHERE instrument_id=?',[String(req.params.id)]);
+  for(const[index,question]of body.questions.entries())await connection.execute(`INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options) VALUES (?,?,?,?,'single',TRUE,?,?)`,[randomUUID(),String(req.params.id),`q${index+1}`,question.text||`Пункт ${index+1}`,index,JSON.stringify(question.options)]);
+  await connection.commit();res.json(await readStudioInstrument(String(req.params.id)));
+}catch(e){if(connection)await connection.rollback();next(e)}finally{connection?.release()}});
+platformRouter.post('/admin/methodology-studio/validate',requireRole('owner','admin'),async(req,res,next)=>{try{
+  const body=studioSchema.parse(req.body),errors=validateConfigurableMethodology(body,false),checks=errors.length?null:checkConfigurableCases({questions:body.questions,scoring:body.scoring,cases:body.cases});
+  res.json({errors,checks});
+}catch(e){next(e)}});
+platformRouter.post('/admin/methodology-studio/:id/publish',requireRole('owner','admin'),async(req,res,next)=>{let connection:any;try{
+  const id=String(req.params.id);connection=await db.getConnection();await connection.beginTransaction();
+  const[rows]=await connection.query(`SELECT id,code,title,methodology,scoring_config scoringConfig,validation_cases validationCases,is_verified isVerified FROM instruments WHERE id=? AND code LIKE 'custom_method_%' FOR UPDATE`,[id]);
+  if(!rows.length){await connection.rollback();return res.status(404).json({message:'Методика не найдена'});}
+  if(rows[0].isVerified){await connection.rollback();return res.status(409).json({message:'Эта версия уже опубликована.'});}
+  const[questions]=await connection.query(`SELECT text,options FROM instrument_questions WHERE instrument_id=? ORDER BY position`,[id]);
+  const draft={methodology:parseJson(rows[0].methodology)??{},scoring:parseJson(rows[0].scoringConfig)??{},cases:parseJson(rows[0].validationCases)??[],questions:questions.map((question:any)=>({text:question.text,options:parseJson(question.options)??[]}))};
+  const errors=validateConfigurableMethodology(draft,true),checks=errors.length?null:checkConfigurableCases(draft);
+  if(errors.length||!checks?.passed){await connection.rollback();return res.status(409).json({message:'Публикация не прошла проверку.',errors,checks});}
+  const[result]=await connection.execute(`UPDATE instruments SET is_verified=TRUE,status='active',scoring_code=code,formula_version=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND is_verified=FALSE`,[draft.methodology.version,id]);
+  if(!result.affectedRows){await connection.rollback();return res.status(409).json({message:'Методика уже была изменена другим администратором. Обновите страницу и проверьте её снова.'});}
+  await connection.commit();res.json({ok:true,instrument:await readStudioInstrument(id)});
+}catch(e){if(connection)await connection.rollback();next(e)}finally{connection?.release()}});
+platformRouter.delete('/admin/methodology-studio/:id',requireRole('owner','admin'),async(req,res,next)=>{try{
+  const id=String(req.params.id),[rows]=await db.query<any[]>(`SELECT id,is_verified isVerified,code,methodology FROM instruments WHERE id=?`,[id]);
+  if(!rows.length)return res.status(404).json({message:'Методика не найдена.'});
+  if(rows[0].isVerified){const metadata=parseJson(rows[0].methodology)??methodologies[rows[0].code]??{};await db.execute(`UPDATE instruments SET status='archived',methodology=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`,[JSON.stringify(metadata),id]);return res.json({ok:true,archived:true});}
+  const[result]=await db.execute<any>(`DELETE FROM instruments WHERE id=? AND code LIKE 'custom_method_%' AND is_verified=FALSE`,[id]);
+  if(!result.affectedRows)return res.status(409).json({message:'Нельзя удалить эту методику.'});res.json({ok:true,archived:false});
+}catch(e){next(e)}});
+platformRouter.post('/admin/methodology-studio/:id/restore',requireRole('owner','admin'),async(req,res,next)=>{try{
+  const[result]=await db.execute<any>(`UPDATE instruments SET status='active',updated_at=CURRENT_TIMESTAMP WHERE id=? AND is_verified=TRUE AND status='archived'`,[String(req.params.id)]);
+  if(!result.affectedRows)return res.status(404).json({message:'Методика не найдена в архиве.'});res.json({ok:true});
+}catch(e){next(e)}});
+platformRouter.delete('/admin/methodology-studio/:id',requireRole('owner','admin'),async(req,res,next)=>{try{
+  const[usage]=await db.query<any[]>(`SELECT COUNT(*) count FROM sections WHERE source_instrument_id=?`,[String(req.params.id)]);
+  if(Number(usage[0]?.count)>0)return res.status(409).json({message:'Методика уже включена в опрос и не может быть удалена.'});
+  const[result]=await db.execute<any>(`DELETE FROM instruments WHERE id=? AND code LIKE 'custom_method_%' AND is_verified=FALSE`,[String(req.params.id)]);
+  if(!result.affectedRows)return res.status(404).json({message:'Черновик не найден или уже опубликован.'});res.json({ok:true});
+}catch(e){next(e)}});
 const insertRespondentSection=async(connection:any,surveyId:string|string[])=>{const sectionId=randomUUID();await connection.execute("INSERT INTO sections (id,survey_id,code,title,description,position,section_kind) VALUES (?,?, 'respondent','О респонденте','',0,'custom')",[sectionId,surveyId]);await connection.execute("INSERT INTO questions (id,section_id,code,text,type,required,position,options,validation) VALUES (?,?,'alias','Представьтесь или укажите псевдоним','text',TRUE,0,NULL,NULL)",[randomUUID(),sectionId])};
 platformRouter.get('/account/surveys/trash',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const[rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.deleted_at deletedAt,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? AND s.deleted_at IS NOT NULL GROUP BY s.id ORDER BY s.deleted_at DESC`,[req.user!.id]);res.json(rows);

@@ -78,11 +78,14 @@ app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
   const parse=(value:unknown)=>typeof value==='string'?JSON.parse(value):value;
   const settings=parse(sessions[0].settings)??{},presentation=settings.resultPresentation??{showResults:true,title:'Спасибо за ваши ответы',text:'',showScores:true};
   const results=presentation.showResults!==false&&presentation.showScores!==false?rows.map(row=>({code:row.code,title:row.title,formulaVersion:row.formulaVersion,values:parse(row.result)})):[];
-  const usedMethodologies=Array.from(new Map(rows.map(row=>[row.code,methodologies[row.code]])).values()).filter(Boolean);
-  const sourceGroups=usedMethodologies.map(methodology=>({
+  const[configuredRows]=await db.query<any[]>(`SELECT DISTINCT s.code,s.title,i.methodology FROM assessment_results ar JOIN sections s ON s.id=ar.section_id JOIN instruments i ON i.id=s.source_instrument_id WHERE ar.session_id=? AND i.methodology IS NOT NULL`,[sessions[0].id]);
+  const configuredMethodologies=configuredRows.map(row=>{const metadata=parse(row.methodology)??{};return {...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title}});
+  const sourceEntries:[string,any][]=[...rows.map((row:any):[string,any]=>[row.code,methodologies[row.code]]),...configuredMethodologies.map((item:any):[string,any]=>[item.code,item])];
+  const usedMethodologies=Array.from(new Map<string,any>(sourceEntries).values()).filter(Boolean);
+  const sourceGroups=usedMethodologies.map((methodology:any)=>({
     code:methodology.code,
     title:methodology.title,
-    sources:Array.from(new Map(methodology.sources.map(source=>[source.url,source])).values())
+    sources:Array.from(new Map(methodology.sources.map((source:any)=>[source.url,source])).values())
   })).filter(group=>group.sources.length>0);
   res.json({results,presentation,sourceGroups});
 }catch(e){next(e)}});
@@ -92,7 +95,7 @@ app.post('/api/auth/refresh',async(req,res,next)=>{try{const token=await rotateA
 app.post('/api/auth/logout',async(req,res,next)=>{try{await revokeAuthSession(req,res);res.status(204).end()}catch(e){next(e)}});
 app.post('/api/auth/logout-all',requireAuth,async(req:AuthRequest,res,next)=>{try{await revokeAllUserSessions(req.user!.id);res.clearCookie('mindresearch_refresh',{path:'/api/auth'});res.status(204).end()}catch(e){next(e)}});
 app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.created_at createdAt,s.updated_at updatedAt,s.builder_state IS NOT NULL hasBuilderState,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? AND s.deleted_at IS NULL GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
-app.get('/api/admin/methodologies',requireAuth,(_req,res)=>res.json(methodologies));
+app.get('/api/admin/methodologies',requireAuth,async(_req,res,next)=>{try{const[rows]=await db.query<any[]>(`SELECT code,title,description,methodology FROM instruments WHERE is_verified=TRUE AND status='active' AND methodology IS NOT NULL`);const configured:Record<string,any>={};for(const row of rows){const metadata=typeof row.methodology==='string'?JSON.parse(row.methodology):row.methodology;configured[row.code]={...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title,summary:row.description??metadata?.summary??methodologies[row.code]?.summary}}res.json({...methodologies,...configured})}catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const [allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);if(!allowed.length)return res.status(404).json({message:'Опрос не найден'});
   const [surveySections]=await db.query<any[]>(`SELECT code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`,[req.params.id]);
