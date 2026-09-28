@@ -10,6 +10,7 @@ type Scale = {
   score?: number;
   average?: number;
   max?: number;
+  min?: number;
   maxScore?: number;
   minScore?: number;
   referenceMean?: number;
@@ -210,7 +211,7 @@ const Sources = styled(Card)`
 const pct = (scale: Scale) => {
   const value = scale.score ?? scale.average ?? 0,
     max = scale.maxScore ?? scale.max ?? 5,
-    min = scale.minScore ?? 0;
+    min = scale.minScore ?? scale.min ?? 0;
   return Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
 };
 const short = (label: string) =>
@@ -441,6 +442,15 @@ function ResultContent({ result }: { result: Result }) {
         <ScaleBars scales={v.domains} />
         <h3>Аспекты личностных черт</h3>
         <ScaleBars scales={v.facets} />
+      </ResultCard>
+    );
+  }
+  if (result.code === "test_14") {
+    return (
+      <ResultCard>
+        <h2>Краткий профиль TIPI-RU</h2>
+        <p className="summary">Показаны непрерывные средние пяти областей от 1 до 7. Каждая оценка основана только на двух пунктах, поэтому её следует использовать как краткий исследовательский показатель, а не как диагноз или детальный личностный профиль.</p>
+        <ScaleBars scales={v.scales} />
       </ResultCard>
     );
   }
