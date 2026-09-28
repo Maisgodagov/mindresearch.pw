@@ -135,6 +135,23 @@ const Panel = styled.div`
     color: #839087;
     margin-top: 4px;
   }
+  .draft .archive-badge {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #f5eee0;
+    color: #806b3f;
+    font-size: 10px;
+    font-weight: 750;
+  }
+  .draft.active .archive-badge {
+    background: #eee4ce;
+    color: #705a2c;
+  }
   .editor {
     display: grid;
     gap: 14px;
@@ -745,9 +762,12 @@ export function MethodologyStudio() {
             >
               <b>{item.title}</b>
               <span>
-                {item.status === "archived"
-                  ? "В архиве · можно восстановить"
-                  : item.isVerified
+                {item.status === "archived" ? (
+                  <>
+                    <span className="archive-badge">В архиве</span>
+                    <span>Можно восстановить</span>
+                  </>
+                ) : item.isVerified
                     ? `${item.isBuiltin ? "Встроенная" : "Опубликована"} · версия ${item.formulaVersion ?? "фиксированная"}`
                     : "Черновик"}
               </span>
