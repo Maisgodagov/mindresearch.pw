@@ -465,6 +465,15 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_16") {
+    return (
+      <ResultCard>
+        <h2>Mini-IPIP profile</h2>
+        <p className="summary">Original English public-domain short Big Five inventory. Scores are continuous means from 1 to 5 and are not diagnostic categories or norms.</p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 

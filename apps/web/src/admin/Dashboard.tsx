@@ -731,6 +731,7 @@ const methodCodes = [
   "test_13",
   "test_14",
   "test_15",
+  "test_16",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -748,6 +749,7 @@ const shortNames: Record<string, string> = {
   test_13: "BFI-2-S",
   test_14: "TIPI-RU",
   test_15: "IPIP-NEO-120",
+  test_16: "Mini-IPIP",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -865,6 +867,10 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
     return <span className="score">5 областей<br /><small>{Object.values(result.scales).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
   }
   if (group.code === "test_15") return <IpipNeo120Summary group={group} />;
+  if (group.code === "test_16") {
+    const result = group.result.values as unknown as {scales:Record<string,{average:number}>};
+    return <span className="score">5 scales<br /><small>{Object.values(result.scales).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
+  }
   return <span className="pending">Результат рассчитан</span>;
 }
 
@@ -1111,6 +1117,10 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
     const result = group.result.values as unknown as {domains:Record<string,{label:string;average:number}>;facets:Record<string,{label:string;average:number}>};
     const scales=(values:Record<string,{label:string;average:number}>)=><SupportProfile>{Object.values(values).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${((scale.average-1)/4)*100}%`}} /></div><span className="value">{scale.average.toFixed(2)}</span><div className="caption">range 1–5 · continuous score</div></div>)}</SupportProfile>;
     return <><b>IPIP-NEO-120 domains</b>{scales(result.domains)}<b>30 facets</b>{scales(result.facets)}</>;
+  }
+  if (group.code === "test_16") {
+    const result = group.result.values as unknown as {scales:Record<string,{label:string;average:number}>};
+    return <><b>Mini-IPIP profile</b><SupportProfile>{Object.values(result.scales).map(scale=><div className="scale" key={scale.label}><span className="name">{scale.label}</span><div className="track"><div className="fill" style={{width:`${((scale.average-1)/4)*100}%`}} /></div><span className="value">{scale.average.toFixed(2)}</span><div className="caption">range 1–5 · continuous score</div></div>)}</SupportProfile></>;
   }
   return <>Результат рассчитан</>;
 }
