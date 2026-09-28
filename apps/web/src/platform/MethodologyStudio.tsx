@@ -429,7 +429,7 @@ export function MethodologyStudio() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const current = drafts.find((item) => item.id === selected);
   const locked = Boolean(current?.isVerified);
-  const archived = current?.status === "archived";
+  const archived = Boolean(current?.isVerified && current.status === "archived");
   const usableOptions = useMemo(
     () =>
       state.options
@@ -762,7 +762,7 @@ export function MethodologyStudio() {
             >
               <b>{item.title}</b>
               <span>
-                {item.status === "archived" ? (
+                {item.isVerified && item.status === "archived" ? (
                   <>
                     <span className="archive-badge">В архиве</span>
                     <span>Можно восстановить</span>
