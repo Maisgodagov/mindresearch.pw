@@ -454,6 +454,17 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_15") {
+    return (
+      <ResultCard>
+        <h2>IPIP-NEO-120 profile</h2>
+        <p className="summary">Original English public-domain inventory. Scores are continuous means from 1 to 5 for the five domains and 30 facets; they are not diagnostic categories or norms.</p>
+        <ScaleBars scales={v.domains} />
+        <h3>30 facets</h3>
+        <ScaleBars scales={v.facets} />
+      </ResultCard>
+    );
+  }
   return null;
 }
 

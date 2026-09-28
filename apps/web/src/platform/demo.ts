@@ -15,5 +15,6 @@ export const demoInstruments=[
   {id:'test-12',code:'test_12',title:'Big Five Inventory–2, BFI-2 — русская версия',description:'Пять личностных областей и 15 аспектов.',questionCount:60,isVerified:true,scoringCode:'test_12',author:'Christopher J. Soto, Oliver P. John; С. А. Щебетенко и соавторы'},
   {id:'test-13',code:'test_13',title:'Краткая версия Big Five Inventory–2, BFI-2-S — русская версия',description:'Пять личностных областей и 15 аспектов в 30 пунктах.',questionCount:30,isVerified:true,scoringCode:'test_13',author:'Christopher J. Soto, Oliver P. John; А. М. Мишкевич и соавторы'},
   {id:'test-14',code:'test_14',title:'Краткий пятифакторный опросник личности, TIPI-RU',description:'Пять областей личности по двум пунктам.',questionCount:10,isVerified:true,scoringCode:'test_14',author:'Samuel D. Gosling, Peter J. Rentfrow, William B. Swann Jr.; А. С. Сергеева и соавторы'},
+  {id:'test-15',code:'test_15',title:'IPIP-NEO-120 — public-domain five-factor inventory',description:'Original English 120-item public-domain Big Five domains and 30 facets.',questionCount:120,isVerified:true,scoringCode:'test_15',author:'John A. Johnson; Lewis R. Goldberg and IPIP collaborators'},
 ];
 export {methodologies as demoMethodologies} from '../../../api/src/scoring/methodologies';
