@@ -733,6 +733,7 @@ const methodCodes = [
   "test_15",
   "test_16",
   "test_17",
+  "test_18",
 ];
 const shortNames: Record<string, string> = {
   test_1: "MSPSS",
@@ -752,6 +753,7 @@ const shortNames: Record<string, string> = {
   test_15: "IPIP-NEO-120",
   test_16: "Mini-IPIP",
   test_17: "RSES",
+  test_18: "CSES",
 };
 
 function MethodResult({ group }: { group?: AnswerGroup }) {
@@ -876,6 +878,10 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
   if (group.code === "test_17") {
     const result = group.result.values as unknown as {score:number;max:number;levelLabel:string};
     return <span className="score">{result.score} / {result.max}<br /><small>{result.levelLabel}</small></span>;
+  }
+  if (group.code === "test_18") {
+    const result = group.result.values as unknown as {score:number;average:number};
+    return <span className="score">{result.average.toFixed(2)} / 5<br /><small>sum {result.score} / 60</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
@@ -1131,6 +1137,10 @@ function DetailedResult({ group }: { group: AnswerGroup }) {
   if (group.code === "test_17") {
     const result = group.result.values as unknown as {score:number;max:number;levelLabel:string};
     return <><b>RSES</b><p>{result.score} из {result.max} — {result.levelLabel}. Показатель глобальной самооценки, не диагноз.</p></>;
+  }
+  if (group.code === "test_18") {
+    const result = group.result.values as unknown as {score:number;average:number};
+    return <><b>Core Self-Evaluations Scale</b><p>Mean {result.average.toFixed(2)} / 5; total {result.score} / 60. Continuous research score; no diagnostic cutoffs.</p></>;
   }
   return <>Результат рассчитан</>;
 }

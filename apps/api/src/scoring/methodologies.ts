@@ -131,5 +131,13 @@ export const methodologies:Record<string,Methodology>={
     keys:[{label:'Прямые пункты',value:'1, 3, 4, 7, 10.'},{label:'Обратные пункты',value:'2, 5, 6, 8, 9.'},{label:'Диапазон',value:'0–30 баллов.'}],
     notes:['RSES находится в public domain по странице University of Maryland.','Ориентир ниже 15 часто трактуется как возможная проблемно низкая самооценка, но платформа не выдаёт медицинский диагноз.','Для русской версии использован опубликованный ключ Золотарёвой: прямое и обратное кодирование 0–3.'],
     sources:[{title:'University of Maryland — public-domain permission and scoring',url:'https://socy.umd.edu/about-us/using-rosenberg-self-esteem-scale'},{title:'APA Measures Package — RSES scoring summary',url:'https://www.apa.org/obesity-guideline/rosenberg-self-esteem.pdf'},{title:'Золотарёва — валидность и надежность русскоязычной версии RSES',url:'https://publications.hse.ru/pubs/share/direct/383400468.pdf'}]
+  },
+  test_18:{
+    code:'test_18',title:'Core Self-Evaluations Scale, CSES',version:'cses-judge-2003-v1',
+    summary:'CSES is an original English 12-item non-proprietary scale for measuring core self-evaluations: a broad positive self-regard construct related to self-esteem, generalized self-efficacy, emotional stability, and locus of control.',
+    steps:['Responses use the original 1–5 agreement scale: Strongly disagree, Disagree, Neutral, Agree, Strongly agree.','Items 2, 4, 6, 8, 10, and 12 are reverse-scored as 6 − response.','The total score is the sum of all 12 adjusted items, range 12–60.','The platform also reports the mean adjusted response, range 1–5.'],
+    keys:[{label:'Direct items',value:'1, 3, 5, 7, 9, 11.'},{label:'Reverse-scored items',value:'2, 4, 6, 8, 10, 12.'},{label:'Range',value:'Total 12–60; mean 1–5.'}],
+    notes:['The originating article states that the measure is non-proprietary, free, and may be used without permission.','The platform uses the original English item text from Table 1 and does not substitute an unofficial Russian translation.','No universal diagnostic categories, norms, or cutoffs are added. Results are continuous research scores.'],
+    sources:[{title:'Judge, Erez, Bono & Thoresen — original CSES article and Table 1',url:'https://www.ionilies.com/SIOP03/Files/CSES.pdf'},{title:'Personnel Psychology DOI',url:'https://doi.org/10.1111/j.1744-6570.2003.tb00152.x'},{title:'Decision Making Individual Differences Inventory — CSES permission summary',url:'https://sjdm.org/dmidi/Core_Self-Evaluations_Scale.html'}]
   }
 };

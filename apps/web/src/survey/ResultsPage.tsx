@@ -482,6 +482,14 @@ function ResultContent({ result }: { result: Result }) {
       </ResultCard>
     );
   }
+  if (result.code === "test_18") {
+    return (
+      <ResultCard>
+        <h2>Core Self-Evaluations</h2>
+        <p className="summary">Mean score: {v.average.toFixed(2)} of 5; total score: {v.score} of 60. This is a continuous research score without diagnostic cutoffs.</p>
+      </ResultCard>
+    );
+  }
   return null;
 }
 

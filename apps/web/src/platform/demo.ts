@@ -18,5 +18,6 @@ export const demoInstruments=[
   {id:'test-15',code:'test_15',title:'IPIP-NEO-120 — public-domain five-factor inventory',description:'Original English 120-item public-domain Big Five domains and 30 facets.',questionCount:120,isVerified:true,scoringCode:'test_15',author:'John A. Johnson; Lewis R. Goldberg and IPIP collaborators'},
   {id:'test-16',code:'test_16',title:'Mini-IPIP — 20-item public-domain Big Five inventory',description:'Original English 20-item public-domain Big Five short form.',questionCount:20,isVerified:true,scoringCode:'test_16',author:'M. Brent Donnellan, Frederick L. Oswald, Brendan M. Baird, Richard E. Lucas'},
   {id:'test-17',code:'test_17',title:'Шкала самооценки Розенберга, RSES',description:'10-пунктовая шкала глобальной самооценки; сумма 0–30.',questionCount:10,isVerified:true,scoringCode:'test_17',author:'Morris Rosenberg; русская версия: А. А. Золотарёва'},
+  {id:'test-18',code:'test_18',title:'Core Self-Evaluations Scale, CSES',description:'Original English 12-item non-proprietary measure of core self-evaluations.',questionCount:12,isVerified:true,scoringCode:'test_18',author:'Timothy A. Judge, Amir Erez, Joyce E. Bono, Carl J. Thoresen'},
 ];
 export {methodologies as demoMethodologies} from '../../../api/src/scoring/methodologies';

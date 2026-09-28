@@ -46,7 +46,7 @@
 - [x] 32. Self-Concept Clarity Scale, SCCS
 - [x] 33. Negative Self-Portrayal Scale, NSPS
 - [ ] 34. Методика Дембо—Рубинштейн — `blocked`: графическая методика с разными модификациями; нет точной версии/прав на бланк и нужен отдельный UI для шкал 0–100 с двумя отметками
-- [ ] 35. Core Self-Evaluations Scale, CSES
+- [x] 35. Core Self-Evaluations Scale, CSES — `implemented` as `test_18`
 - [ ] 36. General Self-Efficacy Scale, GSES
 - [ ] 37. Self-Compassion Scale, SCS
 - [ ] 38. Forms of Self-Criticising/Attacking & Self-Reassuring Scale, FSCRS
