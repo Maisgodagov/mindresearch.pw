@@ -3,6 +3,8 @@ export type ConfigurableScale = {
   label: string;
   items: number[];
   reverseItems: number[];
+  /** Optional coefficient per item for published weighted sums. */
+  weights?: Record<number, number>;
   aggregation: 'sum' | 'mean';
 };
 
@@ -85,6 +87,7 @@ export function validateConfigurableMethodology(input: {
     if (new Set(scale.items).size !== scale.items.length) errors.push(`Шкала «${scale.label}»: пункт выбран несколько раз.`);
     if (scale.items.some(item => !Number.isInteger(item) || item < 1 || item > questions.length)) errors.push(`Шкала «${scale.label}»: выбран несуществующий пункт.`);
     if (scale.reverseItems.some(item => !scale.items.includes(item))) errors.push(`Шкала «${scale.label}»: обратный пункт должен входить в эту шкалу.`);
+    if (scale.weights && Object.entries(scale.weights).some(([item, weight]) => !scale.items.includes(Number(item)) || !Number.isFinite(weight))) errors.push(`Шкала «${scale.label}»: коэффициенты должны быть заданы только для включённых пунктов и быть конечными числами.`);
   });
   if (requireCases && cases.length < 2) errors.push('Добавьте не менее двух контрольных примеров с ожидаемыми результатами.');
   return errors;
@@ -99,7 +102,7 @@ export function calculateConfigurableScores(scoring: ConfigurableScoring, answer
       return scale.reverseItems.includes(item) ? scoring.min + scoring.max - raw : raw;
     });
     if (values.some(value => value === null)) return null;
-    const total = (values as number[]).reduce((sum, value) => sum + value, 0);
+    const total = (values as number[]).reduce((sum, value, index) => sum + value * (scale.weights?.[scale.items[index]] ?? 1), 0);
     scores[scale.key] = scale.aggregation === 'mean' ? total / values.length : total;
   }
   return scores;
@@ -128,7 +131,7 @@ export function checkConfigurableCases(input: {
     const actual = calculateConfigurableScores(input.scoring, answers);
     const expected = Object.fromEntries(input.scoring.scales.map(scale => {
       const transformed = scale.items.map(item => scale.reverseItems.includes(item) ? input.scoring.min + input.scoring.max - value : value);
-      const total = transformed.reduce((sum, item) => sum + item, 0);
+      const total = transformed.reduce((sum, item, index) => sum + item * (scale.weights?.[scale.items[index]] ?? 1), 0);
       return [scale.key, scale.aggregation === 'mean' ? total / transformed.length : total];
     }));
     return { value, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
