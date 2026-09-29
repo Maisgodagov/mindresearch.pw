@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 export const Page=styled.main`display:flow-root;min-height:100dvh;background:radial-gradient(circle at 90% 0,#e1eadc 0,transparent 34%),#f3f6f0;`;
-export const Shell=styled.div`width:min(100% - 32px,720px);margin:auto;`;
+export const Shell=styled.div`width:min(100% - 32px,720px);margin:auto;min-width:0;@media(max-width:480px){width:calc(100% - 24px)}`;
 export const Card=styled.section`background:rgba(255,255,255,.82);border:1px solid rgba(87,116,94,.14);border-radius:28px;box-shadow:0 20px 60px rgba(48,70,54,.08);`;
-export const Button=styled.button`border:0;border-radius:16px;padding:15px 22px;background:#526f5b;color:white;font-weight:650;transition:.18s;min-height:52px;&:hover{background:#425d4b;transform:translateY(-1px)}&:disabled{opacity:.45;cursor:not-allowed;transform:none}`;
-export const GhostButton=styled(Button)`background:transparent;color:#526f5b;border:1px solid #ccd8cd;&:hover{background:#edf2ec}`;
+export const Button=styled.button`border:0;border-radius:11px;padding:15px 20px;background:#526f5b;color:white;font-weight:700;transition:background .18s,box-shadow .18s;min-height:54px;&:hover{background:#425d4b;box-shadow:0 6px 16px rgba(48,70,54,.12)}&:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}`;
+export const GhostButton=styled(Button)`background:transparent;color:#526f5b;border:1px solid #ccd8cd;box-shadow:none;&:hover{background:#edf2ec;box-shadow:none}`;
 export const Skeleton=styled.div<{$width?:string;$height?:string;$radius?:string}>`
   width:${p=>p.$width??'100%'};height:${p=>p.$height??'16px'};border-radius:${p=>p.$radius??'9px'};
   background:linear-gradient(100deg,#e7ede5 20%,#f5f8f3 38%,#e7ede5 56%);background-size:220% 100%;

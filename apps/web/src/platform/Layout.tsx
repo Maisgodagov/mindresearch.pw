@@ -32,9 +32,10 @@ const Frame = styled.div<{ $collapsed: boolean }>`
   }
 `;
 const Side = styled.aside<{ $collapsed: boolean }>`
-  padding: 24px ${(p) => (p.$collapsed ? "10px" : "18px")};
-  border-right: 1px solid #dfe7dc;
-  background: rgba(250, 252, 248, 0.94);
+  padding: 22px ${(p) => (p.$collapsed ? "10px" : "16px")};
+  border-right: 1px solid #dce5d9;
+  background: linear-gradient(180deg, rgba(251, 252, 248, .98), rgba(246, 248, 242, .97));
+  box-shadow: 5px 0 24px rgba(43, 63, 47, .025);
   position: sticky;
   top: 0;
   height: 100dvh;
@@ -45,7 +46,7 @@ const Side = styled.aside<{ $collapsed: boolean }>`
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 24px;
+    margin-bottom: 31px;
     min-height: ${(p) => (p.$collapsed ? "72px" : "36px")};
   }
   .brand {
@@ -53,8 +54,9 @@ const Side = styled.aside<{ $collapsed: boolean }>`
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
     gap: 9px;
-    color: #3e5e48;
+    color: #385942;
     font-weight: 800;
+    letter-spacing: -.035em;
     min-width: 0;
     padding: ${(p) => (p.$collapsed ? "0" : "0 8px")};
   }
@@ -67,21 +69,26 @@ const Side = styled.aside<{ $collapsed: boolean }>`
     overflow: hidden;
   }
   .toggle {
-    border: 0;
-    background: #e8efe5;
-    color: #55705d;
+    border: 1px solid #e0e8dc;
+    background: #f2f6ef;
+    color: #56745f;
     width: 30px;
     height: 30px;
     display: grid;
     place-items: center;
-    border-radius: 9px;
+    border-radius: 8px;
     cursor: pointer;
     flex: none;
     padding: 0;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+  }
+  .toggle:hover {
+    background: #e8f0e5;
+    border-color: #d3dfd1;
   }
   .nav {
     display: grid;
-    gap: 5px;
+    gap: 4px;
   }
   a,
   .logout,
@@ -89,17 +96,19 @@ const Side = styled.aside<{ $collapsed: boolean }>`
     border: 0;
     text-decoration: none;
     background: transparent;
-    color: #68766c;
+    color: #65746a;
     display: flex;
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
     gap: 10px;
-    padding: 12px;
-    border-radius: 12px;
+    padding: 11px 12px;
+    border-radius: 9px;
     font-weight: 650;
-    font-size: 14px;
+    font-size: 13px;
     white-space: nowrap;
     cursor: pointer;
+    transition: background .16s ease, color .16s ease;
+    position: relative;
   }
   a svg,
   .logout svg,
@@ -115,12 +124,17 @@ const Side = styled.aside<{ $collapsed: boolean }>`
   a:hover,
   .logout:hover,
   .report:hover {
-    background: #e6eee3;
-    color: #3d5c46;
+    background: #edf3e9;
+    color: #365642;
+  }
+  a.active {
+    background: #e7efe3;
+    color: #304d39;
   }
   .report {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 16px;
+    color: #69786d;
   }
   .logout {
     position: absolute;
@@ -128,6 +142,9 @@ const Side = styled.aside<{ $collapsed: boolean }>`
     left: ${(p) => (p.$collapsed ? "10px" : "18px")};
     right: ${(p) => (p.$collapsed ? "10px" : "18px")};
     width: auto;
+    border-top: 1px solid #e4eae1;
+    border-radius: 0;
+    padding-top: 15px;
   }
   @media (max-width: 760px) {
     position: fixed;
@@ -137,28 +154,48 @@ const Side = styled.aside<{ $collapsed: boolean }>`
     width: 100%;
     height: 68px;
     border-right: 0;
-    border-top: 1px solid #dfe7dc;
+    border-top: 1px solid #dce5d9;
     padding: 8px;
+    background: rgba(250, 252, 248, .97);
+    box-shadow: 0 -8px 24px rgba(43, 63, 47, .055);
     .top,
     .logout {
       display: none;
     }
     .nav {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+      display: flex;
+      align-items: stretch;
+      gap: 4px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nav::-webkit-scrollbar {
+      display: none;
     }
     a,
     .report {
+      flex: 0 0 clamp(58px, 15vw, 72px);
+      min-width: 58px;
       justify-content: center;
       flex-direction: column;
       gap: 2px;
       padding: 5px;
       font-size: 10px;
       margin: 0;
+      border-radius: 9px;
+      white-space: normal;
     }
     a span,
     .report span {
-      display: inline;
+      display: block;
+      width: 100%;
+      text-align: center;
+      line-height: 1.05;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
   }
 `;
@@ -166,6 +203,15 @@ const Main = styled.main`
   width: min(100% - 36px, 1180px);
   margin: 0 auto;
   padding: 34px 0 70px;
+  min-width: 0;
+  @media (max-width: 760px) {
+    width: min(100% - 28px, 1180px);
+    padding-top: 24px;
+    padding-bottom: 32px;
+  }
+  @media (max-width: 420px) {
+    width: min(100% - 22px, 1180px);
+  }
 `;
 const ReportOverlay = styled.div`
   position: fixed;

@@ -21,6 +21,13 @@ import { caasRuInstrument, caasRuScoring, caasRuValidationCases } from './data/c
 import { iafRuInstrument } from './data/iafRu.js';
 import { bsmasRuInstrument } from './data/bsmasRu.js';
 import { smdsRuInstrument } from './data/smdsRu.js';
+import { fomosRuInstrument } from './data/fomosRu.js';
+import { nmpqRuInstrument } from './data/nmpqRu.js';
+import { cavRuInstrument } from './data/cavRu.js';
+import { igds9RuInstrument } from './data/igds9Ru.js';
+import { bfasRuInstrument, bfasRuScoring, bfasRuValidationCases } from './data/bfasRu.js';
+import { fivePfqInstrument, fivePfqScoring, fivePfqValidationCases } from './data/fivePfq.js';
+import { cpmqRuInstrument, cpmqRuScoring, cpmqRuValidationCases } from './data/cpmqRu.js';
 import { db, migrate } from './db.js';
 import type { SeedSection } from './types.js';
 
@@ -59,13 +66,13 @@ export async function seed() {
       if(instrumentId&&seedInstrumentQuestions){const[iq]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,q.code]);if(iq.length)await db.execute('UPDATE instrument_questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,iq[0].id]);else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,q.code,...values])}
     }
   }
-  const verifiedInstruments:SeedSection[]=[shamInstrument,amsInstrument,studyAlienationInstrument,gpsInstrument,ppsInstrument,bfi2Instrument,bfi2ShortInstrument,tipiRuInstrument,ipipNeo120Instrument,miniIpipInstrument,rsesInstrument,csesInstrument,gsesInstrument,briefCopeRuInstrument,munInstrument,paqShortRuInstrument,caasRuInstrument,iafRuInstrument,bsmasRuInstrument,smdsRuInstrument];
+  const verifiedInstruments:SeedSection[]=[shamInstrument,amsInstrument,studyAlienationInstrument,gpsInstrument,ppsInstrument,bfi2Instrument,bfi2ShortInstrument,tipiRuInstrument,ipipNeo120Instrument,miniIpipInstrument,rsesInstrument,csesInstrument,gsesInstrument,briefCopeRuInstrument,munInstrument,paqShortRuInstrument,caasRuInstrument,iafRuInstrument,bsmasRuInstrument,smdsRuInstrument,fomosRuInstrument,nmpqRuInstrument,cavRuInstrument,igds9RuInstrument,bfasRuInstrument,fivePfqInstrument,cpmqRuInstrument];
   for(const instrument of verifiedInstruments){
     const[rows]=await db.query<any[]>('SELECT id,methodology FROM instruments WHERE code=?',[instrument.code]);
     const instrumentId=rows[0]?.id??randomUUID();
-    const scoringConfig=instrument.code==='test_22'?paqShortRuScoring:instrument.code==='test_23'?caasRuScoring:null;
-    const validationCases=instrument.code==='test_22'?paqShortRuValidationCases:instrument.code==='test_23'?caasRuValidationCases:null;
-    const formulaVersion=instrument.code==='test_22'?'paq-s-ru-larionow-2024-v1':instrument.code==='test_23'?'caas-ru-kondratyuk-2021-v1':null;
+    const scoringConfig=instrument.code==='test_22'?paqShortRuScoring:instrument.code==='test_23'?caasRuScoring:instrument.code==='test_31'?bfasRuScoring:instrument.code==='test_32'?fivePfqScoring:instrument.code==='test_33'?cpmqRuScoring:null;
+    const validationCases=instrument.code==='test_22'?paqShortRuValidationCases:instrument.code==='test_23'?caasRuValidationCases:instrument.code==='test_31'?bfasRuValidationCases:instrument.code==='test_32'?fivePfqValidationCases:instrument.code==='test_33'?cpmqRuValidationCases:null;
+    const formulaVersion=instrument.code==='test_22'?'paq-s-ru-larionow-2024-v1':instrument.code==='test_23'?'caas-ru-kondratyuk-2021-v1':instrument.code==='test_31'?'bfas-ru-golubkova-2025-v1':instrument.code==='test_32'?'5pfq-ru-khromov-2000-v1':instrument.code==='test_33'?'cpmq-ru-tatarko-maklasova-grigoryan-2019-v1':null;
     if(!rows.length)await db.execute('INSERT INTO instruments (id,code,title,description,is_verified,scoring_code,scoring_config,validation_cases,formula_version) VALUES (?,?,?,?,TRUE,?,?,?,?)',[instrumentId,instrument.code,instrument.title,instrument.description??null,instrument.code,scoringConfig?JSON.stringify(scoringConfig):null,validationCases?JSON.stringify(validationCases):null,formulaVersion]);
     else await db.execute('UPDATE instruments SET title=IF(methodology IS NULL,?,title),description=IF(methodology IS NULL,?,description),is_verified=TRUE,scoring_code=?,status=IF(methodology IS NULL,\'active\',status),scoring_config=IF(? IS NOT NULL,?,scoring_config),validation_cases=IF(? IS NOT NULL,?,validation_cases),formula_version=IF(? IS NOT NULL,?,formula_version) WHERE id=?',[instrument.title,instrument.description??null,instrument.code,scoringConfig,scoringConfig?JSON.stringify(scoringConfig):null,validationCases,validationCases?JSON.stringify(validationCases):null,formulaVersion,formulaVersion,instrumentId]);
     for(const[position,question]of (rows[0]?.methodology?[]:instrument.questions).entries()){

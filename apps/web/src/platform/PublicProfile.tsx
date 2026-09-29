@@ -2,7 +2,7 @@ import{useEffect,useState}from'react';
 import{Link,useParams}from'react-router-dom';
 import styled from'styled-components';
 import{ArrowRight,ClipboardList,Leaf}from'lucide-react';
-import{api}from'../api';
+import{api,useDemoFallbacks}from'../api';
 import{Card,Page,SkeletonScreen}from'../ui';
 import{demoSurveys,demoUser}from'./demo';
 import{StockAvatar}from'./Avatar';
@@ -13,6 +13,6 @@ const List=styled.div`display:grid;gap:12px;margin-top:18px;h2{font:500 24px var
 
 export function PublicProfile(){
   const{slug}=useParams(),[data,setData]=useState<any>(),[loading,setLoading]=useState(true),[error,setError]=useState(false);
-  useEffect(()=>{setLoading(true);setError(false);api.get(`/public/profiles/${slug}`).then(r=>setData(r.data)).catch(()=>{if(import.meta.env.DEV)setData({...demoUser,avatarSeed:'willow',surveys:demoSurveys.filter(x=>x.status==='active')});else setError(true)}).finally(()=>setLoading(false))},[slug]);
+  useEffect(()=>{setLoading(true);setError(false);api.get(`/public/profiles/${slug}`).then(r=>setData(r.data)).catch(()=>{if(useDemoFallbacks)setData({...demoUser,avatarSeed:'willow',surveys:demoSurveys.filter(x=>x.status==='active')});else setError(true)}).finally(()=>setLoading(false))},[slug]);
   return <Page><Shell><div><Leaf size={20}/> mindresearch</div>{loading?<div style={{marginTop:'8vh'}}><SkeletonScreen variant="public"/></div>:error?<Hero><div className="not-found-copy"><h1>Профиль не найден</h1><p>Возможно, автор скрыл страницу или изменил её адрес.</p></div></Hero>:<><Hero><div className="avatar"><StockAvatar seed={data.avatarSeed} alt="Аватар автора"/></div><div><span>Автор исследований</span><h1>{data.name}</h1><p>{data.bio}</p></div></Hero><List><h2>Открытые опросы</h2>{data.surveys.map((s:any)=><Card className="survey" key={s.id}><ClipboardList/><div><b>{s.title}</b><span>{s.description}</span></div><Link to={`/s/${s.slug}`}>Пройти <ArrowRight size={14}/></Link></Card>)}</List></>}</Shell></Page>
 }

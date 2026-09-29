@@ -68,6 +68,11 @@ const Hero = styled(Card)`
     border-radius: 99px;
     font-size: 13px;
   }
+  @media (max-width: 480px) {
+    margin-top: 3vh;
+    border-radius: 20px;
+    padding: 22px 18px;
+  }
 `;
 const Grid = styled.div`
   display: grid;
@@ -103,6 +108,10 @@ const ResultCard = styled(Card)`
   .sub {
     color: #7a867e;
     font-size: 12px;
+  }
+  @media (max-width: 480px) {
+    padding: 17px;
+    border-radius: 18px;
   }
 `;
 const Bars = styled.div`
@@ -488,6 +497,35 @@ function ResultContent({ result }: { result: Result }) {
       <ResultCard>
         <h2>Core Self-Evaluations</h2>
         <p className="summary">Mean score: {v.average.toFixed(2)} of 5; total score: {v.score} of 60. This is a continuous research score without diagnostic cutoffs.</p>
+      </ResultCard>
+    );
+  }
+  if (result.code === "test_19") {
+    return (
+      <ResultCard>
+        <h2>Общая самоэффективность</h2>
+        <p className="summary">Итоговый балл: {v.score} из 40; среднее: {v.average.toFixed(2)} из 4. Это непрерывный исследовательский показатель; универсальные диагностические пороги не установлены.</p>
+      </ResultCard>
+    );
+  }
+  if (result.code === "test_20") {
+    return (
+      <ResultCard>
+        <h2>Brief COPE — русская краткая версия</h2>
+        <p className="summary">Средние значения шести шкал (1–4). Шкала «Избегание» в исследовании имела низкую надёжность (α = 0,55), поэтому её результат следует трактовать особенно осторожно. Это исследовательские показатели, не диагноз.</p>
+        <ScaleBars scales={v.scales} />
+      </ResultCard>
+    );
+  }
+  if (result.code === "test_21") {
+    return (
+      <ResultCard>
+        <h2>Мотивация успеха и боязнь неудачи (МУН)</h2>
+        <p className="summary">
+          Итог: {v.overall.score} из 20 — {v.overall.category ?? "для этого результата авторская категория не задана"}.
+          {v.overall.interpretation ? ` ${v.overall.interpretation}` : " Показан только сырой балл без интерпретации."}
+          {" Это исследовательский показатель, а не диагноз."}
+        </p>
       </ResultCard>
     );
   }

@@ -1,5 +1,6 @@
 import axios,{type AxiosError,type InternalAxiosRequestConfig} from 'axios';
 const baseURL=import.meta.env.VITE_API_URL??'/api';
+export const useDemoFallbacks=import.meta.env.DEV&&import.meta.env.VITE_USE_DEMO_FALLBACKS==='true';
 let accessToken:string|null=null,refreshPromise:Promise<string|null>|null=null,currentUser:Record<string,any>|null=null,currentUserPromise:Promise<Record<string,any>>|null=null;
 const legacyToken=localStorage.getItem('admin_token');if(legacyToken){accessToken=legacyToken;localStorage.removeItem('admin_token')}
 export const api=axios.create({baseURL,withCredentials:true});

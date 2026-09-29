@@ -18,7 +18,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { api, getCurrentUser } from "../api";
+import { api, getCurrentUser, useDemoFallbacks } from "../api";
 import { Button, Card, SkeletonScreen } from "../ui";
 import { demoSurveys, demoUser } from "./demo";
 import { PlatformLayout } from "./Layout";
@@ -48,12 +48,20 @@ const Head = styled.div`
       serif;
     margin: 7px 0;
     color: #304a38;
+    letter-spacing: -.025em;
   }
   .hello {
     color: #758178;
   }
   a {
     text-decoration: none;
+  }
+  @media (max-width: 560px) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 22px;
+    a { max-width: 100%; }
   }
 `;
 const Grid = styled.div`
@@ -78,8 +86,17 @@ const SectionTitle = styled.div`
     font: 600 24px var(--font-heading), serif;
   }
   span {
-    color: #839087;
-    font-size: 12px;
+    display: grid;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    place-items: center;
+    border: 1px solid #dce6d9;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .58);
+    color: #708075;
+    font-size: 11px;
+    font-weight: 700;
   }
   &.drafts {
     margin-top: 20px;
@@ -88,9 +105,20 @@ const SectionTitle = styled.div`
   }
 `;
 const SurveyCard = styled(Card)`
-  padding: 23px;
-  border-radius: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head"
+    "info metrics"
+    "actions actions";
+  column-gap: 20px;
+  padding: 20px 21px 17px;
+  border-radius: 18px;
+  border-color: #e1e8df;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  &:hover { border-color: #d2ded0; box-shadow: 0 17px 44px rgba(48, 70, 54, .08); }
   .card-head {
+    grid-area: head;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -111,6 +139,7 @@ const SurveyCard = styled(Card)`
     border-radius: 9px;
     background: transparent;
     color: #74837a;
+    transition: background .15s ease, color .15s ease;
   }
   .card-tools a:hover {
     background: #edf3eb;
@@ -124,9 +153,11 @@ const SurveyCard = styled(Card)`
     font:
       600 21px var(--font-heading),
       serif;
-    margin: 8px 0;
+    margin: 8px 0 5px;
     color: #344e3c;
+    letter-spacing: -.018em;
   }
+  .description { min-height: 0; }
   .status {
     display: inline-flex;
     align-items: center;
@@ -147,15 +178,20 @@ const SurveyCard = styled(Card)`
   }
   .description {
     color: #78847b;
-    min-height: 42px;
     font-size: 13px;
     line-height: 1.5;
+  }
+  .card-info {
+    grid-area: info;
+    align-self: center;
+    min-width: 0;
+    padding: 5px 0 3px;
   }
   .survey-date {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 10px;
+    margin-top: 12px;
     color: #87928b;
     font-size: 11px;
   }
@@ -163,23 +199,44 @@ const SurveyCard = styled(Card)`
     flex: none;
   }
   .metrics {
-    display: flex;
-    gap: 18px;
-    margin: 20px 0;
-    color: #68776d;
-    font-size: 12px;
+    grid-area: metrics;
+    display: grid;
+    align-content: center;
+    justify-self: end;
+    gap: 12px;
+    margin: 0;
+    padding-left: 19px;
+    border-left: 1px solid #edf0eb;
+    color: #77847b;
+    font-size: 11px;
   }
   .metrics span {
-    display: flex;
-    gap: 5px;
+    display: inline-flex;
     align-items: center;
+    gap: 6px;
+    white-space: normal;
+  }
+  .metrics svg {
+    color: #849287;
+  }
+  .metrics b {
+    color: #42594a;
+    font-size: 13px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+  .metrics small {
+    color: inherit;
+    font-size: inherit;
   }
   .actions {
+    grid-area: actions;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #e7ece5;
-    padding-top: 15px;
+    border-top: 1px solid #e6ece4;
+    margin-top: 17px;
+    padding-top: 12px;
     gap: 10px;
   }
   .links {
@@ -187,9 +244,12 @@ const SurveyCard = styled(Card)`
     gap: 7px;
     align-items: center;
     min-width: 0;
+    flex-wrap: wrap;
   }
   .actions > a {
     flex: none;
+    padding: 8px 2px;
+    white-space: nowrap;
   }
   a,
   .copy,
@@ -236,17 +296,37 @@ const SurveyCard = styled(Card)`
     background: #f0f2ed;
     color: #607066;
   }
-  @media (max-width: 520px) {
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "info" "metrics" "actions";
+    row-gap: 0;
+    .card-info { padding-bottom: 0; }
+    .metrics {
+      display: flex;
+      justify-self: start;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin: 12px 0 0;
+      padding: 0;
+      border-left: 0;
+    }
+    .metrics span { white-space: normal; }
+    .actions { margin-top: 14px; }
     .actions {
       align-items: flex-start;
-      flex-direction: column;
+      flex-wrap: wrap;
     }
     .links {
       flex-wrap: wrap;
+      flex: 1 1 100%;
     }
     .actions > a {
-      align-self: flex-end;
+      margin-left: auto;
     }
+  }
+  @media (max-width: 520px) {
+    .actions { flex-direction: column; }
+    .actions > a { align-self: flex-end; margin-left: 0; }
   }
 `;
 const TrashBar = styled.div`
@@ -302,6 +382,7 @@ const TrashPanel = styled(Card)`
   .item b {
     display: block;
     color: #425848;
+    overflow-wrap: anywhere;
   }
   .item span {
     font-size: 11px;
@@ -328,6 +409,16 @@ const TrashPanel = styled(Card)`
     text-align: center;
     color: #829087;
     font-size: 12px;
+  }
+  @media (max-width: 520px) {
+    padding: 15px;
+    .item {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+    }
+    .restore { max-width: 100%; }
   }
 `;
 const Overlay = styled.div`
@@ -408,6 +499,15 @@ const Confirm = styled(Card)`
   .confirm:disabled {
     opacity: 0.6;
   }
+  @media (max-width: 480px) {
+    padding: 21px 17px;
+    border-radius: 18px;
+    h2 { font-size: 22px; }
+    .buttons {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+  }
 `;
 
 const formatSurveyDate = (value?: string, includeTime = false) => {
@@ -446,9 +546,11 @@ export function PlatformHome() {
         setName(u.name);
       })
       .catch(() => {
-        if (import.meta.env.DEV) {
+        if (useDemoFallbacks) {
           setSurveys(demoSurveys);
           setName(demoUser.name);
+        } else {
+          setError("Не удалось загрузить опросы с сервера.");
         }
       })
       .finally(() => setLoading(false));
@@ -625,26 +727,30 @@ export function PlatformHome() {
                 </button>
               </div>
             </div>
-            <h2>{s.title}</h2>
-            <div className="description">
-              {s.description || "Описание пока не добавлено"}
-            </div>
-            {(s.status === "draft" ? s.updatedAt : s.createdAt) && (
-              <div className="survey-date">
-                <CalendarDays size={13} />
-                {s.status === "draft"
-                  ? `Изменён ${formatSurveyDate(s.updatedAt, true)}`
-                  : `Создан ${formatSurveyDate(s.createdAt)}`}
+            <div className="card-info">
+              <h2>{s.title}</h2>
+              <div className="description">
+                {s.description || "Описание пока не добавлено"}
               </div>
-            )}
+              {(s.status === "draft" ? s.updatedAt : s.createdAt) && (
+                <div className="survey-date">
+                  <CalendarDays size={13} />
+                  {s.status === "draft"
+                    ? `Изменён ${formatSurveyDate(s.updatedAt, true)}`
+                    : `Создан ${formatSurveyDate(s.createdAt)}`}
+                </div>
+              )}
+            </div>
             <div className="metrics">
               <span>
                 <BarChart3 size={14} />
-                {s.responses} прохождений
+                <b>{s.responses}</b>
+                <small>Прохождений</small>
               </span>
               <span>
                 <CheckCircle2 size={14} />
-                {s.completed} завершено
+                <b>{s.completed}</b>
+                <small>Завершено</small>
               </span>
             </div>
             <div className="actions">

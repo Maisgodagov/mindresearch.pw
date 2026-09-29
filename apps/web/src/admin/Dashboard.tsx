@@ -28,7 +28,7 @@ import {
   YAxis,
 } from "recharts";
 import Select from "react-select";
-import { api, logout } from "../api";
+import { api, logout, useDemoFallbacks } from "../api";
 import { debqDescriptions, shoppDescriptions } from "../shoppDescriptions";
 import { Button, Card, Page, SkeletonScreen } from "../ui";
 import { exportRespondents } from "./exportResults";
@@ -241,6 +241,9 @@ const Panel = styled(Card)`
 `;
 const TableWrap = styled.div`
   overflow: auto;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   margin: 0 -24px -24px;
   padding: 0 24px 24px;
 `;
@@ -875,7 +878,7 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
   if (group.code === "test_15") return <IpipNeo120Summary group={group} />;
   if (group.code === "test_16") {
     const result = group.result.values as unknown as {scales:Record<string,{average:number}>};
-    return <span className="score">5 scales<br /><small>{Object.values(result.scales).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
+    return <span className="score">5 областей<br /><small>{Object.values(result.scales).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
   }
   if (group.code === "test_17") {
     const result = group.result.values as unknown as {score:number;max:number;levelLabel:string};
@@ -883,14 +886,18 @@ function MethodResult({ group }: { group?: AnswerGroup }) {
   }
   if (group.code === "test_18") {
     const result = group.result.values as unknown as {score:number;average:number};
-    return <span className="score">{result.average.toFixed(2)} / 5<br /><small>sum {result.score} / 60</small></span>;
+    return <span className="score">{result.average.toFixed(2)} / 5<br /><small>сумма {result.score} / 60</small></span>;
+  }
+  if (group.code === "test_21") {
+    const result = group.result.values as unknown as {overall:{score:number;category:string|null}};
+    return <span className="score">{result.overall.score} / 20<br /><small>{result.overall.category ?? "категория не задана"}</small></span>;
   }
   return <span className="pending">Результат рассчитан</span>;
 }
 
 function IpipNeo120Summary({ group }: { group: AnswerGroup }) {
   const result = group.result!.values as unknown as {domains:Record<string,{average:number}>};
-  return <span className="score">5 domains<br /><small>{Object.values(result.domains).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
+  return <span className="score">5 областей<br /><small>{Object.values(result.domains).map(x=>x.average.toFixed(2)).join(" · ")}</small></span>;
 }
 
 function DetailedResult({ group }: { group: AnswerGroup }) {
@@ -1246,7 +1253,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
         }
       })
       .catch(() => {
-        if (import.meta.env.DEV) {
+        if (useDemoFallbacks) {
           setSurveys(demoSurveys);
           setResult((current) => ({
             ...current,

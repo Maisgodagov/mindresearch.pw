@@ -23,6 +23,10 @@ import{scoreMun}from'./mun.js';
 import{scoreIafRu}from'./iafRu.js';
 import{scoreBsmasRu}from'./bsmasRu.js';
 import{scoreSmdsRu}from'./smdsRu.js';
+import{scoreFomosRu}from'./fomosRu.js';
+import{scoreNmpqRu}from'./nmpqRu.js';
+import{scoreCavRu}from'./cavRu.js';
+import{scoreIgds9Ru}from'./igds9Ru.js';
 import{calculateConfigurableScores}from'./configurable.js';
 
 function parseValue(value:unknown):unknown{if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}}
@@ -274,7 +278,7 @@ export async function calculateIafRuForSession(sessionId:string){
   return result;
 }
 
-async function calculateSocialMediaScaleForSession(sessionId:string,code:'test_25'|'test_26',formulaVersion:string,score:(answers:Map<number,number>)=>unknown|null){
+async function calculateSocialMediaScaleForSession(sessionId:string,code:'test_25'|'test_26'|'test_27'|'test_28'|'test_29'|'test_30',formulaVersion:string,score:(answers:Map<number,number>)=>unknown|null){
   const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code=? JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[code,sessionId]);
   if(!rows.length)return null;
   const answers=new Map<number,number>();
@@ -288,5 +292,9 @@ async function calculateSocialMediaScaleForSession(sessionId:string,code:'test_2
 
 export async function calculateBsmasRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_25','bsmas-ru-kornienko-2023-sum-v1',scoreBsmasRu)}
 export async function calculateSmdsRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_26','smds-ru-tereshchenko-2024-screen-v1',scoreSmdsRu)}
+export async function calculateFomosRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_27','fomos-ru-ardislamov-2024-six-item-v1',scoreFomosRu)}
+export async function calculateNmpqRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_28','nmpq-ru-maksimenko-2025-v1',scoreNmpqRu)}
+export async function calculateCavRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_29','cav-ru-mikhailova-istomina-2025-v1',scoreCavRu)}
+export async function calculateIgds9RuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_30','igds9sf-ru-petrov-chernyak-2019-v1',scoreIgds9Ru)}
 
-export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId),calculateGsesForSession(sessionId),calculateBriefCopeRuForSession(sessionId),calculateMunForSession(sessionId),calculateIafRuForSession(sessionId),calculateBsmasRuForSession(sessionId),calculateSmdsRuForSession(sessionId),calculateConfiguredMethodologiesForSession(sessionId)])}
+export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId),calculateGsesForSession(sessionId),calculateBriefCopeRuForSession(sessionId),calculateMunForSession(sessionId),calculateIafRuForSession(sessionId),calculateBsmasRuForSession(sessionId),calculateSmdsRuForSession(sessionId),calculateFomosRuForSession(sessionId),calculateNmpqRuForSession(sessionId),calculateCavRuForSession(sessionId),calculateIgds9RuForSession(sessionId),calculateConfiguredMethodologiesForSession(sessionId)])}

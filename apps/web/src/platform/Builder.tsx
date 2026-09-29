@@ -36,7 +36,7 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
-import { api } from "../api";
+import { api, useDemoFallbacks } from "../api";
 import { Button, Card, SkeletonScreen } from "../ui";
 import { MethodologyModal, type Methodology } from "../MethodologyModal";
 import { demoInstruments, demoMethodologies } from "./demo";
@@ -52,6 +52,20 @@ type Instrument = {
   scoringCode?: string;
   author?: string;
 };
+// These entries currently use the original English form in our catalog, not a
+// Russian version validated on a Russian sample. Keep them available for old
+// survey sections/results, but don't offer them in newly created surveys.
+const russianCatalogExclusions = new Set([
+  "test_4", // NSPS — Russian translation without confirmed psychometric adaptation
+  "test_8", // AMS-C 28 — English form
+  "test_10", // GPS — English student form
+  "test_11", // PPS-12 — English form
+  "test_15", // IPIP-NEO-120 — English public-domain form
+  "test_16", // Mini-IPIP — English public-domain form
+  "test_18", // CSES — English form
+]);
+const filterRussianCatalog = (items: Instrument[]) =>
+  items.filter((instrument) => !russianCatalogExclusions.has(instrument.code ?? ""));
 type Option = { value: string; label: string };
 type Question = {
   id: string;
@@ -311,6 +325,10 @@ const Panel = styled(Card)`
     color: #9b4e49;
     font-size: 13px;
   }
+  @media (max-width: 560px) {
+    padding: 17px;
+    border-radius: 17px;
+  }
   .add-alias {
     width: 100%;
     margin-top: 15px;
@@ -338,9 +356,12 @@ const SurveyBasics = styled.div`
   .field {
     margin: 0;
   }
-  textarea {
-    min-height: 48px;
-    height: 48px;
+  #root & textarea {
+    min-height: 53px;
+    height: 53px;
+    padding: 0 14px;
+    resize: vertical;
+    overflow: auto;
   }
   @media (max-width: 720px) {
     grid-template-columns: 1fr;
@@ -529,6 +550,9 @@ const PreviewCard = styled.div`
     flex: 0 0 16px;
     margin-top: 1px;
   }
+  @media (max-width: 560px) {
+    border-radius: 14px;
+  }
 `;
 const CatalogTools = styled.div`
   display: grid;
@@ -536,20 +560,27 @@ const CatalogTools = styled.div`
   margin-top: 15px;
   .create-custom {
     width: 100%;
-    min-height: 50px;
+    min-height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border: 1px solid #b8cbb9;
-    border-radius: 13px;
-    background: #e8f0e5;
-    color: #3f5c47;
-    font-weight: 800;
+    border: 1px solid #526f5b;
+    border-radius: 11px;
+    background: #526f5b;
+    color: #fff;
+    font-weight: 750;
+    letter-spacing: .005em;
+    box-shadow: 0 5px 14px rgba(48, 70, 54, .10);
     cursor: pointer;
+    transition: background .16s ease, box-shadow .16s ease;
   }
   .create-custom:hover {
-    background: #dce9d8;
+    background: #425d4b;
+    box-shadow: 0 7px 18px rgba(48, 70, 54, .15);
+  }
+  .create-custom:active {
+    background: #3d5745;
   }
   .divider {
     display: flex;
@@ -582,6 +613,14 @@ const CatalogTools = styled.div`
     background: #e8f0e5;
     color: #46614e;
     font-size: 12px;
+    flex: none;
+    white-space: nowrap;
+  }
+  .catalog-count > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .search {
     position: relative;
@@ -592,9 +631,6 @@ const CatalogTools = styled.div`
     top: 50%;
     transform: translateY(-50%);
     color: #728178;
-  }
-  .search input {
-    padding-left: 36px;
   }
 `;
 const Library = styled.div`
@@ -1220,13 +1256,15 @@ export function SurveyBuilder() {
       api.get("/admin/methodologies"),
     ])
       .then(([i, m]) => {
-        setInstruments(i.data);
+        setInstruments(filterRussianCatalog(i.data));
         setMethodologies(m.data);
       })
       .catch(() => {
-        if (import.meta.env.DEV) {
-          setInstruments(demoInstruments);
+        if (useDemoFallbacks) {
+          setInstruments(filterRussianCatalog(demoInstruments));
           setMethodologies(demoMethodologies);
+        } else {
+          setError("Не удалось загрузить методики с сервера.");
         }
       })
       .finally(() => setCatalogLoading(false));
@@ -1611,10 +1649,6 @@ export function SurveyBuilder() {
       autosaveDraft.current = false;
       nav("/app");
     } catch (err: any) {
-      if (import.meta.env.DEV) {
-        nav("/app");
-        return;
-      }
       setError(err.response?.data?.message ?? "Не удалось создать опрос");
     } finally {
       setSaving(false);
@@ -1932,6 +1966,7 @@ export function SurveyBuilder() {
                     onChange={(e) => setLibraryQuery(e.target.value)}
                     placeholder="Название или автор"
                     aria-label="Поиск методик"
+                    style={{ paddingLeft: 44 }}
                   />
                 </div>
               </CatalogTools>

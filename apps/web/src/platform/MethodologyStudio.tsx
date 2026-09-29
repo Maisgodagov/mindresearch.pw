@@ -290,6 +290,27 @@ const Panel = styled.div`
     color: #7f8d83;
     margin: 0;
   }
+  .bulk-import {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px dashed #cbd9c8;
+    border-radius: 12px;
+    background: #f8faf6;
+  }
+  .bulk-import textarea {
+    min-height: 96px;
+    resize: vertical;
+  }
+  .coverage-warning {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f6f2e7;
+    color: #786842;
+    font-size: 12px;
+    line-height: 1.5;
+  }
   .scale {
     display: grid;
     gap: 9px;
@@ -427,6 +448,7 @@ export function MethodologyStudio() {
   const [errors, setErrors] = useState<string[]>([]);
   const [report, setReport] = useState<any>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [bulkQuestions, setBulkQuestions] = useState("");
   const current = drafts.find((item) => item.id === selected);
   const locked = Boolean(current?.isVerified);
   const archived = Boolean(current?.isVerified && current.status === "archived");
@@ -436,6 +458,23 @@ export function MethodologyStudio() {
         .map((option) => Number(option.value))
         .filter(Number.isInteger),
     [state.options],
+  );
+  const parsedBulkQuestions = useMemo(
+    () =>
+      bulkQuestions
+        .split(/\r?\n/)
+        .map((line) => line.trim().replace(/^(?:\d+[.)]\s*|[-•*]\s*)/, ""))
+        .filter(Boolean),
+    [bulkQuestions],
+  );
+  const uncoveredQuestionNumbers = useMemo(
+    () =>
+      state.questions.flatMap((_, index) =>
+        state.scoring.scales.some((scale) => scale.items.includes(index + 1))
+          ? []
+          : [index + 1],
+      ),
+    [state.questions, state.scoring.scales],
   );
 
   const load = async (keep = "") => {
@@ -449,6 +488,7 @@ export function MethodologyStudio() {
     else setState(makeState());
   };
   const hydrate = (item: Draft) => {
+    setBulkQuestions("");
     const options = item.questions[0]?.options?.length
       ? item.questions[0].options
       : makeState().options;
@@ -731,6 +771,28 @@ export function MethodologyStudio() {
       ...state.scoring.scales,
       { key: "", label: "", items: [], reverseItems: [], aggregation: "sum" },
     ]);
+  const importQuestions = () => {
+    const remaining = Math.max(0, 300 - state.questions.length);
+    const imported = parsedBulkQuestions.slice(0, remaining);
+    if (!imported.length) {
+      setMessage(
+        remaining
+          ? "Добавьте вопросы: каждый вопрос должен быть на отдельной строке."
+          : "Достигнут лимит в 300 вопросов.",
+      );
+      return;
+    }
+    setState((current) => ({
+      ...current,
+      questions: [...current.questions, ...imported.map((text) => ({ text }))],
+    }));
+    setBulkQuestions("");
+    setMessage(
+      imported.length < parsedBulkQuestions.length
+        ? "Часть вопросов добавлена; достигнут лимит в 300 вопросов."
+        : "Список вопросов добавлен.",
+    );
+  };
 
   return (
     <Panel>
@@ -999,6 +1061,29 @@ export function MethodologyStudio() {
               </div>
             ))}
           </div>
+          {!locked && (
+            <div className="bulk-import">
+              <label className="field">
+                Быстро добавить несколько вопросов
+                <textarea
+                  disabled={archived}
+                  value={bulkQuestions}
+                  onChange={(event) => setBulkQuestions(event.target.value)}
+                  placeholder={"Вставьте список: один вопрос на строку\n1. Первый вопрос\n2. Второй вопрос"}
+                />
+              </label>
+              <p className="muted">
+                Нумерация и маркеры списка в начале строки будут убраны. После добавления проверьте, в какие шкалы входят новые вопросы.
+              </p>
+              <button
+                className="add"
+                disabled={archived || parsedBulkQuestions.length === 0}
+                onClick={importQuestions}
+              >
+                <Plus size={15} /> Добавить вопросы{parsedBulkQuestions.length ? ` (${parsedBulkQuestions.length})` : ""}
+              </button>
+            </div>
+          )}
           <button
             className="add"
             disabled={locked}
@@ -1143,6 +1228,7 @@ export function MethodologyStudio() {
                       <input
                         disabled={locked}
                         type="checkbox"
+                        title={state.questions[itemIndex].text}
                         checked={scale.items.includes(itemIndex + 1)}
                         onChange={(e) =>
                           updateScale(index, {
@@ -1196,6 +1282,11 @@ export function MethodologyStudio() {
               </div>
             </div>
           ))}
+          {!locked && uncoveredQuestionNumbers.length > 0 && (
+            <p className="coverage-warning">
+              Пока не включены ни в одну шкалу: вопросы {uncoveredQuestionNumbers.join(", ")}. Если по методике они должны участвовать в подсчёте, отметьте их в нужной шкале. Вопросы о респонденте или контрольные вопросы можно оставить вне шкал.
+            </p>
+          )}
           <button className="add" disabled={locked} onClick={addScale}>
             <Plus size={15} /> Добавить шкалу
           </button>

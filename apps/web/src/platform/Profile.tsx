@@ -8,6 +8,7 @@ import {
   invalidateCurrentUser,
   logoutAll,
   setAccessToken,
+  useDemoFallbacks,
 } from "../api";
 import { Button, Card } from "../ui";
 import { demoUser } from "./demo";
@@ -73,7 +74,7 @@ const Form = styled(Card)`
     min-height: 130px;
     resize: vertical;
   }
-  .slug {
+  #root & .slug {
     display: flex;
     align-items: center;
     border: 1px solid #d5dfd4;
@@ -82,10 +83,27 @@ const Form = styled(Card)`
     overflow: hidden;
     color: #829087;
     padding-left: 12px;
+    transition: border-color .16s ease, box-shadow .16s ease;
   }
-  .slug input {
-    border: 0;
-    padding-left: 4px;
+  #root & .slug:focus-within {
+    border-color: #78947e;
+    box-shadow: 0 0 0 3px rgba(95, 128, 104, .12);
+  }
+  #root & .slug input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]) {
+    flex: 1;
+    min-width: 0;
+    height: 53px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 12px 0 4px;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  #root & .slug input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):focus {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none;
   }
   .switch {
     display: flex;
@@ -310,7 +328,9 @@ const translit = (value: string) => {
     .replace(/^-|-$/g, "");
 };
 export function ProfilePage() {
-  const initial = { ...demoUser, avatarSeed: "willow" } as Profile;
+  const initial = (useDemoFallbacks
+    ? { ...demoUser, avatarSeed: "willow" }
+    : { name: "", email: "", role: "", bio: "", avatarSeed: "willow", publicSlug: "", isProfilePublic: false }) as Profile;
   const nav = useNavigate();
   const [profile, setProfile] = useState<Profile>(initial),
     [loading, setLoading] = useState(true),
@@ -334,7 +354,9 @@ export function ProfilePage() {
           isProfilePublic: Boolean(data.isProfilePublic),
         } as Profile),
       )
-      .catch(() => {})
+      .catch(() => {
+        if (!useDemoFallbacks) setError("Не удалось загрузить профиль с сервера.");
+      })
       .finally(() => setLoading(false));
   }, []);
   if (loading)
@@ -354,7 +376,7 @@ export function ProfilePage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err: any) {
-      if (import.meta.env.DEV) {
+      if (useDemoFallbacks) {
         setSaved(true);
         return;
       }

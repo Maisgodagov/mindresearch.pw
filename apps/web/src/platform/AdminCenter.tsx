@@ -185,6 +185,18 @@ const Page = styled.div`
       grid-column: 1/-1;
     }
   }
+  @media (max-width: 480px) {
+    .item { padding: 15px; }
+    .role {
+      min-width: 0;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .role-select {
+      flex: 1 1 170px;
+      min-width: 0;
+    }
+  }
 `;
 
 type Tab = "methods" | "reports" | "users" | "studio";
