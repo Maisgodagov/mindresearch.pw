@@ -25,7 +25,7 @@ export const csesItems=[
 
 export const csesInstrument:SeedSection={
   code:'test_18',
-  title:'Core Self-Evaluations Scale, CSES',
-  description:'Original English 12-item non-proprietary measure of core self-evaluations.',
+  title:'Шкала базовых самооценок, CSES (англоязычный оригинал)',
+  description:'Оригинальная непатентованная англоязычная 12-пунктовая шкала базовых самооценок. Пункты приведены на английском языке; русская адаптация не подтверждена.',
   questions:csesItems.map((text,index)=>({code:`test_18_${index+1}`,text,type:'single',required:true,options:csesOptions})),
 };

@@ -25,7 +25,7 @@ export const ipipNeo120Items=[
 
 export const ipipNeo120Instrument:SeedSection={
   code:'test_15',
-  title:'IPIP-NEO-120 — public-domain five-factor inventory',
-  description:'120-item public-domain IPIP representation of the NEO PI-R domains and 30 facets. Original English version.',
+  title:'Опросник IPIP-NEO-120 (англоязычная версия)',
+  description:'Общедоступная 120-пунктовая версия IPIP, отражающая пять широких областей и 30 аспектов модели NEO PI-R. Это не коммерческий NEO PI-R. Исходные пункты приведены на английском языке; русская адаптация не подтверждена.',
   questions:ipipNeo120Items.map((text,index)=>({code:`test_15_${index+1}`,text,type:'single',required:true,options:ipipNeo120Options})),
 };

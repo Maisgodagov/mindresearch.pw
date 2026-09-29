@@ -25,7 +25,7 @@ const items=[
 
 export const ppsInstrument:SeedSection={
   code:'test_11',
-  title:'Pure Procrastination Scale, PPS-12',
-  description:'Original English 12-item scale by Piers Steel. Higher scores indicate a stronger procrastination tendency.',
+  title:'Шкала прокрастинации, PPS-12 (англоязычный оригинал)',
+  description:'Оригинальная англоязычная 12-пунктовая шкала П. Стила. Более высокий балл соответствует более выраженной склонности к прокрастинации. Пункты приведены на английском языке; русская адаптация этой формы не подтверждена.',
   questions:items.map((text,index)=>({code:`test_11_${index+1}`,text,type:'single',required:true,options})),
 };

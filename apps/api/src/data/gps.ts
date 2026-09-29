@@ -33,7 +33,7 @@ const items=[
 
 export const gpsInstrument:SeedSection={
   code:'test_10',
-  title:'General Procrastination Scale, GPS — Student Form',
-  description:'Original English 20-item student form by Clarry H. Lay. Higher scores indicate a stronger general tendency to procrastinate.',
+  title:'Шкала общей прокрастинации, GPS (англоязычная студенческая версия)',
+  description:'Оригинальная англоязычная 20-пунктовая форма К. Лэя для студентов. Более высокий балл соответствует более выраженной склонности откладывать намеченные дела. Пункты приведены на английском языке; русская адаптация этой формы не подтверждена.',
   questions:items.map((text,index)=>({code:`test_10_${index+1}`,text,type:'single',required:true,options})),
 };

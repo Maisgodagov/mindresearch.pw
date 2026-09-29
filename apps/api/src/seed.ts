@@ -13,6 +13,14 @@ import { ipipNeo120Instrument } from './data/ipipNeo120.js';
 import { miniIpipInstrument } from './data/miniIpip.js';
 import { rsesInstrument } from './data/rses.js';
 import { csesInstrument } from './data/cses.js';
+import { gsesInstrument } from './data/gses.js';
+import { briefCopeRuInstrument } from './data/briefCopeRu.js';
+import { munInstrument } from './data/mun.js';
+import { paqShortRuInstrument, paqShortRuScoring, paqShortRuValidationCases } from './data/paqShortRu.js';
+import { caasRuInstrument, caasRuScoring, caasRuValidationCases } from './data/caasRu.js';
+import { iafRuInstrument } from './data/iafRu.js';
+import { bsmasRuInstrument } from './data/bsmasRu.js';
+import { smdsRuInstrument } from './data/smdsRu.js';
 import { db, migrate } from './db.js';
 import type { SeedSection } from './types.js';
 
@@ -51,12 +59,15 @@ export async function seed() {
       if(instrumentId&&seedInstrumentQuestions){const[iq]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,q.code]);if(iq.length)await db.execute('UPDATE instrument_questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,iq[0].id]);else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,q.code,...values])}
     }
   }
-  const verifiedInstruments:SeedSection[]=[shamInstrument,amsInstrument,studyAlienationInstrument,gpsInstrument,ppsInstrument,bfi2Instrument,bfi2ShortInstrument,tipiRuInstrument,ipipNeo120Instrument,miniIpipInstrument,rsesInstrument,csesInstrument];
+  const verifiedInstruments:SeedSection[]=[shamInstrument,amsInstrument,studyAlienationInstrument,gpsInstrument,ppsInstrument,bfi2Instrument,bfi2ShortInstrument,tipiRuInstrument,ipipNeo120Instrument,miniIpipInstrument,rsesInstrument,csesInstrument,gsesInstrument,briefCopeRuInstrument,munInstrument,paqShortRuInstrument,caasRuInstrument,iafRuInstrument,bsmasRuInstrument,smdsRuInstrument];
   for(const instrument of verifiedInstruments){
     const[rows]=await db.query<any[]>('SELECT id,methodology FROM instruments WHERE code=?',[instrument.code]);
     const instrumentId=rows[0]?.id??randomUUID();
-    if(!rows.length)await db.execute('INSERT INTO instruments (id,code,title,description,is_verified,scoring_code) VALUES (?,?,?,?,TRUE,?)',[instrumentId,instrument.code,instrument.title,instrument.description??null,instrument.code]);
-    else await db.execute('UPDATE instruments SET title=IF(methodology IS NULL,?,title),description=IF(methodology IS NULL,?,description),is_verified=TRUE,scoring_code=?,status=IF(methodology IS NULL,\'active\',status) WHERE id=?',[instrument.title,instrument.description??null,instrument.code,instrumentId]);
+    const scoringConfig=instrument.code==='test_22'?paqShortRuScoring:instrument.code==='test_23'?caasRuScoring:null;
+    const validationCases=instrument.code==='test_22'?paqShortRuValidationCases:instrument.code==='test_23'?caasRuValidationCases:null;
+    const formulaVersion=instrument.code==='test_22'?'paq-s-ru-larionow-2024-v1':instrument.code==='test_23'?'caas-ru-kondratyuk-2021-v1':null;
+    if(!rows.length)await db.execute('INSERT INTO instruments (id,code,title,description,is_verified,scoring_code,scoring_config,validation_cases,formula_version) VALUES (?,?,?,?,TRUE,?,?,?,?)',[instrumentId,instrument.code,instrument.title,instrument.description??null,instrument.code,scoringConfig?JSON.stringify(scoringConfig):null,validationCases?JSON.stringify(validationCases):null,formulaVersion]);
+    else await db.execute('UPDATE instruments SET title=IF(methodology IS NULL,?,title),description=IF(methodology IS NULL,?,description),is_verified=TRUE,scoring_code=?,status=IF(methodology IS NULL,\'active\',status),scoring_config=IF(? IS NOT NULL,?,scoring_config),validation_cases=IF(? IS NOT NULL,?,validation_cases),formula_version=IF(? IS NOT NULL,?,formula_version) WHERE id=?',[instrument.title,instrument.description??null,instrument.code,scoringConfig,scoringConfig?JSON.stringify(scoringConfig):null,validationCases,validationCases?JSON.stringify(validationCases):null,formulaVersion,formulaVersion,instrumentId]);
     for(const[position,question]of (rows[0]?.methodology?[]:instrument.questions).entries()){
       const[existing]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,question.code]);
       const values=[question.text,question.type,question.required!==false,position,question.options?JSON.stringify(question.options):null,question.validation?JSON.stringify(question.validation):null];

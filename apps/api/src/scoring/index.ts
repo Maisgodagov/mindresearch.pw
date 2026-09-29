@@ -17,6 +17,12 @@ import{scoreIpipNeo120}from'./ipipNeo120.js';
 import{scoreMiniIpip}from'./miniIpip.js';
 import{scoreRses}from'./rses.js';
 import{scoreCses}from'./cses.js';
+import{scoreGses}from'./gses.js';
+import{scoreBriefCopeRu}from'./briefCopeRu.js';
+import{scoreMun}from'./mun.js';
+import{scoreIafRu}from'./iafRu.js';
+import{scoreBsmasRu}from'./bsmasRu.js';
+import{scoreSmdsRu}from'./smdsRu.js';
 import{calculateConfigurableScores}from'./configurable.js';
 
 function parseValue(value:unknown):unknown{if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}}
@@ -209,6 +215,28 @@ export async function calculateCsesForSession(sessionId:string){
   return result;
 }
 
+export async function calculateGsesForSession(sessionId:string){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code='test_19' JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[sessionId]);
+  if(!rows.length)return null;
+  const answers=new Map<number,number>();
+  for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const value=Number(parseValue(row.value));if(Number.isInteger(number)&&Number.isInteger(value))answers.set(number,value)}
+  const result=scoreGses(answers);
+  if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
+  await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?, ?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,'gses-ru-romek-1996-v1',JSON.stringify(result)]);
+  return result;
+}
+
+export async function calculateBriefCopeRuForSession(sessionId:string){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code='test_20' JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[sessionId]);
+  if(!rows.length)return null;
+  const answers=new Map<number,number>();
+  for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const parsed=parseValue(row.value);const value=Number(parsed);if(Number.isInteger(number)&&parsed!==null&&parsed!==undefined&&Number.isInteger(value))answers.set(number,value)}
+  const result=scoreBriefCopeRu(answers);
+  if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
+  await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?, ?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,'brief-cope-ru-pavlova-2022-v1',JSON.stringify(result)]);
+  return result;
+}
+
 async function calculateConfiguredMethodologiesForSession(sessionId:string){
   const[rows]=await db.query<any[]>(`SELECT s.id sectionId,s.code sectionCode,q.code questionCode,a.value,i.title,i.formula_version formulaVersion,i.scoring_config scoringConfig FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.source_instrument_id IS NOT NULL JOIN instruments i ON i.id=s.source_instrument_id AND i.is_verified=TRUE AND i.scoring_config IS NOT NULL JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY s.position,q.position`,[sessionId]);
   const groups=new Map<string,any[]>();for(const row of rows){const group=groups.get(row.sectionId)??[];group.push(row);groups.set(row.sectionId,group)}
@@ -224,4 +252,41 @@ async function calculateConfiguredMethodologiesForSession(sessionId:string){
   }));
 }
 
-export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId),calculateConfiguredMethodologiesForSession(sessionId)])}
+export async function calculateMunForSession(sessionId:string){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code='test_21' JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[sessionId]);
+  if(!rows.length)return null;
+  const answers=new Map<number,number>();
+  for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const value=Number(parseValue(row.value));if(Number.isInteger(number)&&Number.isInteger(value))answers.set(number,value)}
+  const result=scoreMun(answers);
+  if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
+  await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?, ?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,'rean-mun-2026-v1',JSON.stringify(result)]);
+  return result;
+}
+
+export async function calculateIafRuForSession(sessionId:string){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code='test_24' JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[sessionId]);
+  if(!rows.length)return null;
+  const answers=new Map<number,number>();
+  for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const value=Number(parseValue(row.value));if(Number.isInteger(number)&&Number.isInteger(value))answers.set(number,value)}
+  const result=scoreIafRu(answers);
+  if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
+  await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?, ?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,'iaf-ru-kostromina-2023-subscales-v1',JSON.stringify(result)]);
+  return result;
+}
+
+async function calculateSocialMediaScaleForSession(sessionId:string,code:'test_25'|'test_26',formulaVersion:string,score:(answers:Map<number,number>)=>unknown|null){
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,q.code,a.value FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.code=? JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY q.position`,[code,sessionId]);
+  if(!rows.length)return null;
+  const answers=new Map<number,number>();
+  for(const row of rows){const number=Number(String(row.code).match(/(\d+)$/)?.[1]);const raw=parseValue(row.value);const value=Number(raw);if(Number.isInteger(number)&&raw!==null&&raw!==undefined&&Number.isInteger(value))answers.set(number,value)}
+  const result=score(answers);
+  if(!result){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,rows[0].sectionId]);return null}
+  const interpretation=(result as {screeningNote?:string}).screeningNote??null;
+  await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=VALUES(interpretation),calculated_at=CURRENT_TIMESTAMP`,[sessionId,rows[0].sectionId,formulaVersion,JSON.stringify(result),interpretation]);
+  return result;
+}
+
+export async function calculateBsmasRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_25','bsmas-ru-kornienko-2023-sum-v1',scoreBsmasRu)}
+export async function calculateSmdsRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_26','smds-ru-tereshchenko-2024-screen-v1',scoreSmdsRu)}
+
+export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId),calculateGsesForSession(sessionId),calculateBriefCopeRuForSession(sessionId),calculateMunForSession(sessionId),calculateIafRuForSession(sessionId),calculateBsmasRuForSession(sessionId),calculateSmdsRuForSession(sessionId),calculateConfiguredMethodologiesForSession(sessionId)])}

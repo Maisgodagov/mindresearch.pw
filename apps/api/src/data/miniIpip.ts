@@ -26,7 +26,7 @@ export const miniIpipItems=[
 
 export const miniIpipInstrument:SeedSection={
   code:'test_16',
-  title:'Mini-IPIP — 20-item public-domain Big Five inventory',
-  description:'20-item public-domain short form of IPIP Big Five markers. Original English version.',
+  title:'Краткий опросник Большой пятёрки, Mini-IPIP (англоязычная версия)',
+  description:'Краткая общедоступная 20-пунктовая форма маркеров Большой пятёрки IPIP. Исходные пункты приведены на английском языке; русская адаптация не подтверждена.',
   questions:miniIpipItems.map((text,index)=>({code:`test_16_${index+1}`,text,type:'single',required:true,options:ipipNeo120Options})),
 };

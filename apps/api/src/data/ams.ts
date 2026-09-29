@@ -36,7 +36,7 @@ const items=[
   'Because I want to show myself that I can succeed in my studies.',
 ];
 export const amsInstrument:SeedSection={
-  code:'test_8',title:'Academic Motivation Scale, AMS-C 28',
-  description:'Official English College Version. Why do you go to college? For research purposes only.',
+  code:'test_8',title:'Шкала академической мотивации, AMS-C 28 (англоязычный оригинал)',
+  description:'Оригинальная англоязычная версия для студентов колледжей. Текст пунктов приведён на английском языке; русская адаптация этой формы не подтверждена. Используется только в исследовательских целях.',
   questions:items.map((text,index)=>({code:`test_8_${index+1}`,text,type:'single',required:true,options})),
 };
