@@ -234,6 +234,7 @@ const WorkspaceBar = styled.div`
 `;
 const Columns = styled.div`
   display: grid;
+  min-width: 0;
   grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.72fr);
   grid-template-areas:
     "meta meta"
@@ -255,12 +256,29 @@ const Columns = styled.div`
   .structure-panel {
     grid-area: structure;
   }
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
     grid-template-columns: 1fr;
     grid-template-areas:
       "meta"
-      "library"
-      "structure";
+      "structure"
+      "library";
+    .library-panel {
+      position: static;
+    }
+  }
+  @container platform-main (max-width: 820px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "meta"
+      "structure"
+      "library";
+    > div,
+    .meta-panel,
+    .library-panel,
+    .structure-panel {
+      min-width: 0;
+      width: 100%;
+    }
     .library-panel {
       position: static;
     }
@@ -632,6 +650,18 @@ const CatalogTools = styled.div`
     transform: translateY(-50%);
     color: #728178;
   }
+  @container platform-main (max-width: 520px) {
+    .catalog-count {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .catalog-count > span {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      flex: 1 1 150px;
+    }
+  }
 `;
 const Library = styled.div`
   display: grid;
@@ -656,9 +686,11 @@ const Library = styled.div`
   .top {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 10px;
   }
   .title {
+    min-width: 0;
     font-weight: 750;
     color: #3d5544;
   }
@@ -711,6 +743,22 @@ const Library = styled.div`
     border-radius: 9px;
     padding: 8px 11px;
     font-weight: 700;
+  }
+  @container platform-main (max-width: 520px) {
+    .top {
+      flex-direction: column;
+      gap: 6px;
+    }
+    .verified {
+      white-space: normal;
+    }
+    .bottom {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .links {
+      flex-wrap: wrap;
+    }
   }
 `;
 const Stack = styled.div`

@@ -201,6 +201,8 @@ const Side = styled.aside<{ $collapsed: boolean }>`
 `;
 const Main = styled.main`
   width: min(100% - 36px, 1180px);
+  container-name: platform-main;
+  container-type: inline-size;
   margin: 0 auto;
   padding: 34px 0 70px;
   min-width: 0;
