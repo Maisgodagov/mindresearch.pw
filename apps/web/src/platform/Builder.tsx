@@ -235,6 +235,7 @@ const WorkspaceBar = styled.div`
 const Columns = styled.div`
   display: grid;
   min-width: 0;
+  width: 100%;
   grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.72fr);
   grid-template-areas:
     "meta meta"
@@ -249,15 +250,18 @@ const Columns = styled.div`
   }
   .library-panel {
     grid-area: library;
+    width: 100%;
+    min-width: 0;
     margin-top: 0 !important;
     position: sticky;
     top: 18px;
   }
   .structure-panel {
     grid-area: structure;
+    min-width: 0;
   }
-  @media (max-width: 1100px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 1280px) {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "meta"
       "structure"
@@ -574,10 +578,14 @@ const PreviewCard = styled.div`
 `;
 const CatalogTools = styled.div`
   display: grid;
+  width: 100%;
+  min-width: 0;
   gap: 12px;
   margin-top: 15px;
   .create-custom {
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     min-height: 52px;
     display: flex;
     align-items: center;
@@ -642,6 +650,15 @@ const CatalogTools = styled.div`
   }
   .search {
     position: relative;
+    min-width: 0;
+    width: 100%;
+  }
+  .search input {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
   .search svg {
     position: absolute;
@@ -673,6 +690,7 @@ const Library = styled.div`
   scrollbar-color: #a9bba9 transparent;
   scrollbar-width: thin;
   .item {
+    min-width: 0;
     border: 1px solid #dce5da;
     border-radius: 16px;
     padding: 16px;
@@ -691,6 +709,7 @@ const Library = styled.div`
   }
   .title {
     min-width: 0;
+    overflow-wrap: anywhere;
     font-weight: 750;
     color: #3d5544;
   }
@@ -701,6 +720,7 @@ const Library = styled.div`
     align-items: center;
     gap: 4px;
     white-space: nowrap;
+    flex: none;
   }
   .author {
     font-size: 11px;
@@ -708,6 +728,7 @@ const Library = styled.div`
     margin-top: 6px;
   }
   .description {
+    overflow-wrap: anywhere;
     font-size: 12px;
     color: #78847c;
     line-height: 1.5;
@@ -725,6 +746,8 @@ const Library = styled.div`
   .links {
     display: flex;
     gap: 5px;
+    min-width: 0;
+    flex-wrap: wrap;
   }
   .more {
     border: 0;
@@ -743,6 +766,22 @@ const Library = styled.div`
     border-radius: 9px;
     padding: 8px 11px;
     font-weight: 700;
+  }
+  @container (max-width: 360px) {
+    .top {
+      flex-direction: column;
+      gap: 6px;
+    }
+    .verified {
+      white-space: normal;
+    }
+    .bottom {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .links {
+      flex-wrap: wrap;
+    }
   }
   @container platform-main (max-width: 520px) {
     .top {
