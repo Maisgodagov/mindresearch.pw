@@ -1,15 +1,16 @@
 import styled from 'styled-components';
-export const Page=styled.main`display:flow-root;min-height:100dvh;background:radial-gradient(circle at 90% 0,#e1eadc 0,transparent 34%),#f3f6f0;`;
+import { Card } from './components/Card';
+import { Button } from './components/Button';
+import { Page } from './components/Page';
+export { Card, Button };
+export { Page };
 export const Shell=styled.div`width:min(100% - 32px,720px);margin:auto;min-width:0;@media(max-width:480px){width:calc(100% - 24px)}`;
-export const Card=styled.section`background:rgba(255,255,255,.82);border:1px solid rgba(87,116,94,.14);border-radius:28px;box-shadow:0 20px 60px rgba(48,70,54,.08);`;
-export const Button=styled.button`border:0;border-radius:11px;padding:15px 20px;background:#526f5b;color:white;font-weight:700;transition:background .18s,box-shadow .18s;min-height:54px;&:hover{background:#425d4b;box-shadow:0 6px 16px rgba(48,70,54,.12)}&:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}`;
-export const GhostButton=styled(Button)`background:transparent;color:#526f5b;border:1px solid #ccd8cd;box-shadow:none;&:hover{background:#edf2ec;box-shadow:none}`;
+export const GhostButton=styled(Button)`&&{background:transparent;color:#526f5b;border:1px solid #ccd8cd;box-shadow:none}&:hover{background:#edf2ec!important;box-shadow:none!important}`;
 export const Skeleton=styled.div<{$width?:string;$height?:string;$radius?:string}>`
   width:${p=>p.$width??'100%'};height:${p=>p.$height??'16px'};border-radius:${p=>p.$radius??'9px'};
-  background:linear-gradient(100deg,#e7ede5 20%,#f5f8f3 38%,#e7ede5 56%);background-size:220% 100%;
-  animation:skeleton-wave 1.35s ease-in-out infinite;
-  @keyframes skeleton-wave{0%{background-position:100% 0}100%{background-position:-100% 0}}
-  @media(prefers-reduced-motion:reduce){animation:none;background:#e7ede5}
+  background:#e7ede5;animation:skeleton-pulse 1.35s ease-in-out infinite;
+  @keyframes skeleton-pulse{50%{opacity:.55}}
+  @media(prefers-reduced-motion:reduce){animation:none}
 `;
 const SkeletonLayout=styled.div`
   display:grid;gap:18px;width:100%;

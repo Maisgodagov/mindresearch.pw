@@ -8,6 +8,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.4",
     "@dicebear/core": "^10.7.0",
     "@dicebear/styles": "^10.6.0",
     "@dnd-kit/core": "^6.3.1",
@@ -16,13 +17,13 @@
     "@fontsource-variable/lora": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
     "@tanstack/react-table": "^8.21.3",
+    "antd": "^6.6.5",
     "axios": "^1.11.0",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.0",
-    "react-select": "^5.10.2",
     "recharts": "^3.1.2",
     "styled-components": "^6.1.19"
   },
