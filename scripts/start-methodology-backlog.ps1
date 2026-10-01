@@ -1,4 +1,4 @@
-param([int]$MaxItems = 0)
+﻿param([int]$MaxItems = 0)
 
 $ErrorActionPreference = 'Stop'
 $runner = Join-Path $PSScriptRoot 'run-methodology-backlog.ps1'

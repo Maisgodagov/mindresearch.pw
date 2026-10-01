@@ -1,4 +1,4 @@
-$statePath = Join-Path (Join-Path $env:LOCALAPPDATA 'OporaMethodologyRunner') 'state.json'
+﻿$statePath = Join-Path (Join-Path $env:LOCALAPPDATA 'OporaMethodologyRunner') 'state.json'
 if (!(Test-Path -LiteralPath $statePath)) {
   Write-Output 'Runner ещё не запускался.'
   exit 0

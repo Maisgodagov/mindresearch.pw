@@ -1,4 +1,4 @@
-param(
+﻿param(
   [int]$MaxItems = 0,
   [int]$MaxAttemptsPerItem = 3,
   [switch]$DryRun,

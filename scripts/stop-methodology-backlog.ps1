@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $runnerDir = Join-Path $env:LOCALAPPDATA 'OporaMethodologyRunner'
 $null = New-Item -ItemType Directory -Path $runnerDir -Force
 Set-Content -LiteralPath (Join-Path $runnerDir 'STOP') -Value 'stop' -Encoding UTF8
