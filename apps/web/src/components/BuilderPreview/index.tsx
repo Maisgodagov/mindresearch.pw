@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, Leaf, X } from "lucide-react";
 import { Button } from "../../ui";
+import { formatOptionLabel } from "../../utils/formatOptionLabel";
 import { initialPreviewScreen, singleChoiceAdvanceDelayMs } from "./const";
 import {
   AnswerInput, Brand, Choice, Done, Layer, Navigation, Options, PreviewPage,
@@ -97,7 +98,7 @@ export function BuilderPreview({ meta, questions, onClose }: PreviewProps) {
                         : value === option.value;
                       return (
                         <Choice key={option.value} $active={active} onClick={() => question.type === "single" ? chooseSingle(option.value) : toggleMultiple(option.value)}>
-                          <span className="dot">{active && <Check size={14} />}</span>{option.label || "Вариант ответа"}
+                          <span className="dot">{active && <Check size={14} />}</span>{formatOptionLabel(option.label, option.value)}
                         </Choice>
                       );
                     })}

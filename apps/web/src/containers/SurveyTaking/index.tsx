@@ -10,6 +10,7 @@ import {
   Leaf,
 } from "lucide-react";
 import { api } from "../../api";
+import { formatOptionLabel } from "../../utils/formatOptionLabel";
 import type { Question, Survey } from "../../types";
 import { Button, Page, Shell, SkeletonScreen } from "../../ui";
 import { ResultsPage } from "../SurveyResults";
@@ -328,7 +329,7 @@ export function SurveyPage() {
                           {active && <Check size={14} />}
                         </span>
                       )}
-                      {o.label}
+                      {formatOptionLabel(o.label, o.value)}
                     </Choice>
                   );
                 })}
