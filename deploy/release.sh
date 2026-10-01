@@ -3,7 +3,7 @@ set -euo pipefail
 
 release_dir="$1"
 cd "$release_dir"
-npm ci
+npm ci --omit=dev --workspace=@opora/api --include-workspace-root
 ln -sfn /etc/mindresearch.env "$release_dir/apps/api/.env"
 (cd apps/api && node dist/seed.js)
 
