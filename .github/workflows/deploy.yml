@@ -3,6 +3,13 @@ name: Deploy production
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'deploy/**'
+      - '.github/workflows/deploy.yml'
+      - 'deployment-retry.txt'
   workflow_dispatch:
 
 concurrency:

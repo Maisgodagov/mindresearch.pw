@@ -1,4 +1,4 @@
-# Методики из путеводителей PsyTests
+﻿# Методики из путеводителей PsyTests
 
 Источник: все 83 уникальных ссылок из [`links_backlog.md`](../links_backlog.md). Одинаковые страницы объединены по URL; варианты названий и путеводители сохранены. Точные совпадения с уже существующими названиями в основном `BACKLOG.md` отмечены. Это инвентаризация источников, не проверка русской адаптации, психометрии или прав.
 
@@ -6,8 +6,8 @@
 
 Статус новых записей: `queued`; точные названия, уже присутствующие в главном backlog, помечены `already-listed`.
 
-- [ ] 1. 12 архетипов Кэрол Пирсон — `queued`; [страница методики](https://psytests.org/typo/hero.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
-- [ ] 2. 12 квадратов — `queued`; [страница методики](https://psytests.org/fun/p12kv.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
+- [x] 1. 12 архетипов Кэрол Пирсон — `ru-ineligible`; [review](../reviews/256-pearson-12-archetypes.md); [страница методики](https://psytests.org/typo/hero.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
+- [x] 2. 12 квадратов — `ru-ineligible`; [review](../reviews/257-12-squares.md); [страница методики](https://psytests.org/fun/p12kv.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
 - [ ] 3. 80 вопросов к самому себе — `queued`; [страница методики](https://psytests.org/typo/s80qs.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 4. ATSPPHS — `queued`; [страница методики](https://psytests.org/diag/atspphs.html); путеводители: [clinical-health-ru.html](https://psytests.org/guide/clinical-health-ru.html).
 - [ ] 5. BAS — `queued`; [страница методики](https://psytests.org/body/bas.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html).

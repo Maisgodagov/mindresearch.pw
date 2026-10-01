@@ -16,7 +16,7 @@ $statePath = Join-Path $runnerDir 'state.json'
 $stopPath = Join-Path $runnerDir 'STOP'
 $lockPath = Join-Path $runnerDir 'runner.lock'
 $logPath = Join-Path $runnerDir 'runner.log'
-$terminalStatuses = @('done', 'blocked', 'ru-ineligible', 'already-available')
+$terminalStatuses = @('implemented-local', 'done', 'blocked', 'ru-ineligible', 'already-available')
 
 function Write-State($State) {
   $json = ConvertTo-Json -InputObject $State -Depth 8
@@ -39,6 +39,85 @@ function Get-QueuedItems {
     }
   }
   return $items.ToArray()
+}
+
+function Get-ImplementedLocalLines {
+  return @(Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match '^\- \[x\] \d+\. .+ — `implemented-local`;' })
+}
+
+function Get-CurrentCommit {
+  $sha = (& git -C $repo rev-parse HEAD).Trim()
+  if ($LASTEXITCODE -ne 0 -or !$sha) { throw 'Не удалось определить текущий git commit.' }
+  return $sha
+}
+
+function Start-DeploymentRetry([int]$ItemId) {
+  $markerPath = Join-Path $repo 'deployment-retry.txt'
+  $marker = "Retry accumulated methodologies after queue item $ItemId at $((Get-Date).ToString('o'))"
+  [IO.File]::WriteAllText($markerPath, $marker + "`n", [Text.UTF8Encoding]::new($false))
+  & git -C $repo add -- deployment-retry.txt
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить marker для повторного deploy.' }
+  & git -C $repo commit -m "Retry deployment after methodology $ItemId"
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось создать commit для повторного deploy.' }
+  & git -C $repo push origin main
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось отправить повторный deploy в main.' }
+  return Get-CurrentCommit
+}
+
+function Wait-Deployment([string]$Sha) {
+  $headers = @{ 'User-Agent' = 'OporaMethodologyRunner' }
+  $apiRoot = 'https://api.github.com/repos/Maisgodagov/mindresearch.pw/actions'
+  $run = $null
+  $deadline = (Get-Date).AddMinutes(30)
+  while ((Get-Date) -lt $deadline) {
+    try {
+      if ($run) {
+        $run = Invoke-RestMethod -Uri $run.url -Headers $headers -TimeoutSec 30
+      } else {
+        $response = Invoke-RestMethod -Uri "$apiRoot/workflows/deploy.yml/runs?head_sha=$Sha&per_page=1" -Headers $headers -TimeoutSec 30
+        $run = $response.workflow_runs | Select-Object -First 1
+      }
+    } catch {
+      Add-RunLog "DEPLOY_STATUS_QUERY_ERROR sha=$Sha error=$($_.Exception.Message)"
+      Start-Sleep -Seconds 60
+      continue
+    }
+    if (!$run) {
+      Add-RunLog "DEPLOY_RUN_NOT_VISIBLE sha=$Sha"
+      Start-Sleep -Seconds 30
+      continue
+    }
+    if ($run.status -eq 'completed') {
+      if ($run.conclusion -eq 'success') {
+        try {
+          $health = Invoke-RestMethod -Uri 'https://mindresearch.pw/api/health' -TimeoutSec 20
+          if ($health.ok -eq $true) { return @{ status = 'success'; url = $run.html_url; sha = $Sha } }
+          return @{ status = 'deferred'; reason = 'Health API не подтвердил ok=true'; url = $run.html_url; sha = $Sha }
+        } catch {
+          return @{ status = 'deferred'; reason = "Health API недоступен: $($_.Exception.Message)"; url = $run.html_url; sha = $Sha }
+        }
+      }
+      try {
+        $jobs = Invoke-RestMethod -Uri "$apiRoot/runs/$($run.id)/jobs?per_page=100" -Headers $headers -TimeoutSec 30
+        $failedChecks = @($jobs.jobs | ForEach-Object { $_.steps | Where-Object { $_.conclusion -eq 'failure' -and $_.name -eq 'Run npm run build' } })
+        if ($failedChecks.Count) { return @{ status = 'validation-failed'; reason = ($failedChecks.name -join ', '); url = $run.html_url; sha = $Sha } }
+      } catch { Add-RunLog "DEPLOY_JOB_QUERY_ERROR sha=$Sha error=$($_.Exception.Message)" }
+      return @{ status = 'deferred'; reason = "Workflow завершился: $($run.conclusion)"; url = $run.html_url; sha = $Sha }
+    }
+    $state.updatedAt = (Get-Date).ToString('o')
+    $state.message = "Ожидается deploy batch $Sha; последний статус: $($run.status)."
+    $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
+    Write-State $state
+    Start-Sleep -Seconds 60
+  }
+  return @{ status = 'deferred'; reason = 'Истёк лимит ожидания workflow (30 минут).'; url = if ($run) { $run.html_url } else { '' }; sha = $Sha }
+}
+
+function Mark-ImplementedLocalAsDone([string]$Sha) {
+  $content = [IO.File]::ReadAllText($queuePath, [Text.UTF8Encoding]::new($true))
+  $shortSha = $Sha.Substring(0, 7)
+  $content = [regex]::Replace($content, '(?m)^(\- \[x\] \d+\. .+ — )`implemented-local`;', "`$1``done`` (release $shortSha);")
+  [IO.File]::WriteAllText($queuePath, $content, [Text.UTF8Encoding]::new($true))
 }
 
 function Set-FinalState($State, [string]$Status, [string]$Reason) {
@@ -83,6 +162,8 @@ $state = [ordered]@{
   currentAttempt = 0
   processedThisRun = 0
   remaining = $queue.Count
+  pendingDeployCount = @(Get-ImplementedLocalLines).Count
+  lastDeployStatus = 'none'
   message = 'Последовательная обработка начата.'
 }
 Remove-Item -LiteralPath $stopPath -Force -ErrorAction SilentlyContinue
@@ -135,16 +216,18 @@ try {
 
 Обязательно сначала прочитай docs/methodologies/WORKFLOW.md и выполни его правила: российская опубликованная версия; первичный и независимый источник; лицензионные условия; точный текст/ключ/подсчёт; ручные крайние и смешанные контрольные расчёты; отсутствие выдуманных норм. PsyTests используй только для навигации и независимой сверки, не как единственное доказательство.
 
-Для нового инструмента выполни проверку источников, прав, тестов и сборки по WORKFLOW. Если он подтверждён и реализован, отдельно зафиксируй и отправь только относящиеся к нему изменения в `main`, дождись успешного GitHub Actions workflow `Deploy production`, проверь production health и наличие инструмента в каталоге сайта как подтверждённого (`isVerified=true`). Не начинай следующий пункт до выполнения всех этих шагов. Только тогда поставь статус `done`. Не объявляй успех при неуспешном/неизвестном деплое или если методика не видна в production. При проблеме оставь пункт `queued`, запиши конкретный блокер и заверши `PAUSE_REQUIRED`.
+НОВЫЙ ОБЯЗАТЕЛЬНЫЙ РЕЖИМ НАКОПИТЕЛЬНОГО DEPLOY (он переопределяет любые противоречащие старые указания ниже): каждая локально завершённая методика коммитится/пушится с итогом `implemented-local`; runner ждёт GitHub workflow. Если deploy не удался из-за хостинга, базы, SSH или health-check, НЕ ставь `PAUSE_REQUIRED`, не откатывай изменения и переходи к следующему пункту. После каждого следующего пункта runner повторно выкладывает все накопленные `implemented-local` методики. Только при успешном workflow и production health все накопленные строки меняются на `done`. Ошибка CI `npm ci`/build или невозможность commit/push — причина остановиться.
 
-Для `blocked`, `ru-ineligible` или `already-available` создай/обнови review и точно укажи причину; эти решения не требуют релиза. Если работа объективно требует ответа пользователя или прав/файлов/источников, которые невозможно запросить фоново, не угадывай: оставь этот пункт в `queued`, запиши блокер и заверши сообщением `PAUSE_REQUIRED`.
+Для нового инструмента выполни проверку источников, прав, тестов и сборки по WORKFLOW. Если он подтверждён и реализован, поставь `[x]` и `implemented-local`, добавь review и закоммить/отправь в `main` только файлы этого пункта. Не жди deploy в этой Codex-сессии и не ставь `done`: runner следит за workflow, production health-check и закрывает весь накопленный пакет как `done` после успешного выпуска. Если deploy/workflow падает на хостинге, БД, SSH или health-check, оставь методики в `implemented-local` и продолжай очередь.
 
-Не меняй существующие опросы и исторические результаты. Сохраняй посторонние незакоммиченные изменения пользователя и не включай их в commit. Обработай только указанный пункт, затем обнови только его строку в docs/methodologies/links/_backlog.md: для успешно реализованного и появившегося в production подтверждённого инструмента установи `[x]` и статус `done`; для `blocked`, `ru-ineligible` или `already-available` — соответствующий итоговый статус. Включи ссылку на review и подтверждение deploy для `done`. Никакой статус не ставь только по названию без проверки источников.
+Для `blocked`, `ru-ineligible` или `already-available` создай/обнови review, отметь строку и закоммить/отправь только её и связанные review. Если в очереди есть изменения других закрытых пунктов этого запуска, включи их тоже, но не включай посторонние файлы. При наличии `implemented-local` runner после этого пункта сам создаст retry-marker и повторит deploy накопленного пакета.
+
+Не меняй существующие опросы и исторические результаты. Не коммить посторонние незакоммиченные изменения. Если работа объективно требует ответа пользователя или недоступных прав/файлов/источников, оставь текущий пункт `queued`, запиши блокер и заверши `PAUSE_REQUIRED`. Ошибка локального теста/сборки или невозможность commit/push также требует паузы. Никакой статус не ставь только по названию без проверки источников.
 
 Пункт очереди (ссылка на страницу и путеводитель включены):
 __QUEUE_ITEM__
 
-После завершения напиши короткое резюме. Runner проверит статус строки перед переходом дальше.
+После завершения напиши короткое резюме. Runner проверит итог, продолжит очередь при сбое production deploy и подтвердит весь накопленный batch после успешного workflow и health-check.
 '@
       $prompt = $prompt.Replace('__QUEUE_ITEM__', $item.Line)
       $safeId = '{0:D4}' -f $itemId
@@ -230,6 +313,33 @@ __QUEUE_ITEM__
 
     if ($state.status -in @('stopped', 'paused')) { break }
     if (!$result) { Set-FinalState $state 'paused' "Пункт $itemId не был закрыт итоговым статусом."; break }
+
+    $pendingBeforeDeploy = @(Get-ImplementedLocalLines)
+    if ($result.status -eq 'implemented-local' -or $pendingBeforeDeploy.Count -gt 0) {
+      $deploySha = Get-CurrentCommit
+      if ($result.status -ne 'implemented-local') { $deploySha = Start-DeploymentRetry $itemId }
+      Add-RunLog "DEPLOY_START id=$itemId sha=$deploySha pending=$($pendingBeforeDeploy.Count)"
+      $deployResult = Wait-Deployment $deploySha
+      $state.lastDeployStatus = $deployResult.status
+      if ($deployResult.status -eq 'success') {
+        Mark-ImplementedLocalAsDone $deploySha
+        $state.pendingDeployCount = 0
+        Add-RunLog "DEPLOY_CONFIRMED id=$itemId sha=$deploySha url=$($deployResult.url)"
+        & git -C $repo add -- docs/methodologies/links/_backlog.md
+        if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить статусы подтверждённых методик.' }
+        & git -C $repo commit -m "Mark methodology batch deployed"
+        if ($LASTEXITCODE -ne 0) { throw 'Не удалось зафиксировать статусы подтверждённых методик.' }
+        & git -C $repo push origin main
+        if ($LASTEXITCODE -ne 0) { throw 'Не удалось сохранить статусы подтверждённых методик в main.' }
+      } elseif ($deployResult.status -eq 'validation-failed') {
+        Set-FinalState $state 'paused' "CI validation failed for deployment $($deploySha): $($deployResult.reason). $($deployResult.url)"
+        break
+      } else {
+        $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
+        $state.message = "Deploy отложен; очередь продолжится, ожидают выпуска: $($state.pendingDeployCount). Причина: $($deployResult.reason)"
+        Add-RunLog "DEPLOY_DEFERRED id=$itemId sha=$deploySha pending=$($state.pendingDeployCount) reason=$($deployResult.reason)"
+      }
+    }
     $state.processedThisRun++
     $state.lastCompleted = "$itemId. $($result.status) — $itemTitle"
     $state.activeItem = $null
