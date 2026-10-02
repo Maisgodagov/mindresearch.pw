@@ -8,7 +8,7 @@
 
 - [x] 1. 12 архетипов Кэрол Пирсон — `ru-ineligible`; [review](../reviews/256-pearson-12-archetypes.md); [страница методики](https://psytests.org/typo/hero.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [x] 2. 12 квадратов — `ru-ineligible`; [review](../reviews/257-12-squares.md); [страница методики](https://psytests.org/fun/p12kv.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
-- [ ] 3. 80 вопросов к самому себе — `queued`; [страница методики](https://psytests.org/typo/s80qs.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
+- [x] 3. 80 вопросов к самому себе — `ru-ineligible`; [review](../reviews/258-sizanov-80-questions-to-self.md); [страница методики](https://psytests.org/typo/s80qs.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 4. ATSPPHS — `queued`; [страница методики](https://psytests.org/diag/atspphs.html); путеводители: [clinical-health-ru.html](https://psytests.org/guide/clinical-health-ru.html).
 - [ ] 5. BAS — `queued`; [страница методики](https://psytests.org/body/bas.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html).
 - [ ] 6. BF+M — `queued`; [страница методики](https://psytests.org/diag/pid5bm.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
