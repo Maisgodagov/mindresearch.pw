@@ -46,7 +46,7 @@
 - [ ] 38. SELSA-S — `already-listed`; [страница методики](https://psytests.org/ipl/selsas.html); путеводители: [social-loneliness-ru.html](https://psytests.org/guide/social-loneliness-ru.html).
 - [x] 39. SMFQ — `blocked`; [страница методики](https://psytests.org/depr/mafqs.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html). [review](../reviews/method-0039.md);
 - [x] 40. SMS-6 — `blocked`; [страница методики](https://psytests.org/sport/sms6.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0040.md);
-- [ ] 41. SOGS-RA — `queued`; [страница методики](https://psytests.org/diag/sogsra.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html).
+- [x] 41. SOGS-RA — `ru-ineligible`; [страница методики](https://psytests.org/diag/sogsra.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html). [review](../reviews/method-0041.md);
 - [ ] 42. STAXI-2 — `queued`; [страница методики](https://psytests.org/confl/staxi2.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
 - [ ] 43. TAS-26 — `queued`; [страница методики](https://psytests.org/diag/tas26.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html).
 - [ ] 44. TAS-C — `queued`; [страница методики](https://psytests.org/diag/tas20c.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html).
