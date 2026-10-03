@@ -33,7 +33,7 @@
 - [x] 25. LOT-R — `blocked`; [страница методики](https://psytests.org/life/lotr.html); путеводители: [trait-beliefs-ru.html](https://psytests.org/guide/trait-beliefs-ru.html). [review](../reviews/method-0025.md);
 - [x] 26. Love Story — `blocked`; [страница методики](https://psytests.org/classic/rolelovs.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html). [review](../reviews/method-0026.md);
 - [x] 27. MBTI — `implemented-local`; [страница методики](https://psytests.org/opm/oejts.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0027.md);
-- [ ] 28. MSTAT-II — `queued`; [страница методики](https://psytests.org/trait/mstatii.html); путеводители: [regulation-uncertainty-ru.html](https://psytests.org/guide/regulation-uncertainty-ru.html).
+- [x] 28. MSTAT-II — `blocked`; [страница методики](https://psytests.org/trait/mstatii.html); путеводители: [regulation-uncertainty-ru.html](https://psytests.org/guide/regulation-uncertainty-ru.html). [review](../reviews/method-0028.md);
 - [ ] 29. NORC-DSM-IV — `queued`; [страница методики](https://psytests.org/diag/norc4.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html).
 - [ ] 30. OHI — `queued`; [страница методики](https://psytests.org/life/ohi.html); путеводители: [meaning-satisfaction-ru.html](https://psytests.org/guide/meaning-satisfaction-ru.html).
 - [ ] 31. PMAI — `queued`; [страница методики](https://psytests.org/typo/heropm.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
