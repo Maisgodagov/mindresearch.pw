@@ -46,7 +46,7 @@ import {
   type PreviewQuestion,
 } from "../../components/BuilderPreview";
 import { SortableQuestion, SortableSection } from "./components/SortableBlocks";
-import { InstrumentCatalog } from "./components/InstrumentCatalog";
+import { SurveyBuilderToolbar } from "./components/SurveyBuilderToolbar";
 import type { Instrument, Option, Question, Section } from "./types";
 import {
   filterRussianCatalog,
@@ -56,7 +56,6 @@ import {
 import {
   Header,
   Flow,
-  WorkspaceBar,
   Columns,
   Panel,
   SurveyBasics,
@@ -67,7 +66,6 @@ import {
   Stack,
   SectionCard,
   AddQuestionButton,
-  Footer,
 } from "./styles";
 export function SurveyBuilder() {
   const nav = useNavigate();
@@ -248,7 +246,7 @@ export function SurveyBuilder() {
     const query = libraryQuery.trim().toLocaleLowerCase("ru");
     if (!query) return instruments;
     return instruments.filter((instrument) =>
-      `${instrument.title} ${instrument.author ?? ""}`
+      `${instrument.title} ${instrument.author ?? ""} ${instrument.description ?? ""}`
         .toLocaleLowerCase("ru")
         .includes(query),
     );
@@ -552,37 +550,6 @@ export function SurveyBuilder() {
           <b>Публикация</b>
         </div>
       </Flow>
-      <WorkspaceBar>
-        <div className="save">
-          <span className="dot" />
-          <span className="save-copy">
-            {draftRestored ? (
-              <>
-                <b>Черновик восстановлен.</b> Можно продолжить работу.
-              </>
-            ) : (
-              <>
-                <b>Автосохранение включено.</b>
-              </>
-            )}
-          </span>
-          <span className="saved-at">
-            {lastSaved
-              ? `Сохранено в ${lastSaved.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`
-              : "Сохраняем…"}
-          </span>
-        </div>
-        <div className="tools">
-          <span className="preview-note">
-            <Eye size={14} /> Как увидит респондент
-          </span>
-          <Button disabled={previewLoading} onClick={openPreview}>
-            <Eye size={15} />
-            {previewLoading ? "Загружаем…" : "Предпросмотр"}
-          </Button>
-        </div>
-        {previewError && <span className="error">{previewError}</span>}
-      </WorkspaceBar>
       <Columns>
         <div>
           <MetaStack className="meta-panel">
@@ -797,21 +764,29 @@ export function SurveyBuilder() {
               </PreviewGrid>
             </Panel>
           </MetaStack>
-          <Panel className="library-panel">
-            <InstrumentCatalog
-              instruments={filteredInstruments}
-              totalCount={instruments.length}
-              methodologies={methodologies}
-              sections={sections}
-              query={libraryQuery}
-              locked={structureLocked}
-              onQueryChange={setLibraryQuery}
-              onCreateCustom={addCustom}
-              onShowMethodology={setActiveMethodology}
-              onAddInstrument={addInstrument}
-            />
-          </Panel>
         </div>
+        <SurveyBuilderToolbar
+          draftRestored={draftRestored}
+          lastSaved={lastSaved}
+          instruments={filteredInstruments}
+          methodologies={methodologies}
+          sections={sections}
+          query={libraryQuery}
+          locked={structureLocked}
+          previewLoading={previewLoading}
+          previewError={previewError}
+          saving={saving}
+          publishImmediately={meta.status === "active"}
+          onQueryChange={setLibraryQuery}
+          onCreateCustom={addCustom}
+          onShowMethodology={setActiveMethodology}
+          onAddInstrument={addInstrument}
+          onPreview={openPreview}
+          onPublishChange={(value) =>
+            setMeta({ ...meta, status: value ? "active" : "draft" })
+          }
+          onSave={submit}
+        />
         <Panel
           className={`structure-panel${invalidFields.includes("sections") ? " invalid-panel" : ""}`}
           data-validation-error={
@@ -1541,31 +1516,6 @@ export function SurveyBuilder() {
               </SortableContext>
             </DndContext>
           </div>
-          <Footer>
-            <label>
-              <FieldInput
-                type="checkbox"
-                checked={meta.status === "active"}
-                onChange={(e) =>
-                  setMeta({
-                    ...meta,
-                    status: e.target.checked ? "active" : "draft",
-                  })
-                }
-              />{" "}
-              Сразу опубликовать
-            </label>
-            <div className="actions">
-              <Button disabled={saving} onClick={submit}>
-                {saving
-                  ? "Сохраняем…"
-                  : surveyId
-                    ? "Сохранить изменения"
-                    : "Создать опрос"}{" "}
-                <CheckCircle2 size={16} />
-              </Button>
-            </div>
-          </Footer>
           {error && <p className="error">{error}</p>}
         </Panel>
       </Columns>
