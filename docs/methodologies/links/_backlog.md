@@ -68,7 +68,7 @@
 - [x] 60. Анализ оценочной деятельности учителя — `blocked`; [страница методики](https://psytests.org/pedag/ouodu.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html). [review](../reviews/method-0060.md);
 - [x] 61. Анализ своих ограничений — `blocked`; [страница методики](https://psytests.org/work/manlim.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html). [review](../reviews/method-0061.md);
 - [x] 62. Анализ семейного мифа — `blocked`; [страница методики](https://psytests.org/family/myth.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html). [review](../reviews/method-0062.md);
-- [ ] 63. Анализ семейной тревоги — `queued`; [страница методики](https://psytests.org/family/ast.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
+- [x] 63. Анализ семейной тревоги — `implemented-local`; [страница методики](https://psytests.org/family/ast.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-0063.md);
 - [ ] 64. Анализ семейных взаимоотношений — `queued`; [страница методики](https://psytests.org/parent/asvA.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 65. Анализ стиля педагогической деятельности — `queued`; [страница методики](https://psytests.org/pedag/auispd.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html).
 - [ ] 66. Анкета «Школа» — `queued`; [страница методики](https://psytests.org/school/ashkola.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
