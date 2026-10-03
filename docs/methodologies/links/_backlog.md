@@ -114,7 +114,7 @@
 - [x] 106. Ваш сексуальный аппетит — `blocked`; [страница методики](https://psytests.org/fun/sexap.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0106.md);
 - [x] 107. Ваш стиль воспитания — `ru-ineligible`; [страница методики](https://psytests.org/quiz/gottV.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-0107.md);
 - [x] 108. Ваш стиль обучения и мышления — `blocked`; [страница методики](https://psytests.org/typo/solatB.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-0108.md);
-- [ ] 109. Ваш стиль продуктивности — `queued`; [страница методики](https://psytests.org/typo/stprod.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html).
+- [x] 109. Ваш стиль продуктивности — `blocked`; [страница методики](https://psytests.org/typo/stprod.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html). [review](../reviews/method-0109.md);
 - [ ] 110. Ваша уличная компания — `queued`; [страница методики](https://psytests.org/parent/vulkomp.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html).
 - [ ] 111. Ваши родители – нарциссы? — `queued`; [страница методики](https://psytests.org/quiz/mcbrnf.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
 - [ ] 112. Вендер-Ютская шкала самооценки СДВГ у взрослых — `queued`; [страница методики](https://psytests.org/diag/wurs.html); путеводители: [clinical-adhd-ru.html](https://psytests.org/guide/clinical-adhd-ru.html).
