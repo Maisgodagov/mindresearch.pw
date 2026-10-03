@@ -81,7 +81,7 @@
 - [x] 73. Анкета качества сна — `implemented-local`; [страница методики](https://psytests.org/diag/aks.html); путеводители: [clinical-sleep-ru.html](https://psytests.org/guide/clinical-sleep-ru.html). [review](../reviews/method-0073.md);
 - [x] 74. Анкета Ориентация — `blocked`; [страница методики](https://psytests.org/work/orient.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0074.md);
 - [x] 75. Анкета отношения к курению для подростков и молодежи — `blocked`; [страница методики](https://psytests.org/school/okpm.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html). [review](../reviews/method-0075.md);
-- [ ] 76. Анкета преференций Шалвен — `queued`; [страница методики](https://psytests.org/typo/chalvin.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
+- [x] 76. Анкета преференций Шалвен — `blocked`; [страница методики](https://psytests.org/typo/chalvin.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-0076.md);
 - [ ] 77. Анкета психофизиологического комфорта — `queued`; [страница методики](https://psytests.org/stress/aphk.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html).
 - [ ] 78. Анкета самооценки состояния — `queued`; [страница методики](https://psytests.org/emo/assam.html); путеводители: [work-service-ru.html](https://psytests.org/guide/work-service-ru.html).
 - [ ] 79. Анкета самооценки типа личности — `queued`; [страница методики](https://psytests.org/accent/asls.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
