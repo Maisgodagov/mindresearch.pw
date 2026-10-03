@@ -1,4 +1,4 @@
-import { readdir } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { SeedSection } from '../types.js';
@@ -13,6 +13,18 @@ export type MethodologyRegistration = {
   /** Optional curated text; a usable catalog card is generated when omitted. */
   details?: Omit<Methodology, 'code' | 'title'>;
 };
+
+async function reviewSources(moduleName: string): Promise<Methodology['sources']> {
+  const reviewName = moduleName.replace(/\.ts$/, '.md');
+  const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');
+  try {
+    const review = await readFile(join(repoRoot, 'docs', 'methodologies', 'reviews', reviewName), 'utf8');
+    const urls = [...review.matchAll(/https?:\/\/[^\s)\]>]+/g)].map(([url]) => url.replace(/[.,;]+$/, ''));
+    return [...new Set(urls)].slice(0, 8).map((url) => ({ title: url, url }));
+  } catch {
+    return [];
+  }
+}
 
 function catalogDetails(registration: MethodologyRegistration): Omit<Methodology, 'code' | 'title'> {
   if (registration.details) return registration.details;
@@ -54,7 +66,9 @@ export async function loadMethodologyRegistry(): Promise<MethodologyRegistration
     if (!loaded.methodology?.instrument?.code?.startsWith('test_')) {
       throw new Error(`Invalid methodology registration module: ${file}`);
     }
-    registrations.push({ ...loaded.methodology, details: catalogDetails(loaded.methodology) });
+    const details = catalogDetails(loaded.methodology);
+    if (!details.sources.length) details.sources = await reviewSources(file);
+    registrations.push({ ...loaded.methodology, details });
   }
   const codes = registrations.map(({ instrument }) => instrument.code);
   if (new Set(codes).size !== codes.length) throw new Error('Duplicate codes in methodology registry.');
