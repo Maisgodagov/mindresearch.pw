@@ -24,8 +24,8 @@ export function MethodologyModal({ methodology, onClose }: Props) {
       {methodology.keys?.length ? <><h3>{copy.key}</h3>{methodology.keys.map((item) => <div className="key" key={item.label}><b>{item.label}</b><span>{item.value}</span></div>)}</> : null}
       {methodology.norms?.length ? <><h3>{copy.norms}</h3>{methodology.norms.map((item) => <div className="key" key={item.label}><b>{item.label}</b><span>{item.value}</span></div>)}</> : null}
       {methodology.notes.length > 0 ? <><h3>{copy.notes}</h3>{methodology.notes.map((note) => <p className="note" key={note}>{note}</p>)}</> : null}
-      <h3>{copy.sources}</h3>
-      <div className="sources">{methodology.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title}</a>)}</div>
+      {methodology.sources.length > 0 && <><h3>{copy.sources}</h3>
+      <div className="sources">{methodology.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title}</a>)}</div></>}
     </Content>
   </Modal>;
 }
