@@ -163,7 +163,7 @@
 - [x] 155. Гендерно-возрастной дифференциал профессионала — `blocked`; [страница методики](https://psytests.org/work/ermolC.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0155.md);
 - [x] 156. Генеральная шкала фаббинга — `blocked`; [страница методики](https://psytests.org/cyber/gsphE.html); путеводители: [cyberpsychology-ru.html](https://psytests.org/guide/cyberpsychology-ru.html). [review](../reviews/method-0156.md);
 - [ ] 157. Гериатрическая шкала депрессии — `queued`; [страница методики](https://psytests.org/depr/gds15.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html).
-- [ ] 158. Гибкость личности в трудовой сфере — `queued`; [страница методики](https://psytests.org/work/pflex.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
+- [x] 158. Гибкость личности в трудовой сфере — `implemented-local`; [страница методики](https://psytests.org/work/pflex.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0158.md);
 - [ ] 159. Гиссенский личностный опросник — `queued`; [страница методики](https://psytests.org/diag/gissa.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
 - [ ] 160. Гиссенский опросник соматических жалоб — `queued`; [страница методики](https://psytests.org/diag/gbb.html); путеводители: [clinical-somatic-ru.html](https://psytests.org/guide/clinical-somatic-ru.html).
 - [ ] 161. Глобальная идентичность — `queued`; [страница методики](https://psytests.org/ident/ghis.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
