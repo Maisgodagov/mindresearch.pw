@@ -39,7 +39,7 @@
 - [x] 31. PMAI — `blocked`; [страница методики](https://psytests.org/typo/heropm.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-0031.md);
 - [x] 32. PVQ — `blocked`; [страница методики](https://psytests.org/life/pvqK.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-0032.md);
 - [x] 33. QIDS — `blocked`; [страница методики](https://psytests.org/depr/qids.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html). [review](../reviews/method-0033.md);
-- [ ] 34. RIASEC — `queued`; [страница методики](https://psytests.org/typo/riasecO.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
+- [x] 34. RIASEC — `implemented-local`; [страница методики](https://psytests.org/typo/riasecO.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0034.md);
 - [ ] 35. RMET — `queued`; [страница методики](https://psytests.org/arc/rmet.html); варианты названия: RMET, Чтение психического состояния по глазам; путеводители: [clinical-autistic-ru.html](https://psytests.org/guide/clinical-autistic-ru.html), [intelligence-social-ru.html](https://psytests.org/guide/intelligence-social-ru.html).
 - [ ] 36. SCL-K-9 — `queued`; [страница методики](https://psytests.org/diag/sclk9.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 37. SCS — `queued`; [страница методики](https://psytests.org/ident/scs.html); путеводители: [self-awareness-ru.html](https://psytests.org/guide/self-awareness-ru.html).

@@ -1,0 +1,104 @@
+import type { SeedSection } from '../../types.js';
+import type { ConfigurableScoring, ValidationCase } from '../../scoring/configurable.js';
+import type { MethodologyRegistration } from '../methodologyRegistry.js';
+
+const options = [
+  { value: '1', label: 'Совсем не нравится' },
+  { value: '2', label: 'Скорее не нравится' },
+  { value: '3', label: 'Может быть да, может быть нет' },
+  { value: '4', label: 'Скорее понравится' },
+  { value: '5', label: 'Точно понравится' },
+];
+
+const activities = [
+  'Проверять качество деталей перед отправкой.',
+  'Проводить инвентаризацию на складе с помощью ручного сканера.',
+  'Учить детей чтению.',
+  'Управлять работой отеля.',
+  'Играть на музыкальном инструменте.',
+  'Изучать строение человеческого тела.',
+  'Укладывать кирпичи или плитку.',
+  'Управлять салоном красоты или барбершопом.',
+  'Вести учет отправки и приемки.',
+  'Помогать людям решать семейные проблемы.',
+  'Дирижировать хором.',
+  'Изучать поведение животных.',
+  'Работать на морской буровой платформе.',
+  'Выполнять трюки в кино или телевизионных шоу.',
+  'Вычислять и учитывать статистические и другие числовые данные.',
+  'Проводить исследования растений или животных.',
+  'Быть волонтером в некоммерческой организации.',
+  'Управлять департаментом в крупной компании.',
+  'Чинить сантехнику.',
+  'Составлять карту морского дна.',
+  'Создавать декорации для театральных постановок.',
+  'Помогать людям в профориентации.',
+  'Продавать товары в торговом центре.',
+  'Вести кадровый учет.',
+  'Создавать дизайн обложек журналов.',
+  'Разрабатывать новые медицинские процедуры и способы лечения.',
+  'Оказывать помощь людям с алкогольной и наркотической зависимостью.',
+  'Проводить подсчеты на калькуляторе.',
+  'Собирать изделия на заводе.',
+  'Продавать недвижимость.',
+  'Собирать электронные компоненты.',
+  'Проводить биологические исследования.',
+  'Писать книги или сценарии.',
+  'Помогать пожилым людям в повседневных делах.',
+  'Рассчитывать заработную плату сотрудников.',
+  'Управлять магазином игрушек.',
+  'Писать песни.',
+  'Управлять магазином одежды.',
+  'Класть напольные покрытия в жилых домах.',
+  'Работать в биологической лаборатории.',
+  'Проводить индивидуальные спортивные тренировки.',
+  'Готовить счета для клиентов в компьютерной программе.',
+  'Быть вожатым в детском лагере.',
+  'Управлять шлифовальным станком на заводе.',
+  'Изучать китов и других морских обитателей.',
+  'Обрабатывать банковские операции клиентов.',
+  'Ставить пьесу в театре.',
+  'Продавать ресторанные франшизы частным предпринимателям.',
+];
+
+const questions: SeedSection['questions'] = activities.map((text, index) => ({
+  code: `test_74_${index + 1}`,
+  text,
+  type: 'single',
+  required: true,
+  options,
+}));
+
+export const instrument: SeedSection = {
+  code: 'test_74',
+  title: 'Тест RIASEC / Код Голланда (IIP RIASEC Markers, форма A)',
+  description: '48 занятий оцениваются по степени интереса, удовольствия и комфорта. Учитывайте содержание занятия, а не его престижность или оплату. Перевод psytests.org (2022) версии OpenPsychometrics (2015).',
+  questions,
+};
+
+const every = (first: number) => Array.from({ length: 8 }, (_, index) => first + index * 6);
+const scoringConfig: ConfigurableScoring = {
+  min: 1,
+  max: 5,
+  scales: [
+    { key: 'R', label: 'Реалистический (Realistic)', items: every(1), reverseItems: [], aggregation: 'sum' },
+    { key: 'I', label: 'Исследовательский (Investigative)', items: every(2), reverseItems: [], aggregation: 'sum' },
+    { key: 'A', label: 'Артистический (Artistic)', items: every(3), reverseItems: [], aggregation: 'sum' },
+    { key: 'S', label: 'Социальный (Social)', items: every(4), reverseItems: [], aggregation: 'sum' },
+    { key: 'E', label: 'Предприимчивый (Enterprising)', items: every(5), reverseItems: [], aggregation: 'sum' },
+    { key: 'C', label: 'Традиционный (Conventional)', items: every(6), reverseItems: [], aggregation: 'sum' },
+  ],
+};
+
+const answers = (value: number) => Object.fromEntries(activities.map((_, index) => [String(index + 1), value]));
+const validationCases: ValidationCase[] = [
+  { title: 'Все занятия нейтральны: восемь троек на каждой шкале', answers: answers(3), expected: { R: 24, I: 24, A: 24, S: 24, E: 24, C: 24 } },
+  { title: 'Все занятия оцениваются максимально', answers: answers(5), expected: { R: 40, I: 40, A: 40, S: 40, E: 40, C: 40 } },
+];
+
+export const methodology: MethodologyRegistration = {
+  instrument,
+  scoringConfig,
+  validationCases,
+  formulaVersion: 'iip-riasec-markers-form-a-2008-psytests-ru-v1',
+};
