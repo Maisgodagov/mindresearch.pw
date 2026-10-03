@@ -111,7 +111,7 @@
 - [x] 103. Ваш партнер – нарцисс? — `blocked`; [страница методики](https://psytests.org/quiz/mcbrnp.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0103.md);
 - [x] 104. Ваш партнер – нарцисс? — `blocked`; [страница методики](https://psytests.org/quiz/durwA.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0104.md);
 - [x] 105. Ваш ребенок болен неврозом или может заболеть им... — `blocked`; [страница методики](https://psytests.org/stress/vrbn.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html). [review](../reviews/method-0105.md);
-- [ ] 106. Ваш сексуальный аппетит — `queued`; [страница методики](https://psytests.org/fun/sexap.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
+- [x] 106. Ваш сексуальный аппетит — `blocked`; [страница методики](https://psytests.org/fun/sexap.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0106.md);
 - [ ] 107. Ваш стиль воспитания — `queued`; [страница методики](https://psytests.org/quiz/gottV.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [ ] 108. Ваш стиль обучения и мышления — `queued`; [страница методики](https://psytests.org/typo/solatB.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 109. Ваш стиль продуктивности — `queued`; [страница методики](https://psytests.org/typo/stprod.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html).
