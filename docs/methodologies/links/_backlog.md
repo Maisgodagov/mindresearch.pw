@@ -1,4 +1,4 @@
-# Методики из путеводителей PsyTests
+﻿# Методики из путеводителей PsyTests
 
 Источник: все 83 уникальных ссылок из [`links_backlog.md`](../links_backlog.md). Одинаковые страницы объединены по URL; варианты названий и путеводители сохранены. Точные совпадения с уже существующими названиями в основном `BACKLOG.md` отмечены. Это инвентаризация источников, не проверка русской адаптации, психометрии или прав.
 
@@ -20,7 +20,7 @@
 - [x] 12. CAP — `blocked`; для русских адаптаций Туник не найден полный однозначный ключ, а доступные ключи относятся к иной версии CAP. [review](../reviews/12-cap.md); [страница методики](https://psytests.org/trait/capC.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
 - [x] 13. CAT-H — `blocked`; полный однозначный ключ для автоматизированного подсчёта не найден; [review](../reviews/13-cat-h.md); [страница методики](https://psytests.org/classic/tatcah.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
 - [x] 14. CORE-OM — `implemented-local` (`test_61`); официальный русский текст 2024 года, обратный ключ и четыре домена реализованы. [review](../reviews/14-core-om.md); [страница методики](https://psytests.org/diag/coreom.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
-- [x] 15. CYRM-28 — `implemented-local`; [страница методики](https://psytests.org/stress/cyrm28.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html).
+- [x] 15. CYRM-28 — `done` (release 417b10f); [страница методики](https://psytests.org/stress/cyrm28.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html).
 - [ ] 16. DERS-18 — `queued`; [страница методики](https://psytests.org/emo/ders18.html); путеводители: [regulation-emotion-ru.html](https://psytests.org/guide/regulation-emotion-ru.html).
 - [ ] 17. DISC — `queued`; [страница методики](https://psytests.org/opm/disc.html); варианты названия: DISC, Типология DISC; путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html), [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 18. EQ — `queued`; [страница методики](https://psytests.org/arc/eq.html); варианты названия: EQ, Уровень сопереживания; путеводители: [clinical-autistic-ru.html](https://psytests.org/guide/clinical-autistic-ru.html), [social-empathy-ru.html](https://psytests.org/guide/social-empathy-ru.html).
