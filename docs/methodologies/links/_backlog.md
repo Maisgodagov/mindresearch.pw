@@ -104,7 +104,7 @@
 - [x] 96. Бланковый тест Ответственность — `blocked`; [страница методики](https://psytests.org/trait/bltG.html); путеводители: [trait-regulation-ru.html](https://psytests.org/guide/trait-regulation-ru.html). [review](../reviews/method-0096.md);
 - [x] 97. Бланковый тест Темперамент — `blocked`; [страница методики](https://psytests.org/trait/bltK.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html). [review](../reviews/method-0097.md);
 - [x] 98. Бланковый тест ЧХТ — `implemented-local`; [страница методики](https://psytests.org/mmpi/btch.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html). [review](../reviews/method-0098.md);
-- [ ] 99. Боги и Герои — `queued`; [страница методики](https://psytests.org/typo/mmaq.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
+- [x] 99. Боги и Герои — `blocked`; [страница методики](https://psytests.org/typo/mmaq.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-0099.md);
 - [ ] 100. Бостонский тест на стрессоустойчивость — `queued`; [страница методики](https://psytests.org/stress/baudit.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html), [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
 - [ ] 101. Братско-сестринский опросник — `queued`; [страница методики](https://psytests.org/family/bsqb.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 102. ВАК — `queued`; [страница методики](https://psytests.org/typo/kavak.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
