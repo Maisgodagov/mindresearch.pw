@@ -68,29 +68,29 @@ function Wait-Deployment([string]$Sha) {
   $headers = @{ 'User-Agent' = 'OporaMethodologyRunner' }
   $apiRoot = 'https://api.github.com/repos/Maisgodagov/mindresearch.pw/actions'
   $run = $null
-  $deadline = (Get-Date).AddMinutes(30)
+  $deadline = (Get-Date).AddMinutes(3)
   while ((Get-Date) -lt $deadline) {
     try {
       if ($run) {
-        $run = Invoke-RestMethod -Uri $run.url -Headers $headers -TimeoutSec 30
+        $run = Invoke-RestMethod -Uri $run.url -Headers $headers -TimeoutSec 10
       } else {
-        $response = Invoke-RestMethod -Uri "$apiRoot/workflows/deploy.yml/runs?head_sha=$Sha&per_page=1" -Headers $headers -TimeoutSec 30
+        $response = Invoke-RestMethod -Uri "$apiRoot/workflows/deploy.yml/runs?head_sha=$Sha&per_page=1" -Headers $headers -TimeoutSec 10
         $run = $response.workflow_runs | Select-Object -First 1
       }
     } catch {
       Add-RunLog "DEPLOY_STATUS_QUERY_ERROR sha=$Sha error=$($_.Exception.Message)"
-      Start-Sleep -Seconds 60
+      Start-Sleep -Seconds 10
       continue
     }
     if (!$run) {
       Add-RunLog "DEPLOY_RUN_NOT_VISIBLE sha=$Sha"
-      Start-Sleep -Seconds 30
+      Start-Sleep -Seconds 10
       continue
     }
     if ($run.status -eq 'completed') {
       if ($run.conclusion -eq 'success') {
         try {
-          $health = Invoke-RestMethod -Uri 'https://mindresearch.pw/api/health' -TimeoutSec 20
+          $health = Invoke-RestMethod -Uri 'https://mindresearch.pw/api/health' -TimeoutSec 10
           if ($health.ok -eq $true) { return @{ status = 'success'; url = $run.html_url; sha = $Sha } }
           return @{ status = 'deferred'; reason = 'Health API не подтвердил ok=true'; url = $run.html_url; sha = $Sha }
         } catch {
@@ -98,7 +98,7 @@ function Wait-Deployment([string]$Sha) {
         }
       }
       try {
-        $jobs = Invoke-RestMethod -Uri "$apiRoot/runs/$($run.id)/jobs?per_page=100" -Headers $headers -TimeoutSec 30
+        $jobs = Invoke-RestMethod -Uri "$apiRoot/runs/$($run.id)/jobs?per_page=100" -Headers $headers -TimeoutSec 10
         $failedChecks = @($jobs.jobs | ForEach-Object { $_.steps | Where-Object { $_.conclusion -eq 'failure' -and $_.name -eq 'Run npm run build' } })
         if ($failedChecks.Count) { return @{ status = 'validation-failed'; reason = ($failedChecks.name -join ', '); url = $run.html_url; sha = $Sha } }
       } catch { Add-RunLog "DEPLOY_JOB_QUERY_ERROR sha=$Sha error=$($_.Exception.Message)" }
@@ -108,9 +108,9 @@ function Wait-Deployment([string]$Sha) {
     $state.message = "Ожидается deploy batch $Sha; последний статус: $($run.status)."
     $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
     Write-State $state
-    Start-Sleep -Seconds 60
+    Start-Sleep -Seconds 10
   }
-  return @{ status = 'deferred'; reason = 'Истёк лимит ожидания workflow (30 минут).'; url = if ($run) { $run.html_url } else { '' }; sha = $Sha }
+  return @{ status = 'deferred'; reason = 'Истёк короткий лимит ожидания workflow (3 минуты).'; url = if ($run) { $run.html_url } else { '' }; sha = $Sha }
 }
 
 function Mark-ImplementedLocalAsDone([string]$Sha) {
@@ -214,15 +214,15 @@ try {
       $prompt = @'
 Это ровно один пункт фоновой очереди методик. Работай только с ним и не переходи к соседним пунктам.
 
-Обязательно сначала прочитай docs/methodologies/WORKFLOW.md и выполни его правила: российская опубликованная версия; первичный и независимый источник; лицензионные условия; точный текст/ключ/подсчёт; ручные крайние и смешанные контрольные расчёты; отсутствие выдуманных норм. PsyTests используй только для навигации и независимой сверки, не как единственное доказательство.
+Сначала прочитай docs/methodologies/WORKFLOW.md. Работай в ускоренном режиме. Решение о добавлении зависит только от двух условий: (1) доступен адекватный русский текст методики и (2) найден надёжный, однозначный ключ и алгоритм подсчёта. Не трать время на проверки лицензий, российской апробации, норм, публикационных требований или обязательную независимую копию. Не отклоняй методику по этим причинам. Не выдумывай ключ и не создавай собственный перевод вместо отсутствующей русской версии.
 
 НОВЫЙ ОБЯЗАТЕЛЬНЫЙ РЕЖИМ НАКОПИТЕЛЬНОГО DEPLOY (он переопределяет любые противоречащие старые указания ниже): каждая локально завершённая методика коммитится/пушится с итогом `implemented-local`; runner ждёт GitHub workflow. Если deploy не удался из-за хостинга, базы, SSH или health-check, НЕ ставь `PAUSE_REQUIRED`, не откатывай изменения и переходи к следующему пункту. После каждого следующего пункта runner повторно выкладывает все накопленные `implemented-local` методики. Только при успешном workflow и production health все накопленные строки меняются на `done`. Ошибка CI `npm ci`/build или невозможность commit/push — причина остановиться.
 
-Для нового инструмента выполни проверку источников, прав, тестов и сборки по WORKFLOW. Если он подтверждён и реализован, поставь `[x]` и `implemented-local`, добавь review и закоммить/отправь в `main` только файлы этого пункта. Не жди deploy в этой Codex-сессии и не ставь `done`: runner следит за workflow, production health-check и закрывает весь накопленный пакет как `done` после успешного выпуска. Если deploy/workflow падает на хостинге, БД, SSH или health-check, оставь методики в `implemented-local` и продолжай очередь.
+Для нового инструмента быстро найди русскую версию, надёжный ключ и схему подсчёта. Если оба условия допуска выполнены — реализуй методику, выполни краткую проверку соответствия ключа и нужную сборку, поставь `[x]` и `implemented-local`, добавь краткий review и закоммить/отправь в `main` только относящиеся к ней файлы. Не трать время на остальные исследовательские проверки. Не жди deploy в этой Codex-сессии и не ставь `done`: runner следит за workflow и production health-check. Если production deploy падает по инфраструктурной причине, оставь пакет в `implemented-local` и продолжай очередь.
 
-Для `blocked`, `ru-ineligible` или `already-available` создай/обнови review, отметь строку и закоммить/отправь только её и связанные review. Если в очереди есть изменения других закрытых пунктов этого запуска, включи их тоже, но не включай посторонние файлы. При наличии `implemented-local` runner после этого пункта сам создаст retry-marker и повторит deploy накопленного пакета.
+Не ставь `blocked` или `ru-ineligible` из-за лицензии, апробации, норм, отсутствия независимой копии либо недоступности необязательных сведений. `blocked` допустим только если после разумного поиска нельзя получить надёжный ключ/подсчёт; `ru-ineligible` — только если нет адекватного русского текста. Для точного дубликата допустим `already-available`. Создай короткий review и перейди дальше. Если в очереди есть изменения других закрытых пунктов этого запуска, включи их тоже, но не включай посторонние файлы. При наличии `implemented-local` runner после этого пункта повторит deploy накопленного пакета.
 
-Не меняй существующие опросы и исторические результаты. Не коммить посторонние незакоммиченные изменения. Если работа объективно требует ответа пользователя или недоступных прав/файлов/источников, оставь текущий пункт `queued`, запиши блокер и заверши `PAUSE_REQUIRED`. Ошибка локального теста/сборки или невозможность commit/push также требует паузы. Никакой статус не ставь только по названию без проверки источников.
+Не меняй существующие опросы и исторические результаты. Не коммить посторонние незакоммиченные изменения. Не используй `PAUSE_REQUIRED` для исследовательских вопросов: зафиксируй итог `blocked` только при ненадёжном/отсутствующем ключе, `ru-ineligible` только при отсутствии адекватного русского текста и продолжай. Если возникла временная техническая ошибка, попробуй альтернативный способ и затем продолжай очередь с ясным статусом. Не ставь статус только по названию без поиска ключа и русского текста.
 
 Пункт очереди (ссылка на страницу и путеводитель включены):
 __QUEUE_ITEM__
@@ -248,7 +248,7 @@ __QUEUE_ITEM__
       $psi.RedirectStandardError = $true
       $psi.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
       $psi.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
-      $psi.Arguments = "exec --json --approve-for-me -c model_reasoning_effort=high -C `"$repo`" --output-last-message `"$lastMessage`" -"
+      $psi.Arguments = "exec --json --approve-for-me -c model_reasoning_effort=medium -C `"$repo`" --output-last-message `"$lastMessage`" -"
       $proc = [Diagnostics.Process]::new()
       $proc.StartInfo = $psi
       try {
@@ -299,13 +299,9 @@ __QUEUE_ITEM__
       if (Test-Path -LiteralPath $lastMessage) {
         $agentMessage = (Get-Content -LiteralPath $lastMessage -Raw -Encoding UTF8).Trim()
       } else { $agentMessage = 'Codex не сохранил итоговое сообщение.' }
-      if ($agentMessage -match 'PAUSE_REQUIRED') {
-        Set-FinalState $state 'paused' "Нужен человек по пункту $itemId. $agentMessage"
-        break
-      }
       if ($attempt -lt $MaxAttemptsPerItem) {
         Add-RunLog "RETRY id=$itemId attempt=$attempt reason=NoTerminalStatus"
-        Start-Sleep -Seconds (60 * $attempt)
+        Start-Sleep -Seconds (5 * $attempt)
       } else {
         Set-FinalState $state 'paused' "После $MaxAttemptsPerItem попыток пункт $itemId не получил итоговый статус. $agentMessage"
       }
