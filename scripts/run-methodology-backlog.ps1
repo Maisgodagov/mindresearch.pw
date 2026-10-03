@@ -1,7 +1,7 @@
 ﻿param(
   [int]$MaxItems = 0,
   [int]$MaxAttemptsPerItem = 2,
-  [ValidateRange(1, 6)][int]$ResearchSlots = 3,
+  [ValidateRange(1, 10)][int]$ResearchSlots = 10,
   [ValidateRange(1, 50)][int]$DeployBatchSize = 10,
   [switch]$DryRun,
   [switch]$SelectOnly
@@ -305,6 +305,8 @@ function Integrate-PreparedMethod([int]$ItemId, [string]$QueueLine, [string]$Res
   & git -C $repo commit -m "Add methodology backlog item $ItemId ($queueStatus)" | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "Не удалось создать локальный commit методики $ItemId." }
   Add-RunLog "METHOD_INTEGRATED id=$ItemId status=$queueStatus code=$($script:itemCodes[$ItemId])"
+  try { Remove-Item -LiteralPath $itemDir -Recurse -Force -ErrorAction Stop }
+  catch { Add-RunLog "CACHE_CLEANUP_ERROR id=$ItemId error=$($_.Exception.Message)" }
   return @{ status = $queueStatus; line = $updated; reason = $result.reason }
 }
 
@@ -474,6 +476,8 @@ $state = [ordered]@{
   lastDeployStatus = 'none'
   researchItem = $null
   researchStatus = 'idle'
+  researchSlots = $ResearchSlots
+  deployBatchSize = $DeployBatchSize
   researchWorkers = @()
   message = "До $ResearchSlots независимых слотов готовят методики параллельно; результат интегрируется последовательно."
 }
@@ -551,7 +555,7 @@ try {
     $state.remaining = $queue.Count
     $state.currentAttempt = 0
     $state.updatedAt = (Get-Date).ToString('o')
-  $state.message = "Текущая методика обрабатывается последовательно; до $ResearchSlots следующих пунктов исследуются в отдельных read-only worktree."
+  $state.message = "До $ResearchSlots методик готовятся параллельно в отдельных worktree; результаты вносятся последовательно."
     Add-RunLog 'ACTIVE_STATE_WRITE_START'
     Write-State $state
     Add-RunLog 'ACTIVE_STATE_WRITE_DONE'
@@ -635,6 +639,8 @@ try {
         $state.message = "Пункт $itemId пропущен после $MaxAttemptsPerItem ошибок и будет повторён в $($retryAt.ToString('HH:mm:ss')); продолжаю очередь. $workerError"
         Write-State $state
         Add-RunLog "ITEM_DEFERRED id=$itemId retryAt=$($retryAt.ToString('o')) attempts=$MaxAttemptsPerItem reason=$workerError"
+        $failedCache = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $itemId))
+        Remove-Item -LiteralPath $failedCache -Recurse -Force -ErrorAction SilentlyContinue
         $result = @{ status = 'deferred'; line = $null }
       }
     }
