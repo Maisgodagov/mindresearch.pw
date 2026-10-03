@@ -1,6 +1,6 @@
 ﻿param(
   [int]$MaxItems = 0,
-  [int]$MaxAttemptsPerItem = 3,
+  [int]$MaxAttemptsPerItem = 2,
   [switch]$DryRun,
   [switch]$SelectOnly
 )
@@ -17,6 +17,7 @@ $stopPath = Join-Path $runnerDir 'STOP'
 $lockPath = Join-Path $runnerDir 'runner.lock'
 $logPath = Join-Path $runnerDir 'runner.log'
 $terminalStatuses = @('implemented-local', 'done', 'blocked', 'ru-ineligible', 'already-available')
+$script:researchWorker = $null
 
 function Write-State($State) {
   $json = ConvertTo-Json -InputObject $State -Depth 8
@@ -43,6 +44,140 @@ function Get-QueuedItems {
 
 function Get-ImplementedLocalLines {
   return @(Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match '^\- \[x\] \d+\. .+ — `implemented-local`;' })
+}
+
+function Stop-ReadAheadResearch {
+  if ($script:researchWorker -and !$script:researchWorker.Process.HasExited) {
+    try { $script:researchWorker.Process.Kill() } catch { }
+    try { $script:researchWorker.Process.WaitForExit() } catch { }
+    Add-RunLog "RESEARCH_STOPPED id=$($script:researchWorker.Id)"
+  }
+  if ($script:researchWorker) {
+    try { $script:researchWorker.Process.Dispose() } catch { }
+    $script:researchWorker = $null
+  }
+}
+
+function Start-ReadAheadResearch($Item) {
+  if (!$Item) { return }
+  Stop-ReadAheadResearch
+
+  $worktree = Join-Path $runnerDir 'research-worktree'
+  $baseSha = Get-CurrentCommit
+  if (Test-Path -LiteralPath $worktree) {
+    & git -C $worktree reset --hard $baseSha | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось обновить исследовательскую рабочую копию.' }
+  } else {
+    & git -C $repo worktree add --detach $worktree $baseSha | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось создать исследовательскую рабочую копию.' }
+  }
+
+  $itemDir = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $Item.Id))
+  $null = New-Item -ItemType Directory -Path $itemDir -Force
+  $reportPath = Join-Path $itemDir 'research-report.txt'
+  $stdoutPath = Join-Path $itemDir 'stdout.jsonl'
+  $stderrPath = Join-Path $itemDir 'stderr.log'
+  Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
+  $researchPrompt = @'
+Исследуй только указанную методику для передачи второму агенту. Это read-only задача: не редактируй файлы, не запускай тесты, не коммить и не отправляй изменения.
+Прочитай docs/methodologies/WORKFLOW.md. Ищи только то, что нужно для решения двух критериев: есть ли пригодный русский текст и есть ли надёжный точный ключ/подсчёт. Не трать время на лицензии, нормы, российскую апробацию и библиографический обзор.
+Верни короткую записку по-русски с прямыми URL: точная версия; источник русских вопросов/инструкций и можно ли восстановить полный текст; количество пунктов и формат ответов; шкалы, обратные пункты и формула подсчёта с источником; решение `add`, `already-available`, `ru-ineligible` или `blocked` с конкретной причиной. Если источники расходятся, укажи это. Не угадывай и не предлагай неофициальный перевод.
+
+Пункт очереди:
+__QUEUE_ITEM__
+'@
+  $researchPrompt = $researchPrompt.Replace('__QUEUE_ITEM__', $Item.Line)
+  $psi = [Diagnostics.ProcessStartInfo]::new()
+  $psi.FileName = $codexCommand.Source
+  $psi.WorkingDirectory = $worktree
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  $psi.RedirectStandardInput = $true
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $psi.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+  $psi.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+  $psi.Arguments = "exec --json --sandbox read-only -c model_reasoning_effort=low -C `"$worktree`" --output-last-message `"$reportPath`" -"
+  $proc = [Diagnostics.Process]::new()
+  $proc.StartInfo = $psi
+  if (!$proc.Start()) { throw 'Не удалось запустить параллельного исследователя.' }
+  $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+  $stderrTask = $proc.StandardError.ReadToEndAsync()
+  $promptBytes = [Text.UTF8Encoding]::new($false).GetBytes($researchPrompt)
+  $proc.StandardInput.BaseStream.Write($promptBytes, 0, $promptBytes.Length)
+  $proc.StandardInput.BaseStream.Flush()
+  $proc.StandardInput.Close()
+  $script:researchWorker = [pscustomobject]@{
+    Id = $Item.Id; Title = (($Item.Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
+    Process = $proc; StdoutTask = $stdoutTask; StderrTask = $stderrTask
+    ReportPath = $reportPath; StdoutPath = $stdoutPath; StderrPath = $stderrPath
+    Started = Get-Date; Completed = $false
+  }
+  $state.researchItem = "$($Item.Id). $($script:researchWorker.Title)"
+  $state.researchStatus = 'running'
+  $state.updatedAt = (Get-Date).ToString('o')
+  Write-State $state
+  Add-RunLog "RESEARCH_START id=$($Item.Id) worktree=$worktree base=$baseSha"
+}
+
+function Complete-ReadAheadResearch {
+  if (!$script:researchWorker -or $script:researchWorker.Completed) { return }
+  $worker = $script:researchWorker
+  if (!$worker.Process.HasExited) {
+    if (((Get-Date) - $worker.Started).TotalMinutes -gt 30) {
+      Stop-ReadAheadResearch
+      $state.researchItem = $null
+      $state.researchStatus = 'timed-out'
+      Write-State $state
+      return
+    }
+    return
+  }
+  $stdout = $worker.StdoutTask.GetAwaiter().GetResult()
+  $stderr = $worker.StderrTask.GetAwaiter().GetResult()
+  Set-Content -LiteralPath $worker.StdoutPath -Value $stdout -Encoding UTF8
+  Set-Content -LiteralPath $worker.StderrPath -Value $stderr -Encoding UTF8
+  $worker.Completed = $true
+  $worker.ExitCode = $worker.Process.ExitCode
+  $script:researchWorker = $worker
+  $state.researchStatus = if ($worker.ExitCode -eq 0 -and (Test-Path -LiteralPath $worker.ReportPath)) { 'ready' } else { 'failed' }
+  $state.updatedAt = (Get-Date).ToString('o')
+  Write-State $state
+  Add-RunLog "RESEARCH_DONE id=$($worker.Id) exit=$($worker.ExitCode) status=$($state.researchStatus)"
+}
+
+function Wait-ReadAheadResearch([int]$ItemId) {
+  if (!$script:researchWorker -or $script:researchWorker.Id -ne $ItemId) {
+    $cachedReport = Join-Path (Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $ItemId))) 'research-report.txt'
+    if (Test-Path -LiteralPath $cachedReport) {
+      $report = Get-Content -LiteralPath $cachedReport -Raw -Encoding UTF8
+      if ($report.Trim()) {
+        $line = Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match "^\- \[ \] $ItemId\. " } | Select-Object -First 1
+        $title = if ($line) { (($line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim() } else { '' }
+        $state.researchItem = "$ItemId. $title"
+        $state.researchStatus = 'ready'
+        $state.updatedAt = (Get-Date).ToString('o')
+        Write-State $state
+        Add-RunLog "RESEARCH_CACHE_HIT id=$ItemId"
+        return $report
+      }
+    }
+    return ''
+  }
+  while (!$script:researchWorker.Completed -and !$script:researchWorker.Process.HasExited) {
+    if (Test-Path -LiteralPath $stopPath) { return '' }
+    Complete-ReadAheadResearch
+    if (!$script:researchWorker -or $script:researchWorker.Completed) { break }
+    $state.updatedAt = (Get-Date).ToString('o')
+    $state.message = "Основная линия завершена; ожидаю короткое исследование пункта $ItemId в изолированной рабочей копии."
+    Write-State $state
+    Start-Sleep -Seconds 3
+  }
+  Complete-ReadAheadResearch
+  if ($script:researchWorker -and $script:researchWorker.Id -eq $ItemId -and $script:researchWorker.ExitCode -eq 0 -and (Test-Path -LiteralPath $script:researchWorker.ReportPath)) {
+    return Get-Content -LiteralPath $script:researchWorker.ReportPath -Raw -Encoding UTF8
+  }
+  return ''
 }
 
 function Get-CurrentCommit {
@@ -123,6 +258,8 @@ function Mark-ImplementedLocalAsDone([string]$Sha) {
 function Set-FinalState($State, [string]$Status, [string]$Reason) {
   $State.status = $Status
   $State.activeItem = $null
+  $State.researchItem = $null
+  if ($State.researchStatus -eq 'running') { $State.researchStatus = 'stopped' }
   $State.message = $Reason
   $State.updatedAt = (Get-Date).ToString('o')
   Write-State $State
@@ -164,7 +301,9 @@ $state = [ordered]@{
   remaining = $queue.Count
   pendingDeployCount = @(Get-ImplementedLocalLines).Count
   lastDeployStatus = 'none'
-  message = 'Последовательная обработка начата.'
+  researchItem = $null
+  researchStatus = 'idle'
+  message = 'Две линии запущены: исследование следующей методики идёт параллельно с последовательной интеграцией текущей.'
 }
 Remove-Item -LiteralPath $stopPath -Force -ErrorAction SilentlyContinue
 Write-State $state
@@ -194,7 +333,7 @@ try {
     $state.remaining = $queue.Count
     $state.currentAttempt = 0
     $state.updatedAt = (Get-Date).ToString('o')
-    $state.message = 'Обрабатывается один пункт; следующий не начнётся до итогового статуса этого пункта.'
+    $state.message = 'Текущая методика обрабатывается в основной линии; следующая исследуется read-only в отдельной рабочей копии.'
     Add-RunLog 'ACTIVE_STATE_WRITE_START'
     Write-State $state
     Add-RunLog 'ACTIVE_STATE_WRITE_DONE'
@@ -202,6 +341,20 @@ try {
     if ($SelectOnly) {
       Set-FinalState $state 'checkpoint' "SelectOnly: selected queue item $itemId without starting Codex."
       break
+    }
+
+    $researchContext = ''
+    try { $researchContext = Wait-ReadAheadResearch $itemId }
+    catch { Add-RunLog "RESEARCH_WAIT_ERROR id=$itemId error=$($_.Exception.Message)"; $state.researchStatus = 'failed' }
+    if ($queue.Count -gt 1 -and !(Test-Path -LiteralPath $stopPath)) {
+      try { Start-ReadAheadResearch $queue[1] }
+      catch {
+        Add-RunLog "RESEARCH_START_ERROR id=$($queue[1].Id) error=$($_.Exception.Message)"
+        $itemTitleForResearch = (($queue[1].Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
+        $state.researchItem = "$($queue[1].Id). $itemTitleForResearch"
+        $state.researchStatus = 'failed'
+        Write-State $state
+      }
     }
 
     $result = $null
@@ -224,11 +377,15 @@ try {
 
 Не меняй существующие опросы и исторические результаты. Не коммить посторонние незакоммиченные изменения. Не используй `PAUSE_REQUIRED` для исследовательских вопросов: зафиксируй итог `blocked` только при ненадёжном/отсутствующем ключе, `ru-ineligible` только при отсутствии адекватного русского текста и продолжай. Если возникла временная техническая ошибка, попробуй альтернативный способ и затем продолжай очередь с ясным статусом. Не ставь статус только по названию без поиска ключа и русского текста.
 
+Параллельное предварительное исследование текущего пункта (используй как готовую навигацию и быстро сверь ключевые утверждения; не повторяй уже выполненный широкий поиск):
+__RESEARCH_CONTEXT__
+
 Пункт очереди (ссылка на страницу и путеводитель включены):
 __QUEUE_ITEM__
 
 После завершения напиши короткое резюме. Runner проверит итог, продолжит очередь при сбое production deploy и подтвердит весь накопленный batch после успешного workflow и health-check.
 '@
+      $prompt = $prompt.Replace('__RESEARCH_CONTEXT__', $researchContext)
       $prompt = $prompt.Replace('__QUEUE_ITEM__', $item.Line)
       $safeId = '{0:D4}' -f $itemId
       $itemDir = Join-Path $runnerDir "items\$safeId"
@@ -267,9 +424,9 @@ __QUEUE_ITEM__
             try { $proc.Kill() } catch { }
             break
           }
-          if (((Get-Date) - $started).TotalMinutes -gt 120) {
+          if (((Get-Date) - $started).TotalMinutes -gt 30) {
             try { $proc.Kill() } catch { }
-            throw 'Методика не завершилась за 120 минут; текущая запись оставлена queued.'
+            throw 'Методика не завершилась за 30 минут; текущая запись оставлена queued.'
           }
           $state.updatedAt = (Get-Date).ToString('o')
           Write-State $state
@@ -354,5 +511,6 @@ __QUEUE_ITEM__
   Set-FinalState $state 'paused' $_.Exception.Message
   throw
 } finally {
+  Stop-ReadAheadResearch
   if ($lockStream) { $lockStream.Dispose() }
 }
