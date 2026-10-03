@@ -111,7 +111,7 @@ __QUEUE_ITEM__
     Id = $Item.Id; Title = (($Item.Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
     Process = $proc; StdoutTask = $stdoutTask; StderrTask = $stderrTask
     ReportPath = $reportPath; StdoutPath = $stdoutPath; StderrPath = $stderrPath
-    Started = Get-Date; Completed = $false
+    Started = Get-Date; Completed = $false; ExitCode = $null
   }
   $state.researchItem = "$($Item.Id). $($script:researchWorker.Title)"
   $state.researchStatus = 'running'
