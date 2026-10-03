@@ -183,8 +183,29 @@ function Complete-ReadAheadResearch {
           Copy-Item -LiteralPath $reviewSource -Destination (Join-Path $worker.ItemDir 'review.md') -Force
         } elseif ($result.status -in @('blocked','ru-ineligible','already-available')) {
           $reviewSource = Join-Path $worker.Worktree $result.reviewFile
-          if (!(Test-Path -LiteralPath $reviewSource)) { throw 'Worker reported a terminal result without creating its review file.' }
-          Copy-Item -LiteralPath $reviewSource -Destination (Join-Path $worker.ItemDir 'review.md') -Force
+          if (Test-Path -LiteralPath $reviewSource) {
+            Copy-Item -LiteralPath $reviewSource -Destination (Join-Path $worker.ItemDir 'review.md') -Force
+          } else {
+            $queueLine = Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match "^\- \[ \] $($worker.Id)\. " } | Select-Object -First 1
+            $reason = ([string]$result.reason -replace '[\r\n]+', ' ').Trim()
+            if ($reason -match 'Р[\sЎ]С|РЎС') { $reason = [Text.Encoding]::UTF8.GetString([Text.Encoding]::GetEncoding(1251).GetBytes($reason)) }
+            if ($reason.Length -gt 2000) { $reason = $reason.Substring(0, 2000) }
+            $sourceUrls = @([regex]::Matches([string]$queueLine, 'https?://[^\s)]+') | ForEach-Object Value | Select-Object -Unique)
+            $fallbackReview = @(
+              "# $($worker.Id). $($worker.Title)",
+              '',
+              "Решение worker: ``$($result.status)``.",
+              "Основание: $reason",
+              '',
+              'Пункт очереди:',
+              [string]$queueLine,
+              '',
+              'Ссылки из пункта очереди:',
+              ($sourceUrls -join "`n")
+            ) -join "`n"
+            [IO.File]::WriteAllText((Join-Path $worker.ItemDir 'review.md'), $fallbackReview + "`n", [Text.UTF8Encoding]::new($false))
+            Add-RunLog "REVIEW_FALLBACK_CREATED id=$($worker.Id) status=$($result.status)"
+          }
         } else { throw 'Worker result JSON has an unsupported status.' }
       } catch {
         $worker.ExitCode = 2
@@ -226,7 +247,7 @@ function Wait-ReadAheadResearch([int]$ItemId) {
     Complete-ReadAheadResearch
     if (!$worker -or $worker.Completed) { break }
     $state.updatedAt = (Get-Date).ToString('o')
-    $state.message = "Основная линия завершена; ожидаю исследование пункта $ItemId в слоте $($worker.Slot)."
+    $state.message = "Ожидаю подготовку методики $ItemId в слоте $($worker.Slot); остальные слоты работают параллельно."
     Write-State $state
     Start-Sleep -Seconds 3
   }
