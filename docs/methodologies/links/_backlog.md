@@ -47,7 +47,7 @@
 - [x] 39. SMFQ — `blocked`; [страница методики](https://psytests.org/depr/mafqs.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html). [review](../reviews/method-0039.md);
 - [x] 40. SMS-6 — `blocked`; [страница методики](https://psytests.org/sport/sms6.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0040.md);
 - [x] 41. SOGS-RA — `ru-ineligible`; [страница методики](https://psytests.org/diag/sogsra.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html). [review](../reviews/method-0041.md);
-- [ ] 42. STAXI-2 — `queued`; [страница методики](https://psytests.org/confl/staxi2.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
+- [x] 42. STAXI-2 — `blocked`; [страница методики](https://psytests.org/confl/staxi2.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-0042.md);
 - [ ] 43. TAS-26 — `queued`; [страница методики](https://psytests.org/diag/tas26.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html).
 - [ ] 44. TAS-C — `queued`; [страница методики](https://psytests.org/diag/tas20c.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html).
 - [ ] 45. VSM-4 — `queued`; [страница методики](https://psytests.org/group/vsm94.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
