@@ -2,6 +2,7 @@
   [int]$MaxItems = 0,
   [int]$MaxAttemptsPerItem = 2,
   [ValidateRange(1, 6)][int]$ResearchSlots = 3,
+  [ValidateRange(1, 50)][int]$DeployBatchSize = 10,
   [switch]$DryRun,
   [switch]$SelectOnly
 )
@@ -19,6 +20,8 @@ $lockPath = Join-Path $runnerDir 'runner.lock'
 $logPath = Join-Path $runnerDir 'runner.log'
 $terminalStatuses = @('implemented-local', 'done', 'blocked', 'ru-ineligible', 'already-available')
 $script:researchWorkers = @{}
+$script:nextInstrumentCode = 64
+$script:itemCodes = @{}
 
 function Write-State($State) {
   $json = ConvertTo-Json -InputObject $State -Depth 8
@@ -64,10 +67,14 @@ function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
 
   $itemDir = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $Item.Id))
   $null = New-Item -ItemType Directory -Path $itemDir -Force
-  $reportPath = Join-Path $itemDir 'research-report.txt'
+  $reportPath = Join-Path $itemDir 'prepared-result.json'
   if (Test-Path -LiteralPath $reportPath) {
-    $cachedReport = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8
-    if ($cachedReport.Trim()) { Add-RunLog "RESEARCH_CACHE_HIT id=$($Item.Id)"; return }
+    try {
+      $cached = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+      $cachedOk = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $itemDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-Path (Join-Path $itemDir 'module.ts')) -and (Test-Path (Join-Path $itemDir 'review.md')))
+      if ($cachedOk) { Add-RunLog "PREPARED_CACHE_HIT id=$($Item.Id)"; return }
+    } catch { }
+    Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
   }
 
   $worktree = Join-Path $runnerDir ("research-worktree-{0}" -f $Slot)
@@ -88,14 +95,19 @@ function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
 
   $stdoutPath = Join-Path $itemDir 'stdout.jsonl'
   $stderrPath = Join-Path $itemDir 'stderr.log'
+  if ($script:itemCodes.ContainsKey($Item.Id)) { $code = $script:itemCodes[$Item.Id] }
+  else { $code = "test_$script:nextInstrumentCode"; $script:itemCodes[$Item.Id] = $code; $script:nextInstrumentCode++ }
   $researchPrompt = @'
-Исследуй только указанную методику для передачи второму агенту. Это read-only задача: не редактируй файлы, не запускай тесты, не коммить и не отправляй изменения.
-Прочитай docs/methodologies/WORKFLOW.md. Ищи только то, что нужно для решения двух критериев: есть ли пригодный русский текст и есть ли надёжный точный ключ/подсчёт. Не трать время на лицензии, нормы, российскую апробацию и библиографический обзор.
-Верни короткую записку по-русски с прямыми URL: точная версия; источник русских вопросов/инструкций и можно ли восстановить полный текст; количество пунктов и формат ответов; шкалы, обратные пункты и формула подсчёта с источником; решение `add`, `already-available`, `ru-ineligible` или `blocked` с конкретной причиной. Если источники расходятся, укажи это. Не угадывай и не предлагай неофициальный перевод.
+Ты — независимый слот пакетного импорта методик. Прочитай docs/methodologies/WORKFLOW.md. Обработай только переданный пункт: достаточно проверить наличие адекватного русского текста и надёжного точного ключа/подсчёта. Пропусти остальные проверки. Используй прямые источники и не угадывай.
+
+Если оба критерия соблюдены, создай полноценную регистрацию в `apps/api/src/data/methodologies/method-__ID__.ts`, экспортируя `methodology` с `instrument`, `scoringConfig`, `validationCases` (хотя бы один вручную проверенный случай) и `formulaVersion`. Используй выданный код `__CODE__`. Включи полный доступный русский текст всех пунктов, варианты ответов без нумерационных цифр, ключи и реверсивные пункты. Алгоритм должен точно соответствовать источнику. Если русский текст или ключ отсутствует, модуль не создавай.
+
+Создай короткую записку в `docs/methodologies/reviews/method-__ID__.md` с решением, источниками, количеством пунктов, шкалами и формулой. Не редактируй `seed.ts`, реестр, backlog или любые общие файлы; не коммить и не отправляй изменения. Не запускай тесты/build. Не трогай ничего кроме двух разрешённых уникальных файлов. В конце верни строго одну JSON-строку: {"status":"prepared"|"blocked"|"ru-ineligible"|"already-available","reason":"...","instrumentCode":"__CODE__","moduleFile":"apps/api/src/data/methodologies/method-__ID__.ts","reviewFile":"docs/methodologies/reviews/method-__ID__.md"}. Для prepared оба файла должны существовать.
 
 Пункт очереди:
 __QUEUE_ITEM__
 '@
+  $researchPrompt = $researchPrompt.Replace('__ID__', ('{0:D4}' -f $Item.Id)).Replace('__CODE__', $code)
   $researchPrompt = $researchPrompt.Replace('__QUEUE_ITEM__', $Item.Line)
   $psi = [Diagnostics.ProcessStartInfo]::new()
   $psi.FileName = $codexCommand.Source
@@ -107,7 +119,7 @@ __QUEUE_ITEM__
   $psi.RedirectStandardError = $true
   $psi.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
   $psi.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
-  $psi.Arguments = "exec --json --sandbox read-only -c model_reasoning_effort=low -C `"$worktree`" --output-last-message `"$reportPath`" -"
+  $psi.Arguments = "exec --json --approve-for-me -c model_reasoning_effort=low -C `"$worktree`" --output-last-message `"$reportPath`" -"
   $proc = [Diagnostics.Process]::new()
   $proc.StartInfo = $psi
   if (!$proc.Start()) { throw 'Не удалось запустить параллельного исследователя.' }
@@ -119,9 +131,10 @@ __QUEUE_ITEM__
   $proc.StandardInput.Close()
   $worker = [pscustomobject]@{
     Id = $Item.Id; Title = (($Item.Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
+    Code = $code
     Slot = $Slot
     Process = $proc; StdoutTask = $stdoutTask; StderrTask = $stderrTask
-    ReportPath = $reportPath; StdoutPath = $stdoutPath; StderrPath = $stderrPath
+    ReportPath = $reportPath; StdoutPath = $stdoutPath; StderrPath = $stderrPath; Worktree = $worktree; ItemDir = $itemDir
     Started = Get-Date; Completed = $false; ExitCode = $null
   }
   $script:researchWorkers[$Item.Id] = $worker
@@ -139,6 +152,7 @@ function Complete-ReadAheadResearch {
     if (!$worker.Process.HasExited) {
       if (((Get-Date) - $worker.Started).TotalMinutes -gt 30) {
         try { $worker.Process.Kill() } catch { }
+        try { $worker.Process.WaitForExit() } catch { }
         $worker.Completed = $true
         $worker.ExitCode = -1
         Add-RunLog "RESEARCH_TIMEOUT id=$($worker.Id) slot=$($worker.Slot)"
@@ -151,6 +165,32 @@ function Complete-ReadAheadResearch {
     Set-Content -LiteralPath $worker.StderrPath -Value $stderr -Encoding UTF8
     $worker.Completed = $true
     $worker.ExitCode = $worker.Process.ExitCode
+    if ($worker.ExitCode -eq 0 -and (Test-Path -LiteralPath $worker.ReportPath)) {
+      try {
+        $result = Get-Content -LiteralPath $worker.ReportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $safeId = '{0:D4}' -f $worker.Id
+        $expectedModule = "apps/api/src/data/methodologies/method-$safeId.ts"
+        $expectedReview = "docs/methodologies/reviews/method-$safeId.md"
+        if ($result.reviewFile -ne $expectedReview) { throw 'Worker returned an unexpected review path.' }
+        if ($result.status -eq 'prepared') {
+          if ($result.moduleFile -ne $expectedModule) { throw 'Worker returned an unexpected module path.' }
+          $moduleSource = Join-Path $worker.Worktree $result.moduleFile
+          $reviewSource = Join-Path $worker.Worktree $result.reviewFile
+          if (!(Test-Path -LiteralPath $moduleSource) -or !(Test-Path -LiteralPath $reviewSource)) { throw 'Worker reported prepared but did not create both output files.' }
+          $moduleText = Get-Content -LiteralPath $moduleSource -Raw -Encoding UTF8
+          if (!$result.instrumentCode -or $moduleText -notmatch [regex]::Escape([string]$result.instrumentCode)) { throw 'Worker module does not contain its reported instrument code.' }
+          Copy-Item -LiteralPath $moduleSource -Destination (Join-Path $worker.ItemDir 'module.ts') -Force
+          Copy-Item -LiteralPath $reviewSource -Destination (Join-Path $worker.ItemDir 'review.md') -Force
+        } elseif ($result.status -in @('blocked','ru-ineligible','already-available')) {
+          $reviewSource = Join-Path $worker.Worktree $result.reviewFile
+          if (!(Test-Path -LiteralPath $reviewSource)) { throw 'Worker reported a terminal result without creating its review file.' }
+          Copy-Item -LiteralPath $reviewSource -Destination (Join-Path $worker.ItemDir 'review.md') -Force
+        } else { throw 'Worker result JSON has an unsupported status.' }
+      } catch {
+        $worker.ExitCode = 2
+        Add-RunLog "PREPARED_RESULT_INVALID id=$($worker.Id) error=$($_.Exception.Message)"
+      }
+    }
     Add-RunLog "RESEARCH_DONE id=$($worker.Id) slot=$($worker.Slot) exit=$($worker.ExitCode)"
   }
   $ready = @($script:researchWorkers.Values | Where-Object { $_.ExitCode -eq 0 -and (Test-Path -LiteralPath $_.ReportPath) }).Count
@@ -163,10 +203,12 @@ function Complete-ReadAheadResearch {
 function Wait-ReadAheadResearch([int]$ItemId) {
   $worker = $script:researchWorkers[$ItemId]
   if (!$worker) {
-    $cachedReport = Join-Path (Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $ItemId))) 'research-report.txt'
+    $itemDir = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $ItemId))
+    $cachedReport = Join-Path $itemDir 'prepared-result.json'
     if (Test-Path -LiteralPath $cachedReport) {
       $report = Get-Content -LiteralPath $cachedReport -Raw -Encoding UTF8
-      if ($report.Trim()) {
+      try { $cached = $report | ConvertFrom-Json; $cacheValid = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $itemDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-Path (Join-Path $itemDir 'module.ts')) -and (Test-Path (Join-Path $itemDir 'review.md'))) } catch { $cacheValid = $false }
+      if ($cacheValid) {
         $line = Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match "^\- \[ \] $ItemId\. " } | Select-Object -First 1
         $title = if ($line) { (($line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim() } else { '' }
         $state.researchItem = "$ItemId. $title"
@@ -195,6 +237,56 @@ function Wait-ReadAheadResearch([int]$ItemId) {
   return ''
 }
 
+function Integrate-PreparedMethod([int]$ItemId, [string]$QueueLine, [string]$ResultJson) {
+  $result = $ResultJson | ConvertFrom-Json
+  if ($result.instrumentCode) { $script:itemCodes[$ItemId] = [string]$result.instrumentCode }
+  $itemDir = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $ItemId))
+  $moduleName = 'method-{0:D4}.ts' -f $ItemId
+  $reviewName = 'method-{0:D4}.md' -f $ItemId
+  $reviewSource = Join-Path $itemDir 'review.md'
+  if (!(Test-Path -LiteralPath $reviewSource)) { throw "Worker $ItemId did not preserve its source review." }
+  $reviewTarget = Join-Path $repo (Join-Path 'docs\methodologies\reviews' $reviewName)
+  $null = New-Item -ItemType Directory -Path (Split-Path -Parent $reviewTarget) -Force
+  Copy-Item -LiteralPath $reviewSource -Destination $reviewTarget -Force
+
+  $status = [string]$result.status
+  if ($status -eq 'prepared') {
+    $moduleSource = Join-Path $itemDir 'module.ts'
+    if (!(Test-Path -LiteralPath $moduleSource)) { throw "Worker $ItemId reported prepared without a methodology module." }
+    $expectedCode = [string]$result.instrumentCode
+    if (!$expectedCode -and $moduleText -match "(?<code>test_\d+)") { $expectedCode = $Matches.code }
+    $moduleText = Get-Content -LiteralPath $moduleSource -Raw -Encoding UTF8
+    if (!$expectedCode -or $moduleText -notmatch [regex]::Escape($expectedCode)) { throw "Worker $ItemId produced a module without its reserved instrument code." }
+    $moduleTarget = Join-Path $repo (Join-Path 'apps\api\src\data\methodologies' $moduleName)
+    $null = New-Item -ItemType Directory -Path (Split-Path -Parent $moduleTarget) -Force
+    Copy-Item -LiteralPath $moduleSource -Destination $moduleTarget -Force
+    $queueStatus = 'implemented-local'
+  } else {
+    if ($status -notin @('blocked','ru-ineligible','already-available')) { throw "Unsupported terminal methodology result: $status" }
+    $queueStatus = $status
+  }
+
+  $currentLines = Get-Content -LiteralPath $queuePath -Encoding UTF8
+  $current = $currentLines | Where-Object { $_ -match "^\- \[ \] $ItemId\. " } | Select-Object -First 1
+  if (!$current) { throw "Queue item $ItemId is no longer queued." }
+  $reviewLink = "[review](../reviews/$reviewName)"
+  $updated = $current -replace '^\- \[ \]', '- [x]'
+  $updated = [regex]::Replace($updated, '— `queued`;', "— ``$queueStatus``;")
+  if ($updated -notmatch '\[review\]\(') { $updated += " $reviewLink;" }
+  $content = [IO.File]::ReadAllText($queuePath, [Text.UTF8Encoding]::new($true))
+  $content = $content.Replace($current, $updated)
+  [IO.File]::WriteAllText($queuePath, $content, [Text.UTF8Encoding]::new($true))
+
+  $paths = @("docs/methodologies/reviews/$reviewName", 'docs/methodologies/links/_backlog.md')
+  if ($status -eq 'prepared') { $paths += "apps/api/src/data/methodologies/$moduleName" }
+  & git -C $repo add -- $paths | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "Не удалось добавить файлы методики $ItemId в локальный commit." }
+  & git -C $repo commit -m "Add methodology backlog item $ItemId ($queueStatus)" | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "Не удалось создать локальный commit методики $ItemId." }
+  Add-RunLog "METHOD_INTEGRATED id=$ItemId status=$queueStatus code=$($script:itemCodes[$ItemId])"
+  return @{ status = $queueStatus; line = $updated; reason = $result.reason }
+}
+
 function Get-CurrentCommit {
   $sha = (& git -C $repo rev-parse HEAD).Trim()
   if ($LASTEXITCODE -ne 0 -or !$sha) { throw 'Не удалось определить текущий git commit.' }
@@ -205,11 +297,11 @@ function Start-DeploymentRetry([int]$ItemId) {
   $markerPath = Join-Path $repo 'deployment-retry.txt'
   $marker = "Retry accumulated methodologies after queue item $ItemId at $((Get-Date).ToString('o'))"
   [IO.File]::WriteAllText($markerPath, $marker + "`n", [Text.UTF8Encoding]::new($false))
-  & git -C $repo add -- deployment-retry.txt
+  & git -C $repo add -- deployment-retry.txt | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить marker для повторного deploy.' }
-  & git -C $repo commit -m "Retry deployment after methodology $ItemId"
+  & git -C $repo commit -m "Retry deployment after methodology $ItemId" | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'Не удалось создать commit для повторного deploy.' }
-  & git -C $repo push origin main
+  & git -C $repo push origin main | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'Не удалось отправить повторный deploy в main.' }
   return Get-CurrentCommit
 }
@@ -270,6 +362,28 @@ function Mark-ImplementedLocalAsDone([string]$Sha) {
   [IO.File]::WriteAllText($queuePath, $content, [Text.UTF8Encoding]::new($true))
 }
 
+function Invoke-PendingDeployment([int]$AfterItemId) {
+  $pending = @(Get-ImplementedLocalLines)
+  if (!$pending.Count) { return @{ status = 'none'; count = 0 } }
+  $sha = Start-DeploymentRetry $AfterItemId
+  Add-RunLog "DEPLOY_START id=$AfterItemId sha=$sha pending=$($pending.Count) threshold=$DeployBatchSize"
+  $deploy = Wait-Deployment $sha
+  if ($deploy.status -eq 'success') {
+    Mark-ImplementedLocalAsDone $sha
+    & git -C $repo add -- docs/methodologies/links/_backlog.md | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить статусы подтверждённых методик.' }
+    & git -C $repo commit -m 'Mark methodology batch deployed' | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось зафиксировать статусы подтверждённых методик.' }
+    & git -C $repo push origin main | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось сохранить статусы подтверждённых методик в main.' }
+    Add-RunLog "DEPLOY_CONFIRMED id=$AfterItemId sha=$sha count=$($pending.Count) url=$($deploy.url)"
+    return @{ status = 'success'; count = $pending.Count; sha = $sha; url = $deploy.url }
+  }
+  if ($deploy.status -eq 'validation-failed') { return @{ status = 'validation-failed'; count = $pending.Count; sha = $sha; reason = $deploy.reason; url = $deploy.url } }
+  Add-RunLog "DEPLOY_DEFERRED id=$AfterItemId sha=$sha pending=$($pending.Count) reason=$($deploy.reason)"
+  return @{ status = 'deferred'; count = $pending.Count; sha = $sha; reason = $deploy.reason; url = $deploy.url }
+}
+
 function Set-FinalState($State, [string]$Status, [string]$Reason) {
   $State.status = $Status
   $State.activeItem = $null
@@ -285,15 +399,35 @@ function Set-FinalState($State, [string]$Status, [string]$Reason) {
 if (!(Test-Path -LiteralPath $queuePath)) { throw "Queue file not found: $queuePath" }
 
 $queue = @(Get-QueuedItems)
-if (!$queue.Count) {
+if (!$queue.Count -and !(Get-ImplementedLocalLines).Count) {
   Write-Output 'Очередь пуста: записей со статусом queued нет.'
   exit 0
 }
 if ($DryRun) {
-  Write-Output "Следующий пункт: $($queue[0].Line)"
+  if ($queue.Count) { Write-Output "Следующий пункт: $($queue[0].Line)" }
+  else { Write-Output 'Очередь пуста; есть накопленная пачка, ожидающая deploy.' }
   Write-Output "Осталось записей в статусе queued: $($queue.Count)"
   exit 0
 }
+
+$maxCode = 0
+$dataFiles = @(Get-ChildItem -LiteralPath (Join-Path $repo 'apps\api\src\data') -File -Filter '*.ts' -Recurse -ErrorAction SilentlyContinue)
+$seedFile = Get-Item -LiteralPath (Join-Path $repo 'apps\api\src\seed.ts') -ErrorAction SilentlyContinue
+if ($seedFile) { $dataFiles += $seedFile }
+foreach ($sourceFile in $dataFiles) {
+  foreach ($match in (Select-String -LiteralPath $sourceFile.FullName -Pattern 'test_(\d+)' -AllMatches).Matches) {
+    $maxCode = [Math]::Max($maxCode, [int]$match.Groups[1].Value)
+  }
+}
+$cacheRoot = Join-Path $runnerDir 'research'
+if (Test-Path -LiteralPath $cacheRoot) {
+  foreach ($cachedModule in (Get-ChildItem -LiteralPath $cacheRoot -Recurse -File -Filter 'module.ts')) {
+    foreach ($match in (Select-String -LiteralPath $cachedModule.FullName -Pattern 'test_(\d+)' -AllMatches).Matches) {
+      $maxCode = [Math]::Max($maxCode, [int]$match.Groups[1].Value)
+    }
+  }
+}
+$script:nextInstrumentCode = $maxCode + 1
 
 $lockStream = $null
 try {
@@ -320,12 +454,14 @@ $state = [ordered]@{
   researchItem = $null
   researchStatus = 'idle'
   researchWorkers = @()
-  message = "До $ResearchSlots read-only исследователей работают параллельно с последовательной интеграцией методик."
+  message = "До $ResearchSlots независимых слотов готовят методики параллельно; результат интегрируется последовательно."
 }
 Remove-Item -LiteralPath $stopPath -Force -ErrorAction SilentlyContinue
 Write-State $state
 Add-RunLog "START run=$runId remaining=$($queue.Count)"
 $script:deferredUntil = @{}
+$initialPendingCount = @(Get-ImplementedLocalLines).Count
+$script:lastAttemptPendingCount = if ($initialPendingCount -ge $DeployBatchSize) { $initialPendingCount - $DeployBatchSize } else { 0 }
 
 try {
   while ($true) {
@@ -334,10 +470,39 @@ try {
       break
     }
 
+    $pendingAtLoopStart = @(Get-ImplementedLocalLines).Count
+    if ((Get-QueuedItems).Count -gt 0 -and $pendingAtLoopStart -ge $DeployBatchSize -and ($pendingAtLoopStart - $script:lastAttemptPendingCount) -ge $DeployBatchSize) {
+      $batchRetry = Invoke-PendingDeployment 0
+      $state.lastDeployStatus = $batchRetry.status
+      $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
+      $script:lastAttemptPendingCount = if ($batchRetry.status -eq 'success') { 0 } else { $pendingAtLoopStart }
+      if ($batchRetry.status -eq 'validation-failed') {
+        Set-FinalState $state 'paused' "CI validation failed for deployment $($batchRetry.sha): $($batchRetry.reason). $($batchRetry.url)"
+        break
+      }
+    }
+
     Add-RunLog 'LOOP_READ_START'
     $allQueue = @(Get-QueuedItems)
     Add-RunLog "LOOP_READ_DONE count=$($allQueue.Count)"
     if (!$allQueue.Count) {
+      $pendingAtEnd = @(Get-ImplementedLocalLines)
+      if ($pendingAtEnd.Count) {
+        $finalDeploy = Invoke-PendingDeployment 0
+        $state.lastDeployStatus = $finalDeploy.status
+        $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
+        $state.updatedAt = (Get-Date).ToString('o')
+        if ($finalDeploy.status -eq 'validation-failed') {
+          Set-FinalState $state 'paused' "CI validation failed for final deployment $($finalDeploy.sha): $($finalDeploy.reason). $($finalDeploy.url)"
+          break
+        }
+        if ($finalDeploy.status -eq 'deferred') {
+          $state.message = "Очередь обработана; финальный пакет из $($finalDeploy.count) методик ожидает повторного deploy: $($finalDeploy.reason)"
+          Write-State $state
+          Start-Sleep -Seconds 900
+          continue
+        }
+      }
       Set-FinalState $state 'complete' 'Записей со статусом queued больше нет.'
       Unregister-ScheduledTask -TaskName 'Opora-Methodology-Backlog-Resume' -Confirm:$false -ErrorAction SilentlyContinue
       break
@@ -375,140 +540,70 @@ try {
       break
     }
 
-    $researchContext = ''
-    try { $researchContext = Wait-ReadAheadResearch $itemId }
-    catch { Add-RunLog "RESEARCH_WAIT_ERROR id=$itemId error=$($_.Exception.Message)"; $state.researchStatus = 'failed' }
-    if ($script:researchWorkers.ContainsKey($itemId)) {
-      $consumedWorker = $script:researchWorkers[$itemId]
-      try { $consumedWorker.Process.Dispose() } catch { }
-      $script:researchWorkers.Remove($itemId)
-    }
-    foreach ($completedWorker in @($script:researchWorkers.Values | Where-Object Completed)) {
-      try { $completedWorker.Process.Dispose() } catch { }
-      $script:researchWorkers.Remove($completedWorker.Id)
-    }
+    # Fill isolated implementation slots before waiting for the head item.
     if (!(Test-Path -LiteralPath $stopPath)) {
-      $usedSlots = @($script:researchWorkers.Values | Where-Object { !$_.Completed } | ForEach-Object Slot)
-      $candidateCount = [Math]::Min($ResearchSlots, [Math]::Max(0, $queue.Count - 1))
-      for ($offset = 1; $offset -le $candidateCount; $offset++) {
+      $usedSlots = @($script:researchWorkers.Values | Where-Object { !$_.Completed -and !$_.Process.HasExited } | ForEach-Object Slot)
+      $slotLimit = [Math]::Min($ResearchSlots, $queue.Count)
+      for ($offset = 0; $offset -lt $slotLimit; $offset++) {
         $candidate = $queue[$offset]
         if ($script:researchWorkers.ContainsKey($candidate.Id)) { continue }
-        $candidateReport = Join-Path (Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $candidate.Id))) 'research-report.txt'
-        if ((Test-Path -LiteralPath $candidateReport) -and (Get-Item -LiteralPath $candidateReport).Length -gt 0) { continue }
+        $cachedPath = Join-Path (Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $candidate.Id))) 'prepared-result.json'
+        if (Test-Path -LiteralPath $cachedPath) {
+          try {
+            $cached = Get-Content -LiteralPath $cachedPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $cachedDir = Split-Path $cachedPath
+            $cacheGood = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $cachedDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-Path (Join-Path $cachedDir 'module.ts')) -and (Test-Path (Join-Path $cachedDir 'review.md')))
+            if ($cacheGood) { continue }
+          } catch { }
+        }
         $freeSlot = 1
         while ($usedSlots -contains $freeSlot -and $freeSlot -le $ResearchSlots) { $freeSlot++ }
         if ($freeSlot -gt $ResearchSlots) { break }
-        try {
-          Start-ReadAheadResearch $candidate $freeSlot
-          $usedSlots += $freeSlot
-        } catch {
-          Add-RunLog "RESEARCH_START_ERROR id=$($candidate.Id) slot=$freeSlot error=$($_.Exception.Message)"
-        }
+        try { Start-ReadAheadResearch $candidate $freeSlot; $usedSlots += $freeSlot }
+        catch { Add-RunLog "WORKER_START_ERROR id=$($candidate.Id) slot=$freeSlot error=$($_.Exception.Message)" }
       }
     }
 
     $result = $null
+    $workerError = ''
     for ($attempt = 1; $attempt -le $MaxAttemptsPerItem; $attempt++) {
       if (Test-Path -LiteralPath $stopPath) { break }
       $state.currentAttempt = $attempt
       $state.updatedAt = (Get-Date).ToString('o')
       Write-State $state
-
-      $prompt = @'
-Это ровно один пункт фоновой очереди методик. Работай только с ним и не переходи к соседним пунктам.
-
-Сначала прочитай docs/methodologies/WORKFLOW.md. Работай в ускоренном режиме. Решение о добавлении зависит только от двух условий: (1) доступен адекватный русский текст методики и (2) найден надёжный, однозначный ключ и алгоритм подсчёта. Не трать время на проверки лицензий, российской апробации, норм, публикационных требований или обязательную независимую копию. Не отклоняй методику по этим причинам. Не выдумывай ключ и не создавай собственный перевод вместо отсутствующей русской версии.
-
-НОВЫЙ ОБЯЗАТЕЛЬНЫЙ РЕЖИМ НАКОПИТЕЛЬНОГО DEPLOY (он переопределяет любые противоречащие старые указания ниже): каждая локально завершённая методика коммитится/пушится с итогом `implemented-local`; runner ждёт GitHub workflow. Если deploy не удался из-за хостинга, базы, SSH или health-check, НЕ ставь `PAUSE_REQUIRED`, не откатывай изменения и переходи к следующему пункту. После каждого следующего пункта runner повторно выкладывает все накопленные `implemented-local` методики. Только при успешном workflow и production health все накопленные строки меняются на `done`. Ошибка CI `npm ci`/build или невозможность commit/push — причина остановиться.
-
-Для нового инструмента быстро найди русскую версию, надёжный ключ и схему подсчёта. Если оба условия допуска выполнены — реализуй методику, выполни краткую проверку соответствия ключа и нужную сборку, поставь `[x]` и `implemented-local`, добавь краткий review и закоммить/отправь в `main` только относящиеся к ней файлы. Не трать время на остальные исследовательские проверки. Не жди deploy в этой Codex-сессии и не ставь `done`: runner следит за workflow и production health-check. Если production deploy падает по инфраструктурной причине, оставь пакет в `implemented-local` и продолжай очередь.
-
-Не ставь `blocked` или `ru-ineligible` из-за лицензии, апробации, норм, отсутствия независимой копии либо недоступности необязательных сведений. `blocked` допустим только если после разумного поиска нельзя получить надёжный ключ/подсчёт; `ru-ineligible` — только если нет адекватного русского текста. Для точного дубликата допустим `already-available`. Создай короткий review и перейди дальше. Если в очереди есть изменения других закрытых пунктов этого запуска, включи их тоже, но не включай посторонние файлы. При наличии `implemented-local` runner после этого пункта повторит deploy накопленного пакета.
-
-Не меняй существующие опросы и исторические результаты. Не коммить посторонние незакоммиченные изменения. Не используй `PAUSE_REQUIRED` для исследовательских вопросов: зафиксируй итог `blocked` только при ненадёжном/отсутствующем ключе, `ru-ineligible` только при отсутствии адекватного русского текста и продолжай. Если возникла временная техническая ошибка, попробуй альтернативный способ и затем продолжай очередь с ясным статусом. Не ставь статус только по названию без поиска ключа и русского текста.
-
-Параллельное предварительное исследование текущего пункта (используй как готовую навигацию и быстро сверь ключевые утверждения; не повторяй уже выполненный широкий поиск):
-__RESEARCH_CONTEXT__
-
-Пункт очереди (ссылка на страницу и путеводитель включены):
-__QUEUE_ITEM__
-
-После завершения напиши короткое резюме. Runner проверит итог, продолжит очередь при сбое production deploy и подтвердит весь накопленный batch после успешного workflow и health-check.
-'@
-      $prompt = $prompt.Replace('__RESEARCH_CONTEXT__', $researchContext)
-      $prompt = $prompt.Replace('__QUEUE_ITEM__', $item.Line)
-      $safeId = '{0:D4}' -f $itemId
-      $itemDir = Join-Path $runnerDir "items\$safeId"
-      $null = New-Item -ItemType Directory -Path $itemDir -Force
-      $lastMessage = Join-Path $itemDir 'last-message.txt'
-      $transcript = Join-Path $itemDir ("attempt-{0}.jsonl" -f $attempt)
-      $stderrPath = Join-Path $itemDir ("attempt-{0}.stderr.log" -f $attempt)
-      Remove-Item -LiteralPath $lastMessage -Force -ErrorAction SilentlyContinue
-
-      $psi = [Diagnostics.ProcessStartInfo]::new()
-      $psi.FileName = $codexCommand.Source
-      $psi.WorkingDirectory = $repo
-      $psi.UseShellExecute = $false
-      $psi.CreateNoWindow = $true
-      $psi.RedirectStandardInput = $true
-      $psi.RedirectStandardOutput = $true
-      $psi.RedirectStandardError = $true
-      $psi.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
-      $psi.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
-      $psi.Arguments = "exec --json --approve-for-me -c model_reasoning_effort=medium -C `"$repo`" --output-last-message `"$lastMessage`" -"
-      $proc = [Diagnostics.Process]::new()
-      $proc.StartInfo = $psi
-      try {
-        if (!$proc.Start()) { throw 'Codex CLI did not start.' }
-        $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
-        $stderrTask = $proc.StandardError.ReadToEndAsync()
-        $promptBytes = [Text.UTF8Encoding]::new($false).GetBytes($prompt)
-        $proc.StandardInput.BaseStream.Write($promptBytes, 0, $promptBytes.Length)
-        $proc.StandardInput.BaseStream.Flush()
-        $proc.StandardInput.Close()
-        $started = Get-Date
-        $stopRequested = $false
-        while (!$proc.WaitForExit(2000)) {
-          if (Test-Path -LiteralPath $stopPath) {
-            $stopRequested = $true
-            try { $proc.Kill() } catch { }
-            break
+      $preparedJson = ''
+      try { $preparedJson = Wait-ReadAheadResearch $itemId }
+      catch { $workerError = $_.Exception.Message; Add-RunLog "WORKER_WAIT_ERROR id=$itemId attempt=$attempt error=$workerError" }
+      if ($preparedJson) {
+        try {
+          $result = Integrate-PreparedMethod $itemId $item.Line $preparedJson
+          if ($script:researchWorkers.ContainsKey($itemId)) {
+            $finishedWorker = $script:researchWorkers[$itemId]
+            try { $finishedWorker.Process.Dispose() } catch { }
+            $script:researchWorkers.Remove($itemId)
           }
-          if (((Get-Date) - $started).TotalMinutes -gt 30) {
-            try { $proc.Kill() } catch { }
-            throw 'Методика не завершилась за 30 минут; текущая запись оставлена queued.'
-          }
-          $state.updatedAt = (Get-Date).ToString('o')
-          Write-State $state
-        }
-        $proc.WaitForExit()
-        $stdoutText = $stdoutTask.GetAwaiter().GetResult()
-        $stderrText = $stderrTask.GetAwaiter().GetResult()
-        Set-Content -LiteralPath $transcript -Value $stdoutText -Encoding UTF8
-        Set-Content -LiteralPath $stderrPath -Value $stderrText -Encoding UTF8
-        if ($stopRequested) {
-          Set-FinalState $state 'stopped' "Остановлено пользователем во время пункта $itemId; пункт остался в очереди."
           break
+        } catch {
+          $workerError = $_.Exception.Message
+          Add-RunLog "METHOD_INTEGRATE_ERROR id=$itemId attempt=$attempt error=$workerError"
+          throw
         }
-        if ($proc.ExitCode -ne 0) {
-          $shortError = (($stderrText -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object -Last 3) -join ' ').Trim()
-          throw "Codex CLI завершился с кодом $($proc.ExitCode). $shortError"
-        }
-      } finally {
-        $proc.Dispose()
       }
-
-      $latestLine = Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match "^\- \[[ x]\] $itemId\. " } | Select-Object -First 1
-      if ($latestLine -and $latestLine -match '^\- \[x\] \d+\. .+ — `(?<status>[^`]+)`;' -and $terminalStatuses -contains $Matches.status) {
-        $result = @{ status = $Matches.status; line = $latestLine }
-        break
+      if ($script:researchWorkers.ContainsKey($itemId)) {
+        $consumedWorker = $script:researchWorkers[$itemId]
+        $workerError = if ($consumedWorker.ExitCode -ne 0) { "Worker завершился с кодом $($consumedWorker.ExitCode)." } else { 'Worker не создал корректный результат.' }
+        try { $consumedWorker.Process.Dispose() } catch { }
+        $script:researchWorkers.Remove($itemId)
       }
-      if (Test-Path -LiteralPath $lastMessage) {
-        $agentMessage = (Get-Content -LiteralPath $lastMessage -Raw -Encoding UTF8).Trim()
-      } else { $agentMessage = 'Codex не сохранил итоговое сообщение.' }
       if ($attempt -lt $MaxAttemptsPerItem) {
-        Add-RunLog "RETRY id=$itemId attempt=$attempt reason=NoTerminalStatus"
+        Add-RunLog "WORKER_RETRY id=$itemId attempt=$attempt reason=$workerError"
         Start-Sleep -Seconds (5 * $attempt)
+        $freeSlot = 1
+        $busy = @($script:researchWorkers.Values | Where-Object { !$_.Completed -and !$_.Process.HasExited } | ForEach-Object Slot)
+        while ($busy -contains $freeSlot -and $freeSlot -le $ResearchSlots) { $freeSlot++ }
+        if ($freeSlot -gt $ResearchSlots) { $freeSlot = 1; try { foreach ($w in $script:researchWorkers.Values) { if (!$w.Process.HasExited) { $w.Process.WaitForExit(1000) } } } catch { } }
+        try { Start-ReadAheadResearch $item $freeSlot }
+        catch { $workerError = $_.Exception.Message; Add-RunLog "WORKER_RETRY_START_ERROR id=$itemId error=$workerError" }
       } else {
         $retryAt = (Get-Date).AddMinutes(15)
         $script:deferredUntil[$itemId] = $retryAt
@@ -516,43 +611,41 @@ __QUEUE_ITEM__
         $state.activeItem = $null
         $state.remaining = @(Get-QueuedItems).Count
         $state.updatedAt = (Get-Date).ToString('o')
-        $state.message = "Пункт $itemId отложен после $MaxAttemptsPerItem попыток до $($retryAt.ToString('HH:mm:ss')); продолжаю очередь. $agentMessage"
+        $state.message = "Пункт $itemId пропущен после $MaxAttemptsPerItem ошибок и будет повторён в $($retryAt.ToString('HH:mm:ss')); продолжаю очередь. $workerError"
         Write-State $state
-        Add-RunLog "ITEM_DEFERRED id=$itemId retryAt=$($retryAt.ToString('o')) attempts=$MaxAttemptsPerItem"
-        $result = @{ status = 'deferred'; line = $latestLine }
+        Add-RunLog "ITEM_DEFERRED id=$itemId retryAt=$($retryAt.ToString('o')) attempts=$MaxAttemptsPerItem reason=$workerError"
+        $result = @{ status = 'deferred'; line = $null }
       }
     }
-
+    if (Test-Path -LiteralPath $stopPath) {
+      Set-FinalState $state 'stopped' "Остановлено пользователем во время пункта $itemId; пункт остался в очереди."
+      break
+    }
     if ($state.status -eq 'stopped') { break }
     if ($result -and $result.status -eq 'deferred') { continue }
     if ($state.status -eq 'paused') { break }
     if (!$result) { Set-FinalState $state 'paused' "Пункт $itemId не был закрыт итоговым статусом."; break }
 
     $pendingBeforeDeploy = @(Get-ImplementedLocalLines)
-    if ($result.status -eq 'implemented-local' -or $pendingBeforeDeploy.Count -gt 0) {
-      $deploySha = Get-CurrentCommit
-      if ($result.status -ne 'implemented-local') { $deploySha = Start-DeploymentRetry $itemId }
-      Add-RunLog "DEPLOY_START id=$itemId sha=$deploySha pending=$($pendingBeforeDeploy.Count)"
-      $deployResult = Wait-Deployment $deploySha
+    $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
+    $queueAfterItem = @(Get-QueuedItems)
+    $isBatchFull = ($state.pendingDeployCount - $script:lastAttemptPendingCount) -ge $DeployBatchSize
+    $isLastQueuedItem = $queueAfterItem.Count -eq 0
+    if ($state.pendingDeployCount -gt 0 -and ($isBatchFull -or $isLastQueuedItem)) {
+      $deployResult = Invoke-PendingDeployment $itemId
       $state.lastDeployStatus = $deployResult.status
-      if ($deployResult.status -eq 'success') {
-        Mark-ImplementedLocalAsDone $deploySha
-        $state.pendingDeployCount = 0
-        Add-RunLog "DEPLOY_CONFIRMED id=$itemId sha=$deploySha url=$($deployResult.url)"
-        & git -C $repo add -- docs/methodologies/links/_backlog.md
-        if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить статусы подтверждённых методик.' }
-        & git -C $repo commit -m "Mark methodology batch deployed"
-        if ($LASTEXITCODE -ne 0) { throw 'Не удалось зафиксировать статусы подтверждённых методик.' }
-        & git -C $repo push origin main
-        if ($LASTEXITCODE -ne 0) { throw 'Не удалось сохранить статусы подтверждённых методик в main.' }
-      } elseif ($deployResult.status -eq 'validation-failed') {
-        Set-FinalState $state 'paused' "CI validation failed for deployment $($deploySha): $($deployResult.reason). $($deployResult.url)"
+      $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
+      $script:lastAttemptPendingCount = if ($deployResult.status -eq 'success') { 0 } else { $state.pendingDeployCount }
+      if ($deployResult.status -eq 'validation-failed') {
+        Set-FinalState $state 'paused' "CI validation failed for deployment $($deployResult.sha): $($deployResult.reason). $($deployResult.url)"
         break
-      } else {
-        $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
-        $state.message = "Deploy отложен; очередь продолжится, ожидают выпуска: $($state.pendingDeployCount). Причина: $($deployResult.reason)"
-        Add-RunLog "DEPLOY_DEFERRED id=$itemId sha=$deploySha pending=$($state.pendingDeployCount) reason=$($deployResult.reason)"
       }
+      if ($deployResult.status -eq 'deferred') {
+        $state.message = "Deploy пачки из $($deployResult.count) методик временно отложен; продолжаю очередь. Причина: $($deployResult.reason)"
+      }
+    } elseif ($state.pendingDeployCount -gt 0) {
+      Add-RunLog "DEPLOY_BATCH_ACCUMULATING id=$itemId pending=$($state.pendingDeployCount) threshold=$DeployBatchSize"
+      $state.message = "Добавлено методик в ожидающую пачку: $($state.pendingDeployCount) из $DeployBatchSize; продолжаю очередь."
     }
     $state.processedThisRun++
     $state.lastCompleted = "$itemId. $($result.status) — $itemTitle"
