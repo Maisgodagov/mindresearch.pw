@@ -50,7 +50,7 @@
 - [x] 42. STAXI-2 — `blocked`; [страница методики](https://psytests.org/confl/staxi2.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-0042.md);
 - [x] 43. TAS-26 — `implemented-local`; [страница методики](https://psytests.org/diag/tas26.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html). [review](../reviews/method-0043.md);
 - [x] 44. TAS-C — `blocked`; [страница методики](https://psytests.org/diag/tas20c.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html). [review](../reviews/method-0044.md);
-- [ ] 45. VSM-4 — `queued`; [страница методики](https://psytests.org/group/vsm94.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
+- [x] 45. VSM-4 — `implemented-local`; [страница методики](https://psytests.org/group/vsm94.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0045.md);
 - [ ] 46. А вы сверхчувствительны? — `queued`; [страница методики](https://psytests.org/quiz/aronhs.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
 - [ ] 47. Автопортрет личности — `queued`; [страница методики](https://psytests.org/accent/om.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html), [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 48. Агрессивное поведение — `queued`; [страница методики](https://psytests.org/confl/ilagp.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
