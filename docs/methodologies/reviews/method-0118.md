@@ -11,5 +11,5 @@
 
 Источники:
 
-- И. М. Марковская. *Тренинг взаимодействия родителей с детьми*. СПб.: Речь, 2000, с. 40–47 (вариант для родителей подростков, ключ и обработка результатов): https://files.znu.edu.ua/files/Bibliobooks/Inshi/0003327.pdf
-- Страница и бланк методики, И. М. Марковская (1998): https://psytests.org/parent/vrrr2s.html и https://psytests.org/parent/vrrr2s-bl.html
+- [И. М. Марковская. *Тренинг взаимодействия родителей с детьми*. СПб.: Речь, 2000, с. 40–47 (вариант для родителей подростков, ключ и обработка результатов)](https://files.znu.edu.ua/files/Bibliobooks/Inshi/0003327.pdf)
+- [Страница методики ВРР для родителей подростков на PsyTests](https://psytests.org/parent/vrrr2s.html) и [бланк методики](https://psytests.org/parent/vrrr2s-bl.html)

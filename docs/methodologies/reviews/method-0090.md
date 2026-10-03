@@ -7,6 +7,6 @@
 - Контрольный случай: шесть ответов по 1 дают 6; шесть ответов по 5 дают 30.
 - Ограничение: источник описывает адаптацию, сформулированную для подростков; пороговые диагностические категории здесь не задаются.
 - Источники:
-  - Корниенко Д. С. и др. «Одиночество и социальная поддержка как характеристики социального здоровья и факторы зависимости от социальных сетей у подростков», 2023, включая приложение: https://psyjournals.ru/journals/sps/archive/2023_n2/sps_2023_n2_Kornienko_et_al.pdf
-  - Psytests, страница BSMAS и бланк: https://psytests.org/cyber/bsmas.html и https://psytests.org/cyber/bsmas-bl.html
-  - Международная валидация BSMAS, шкала 1–5 и сумма 6–30: https://pmc.ncbi.nlm.nih.gov/articles/PMC9122809/
+  - [Корниенко Д. С. и др. «Одиночество и социальная поддержка как характеристики социального здоровья и факторы зависимости от социальных сетей у подростков», 2023, приложение](https://psyjournals.ru/journals/sps/archive/2023_n2/sps_2023_n2_Kornienko_et_al.pdf)
+  - [Страница BSMAS на PsyTests](https://psytests.org/cyber/bsmas.html) и [русский бланк BSMAS на PsyTests](https://psytests.org/cyber/bsmas-bl.html)
+  - [Международная валидация BSMAS: шкала 1–5 и сумма 6–30](https://pmc.ncbi.nlm.nih.gov/articles/PMC9122809/)

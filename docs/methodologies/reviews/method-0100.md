@@ -3,9 +3,9 @@
 - Решение: `prepared`.
 - Русский текст: 20 пунктов и инструкция в русскоязычном бланке psytests.org; адаптация Ю. В. Щербатых (2005).
 - Источники:
-  - https://psytests.org/stress/baudit.html
-  - https://psytests.org/stress/baudit-bl.html
-  - Boston University Bridge, публикация Stress Audit и формулы: https://www.bu.edu/bridge/archive/2001/10-05/ask.html
+  - [Описание и интерпретация Boston Stress Audit на PsyTests](https://psytests.org/stress/baudit.html)
+  - [Русский бланк Boston Stress Audit на PsyTests](https://psytests.org/stress/baudit-bl.html)
+  - [Boston University Bridge: публикация Stress Audit и формулы](https://www.bu.edu/bridge/archive/2001/10-05/ask.html)
 - Пункты: 20.
 - Ответы: всегда, часто, иногда, почти никогда, никогда. Исходные баллы 1–5 перекодированы в 0–4; это точно реализует вычитание 20 из суммы исходных ответов.
 - Шкала: уязвимость к стрессу; все пункты направлены одинаково, реверсивных пунктов нет.

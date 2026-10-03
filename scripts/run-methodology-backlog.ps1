@@ -50,6 +50,21 @@ function Get-ImplementedLocalLines {
   return @(Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match '^\- \[x\] \d+\. .+ — `implemented-local`;' })
 }
 
+function Test-PreparedMetadata([string]$ModulePath, [string]$ReviewPath) {
+  if (!(Test-Path -LiteralPath $ModulePath) -or !(Test-Path -LiteralPath $ReviewPath)) { throw 'Не найден модуль или review для проверки описания и источников.' }
+  $moduleText = Get-Content -LiteralPath $ModulePath -Raw -Encoding UTF8
+  $descriptionMatch = [regex]::Match($moduleText, 'description\s*:\s*(["''`])(?<description>(?:\\.|(?!\1).)*)\1', [Text.RegularExpressions.RegexOptions]::Singleline)
+  if (!$descriptionMatch.Success) { throw 'В методике отсутствует описание для каталога.' }
+  $description = [regex]::Unescape($descriptionMatch.Groups['description'].Value).Trim()
+  if ($description.Length -lt 80) { throw 'Описание методики слишком короткое; объясните, что она исследует.' }
+  if ($description -match '^(?i)\s*(?:Оцените|Укажите|Отметьте|Выберите|Прочитайте|Ответьте|Поставьте|Вам предлагается|Перед вами|Пожалуйста)\b') { throw 'Описание начинается с инструкции респонденту, а должно объяснять предмет методики.' }
+  if ($description -notmatch '(?i)(оценивает|измеряет|исследует|изучает|описывает|формирует|выявляет|предназначен|определяет|отражает|помогает понять)') { throw 'В описании не указано, что именно изучает методика.' }
+  $reviewText = Get-Content -LiteralPath $ReviewPath -Raw -Encoding UTF8
+  if ($reviewText -notmatch 'https?://[^\s)]+') { throw 'В review не указаны ссылки на источники методики.' }
+  if ($reviewText -notmatch '\[[^\]]{8,}\]\(https?://[^)]+\)') { throw 'Добавьте кликабельную ссылку на источник с понятным библиографическим названием, а не голый URL.' }
+  return $true
+}
+
 function Stop-ReadAheadResearch {
   foreach ($worker in @($script:researchWorkers.Values)) {
     if (!$worker.Completed -and !$worker.Process.HasExited) {
@@ -71,7 +86,7 @@ function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
   if (Test-Path -LiteralPath $reportPath) {
     try {
       $cached = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
-      $cachedOk = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $itemDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-Path (Join-Path $itemDir 'module.ts')) -and (Test-Path (Join-Path $itemDir 'review.md')))
+      $cachedOk = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $itemDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-PreparedMetadata (Join-Path $itemDir 'module.ts') (Join-Path $itemDir 'review.md')))
       if ($cachedOk) { Add-RunLog "PREPARED_CACHE_HIT id=$($Item.Id)"; return }
     } catch { }
     Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
@@ -100,9 +115,9 @@ function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
   $researchPrompt = @'
 Ты — независимый слот пакетного импорта методик. Прочитай docs/methodologies/WORKFLOW.md. Обработай только переданный пункт: достаточно проверить наличие адекватного русского текста и надёжного точного ключа/подсчёта. Пропусти остальные проверки. Используй прямые источники и не угадывай.
 
-Если оба критерия соблюдены, создай полноценную регистрацию в `apps/api/src/data/methodologies/method-__ID__.ts`, экспортируя `methodology` с `instrument`, `scoringConfig`, `validationCases` (хотя бы один вручную проверенный случай) и `formulaVersion`. Используй выданный код `__CODE__`. Включи полный доступный русский текст всех пунктов, варианты ответов без нумерационных цифр, ключи и реверсивные пункты. Алгоритм должен точно соответствовать источнику. Если русский текст или ключ отсутствует, модуль не создавай.
+Если оба критерия соблюдены, создай полноценную регистрацию в `apps/api/src/data/methodologies/method-__ID__.ts`, экспортируя `methodology` с `instrument`, `scoringConfig`, `validationCases` (хотя бы один вручную проверенный случай) и `formulaVersion`. Используй выданный код `__CODE__`. Включи полный доступный русский текст всех пунктов, варианты ответов без нумерационных цифр, ключи и реверсивные пункты. Алгоритм должен точно соответствовать источнику. Поле `instrument.description` обязательно: это краткое содержательное описание для автора опроса — что именно измеряет методика, какие аспекты охватывает и для какой группы/версии подходит. Не подменяй его инструкцией «оцените/выберите/ответьте»; подробности прохождения оставляй в формулировках вопросов. В review обязательно приводи библиографические источники с кликабельными ссылками на первоисточник/публикацию и страницу русской версии или бланка, если доступны. Не ограничивайся URL без названия источника. Если русский текст или ключ отсутствует, модуль не создавай.
 
-Создай короткую записку в `docs/methodologies/reviews/method-__ID__.md` с решением, источниками, количеством пунктов, шкалами и формулой. Не редактируй `seed.ts`, реестр, backlog или любые общие файлы; не коммить и не отправляй изменения. Не запускай тесты/build. Не трогай ничего кроме двух разрешённых уникальных файлов. В конце верни строго одну JSON-строку: {"status":"prepared"|"blocked"|"ru-ineligible"|"already-available","reason":"...","instrumentCode":"__CODE__","moduleFile":"apps/api/src/data/methodologies/method-__ID__.ts","reviewFile":"docs/methodologies/reviews/method-__ID__.md"}. Для prepared оба файла должны существовать.
+Создай короткую записку в `docs/methodologies/reviews/method-__ID__.md` с решением, библиографическими источниками и ссылками, количеством пунктов, шкалами и формулой. Не оставляй источники просто списком URL: у каждой ссылки должно быть понятное название работы, страницы, бланка или публикации. Проверь, что `instrument.description` объясняет, что методика измеряет и чем может быть полезна автору опроса; описание не должно быть инструкцией участнику. Не редактируй `seed.ts`, реестр, backlog или любые общие файлы; не коммить и не отправляй изменения. Не запускай тесты/build. Не трогай ничего кроме двух разрешённых уникальных файлов. В конце верни строго одну JSON-строку: {"status":"prepared"|"blocked"|"ru-ineligible"|"already-available","reason":"...","instrumentCode":"__CODE__","moduleFile":"apps/api/src/data/methodologies/method-__ID__.ts","reviewFile":"docs/methodologies/reviews/method-__ID__.md"}. Для prepared оба файла должны существовать.
 
 Пункт очереди:
 __QUEUE_ITEM__
@@ -179,6 +194,7 @@ function Complete-ReadAheadResearch {
           if (!(Test-Path -LiteralPath $moduleSource) -or !(Test-Path -LiteralPath $reviewSource)) { throw 'Worker reported prepared but did not create both output files.' }
           $moduleText = Get-Content -LiteralPath $moduleSource -Raw -Encoding UTF8
           if (!$result.instrumentCode -or $moduleText -notmatch [regex]::Escape([string]$result.instrumentCode)) { throw 'Worker module does not contain its reported instrument code.' }
+          Test-PreparedMetadata $moduleSource $reviewSource | Out-Null
           Copy-Item -LiteralPath $moduleSource -Destination (Join-Path $worker.ItemDir 'module.ts') -Force
           Copy-Item -LiteralPath $reviewSource -Destination (Join-Path $worker.ItemDir 'review.md') -Force
         } elseif ($result.status -in @('blocked','ru-ineligible','already-available')) {
@@ -228,7 +244,7 @@ function Wait-ReadAheadResearch([int]$ItemId) {
     $cachedReport = Join-Path $itemDir 'prepared-result.json'
     if (Test-Path -LiteralPath $cachedReport) {
       $report = Get-Content -LiteralPath $cachedReport -Raw -Encoding UTF8
-      try { $cached = $report | ConvertFrom-Json; $cacheValid = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $itemDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-Path (Join-Path $itemDir 'module.ts')) -and (Test-Path (Join-Path $itemDir 'review.md'))) } catch { $cacheValid = $false }
+      try { $cached = $report | ConvertFrom-Json; $cacheValid = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $itemDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-PreparedMetadata (Join-Path $itemDir 'module.ts') (Join-Path $itemDir 'review.md'))) } catch { $cacheValid = $false }
       if ($cacheValid) {
         $line = Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match "^\- \[ \] $ItemId\. " } | Select-Object -First 1
         $title = if ($line) { (($line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim() } else { '' }
@@ -278,6 +294,7 @@ function Integrate-PreparedMethod([int]$ItemId, [string]$QueueLine, [string]$Res
     if (!$expectedCode -and $moduleText -match "(?<code>test_\d+)") { $expectedCode = $Matches.code }
     $moduleText = Get-Content -LiteralPath $moduleSource -Raw -Encoding UTF8
     if (!$expectedCode -or $moduleText -notmatch [regex]::Escape($expectedCode)) { throw "Worker $ItemId produced a module without its reserved instrument code." }
+    Test-PreparedMetadata $moduleSource $reviewSource | Out-Null
     $moduleTarget = Join-Path $repo (Join-Path 'apps\api\src\data\methodologies' $moduleName)
     $null = New-Item -ItemType Directory -Path (Split-Path -Parent $moduleTarget) -Force
     Copy-Item -LiteralPath $moduleSource -Destination $moduleTarget -Force
@@ -577,7 +594,7 @@ try {
           try {
             $cached = Get-Content -LiteralPath $cachedPath -Raw -Encoding UTF8 | ConvertFrom-Json
             $cachedDir = Split-Path $cachedPath
-            $cacheGood = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $cachedDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-Path (Join-Path $cachedDir 'module.ts')) -and (Test-Path (Join-Path $cachedDir 'review.md')))
+            $cacheGood = (($cached.status -in @('blocked','ru-ineligible','already-available')) -and (Test-Path (Join-Path $cachedDir 'review.md'))) -or ($cached.status -eq 'prepared' -and (Test-PreparedMetadata (Join-Path $cachedDir 'module.ts') (Join-Path $cachedDir 'review.md')))
             if ($cacheGood) { continue }
           } catch { }
         }

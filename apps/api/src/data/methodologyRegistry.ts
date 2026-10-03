@@ -15,12 +15,33 @@ export type MethodologyRegistration = {
 };
 
 async function reviewSources(moduleName: string): Promise<Methodology['sources']> {
-  const reviewName = moduleName.replace(/\.ts$/, '.md');
+  const reviewName = moduleName.replace(/\.(?:ts|js)$/, '.md');
   const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
   try {
     const review = await readFile(join(repoRoot, 'docs', 'methodologies', 'reviews', reviewName), 'utf8');
-    const urls = [...review.matchAll(/https?:\/\/[^\s)\]>]+/g)].map(([url]) => url.replace(/[.,;]+$/, ''));
-    return [...new Set(urls)].slice(0, 8).map((url) => ({ title: url, url }));
+    const sources: Methodology['sources'] = [];
+    const seen = new Set<string>();
+    const addSource = (title: string, url: string) => {
+      const normalizedUrl = url.replace(/[.,;]+$/, '');
+      if (!seen.has(normalizedUrl)) {
+        seen.add(normalizedUrl);
+        sources.push({ title: title.trim().slice(0, 500) || 'Источник методики', url: normalizedUrl });
+      }
+    };
+    for (const [, title, url] of review.matchAll(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g)) addSource(title, url);
+    for (const line of review.split(/\r?\n/)) {
+      for (const match of line.matchAll(/https?:\/\/[^\s)\]>]+/g)) {
+        const url = match[0].replace(/[.,;]+$/, '');
+        if (seen.has(url)) continue;
+        const title = line
+          .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
+          .replace(/https?:\/\/[^\s)\]>]+/g, '')
+          .replace(/^\s*[-*]\s*/, '')
+          .replace(/[;:,\s]+$/, '');
+        addSource(title || url, url);
+      }
+    }
+    return sources.slice(0, 20);
   } catch {
     return [];
   }
