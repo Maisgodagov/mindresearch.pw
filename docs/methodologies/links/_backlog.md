@@ -1,4 +1,4 @@
-﻿# Методики из путеводителей PsyTests
+# Методики из путеводителей PsyTests
 
 Источник: все 83 уникальных ссылок из [`links_backlog.md`](../links_backlog.md). Одинаковые страницы объединены по URL; варианты названий и путеводители сохранены. Точные совпадения с уже существующими названиями в основном `BACKLOG.md` отмечены. Это инвентаризация источников, не проверка русской адаптации, психометрии или прав.
 
@@ -16,10 +16,10 @@
 - [x] 8. BRFL-A — `ru-ineligible`; [review](../reviews/8-brfl-a.md); [страница методики](https://psytests.org/diag/rflp.html); путеводители: [clinical-s-risk-ru.html](https://psytests.org/guide/clinical-s-risk-ru.html).
 - [ ] 9. Brief COPE — `already-listed`; [страница методики](https://psytests.org/coping/copeb.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html).
 - [x] 10. CAGE-AID — `implemented-local` (`test_60`): русская форма Егорова (2002), 4 пункта; 1 балл за «да», сумма 0–4, порог положительного скрининга 2+. См. [review](../reviews/10-cage-aid.md); [страница методики](https://psytests.org/diag/cageaid.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html).
-- [x] 11. Cambridge Mindreading — blocked; русская видеоформа доступна, но полный ключ к 50 пунктам не найден; статья подтверждает только подсчёт правильных ответов. [review](../reviews/11-cambridge-mindreading.md); [страница методики](https://psytests.org/arc/cam.html); путеводители: [intelligence-social-ru.html](https://psytests.org/guide/intelligence-social-ru.html).
-- [ ] 12. CAP — `queued`; [страница методики](https://psytests.org/trait/capC.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
-- [ ] 13. CAT-H — `queued`; [страница методики](https://psytests.org/classic/tatcah.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
-- [ ] 14. CORE-OM — `queued`; [страница методики](https://psytests.org/diag/coreom.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
+- [x] 11. Cambridge Mindreading — `blocked`; русская видеоформа доступна, но полный ключ к 50 пунктам не найден; статья подтверждает только подсчёт правильных ответов. [review](../reviews/11-cambridge-mindreading.md); [страница методики](https://psytests.org/arc/cam.html); путеводители: [intelligence-social-ru.html](https://psytests.org/guide/intelligence-social-ru.html).
+- [x] 12. CAP — `blocked`; для русских адаптаций Туник не найден полный однозначный ключ, а доступные ключи относятся к иной версии CAP. [review](../reviews/12-cap.md); [страница методики](https://psytests.org/trait/capC.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
+- [x] 13. CAT-H — `blocked`; полный однозначный ключ для автоматизированного подсчёта не найден; [review](../reviews/13-cat-h.md); [страница методики](https://psytests.org/classic/tatcah.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
+- [x] 14. CORE-OM — `implemented-local` (`test_61`); официальный русский текст 2024 года, обратный ключ и четыре домена реализованы. [review](../reviews/14-core-om.md); [страница методики](https://psytests.org/diag/coreom.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 15. CYRM-28 — `queued`; [страница методики](https://psytests.org/stress/cyrm28.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html).
 - [ ] 16. DERS-18 — `queued`; [страница методики](https://psytests.org/emo/ders18.html); путеводители: [regulation-emotion-ru.html](https://psytests.org/guide/regulation-emotion-ru.html).
 - [ ] 17. DISC — `queued`; [страница методики](https://psytests.org/opm/disc.html); варианты названия: DISC, Типология DISC; путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html), [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
