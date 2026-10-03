@@ -1,6 +1,7 @@
 ﻿param(
   [int]$MaxItems = 0,
   [int]$MaxAttemptsPerItem = 2,
+  [ValidateRange(1, 6)][int]$ResearchSlots = 3,
   [switch]$DryRun,
   [switch]$SelectOnly
 )
@@ -17,7 +18,7 @@ $stopPath = Join-Path $runnerDir 'STOP'
 $lockPath = Join-Path $runnerDir 'runner.lock'
 $logPath = Join-Path $runnerDir 'runner.log'
 $terminalStatuses = @('implemented-local', 'done', 'blocked', 'ru-ineligible', 'already-available')
-$script:researchWorker = $null
+$script:researchWorkers = @{}
 
 function Write-State($State) {
   $json = ConvertTo-Json -InputObject $State -Depth 8
@@ -47,37 +48,46 @@ function Get-ImplementedLocalLines {
 }
 
 function Stop-ReadAheadResearch {
-  if ($script:researchWorker -and !$script:researchWorker.Process.HasExited) {
-    try { $script:researchWorker.Process.Kill() } catch { }
-    try { $script:researchWorker.Process.WaitForExit() } catch { }
-    Add-RunLog "RESEARCH_STOPPED id=$($script:researchWorker.Id)"
+  foreach ($worker in @($script:researchWorkers.Values)) {
+    if (!$worker.Completed -and !$worker.Process.HasExited) {
+      try { $worker.Process.Kill() } catch { }
+      try { $worker.Process.WaitForExit() } catch { }
+      Add-RunLog "RESEARCH_STOPPED id=$($worker.Id) slot=$($worker.Slot)"
+    }
+    try { $worker.Process.Dispose() } catch { }
   }
-  if ($script:researchWorker) {
-    try { $script:researchWorker.Process.Dispose() } catch { }
-    $script:researchWorker = $null
-  }
+  $script:researchWorkers = @{}
 }
 
-function Start-ReadAheadResearch($Item) {
+function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
   if (!$Item) { return }
-  Stop-ReadAheadResearch
 
-  $worktree = Join-Path $runnerDir 'research-worktree'
+  $itemDir = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $Item.Id))
+  $null = New-Item -ItemType Directory -Path $itemDir -Force
+  $reportPath = Join-Path $itemDir 'research-report.txt'
+  if (Test-Path -LiteralPath $reportPath) {
+    $cachedReport = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8
+    if ($cachedReport.Trim()) { Add-RunLog "RESEARCH_CACHE_HIT id=$($Item.Id)"; return }
+  }
+
+  $worktree = Join-Path $runnerDir ("research-worktree-{0}" -f $Slot)
   $baseSha = Get-CurrentCommit
   if (Test-Path -LiteralPath $worktree) {
-    & git -C $worktree reset --hard $baseSha | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'Не удалось обновить исследовательскую рабочую копию.' }
+    & git -C $worktree rev-parse --is-inside-work-tree 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      & git -C $repo worktree prune | Out-Null
+      & git -C $repo worktree add --detach $worktree $baseSha | Out-Null
+    } else {
+      & git -C $worktree reset --hard $baseSha | Out-Null
+    }
+    if ($LASTEXITCODE -ne 0) { throw "Не удалось обновить исследовательское worktree слота $Slot." }
   } else {
     & git -C $repo worktree add --detach $worktree $baseSha | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Не удалось создать исследовательскую рабочую копию.' }
   }
 
-  $itemDir = Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $Item.Id))
-  $null = New-Item -ItemType Directory -Path $itemDir -Force
-  $reportPath = Join-Path $itemDir 'research-report.txt'
   $stdoutPath = Join-Path $itemDir 'stdout.jsonl'
   $stderrPath = Join-Path $itemDir 'stderr.log'
-  Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
   $researchPrompt = @'
 Исследуй только указанную методику для передачи второму агенту. Это read-only задача: не редактируй файлы, не запускай тесты, не коммить и не отправляй изменения.
 Прочитай docs/methodologies/WORKFLOW.md. Ищи только то, что нужно для решения двух критериев: есть ли пригодный русский текст и есть ли надёжный точный ключ/подсчёт. Не трать время на лицензии, нормы, российскую апробацию и библиографический обзор.
@@ -107,47 +117,52 @@ __QUEUE_ITEM__
   $proc.StandardInput.BaseStream.Write($promptBytes, 0, $promptBytes.Length)
   $proc.StandardInput.BaseStream.Flush()
   $proc.StandardInput.Close()
-  $script:researchWorker = [pscustomobject]@{
+  $worker = [pscustomobject]@{
     Id = $Item.Id; Title = (($Item.Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
+    Slot = $Slot
     Process = $proc; StdoutTask = $stdoutTask; StderrTask = $stderrTask
     ReportPath = $reportPath; StdoutPath = $stdoutPath; StderrPath = $stderrPath
     Started = Get-Date; Completed = $false; ExitCode = $null
   }
-  $state.researchItem = "$($Item.Id). $($script:researchWorker.Title)"
+  $script:researchWorkers[$Item.Id] = $worker
+  $state.researchItem = "$($Item.Id). $($worker.Title)"
   $state.researchStatus = 'running'
+  $state.researchWorkers = @($script:researchWorkers.Values | ForEach-Object { "$($_.Id). $($_.Title) [slot $($_.Slot)] running" })
   $state.updatedAt = (Get-Date).ToString('o')
   Write-State $state
-  Add-RunLog "RESEARCH_START id=$($Item.Id) worktree=$worktree base=$baseSha"
+  Add-RunLog "RESEARCH_START id=$($Item.Id) slot=$Slot worktree=$worktree base=$baseSha"
 }
 
 function Complete-ReadAheadResearch {
-  if (!$script:researchWorker -or $script:researchWorker.Completed) { return }
-  $worker = $script:researchWorker
-  if (!$worker.Process.HasExited) {
-    if (((Get-Date) - $worker.Started).TotalMinutes -gt 30) {
-      Stop-ReadAheadResearch
-      $state.researchItem = $null
-      $state.researchStatus = 'timed-out'
-      Write-State $state
-      return
+  foreach ($worker in @($script:researchWorkers.Values)) {
+    if ($worker.Completed) { continue }
+    if (!$worker.Process.HasExited) {
+      if (((Get-Date) - $worker.Started).TotalMinutes -gt 30) {
+        try { $worker.Process.Kill() } catch { }
+        $worker.Completed = $true
+        $worker.ExitCode = -1
+        Add-RunLog "RESEARCH_TIMEOUT id=$($worker.Id) slot=$($worker.Slot)"
+      }
+      continue
     }
-    return
+    $stdout = $worker.StdoutTask.GetAwaiter().GetResult()
+    $stderr = $worker.StderrTask.GetAwaiter().GetResult()
+    Set-Content -LiteralPath $worker.StdoutPath -Value $stdout -Encoding UTF8
+    Set-Content -LiteralPath $worker.StderrPath -Value $stderr -Encoding UTF8
+    $worker.Completed = $true
+    $worker.ExitCode = $worker.Process.ExitCode
+    Add-RunLog "RESEARCH_DONE id=$($worker.Id) slot=$($worker.Slot) exit=$($worker.ExitCode)"
   }
-  $stdout = $worker.StdoutTask.GetAwaiter().GetResult()
-  $stderr = $worker.StderrTask.GetAwaiter().GetResult()
-  Set-Content -LiteralPath $worker.StdoutPath -Value $stdout -Encoding UTF8
-  Set-Content -LiteralPath $worker.StderrPath -Value $stderr -Encoding UTF8
-  $worker.Completed = $true
-  $worker.ExitCode = $worker.Process.ExitCode
-  $script:researchWorker = $worker
-  $state.researchStatus = if ($worker.ExitCode -eq 0 -and (Test-Path -LiteralPath $worker.ReportPath)) { 'ready' } else { 'failed' }
+  $ready = @($script:researchWorkers.Values | Where-Object { $_.ExitCode -eq 0 -and (Test-Path -LiteralPath $_.ReportPath) }).Count
+  $state.researchStatus = if ($ready) { 'ready' } elseif (@($script:researchWorkers.Values | Where-Object Completed).Count -eq $script:researchWorkers.Count) { 'failed' } else { 'running' }
+  $state.researchWorkers = @($script:researchWorkers.Values | ForEach-Object { $workerStatus = if (!$_.Completed) { 'running' } elseif ($_.ExitCode -eq 0) { 'ready' } else { 'failed' }; "$($_.Id). $($_.Title) [slot $($_.Slot)] $workerStatus" })
   $state.updatedAt = (Get-Date).ToString('o')
   Write-State $state
-  Add-RunLog "RESEARCH_DONE id=$($worker.Id) exit=$($worker.ExitCode) status=$($state.researchStatus)"
 }
 
 function Wait-ReadAheadResearch([int]$ItemId) {
-  if (!$script:researchWorker -or $script:researchWorker.Id -ne $ItemId) {
+  $worker = $script:researchWorkers[$ItemId]
+  if (!$worker) {
     $cachedReport = Join-Path (Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $ItemId))) 'research-report.txt'
     if (Test-Path -LiteralPath $cachedReport) {
       $report = Get-Content -LiteralPath $cachedReport -Raw -Encoding UTF8
@@ -164,18 +179,18 @@ function Wait-ReadAheadResearch([int]$ItemId) {
     }
     return ''
   }
-  while (!$script:researchWorker.Completed -and !$script:researchWorker.Process.HasExited) {
+  while (!$worker.Completed -and !$worker.Process.HasExited) {
     if (Test-Path -LiteralPath $stopPath) { return '' }
     Complete-ReadAheadResearch
-    if (!$script:researchWorker -or $script:researchWorker.Completed) { break }
+    if (!$worker -or $worker.Completed) { break }
     $state.updatedAt = (Get-Date).ToString('o')
-    $state.message = "Основная линия завершена; ожидаю короткое исследование пункта $ItemId в изолированной рабочей копии."
+    $state.message = "Основная линия завершена; ожидаю исследование пункта $ItemId в слоте $($worker.Slot)."
     Write-State $state
     Start-Sleep -Seconds 3
   }
   Complete-ReadAheadResearch
-  if ($script:researchWorker -and $script:researchWorker.Id -eq $ItemId -and $script:researchWorker.ExitCode -eq 0 -and (Test-Path -LiteralPath $script:researchWorker.ReportPath)) {
-    return Get-Content -LiteralPath $script:researchWorker.ReportPath -Raw -Encoding UTF8
+  if ($worker -and $worker.ExitCode -eq 0 -and (Test-Path -LiteralPath $worker.ReportPath)) {
+    return Get-Content -LiteralPath $worker.ReportPath -Raw -Encoding UTF8
   }
   return ''
 }
@@ -259,6 +274,7 @@ function Set-FinalState($State, [string]$Status, [string]$Reason) {
   $State.status = $Status
   $State.activeItem = $null
   $State.researchItem = $null
+  $State.researchWorkers = @()
   if ($State.researchStatus -eq 'running') { $State.researchStatus = 'stopped' }
   $State.message = $Reason
   $State.updatedAt = (Get-Date).ToString('o')
@@ -303,11 +319,13 @@ $state = [ordered]@{
   lastDeployStatus = 'none'
   researchItem = $null
   researchStatus = 'idle'
-  message = 'Две линии запущены: исследование следующей методики идёт параллельно с последовательной интеграцией текущей.'
+  researchWorkers = @()
+  message = "До $ResearchSlots read-only исследователей работают параллельно с последовательной интеграцией методик."
 }
 Remove-Item -LiteralPath $stopPath -Force -ErrorAction SilentlyContinue
 Write-State $state
 Add-RunLog "START run=$runId remaining=$($queue.Count)"
+$script:deferredUntil = @{}
 
 try {
   while ($true) {
@@ -317,14 +335,28 @@ try {
     }
 
     Add-RunLog 'LOOP_READ_START'
-    $queue = @(Get-QueuedItems)
-    Add-RunLog "LOOP_READ_DONE count=$($queue.Count)"
-    if (!$queue.Count) {
+    $allQueue = @(Get-QueuedItems)
+    Add-RunLog "LOOP_READ_DONE count=$($allQueue.Count)"
+    if (!$allQueue.Count) {
       Set-FinalState $state 'complete' 'Записей со статусом queued больше нет.'
       Unregister-ScheduledTask -TaskName 'Opora-Methodology-Backlog-Resume' -Confirm:$false -ErrorAction SilentlyContinue
       break
     }
-    $item = $queue[0]
+    $now = Get-Date
+    $eligible = @($allQueue | Where-Object { !$script:deferredUntil.ContainsKey($_.Id) -or $script:deferredUntil[$_.Id] -le $now })
+    if (!$eligible.Count) {
+      $nextRetry = @($script:deferredUntil.Values | Sort-Object | Select-Object -First 1)[0]
+      $waitSeconds = [Math]::Max(1, [Math]::Min(60, [int][Math]::Ceiling(($nextRetry - $now).TotalSeconds)))
+      $state.activeItem = $null
+      $state.remaining = $allQueue.Count
+      $state.updatedAt = (Get-Date).ToString('o')
+      $state.message = "Все оставшиеся пункты временно отложены после ошибок; следующая попытка через $waitSeconds сек."
+      Write-State $state
+      Start-Sleep -Seconds $waitSeconds
+      continue
+    }
+    $item = $eligible[0]
+    $queue = @($item) + @($allQueue | Where-Object { $_.Id -ne $item.Id })
     $itemId = $item.Id
     Add-RunLog "ITEM_SELECTED id=$itemId lineType=$($item.Line.GetType().FullName) lineLength=$($item.Line.Length)"
     $itemTitle = (($item.Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
@@ -333,7 +365,7 @@ try {
     $state.remaining = $queue.Count
     $state.currentAttempt = 0
     $state.updatedAt = (Get-Date).ToString('o')
-    $state.message = 'Текущая методика обрабатывается в основной линии; следующая исследуется read-only в отдельной рабочей копии.'
+  $state.message = "Текущая методика обрабатывается последовательно; до $ResearchSlots следующих пунктов исследуются в отдельных read-only worktree."
     Add-RunLog 'ACTIVE_STATE_WRITE_START'
     Write-State $state
     Add-RunLog 'ACTIVE_STATE_WRITE_DONE'
@@ -346,14 +378,32 @@ try {
     $researchContext = ''
     try { $researchContext = Wait-ReadAheadResearch $itemId }
     catch { Add-RunLog "RESEARCH_WAIT_ERROR id=$itemId error=$($_.Exception.Message)"; $state.researchStatus = 'failed' }
-    if ($queue.Count -gt 1 -and !(Test-Path -LiteralPath $stopPath)) {
-      try { Start-ReadAheadResearch $queue[1] }
-      catch {
-        Add-RunLog "RESEARCH_START_ERROR id=$($queue[1].Id) error=$($_.Exception.Message)"
-        $itemTitleForResearch = (($queue[1].Line -split ' — `queued`;', 2)[0] -replace '^\- \[ \] \d+\. ', '').Trim()
-        $state.researchItem = "$($queue[1].Id). $itemTitleForResearch"
-        $state.researchStatus = 'failed'
-        Write-State $state
+    if ($script:researchWorkers.ContainsKey($itemId)) {
+      $consumedWorker = $script:researchWorkers[$itemId]
+      try { $consumedWorker.Process.Dispose() } catch { }
+      $script:researchWorkers.Remove($itemId)
+    }
+    foreach ($completedWorker in @($script:researchWorkers.Values | Where-Object Completed)) {
+      try { $completedWorker.Process.Dispose() } catch { }
+      $script:researchWorkers.Remove($completedWorker.Id)
+    }
+    if (!(Test-Path -LiteralPath $stopPath)) {
+      $usedSlots = @($script:researchWorkers.Values | Where-Object { !$_.Completed } | ForEach-Object Slot)
+      $candidateCount = [Math]::Min($ResearchSlots, [Math]::Max(0, $queue.Count - 1))
+      for ($offset = 1; $offset -le $candidateCount; $offset++) {
+        $candidate = $queue[$offset]
+        if ($script:researchWorkers.ContainsKey($candidate.Id)) { continue }
+        $candidateReport = Join-Path (Join-Path $runnerDir (Join-Path 'research' ('{0:D4}' -f $candidate.Id))) 'research-report.txt'
+        if ((Test-Path -LiteralPath $candidateReport) -and (Get-Item -LiteralPath $candidateReport).Length -gt 0) { continue }
+        $freeSlot = 1
+        while ($usedSlots -contains $freeSlot -and $freeSlot -le $ResearchSlots) { $freeSlot++ }
+        if ($freeSlot -gt $ResearchSlots) { break }
+        try {
+          Start-ReadAheadResearch $candidate $freeSlot
+          $usedSlots += $freeSlot
+        } catch {
+          Add-RunLog "RESEARCH_START_ERROR id=$($candidate.Id) slot=$freeSlot error=$($_.Exception.Message)"
+        }
       }
     }
 
@@ -460,11 +510,22 @@ __QUEUE_ITEM__
         Add-RunLog "RETRY id=$itemId attempt=$attempt reason=NoTerminalStatus"
         Start-Sleep -Seconds (5 * $attempt)
       } else {
-        Set-FinalState $state 'paused' "После $MaxAttemptsPerItem попыток пункт $itemId не получил итоговый статус. $agentMessage"
+        $retryAt = (Get-Date).AddMinutes(15)
+        $script:deferredUntil[$itemId] = $retryAt
+        $state.currentAttempt = 0
+        $state.activeItem = $null
+        $state.remaining = @(Get-QueuedItems).Count
+        $state.updatedAt = (Get-Date).ToString('o')
+        $state.message = "Пункт $itemId отложен после $MaxAttemptsPerItem попыток до $($retryAt.ToString('HH:mm:ss')); продолжаю очередь. $agentMessage"
+        Write-State $state
+        Add-RunLog "ITEM_DEFERRED id=$itemId retryAt=$($retryAt.ToString('o')) attempts=$MaxAttemptsPerItem"
+        $result = @{ status = 'deferred'; line = $latestLine }
       }
     }
 
-    if ($state.status -in @('stopped', 'paused')) { break }
+    if ($state.status -eq 'stopped') { break }
+    if ($result -and $result.status -eq 'deferred') { continue }
+    if ($state.status -eq 'paused') { break }
     if (!$result) { Set-FinalState $state 'paused' "Пункт $itemId не был закрыт итоговым статусом."; break }
 
     $pendingBeforeDeploy = @(Get-ImplementedLocalLines)
