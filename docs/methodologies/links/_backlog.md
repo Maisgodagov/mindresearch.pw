@@ -161,7 +161,7 @@
 - [x] 153. Гамбургский опросник навязчивостей — `blocked`; [страница методики](https://psytests.org/diag/hociJ.html); путеводители: [clinical-ocd-ru.html](https://psytests.org/guide/clinical-ocd-ru.html). [review](../reviews/method-0153.md);
 - [x] 154. Гармония-1 — `blocked`; [страница методики](https://psytests.org/zhar/creatv.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html). [review](../reviews/method-0154.md);
 - [x] 155. Гендерно-возрастной дифференциал профессионала — `blocked`; [страница методики](https://psytests.org/work/ermolC.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0155.md);
-- [ ] 156. Генеральная шкала фаббинга — `queued`; [страница методики](https://psytests.org/cyber/gsphE.html); путеводители: [cyberpsychology-ru.html](https://psytests.org/guide/cyberpsychology-ru.html).
+- [x] 156. Генеральная шкала фаббинга — `blocked`; [страница методики](https://psytests.org/cyber/gsphE.html); путеводители: [cyberpsychology-ru.html](https://psytests.org/guide/cyberpsychology-ru.html). [review](../reviews/method-0156.md);
 - [ ] 157. Гериатрическая шкала депрессии — `queued`; [страница методики](https://psytests.org/depr/gds15.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html).
 - [ ] 158. Гибкость личности в трудовой сфере — `queued`; [страница методики](https://psytests.org/work/pflex.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 159. Гиссенский личностный опросник — `queued`; [страница методики](https://psytests.org/diag/gissa.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
