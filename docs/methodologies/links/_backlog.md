@@ -44,7 +44,7 @@
 - [x] 36. SCL-K-9 — `implemented-local`; [страница методики](https://psytests.org/diag/sclk9.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html). [review](../reviews/method-0036.md);
 - [x] 37. SCS — `blocked`; [страница методики](https://psytests.org/ident/scs.html); путеводители: [self-awareness-ru.html](https://psytests.org/guide/self-awareness-ru.html). [review](../reviews/method-0037.md);
 - [ ] 38. SELSA-S — `already-listed`; [страница методики](https://psytests.org/ipl/selsas.html); путеводители: [social-loneliness-ru.html](https://psytests.org/guide/social-loneliness-ru.html).
-- [ ] 39. SMFQ — `queued`; [страница методики](https://psytests.org/depr/mafqs.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html).
+- [x] 39. SMFQ — `blocked`; [страница методики](https://psytests.org/depr/mafqs.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html). [review](../reviews/method-0039.md);
 - [ ] 40. SMS-6 — `queued`; [страница методики](https://psytests.org/sport/sms6.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
 - [ ] 41. SOGS-RA — `queued`; [страница методики](https://psytests.org/diag/sogsra.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html).
 - [ ] 42. STAXI-2 — `queued`; [страница методики](https://psytests.org/confl/staxi2.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
