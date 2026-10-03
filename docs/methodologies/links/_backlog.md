@@ -27,7 +27,7 @@
 - [x] 19. FACES IV — `blocked`; [страница методики](https://psytests.org/family/faces4.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-0019.md);
 - [x] 20. GAQ — `blocked`; [страница методики](https://psytests.org/typo/gaq.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-0020.md);
 - [x] 21. HCL-33 — `blocked`; [страница методики](https://psytests.org/diag/hcl33.html); путеводители: [clinical-bipolar-ru.html](https://psytests.org/guide/clinical-bipolar-ru.html). [review](../reviews/method-0021.md);
-- [ ] 22. HCL-8 — `queued`; [страница методики](https://psytests.org/diag/hcl8.html); путеводители: [clinical-bipolar-ru.html](https://psytests.org/guide/clinical-bipolar-ru.html).
+- [x] 22. HCL-8 — `implemented-local`; [страница методики](https://psytests.org/diag/hcl8.html); путеводители: [clinical-bipolar-ru.html](https://psytests.org/guide/clinical-bipolar-ru.html). [review](../reviews/method-0022.md);
 - [ ] 23. ISMI-9 — `queued`; [страница методики](https://psytests.org/diag/ismi9.html); путеводители: [clinical-health-ru.html](https://psytests.org/guide/clinical-health-ru.html).
 - [ ] 24. IUS-12 — `queued`; [страница методики](https://psytests.org/trait/ius12.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html), [mood-anxiety-ru.html](https://psytests.org/guide/mood-anxiety-ru.html), [regulation-uncertainty-ru.html](https://psytests.org/guide/regulation-uncertainty-ru.html).
 - [ ] 25. LOT-R — `queued`; [страница методики](https://psytests.org/life/lotr.html); путеводители: [trait-beliefs-ru.html](https://psytests.org/guide/trait-beliefs-ru.html).
