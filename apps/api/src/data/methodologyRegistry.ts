@@ -16,7 +16,7 @@ export type MethodologyRegistration = {
 
 async function reviewSources(moduleName: string): Promise<Methodology['sources']> {
   const reviewName = moduleName.replace(/\.ts$/, '.md');
-  const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');
+  const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
   try {
     const review = await readFile(join(repoRoot, 'docs', 'methodologies', 'reviews', reviewName), 'utf8');
     const urls = [...review.matchAll(/https?:\/\/[^\s)\]>]+/g)].map(([url]) => url.replace(/[.,;]+$/, ''));
