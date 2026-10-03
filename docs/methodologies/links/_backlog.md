@@ -101,7 +101,7 @@
 - [x] 93. Биографический опросник — `blocked`; [страница методики](https://psytests.org/multi/biv.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html). [review](../reviews/method-0093.md);
 - [x] 94. Бланковый тест Агрессивность — `blocked`; [страница методики](https://psytests.org/trait/bltJ.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-0094.md);
 - [x] 95. Бланковый тест Адаптация — `blocked`; [страница методики](https://psytests.org/trait/bltL.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0095.md);
-- [ ] 96. Бланковый тест Ответственность — `queued`; [страница методики](https://psytests.org/trait/bltG.html); путеводители: [trait-regulation-ru.html](https://psytests.org/guide/trait-regulation-ru.html).
+- [x] 96. Бланковый тест Ответственность — `blocked`; [страница методики](https://psytests.org/trait/bltG.html); путеводители: [trait-regulation-ru.html](https://psytests.org/guide/trait-regulation-ru.html). [review](../reviews/method-0096.md);
 - [ ] 97. Бланковый тест Темперамент — `queued`; [страница методики](https://psytests.org/trait/bltK.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
 - [ ] 98. Бланковый тест ЧХТ — `queued`; [страница методики](https://psytests.org/mmpi/btch.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
 - [ ] 99. Боги и Герои — `queued`; [страница методики](https://psytests.org/typo/mmaq.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
