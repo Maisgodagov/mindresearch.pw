@@ -67,7 +67,7 @@
 - [x] 59. Анализ конфликтов — `blocked`; [страница методики](https://psytests.org/luscher/aklus.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html). [review](../reviews/method-0059.md);
 - [x] 60. Анализ оценочной деятельности учителя — `blocked`; [страница методики](https://psytests.org/pedag/ouodu.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html). [review](../reviews/method-0060.md);
 - [x] 61. Анализ своих ограничений — `blocked`; [страница методики](https://psytests.org/work/manlim.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html). [review](../reviews/method-0061.md);
-- [ ] 62. Анализ семейного мифа — `queued`; [страница методики](https://psytests.org/family/myth.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
+- [x] 62. Анализ семейного мифа — `blocked`; [страница методики](https://psytests.org/family/myth.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html). [review](../reviews/method-0062.md);
 - [ ] 63. Анализ семейной тревоги — `queued`; [страница методики](https://psytests.org/family/ast.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 64. Анализ семейных взаимоотношений — `queued`; [страница методики](https://psytests.org/parent/asvA.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 65. Анализ стиля педагогической деятельности — `queued`; [страница методики](https://psytests.org/pedag/auispd.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html).
