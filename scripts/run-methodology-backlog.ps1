@@ -371,6 +371,32 @@ function Get-CurrentCommit {
   return $sha
 }
 
+function Test-PreDeploymentBuild([string]$Sha) {
+  Add-RunLog "PRE_DEPLOY_BUILD_START sha=$Sha"
+  $previousLocation = Get-Location
+  $output = @()
+  $exitCode = 1
+  try {
+    Set-Location -LiteralPath $repo
+    $output = @(& npm run build 2>&1)
+    $exitCode = $LASTEXITCODE
+  } catch {
+    $output += $_.Exception.Message
+  } finally {
+    Set-Location -LiteralPath $previousLocation.Path
+  }
+  if ($exitCode -eq 0) {
+    Add-RunLog "PRE_DEPLOY_BUILD_OK sha=$Sha"
+    return @{ passed = $true; reason = ''; log = '' }
+  }
+  $buildLogPath = Join-Path $runnerDir "build-validation-$($Sha.Substring(0, 7)).log"
+  [IO.File]::WriteAllLines($buildLogPath, [string[]]@($output | ForEach-Object { [string]$_ }), [Text.UTF8Encoding]::new($false))
+  $diagnostics = @($output | Where-Object { [string]$_ -match 'error TS\d+|npm error|Error:' } | Select-Object -First 8 | ForEach-Object { ([string]$_).Trim() })
+  $detail = if ($diagnostics.Count) { $diagnostics -join ' | ' } else { "см. журнал $buildLogPath" }
+  Add-RunLog "PRE_DEPLOY_BUILD_FAILED sha=$Sha exit=$exitCode log=$buildLogPath details=$detail"
+  return @{ passed = $false; reason = "Локальная production-сборка не прошла (exit $exitCode): $detail"; log = $buildLogPath }
+}
+
 function Start-DeploymentRetry([int]$ItemId) {
   $markerPath = Join-Path $repo 'deployment-retry.txt'
   $marker = "Retry accumulated methodologies after queue item $ItemId at $((Get-Date).ToString('o'))"
@@ -466,6 +492,9 @@ function Mark-ImplementedLocalAsDone([string]$Sha) {
 function Invoke-PendingDeployment([int]$AfterItemId) {
   $pending = @(Get-ImplementedLocalLines)
   if (!$pending.Count) { return @{ status = 'none'; count = 0 } }
+  $candidateSha = Get-CurrentCommit
+  $build = Test-PreDeploymentBuild $candidateSha
+  if (!$build.passed) { return @{ status = 'validation-failed'; count = $pending.Count; sha = $candidateSha; reason = $build.reason; url = '' } }
   $sha = Start-DeploymentRetry $AfterItemId
   Add-RunLog "DEPLOY_START id=$AfterItemId sha=$sha pending=$($pending.Count) threshold=$DeployBatchSize"
   $deploy = Wait-Deployment $sha
@@ -580,7 +609,7 @@ try {
       $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
       $script:lastAttemptPendingCount = if ($batchRetry.status -eq 'success') { 0 } else { $pendingAtLoopStart }
       if ($batchRetry.status -eq 'validation-failed') {
-        Set-FinalState $state 'paused' "CI validation failed for deployment $($batchRetry.sha): $($batchRetry.reason). $($batchRetry.url)"
+        Set-FinalState $state 'paused' "Проверка production-сборки остановила публикацию $($batchRetry.sha): $($batchRetry.reason). $($batchRetry.url)"
         break
       }
     }
@@ -596,7 +625,7 @@ try {
         $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
         $state.updatedAt = (Get-Date).ToString('o')
         if ($finalDeploy.status -eq 'validation-failed') {
-          Set-FinalState $state 'paused' "CI validation failed for final deployment $($finalDeploy.sha): $($finalDeploy.reason). $($finalDeploy.url)"
+          Set-FinalState $state 'paused' "Проверка production-сборки остановила финальную публикацию $($finalDeploy.sha): $($finalDeploy.reason). $($finalDeploy.url)"
           break
         }
         if ($finalDeploy.status -eq 'deferred') {
@@ -742,7 +771,7 @@ try {
       $state.pendingDeployCount = @(Get-ImplementedLocalLines).Count
       $script:lastAttemptPendingCount = if ($deployResult.status -eq 'success') { 0 } else { $state.pendingDeployCount }
       if ($deployResult.status -eq 'validation-failed') {
-        Set-FinalState $state 'paused' "CI validation failed for deployment $($deployResult.sha): $($deployResult.reason). $($deployResult.url)"
+        Set-FinalState $state 'paused' "Проверка production-сборки остановила публикацию $($deployResult.sha): $($deployResult.reason). $($deployResult.url)"
         break
       }
       if ($deployResult.status -eq 'deferred') {
