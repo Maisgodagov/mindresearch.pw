@@ -381,7 +381,7 @@
 - [x] 373. Как адаптирован ты к жизни? — `blocked`; [страница методики](https://psytests.org/school/furman.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-0373.md);
 - [x] 374. Как вы заботитесь о себе? — `blocked`; [страница методики](https://psytests.org/stress/kvzs.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html). [review](../reviews/method-0374.md);
 - [x] 375. Как распознать одаренность — `blocked`; [страница методики](https://psytests.org/parent/krao.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-0375.md);
-- [ ] 376. Каков ваш стиль в любви? — `queued`; [страница методики](https://psytests.org/eysenck/glwP.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html).
+- [x] 376. Каков ваш стиль в любви? — `blocked`; [страница методики](https://psytests.org/eysenck/glwP.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html). [review](../reviews/method-0376.md);
 - [ ] 377. Каков ваш уровень доверия в отношениях — `queued`; [страница методики](https://psytests.org/quiz/gottA.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [ ] 378. Какова ваша устойчивость к стрессу? — `queued`; [страница методики](https://psytests.org/stress/sugw.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html).
 - [ ] 379. Какой вы киногерой — `queued`; [страница методики](https://psytests.org/opm/who.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
