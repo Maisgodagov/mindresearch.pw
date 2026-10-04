@@ -300,7 +300,7 @@
 - [x] 292. Значимость пожилого как Другого для молодого поколения — `blocked`; [страница методики](https://psytests.org/life/zpdmp.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0292.md);
 - [x] 293. ИГЛ-3 — `implemented-local`; [страница методики](https://psytests.org/trait/igl3.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0293.md);
 - [x] 294. ИДИКС — `blocked`; [страница методики](https://psytests.org/stress/idiks.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html). [review](../reviews/method-0294.md);
-- [ ] 295. избеганию неудач — `queued`; [страница методики](https://psytests.org/emvol/ehlersB.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
+- [x] 295. избеганию неудач — `blocked`; [страница методики](https://psytests.org/emvol/ehlersB.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-0295.md);
 - [ ] 296. Измерение величины целеустремленности — `queued`; [страница методики](https://psytests.org/trait/ivcel.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
 - [ ] 297. Измерение веры в справедливый мир — `queued`; [страница методики](https://psytests.org/life/bijw.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
 - [ ] 298. Измерение конформности — `queued`; [страница методики](https://psytests.org/trait/izmkon.html); путеводители: [trait-interpersonal-ru.html](https://psytests.org/guide/trait-interpersonal-ru.html).
