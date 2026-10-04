@@ -89,10 +89,10 @@ const scoringConfig: ConfigurableScoring = {
   min: 1,
   max: 4,
   scales: [
-    { key: 'emotional', label: 'Эмоциональная', items: [1, 5, 9, 13, 17, 21].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' },
-    { key: 'cognitive', label: 'Познавательная', items: [2, 6, 10, 14, 18, 22].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' },
-    { key: 'practical', label: 'Практическая', items: [3, 7, 11, 15, 19, 23].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' },
-    { key: 'behavioral', label: 'Поступочная', items: [4, 8, 12, 16, 20, 24].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' },
+    { key: 'emotional', label: 'Эмоциональная', items: [1, 5, 9, 13, 17, 21].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' as const },
+    { key: 'cognitive', label: 'Познавательная', items: [2, 6, 10, 14, 18, 22].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' as const },
+    { key: 'practical', label: 'Практическая', items: [3, 7, 11, 15, 19, 23].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' as const },
+    { key: 'behavioral', label: 'Поступочная', items: [4, 8, 12, 16, 20, 24].flatMap(position => itemNumbers(1, [position]).concat(itemNumbers(2, [position]))), reverseItems: [], aggregation: 'sum' as const },
   ].map(scale => ({ ...scale, items: scale.items, reverseItems: [] })),
 };
 

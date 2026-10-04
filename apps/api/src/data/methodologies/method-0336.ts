@@ -1,40 +1,40 @@
-﻿import type { SeedSection } from '../../types.js';
+import type { SeedSection } from '../../types.js';
 import type { ConfigurableScoring, ValidationCase } from '../../scoring/configurable.js';
 import type { MethodologyRegistration } from '../methodologyRegistry.js';
 
 const frequency = ['Очень часто', 'Часто', 'Время от времени', 'Редко', 'Никогда']
-  .map((label, index) => ({ label, value: 5 - index }));
+  .map((label, index) => ({ label, value: String(5 - index) }));
 const liking = ['Очень нравится', 'Нравится', 'Безразлично', 'Не нравится', 'Совсем не нравится']
-  .map((label, index) => ({ label, value: 5 - index }));
-const yesNo = [{ label: 'Да', value: 1 }, { label: 'Нет', value: 0 }];
+  .map((label, index) => ({ label, value: String(5 - index) }));
+const yesNo = [{ label: 'Да', value: '1' }, { label: 'Нет', value: '0' }];
 
 const questions: SeedSection['questions'] = [
   {
     code: 'test_390_1', text: 'Как часто ты пользуешься интернетом?', type: 'single', required: true,
     options: [
-      { label: 'не пользуюсь интернетом вообще', value: 1 }, { label: 'один-два раза в неделю', value: 2 },
-      { label: 'один раз в день', value: 3 }, { label: 'два-три раза в день', value: 4 }, { label: 'я «живу» в интернете', value: 5 },
+      { label: 'не пользуюсь интернетом вообще', value: '1' }, { label: 'один-два раза в неделю', value: '2' },
+      { label: 'один раз в день', value: '3' }, { label: 'два-три раза в день', value: '4' }, { label: 'я «живу» в интернете', value: '5' },
     ],
   },
   {
     code: 'test_390_2', text: 'Сколько времени в среднем ты проводишь в интернете в день?', type: 'single', required: true,
     options: [
-      { label: 'меньше часа', value: 1 }, { label: '1–3 часа', value: 2 }, { label: '3–5 часов', value: 3 },
-      { label: '6–8 часов', value: 4 }, { label: 'практически постоянно подключен к интернет-сети', value: 5 },
+      { label: 'меньше часа', value: '1' }, { label: '1–3 часа', value: '2' }, { label: '3–5 часов', value: '3' },
+      { label: '6–8 часов', value: '4' }, { label: 'практически постоянно подключен к интернет-сети', value: '5' },
     ],
   },
   {
     code: 'test_390_3', text: 'Укажи свой стаж знакомства с интернетом:', type: 'single', required: true,
     options: [
-      { label: 'менее 1 года', value: 1 }, { label: '1–3 года', value: 2 }, { label: '4–6 лет', value: 3 },
-      { label: '7–8 лет', value: 4 }, { label: 'более 9 лет', value: 5 },
+      { label: 'менее 1 года', value: '1' }, { label: '1–3 года', value: '2' }, { label: '4–6 лет', value: '3' },
+      { label: '7–8 лет', value: '4' }, { label: 'более 9 лет', value: '5' },
     ],
   },
   {
     code: 'test_390_4', text: 'Насколько уверенным пользователем интернета ты себя считаешь?', type: 'single', required: true,
     options: [
-      { label: 'Совсем неуверенным', value: 1 }, { label: 'Не очень уверенным', value: 2 },
-      { label: 'Довольно уверенным', value: 3 }, { label: 'Уверенным', value: 4 }, { label: 'Очень уверенным', value: 5 },
+      { label: 'Совсем неуверенным', value: '1' }, { label: 'Не очень уверенным', value: '2' },
+      { label: 'Довольно уверенным', value: '3' }, { label: 'Уверенным', value: '4' }, { label: 'Очень уверенным', value: '5' },
     ],
   },
   ...[
