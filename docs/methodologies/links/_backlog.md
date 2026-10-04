@@ -285,7 +285,7 @@
 - [x] 277. Духовная ориентация личности — `blocked`; [страница методики](https://psytests.org/rel/dol.html); путеводители: [social-religion-ru.html](https://psytests.org/guide/social-religion-ru.html). [review](../reviews/method-0277.md);
 - [x] 278. Жизненная позиция личности — `blocked`; [страница методики](https://psytests.org/life/ozpl.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0278.md);
 - [x] 279. Жизненная успешность — `implemented-local`; [страница методики](https://psytests.org/life/jusp.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0279.md);
-- [ ] 280. Жизненные ситуации — `queued`; [страница методики](https://psytests.org/work/zlokF.html); путеводители: [social-functioning-ru.html](https://psytests.org/guide/social-functioning-ru.html).
+- [x] 280. Жизненные ситуации — `blocked`; [страница методики](https://psytests.org/work/zlokF.html); путеводители: [social-functioning-ru.html](https://psytests.org/guide/social-functioning-ru.html). [review](../reviews/method-0280.md);
 - [ ] 281. Жизненные Цвета — `queued`; [страница методики](https://psytests.org/typo/aura.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 282. Жизнеспособность взрослого человека — `queued`; [страница методики](https://psytests.org/life/zsvs.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html).
 - [ ] 283. Жизнеспособность личности — `queued`; [страница методики](https://psytests.org/life/zsl.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html).
