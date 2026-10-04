@@ -8,12 +8,50 @@
 )
 
 $ErrorActionPreference = 'Stop'
-$repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$sourceRepo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$runnerDir = Join-Path $env:LOCALAPPDATA 'OporaMethodologyRunner'
+$null = New-Item -ItemType Directory -Path $runnerDir -Force
+$repo = Join-Path $runnerDir 'integration-repo'
+$sourceRemote = (& git -C $sourceRepo remote get-url origin).Trim()
+if ($LASTEXITCODE -ne 0 -or !$sourceRemote) { throw 'Не удалось определить Git remote исходного репозитория.' }
+if (!(Test-Path -LiteralPath (Join-Path $repo '.git'))) {
+  if (Test-Path -LiteralPath $repo) { throw "Папка интеграционной копии существует, но это не Git-репозиторий: $repo" }
+  & git clone --no-hardlinks $sourceRepo $repo | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось создать локальную интеграционную копию вне OneDrive.' }
+  & git -C $repo remote set-url origin $sourceRemote
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось настроить Git remote интеграционной копии.' }
+}
+& git -C $repo fetch origin main | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Не удалось обновить origin/main интеграционной копии.' }
+$branch = (& git -C $repo branch --show-current).Trim()
+if ($branch -ne 'main') { throw "Интеграционная копия должна находиться на ветке main, сейчас: $branch" }
+& git -C $repo merge-base --is-ancestor origin/main main 2>$null
+if ($LASTEXITCODE -eq 1) {
+  & git -C $repo merge-base --is-ancestor main origin/main 2>$null
+  if ($LASTEXITCODE -eq 0) {
+    & git -C $repo merge --ff-only origin/main | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось синхронизировать интеграционную копию с origin/main.' }
+  } else {
+    throw 'Локальная интеграционная ветка и origin/main разошлись; остановка без перезаписи коммитов.'
+  }
+} elseif ($LASTEXITCODE -ne 0) {
+  throw 'Не удалось проверить связь интеграционной ветки с origin/main.'
+}
+$runnerScriptRelative = 'scripts/run-methodology-backlog.ps1'
+$sourceRunnerScript = Join-Path $sourceRepo $runnerScriptRelative
+$integrationRunnerScript = Join-Path $repo $runnerScriptRelative
+$sourceRunnerHash = (Get-FileHash -LiteralPath $sourceRunnerScript -Algorithm SHA256).Hash
+$integrationRunnerHash = if (Test-Path -LiteralPath $integrationRunnerScript) { (Get-FileHash -LiteralPath $integrationRunnerScript -Algorithm SHA256).Hash } else { '' }
+if ($sourceRunnerHash -ne $integrationRunnerHash) {
+  Copy-Item -LiteralPath $sourceRunnerScript -Destination $integrationRunnerScript -Force
+  & git -C $repo add -- $runnerScriptRelative | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось добавить обновлённый runner в интеграционную копию.' }
+  & git -C $repo commit -m 'Harden methodology backlog runner' | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось зафиксировать обновлённый runner.' }
+}
 $queuePath = Join-Path $repo 'docs\methodologies\links\_backlog.md'
 $workflowPath = Join-Path $repo 'docs\methodologies\WORKFLOW.md'
 $codexCommand = Get-Command codex -ErrorAction Stop
-$runnerDir = Join-Path $env:LOCALAPPDATA 'OporaMethodologyRunner'
-$null = New-Item -ItemType Directory -Path $runnerDir -Force
 $statePath = Join-Path $runnerDir 'state.json'
 $stopPath = Join-Path $runnerDir 'STOP'
 $lockPath = Join-Path $runnerDir 'runner.lock'
@@ -92,7 +130,7 @@ function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
     Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
   }
 
-  $worktree = Join-Path $runnerDir ("research-worktree-{0}" -f $Slot)
+  $worktree = Join-Path $runnerDir ("integration-research-worktree-{0}" -f $Slot)
   $baseSha = Get-CurrentCommit
   if (Test-Path -LiteralPath $worktree) {
     & git -C $worktree rev-parse --is-inside-work-tree 2>$null | Out-Null
@@ -346,8 +384,31 @@ function Start-DeploymentRetry([int]$ItemId) {
   return Get-CurrentCommit
 }
 
-function Wait-Deployment([string]$Sha) {
+function Get-GitHubApiHeaders {
   $headers = @{ 'User-Agent' = 'OporaMethodologyRunner' }
+  $savedPrompt = $env:GIT_TERMINAL_PROMPT
+  $savedInteractive = $env:GCM_INTERACTIVE
+  try {
+    $env:GIT_TERMINAL_PROMPT = '0'
+    $env:GCM_INTERACTIVE = 'Never'
+    $credentialInput = "protocol=https`nhost=github.com`n`n"
+    $credentialLines = @($credentialInput | & git -C $repo credential fill 2>$null)
+    $passwordLine = $credentialLines | Where-Object { $_ -match '^password=' } | Select-Object -First 1
+    if ($passwordLine) {
+      $apiToken = $passwordLine.Substring('password='.Length)
+      if ($apiToken) { $headers.Authorization = "Bearer $apiToken" }
+    }
+  } catch {
+    Add-RunLog "DEPLOY_API_CREDENTIAL_UNAVAILABLE error=$($_.Exception.Message)"
+  } finally {
+    $env:GIT_TERMINAL_PROMPT = $savedPrompt
+    $env:GCM_INTERACTIVE = $savedInteractive
+  }
+  return $headers
+}
+
+function Wait-Deployment([string]$Sha) {
+  $headers = Get-GitHubApiHeaders
   $apiRoot = 'https://api.github.com/repos/Maisgodagov/mindresearch.pw/actions'
   $run = $null
   $deadline = (Get-Date).AddMinutes(3)
