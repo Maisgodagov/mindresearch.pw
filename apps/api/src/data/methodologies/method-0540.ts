@@ -96,10 +96,6 @@ const items = [
 'Когда я поступаю плохо, меня мучает совесть.',
 ];
 
-import type { SeedSection } from '../../types.js';
-import type { ConfigurableScoring, ValidationCase } from '../../scoring/configurable.js';
-import type { MethodologyRegistration } from '../methodologyRegistry.js';
-
 const options = [
   { value: '-4', label: 'Нет, абсолютно неверно (очень сильное несогласие)' },
   { value: '-3', label: 'Нет, конечно (сильное несогласие)' },
