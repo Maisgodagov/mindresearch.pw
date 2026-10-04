@@ -395,7 +395,7 @@
 - [x] 387. Карта наблюдений Стотта — `blocked`; [страница методики](https://psytests.org/school/stott.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html). [review](../reviews/method-0387.md);
 - [x] 388. Карта одаренности — `blocked`; [страница методики](https://psytests.org/work/kodar.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0388.md);
 - [x] 389. Карта проявлений особенностей развития — `blocked`; [страница методики](https://psytests.org/school/schetB.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html). [review](../reviews/method-0389.md);
-- [ ] 390. Карьера или призвание — `queued`; [страница методики](https://psytests.org/fun/lmtA.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
+- [x] 390. Карьера или призвание — `blocked`; [страница методики](https://psytests.org/fun/lmtA.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0390.md);
 - [ ] 391. Карьерная вовлеченность — `queued`; [страница методики](https://psytests.org/work/cengs.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 392. Карьерные ориентации педагога — `queued`; [страница методики](https://psytests.org/work/anchorsP.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html).
 - [ ] 393. Карьерные ресурсы сотрудника организации — `queued`; [страница методики](https://psytests.org/work/krso.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
