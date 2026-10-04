@@ -313,7 +313,7 @@
 - [x] 305. Измерение ценностей «Духа спорта» — `done` (release 0a7bc59); [страница методики](https://psytests.org/sport/dsport.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0305.md);
 - [x] 306. Измерение чувства вины и стыда — `blocked`; [страница методики](https://psytests.org/trait/tosca.html); путеводители: [trait-emotional-ru.html](https://psytests.org/guide/trait-emotional-ru.html). [review](../reviews/method-0306.md);
 - [x] 307. Изучение двигателей карьеры — `blocked`; [страница методики](https://psytests.org/work/idka.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0307.md);
-- [ ] 308. Изучение когнитивных ошибок в спорте — `queued`; [страница методики](https://psytests.org/sport/ikovs.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
+- [x] 308. Изучение когнитивных ошибок в спорте — `blocked`; [страница методики](https://psytests.org/sport/ikovs.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0308.md);
 - [ ] 309. Изучение межличностного восприятия в добрачной паре — `queued`; [страница методики](https://psytests.org/ipl/imvdp.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
 - [ ] 310. Изучение мотивации учебной деятельности студентов — `queued`; [страница методики](https://psytests.org/learn/muds.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html).
 - [ ] 311. Изучение мотивов занятий спортом — `queued`; [страница методики](https://psytests.org/sport/mztrop.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
