@@ -682,7 +682,7 @@
 - [x] 674. Методика самооценки метакогнитивных знаний и метакогнитивной активности — `blocked`; [страница методики](https://psytests.org/learn/msmzma.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html). [review](../reviews/method-0674.md);
 - [x] 675. Методика Синестезия — `blocked`; [страница методики](https://psytests.org/typo/sinez.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-0675.md);
 - [x] 676. Методика Словарь — `blocked`; [страница методики](https://psytests.org/work/mpslovar.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html). [review](../reviews/method-0676.md);
-- [ ] 677. Методика смыслового совладания — `queued`; [страница методики](https://psytests.org/coping/mccs.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
+- [x] 677. Методика смыслового совладания — `implemented-local`; [страница методики](https://psytests.org/coping/mccs.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0677.md);
 - [ ] 678. Методика Сопровождение — `queued`; [страница методики](https://psytests.org/stress/soprov.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 679. Методика УМБК — `queued`; [страница методики](https://psytests.org/sport/umbk.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
 - [ ] 680. Методика ФаМеМо — `queued`; [страница методики](https://psytests.org/work/famemo.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
