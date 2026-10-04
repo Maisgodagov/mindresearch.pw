@@ -187,7 +187,7 @@
 - [x] 179. ДАН — `blocked`; [страница методики](https://psytests.org/mmpi/mlodn.html); путеводители: [work-service-ru.html](https://psytests.org/guide/work-service-ru.html). [review](../reviews/method-0179.md);
 - [x] 180. Двадцать вопросов общества Анонимных Игроков — `implemented-local`; [страница методики](https://psytests.org/diag/qga20.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html). [review](../reviews/method-0180.md);
 - [x] 181. Деловой шанс — `blocked`; [страница методики](https://psytests.org/work/ermolB.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0181.md);
-- [ ] 182. Деловые ситуации — `queued`; [страница методики](https://psytests.org/classic/rpfsd.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
+- [x] 182. Деловые ситуации — `blocked`; [страница методики](https://psytests.org/classic/rpfsd.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html). [review](../reviews/method-0182.md);
 - [ ] 183. Дерево с человечками — `queued`; [страница методики](https://psytests.org/parent/ltree.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
 - [ ] 184. Детальный тест на инфантильность — `queued`; [страница методики](https://psytests.org/emvol/dinft.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
 - [ ] 185. Детская шкала враждебности — `queued`; [страница методики](https://psytests.org/confl/chi.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
