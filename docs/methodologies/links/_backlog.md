@@ -477,7 +477,7 @@
 - [x] 469. Культурно свободный тест интеллекта — `blocked`; [страница методики](https://psytests.org/iq/kstk.html); путеводители: [intelligence-cognitive-ru.html](https://psytests.org/guide/intelligence-cognitive-ru.html). [review](../reviews/method-0469.md);
 - [x] 470. Культурно-ценностные ориентации — `blocked`; [страница методики](https://psytests.org/group/kcopoch.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0470.md);
 - [x] 471. Культурные измерения — `blocked`; [страница методики](https://psytests.org/group/kuizm.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0471.md);
-- [ ] 472. Культурные синдромы — `queued`; [страница методики](https://psytests.org/group/kulsyn.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
+- [x] 472. Культурные синдромы — `blocked`; [страница методики](https://psytests.org/group/kulsyn.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0472.md);
 - [ ] 473. КШСУ — `queued`; [страница методики](https://psytests.org/stress/opusk.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html).
 - [ ] 474. Легкая ли вы добыча для манипуляторов? — `queued`; [страница методики](https://psytests.org/quiz/braium.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
 - [ ] 475. Лидер. Менеджер. Эксперт — `queued`; [страница методики](https://psytests.org/work/lme.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
