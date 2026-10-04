@@ -295,7 +295,7 @@
 - [x] 287. Зависимы ли вы от любви? — `blocked`; [страница методики](https://psytests.org/quiz/gslz.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-0287.md);
 - [x] 288. Запрет на выражение чувств — `blocked`; [страница методики](https://psytests.org/emo/znch.html); путеводители: [regulation-emotion-ru.html](https://psytests.org/guide/regulation-emotion-ru.html). [review](../reviews/method-0288.md);
 - [x] 289. Застой или путь — `blocked`; [страница методики](https://psytests.org/emvol/ziput.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-0289.md);
-- [ ] 290. Зеленая шкала — `queued`; [страница методики](https://psytests.org/eco/greens.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
+- [x] 290. Зеленая шкала — `blocked`; [страница методики](https://psytests.org/eco/greens.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-0290.md);
 - [ ] 291. Знаете ли вы юношескую психологию? — `queued`; [страница методики](https://psytests.org/pedag/zlvyp.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html).
 - [ ] 292. Значимость пожилого как Другого для молодого поколения — `queued`; [страница методики](https://psytests.org/life/zpdmp.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
 - [ ] 293. ИГЛ-3 — `queued`; [страница методики](https://psytests.org/trait/igl3.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
