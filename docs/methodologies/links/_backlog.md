@@ -291,7 +291,7 @@
 - [x] 283. Жизнеспособность личности — `blocked`; [страница методики](https://psytests.org/life/zsl.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html). [review](../reviews/method-0283.md);
 - [x] 284. Жизнеспособность личности в условиях глобальных рисков — `implemented-local`; [страница методики](https://psytests.org/stress/zhlgr.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html). [review](../reviews/method-0284.md);
 - [x] 285. Жизнеспособность человека — `blocked`; [страница методики](https://psytests.org/life/zhspc.html); путеводители: [trait-resilience-ru.html](https://psytests.org/guide/trait-resilience-ru.html). [review](../reviews/method-0285.md);
-- [ ] 286. Житейские диалоги — `queued`; [страница методики](https://psytests.org/group/tolzd.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
+- [x] 286. Житейские диалоги — `implemented-local`; [страница методики](https://psytests.org/group/tolzd.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0286.md);
 - [ ] 287. Зависимы ли вы от любви? — `queued`; [страница методики](https://psytests.org/quiz/gslz.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [ ] 288. Запрет на выражение чувств — `queued`; [страница методики](https://psytests.org/emo/znch.html); путеводители: [regulation-emotion-ru.html](https://psytests.org/guide/regulation-emotion-ru.html).
 - [ ] 289. Застой или путь — `queued`; [страница методики](https://psytests.org/emvol/ziput.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
