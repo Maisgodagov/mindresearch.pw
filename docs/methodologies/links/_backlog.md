@@ -302,7 +302,7 @@
 - [x] 294. ИДИКС — `blocked`; [страница методики](https://psytests.org/stress/idiks.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html). [review](../reviews/method-0294.md);
 - [x] 295. избеганию неудач — `blocked`; [страница методики](https://psytests.org/emvol/ehlersB.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-0295.md);
 - [x] 296. Измерение величины целеустремленности — `blocked`; [страница методики](https://psytests.org/trait/ivcel.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-0296.md);
-- [ ] 297. Измерение веры в справедливый мир — `queued`; [страница методики](https://psytests.org/life/bijw.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
+- [x] 297. Измерение веры в справедливый мир — `implemented-local`; [страница методики](https://psytests.org/life/bijw.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-0297.md);
 - [ ] 298. Измерение конформности — `queued`; [страница методики](https://psytests.org/trait/izmkon.html); путеводители: [trait-interpersonal-ru.html](https://psytests.org/guide/trait-interpersonal-ru.html).
 - [ ] 299. Измерение онлайн-расторможенности — `queued`; [страница методики](https://psytests.org/cyber/mod.html); путеводители: [cyberpsychology-ru.html](https://psytests.org/guide/cyberpsychology-ru.html).
 - [ ] 300. Измерение реакций гнева — `queued`; [страница методики](https://psytests.org/confl/darr.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
