@@ -85,10 +85,10 @@ export const scoringConfig: ConfigurableScoring = {
   min: 1,
   max: 5,
   scales: [
-    { key: 'antisocialAsocialReal', label: 'Антисоциальная и асоциальная реальная активность', items: firstScale, aggregation: 'sum' },
-    { key: 'autodestructiveReal', label: 'Аутодеструктивная реальная активность', items: secondScale, aggregation: 'sum' },
-    { key: 'antisocialAggressiveAsocialVirtual', label: 'Антисоциальная и агрессивно-асоциальная виртуальная активность', items: thirdScale, aggregation: 'sum' },
-    { key: 'autodestructiveVirtual', label: 'Аутодеструктивная виртуальная активность', items: fourthScale, aggregation: 'sum' },
+    { key: 'antisocialAsocialReal', label: 'Антисоциальная и асоциальная реальная активность', items: firstScale, reverseItems: [], aggregation: 'sum' },
+    { key: 'autodestructiveReal', label: 'Аутодеструктивная реальная активность', items: secondScale, reverseItems: [], aggregation: 'sum' },
+    { key: 'antisocialAggressiveAsocialVirtual', label: 'Антисоциальная и агрессивно-асоциальная виртуальная активность', items: thirdScale, reverseItems: [], aggregation: 'sum' },
+    { key: 'autodestructiveVirtual', label: 'Аутодеструктивная виртуальная активность', items: fourthScale, reverseItems: [], aggregation: 'sum' },
   ],
 };
 

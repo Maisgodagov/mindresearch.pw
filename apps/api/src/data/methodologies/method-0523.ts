@@ -16,16 +16,16 @@ const questions: SeedSection['questions'] = items.flatMap(({ name }, index) => [
   {
     code: `test_558_${index + 1}_self`,
     text: `По шкале «${name}» отметьте уровень развития у вас этого качества, стороны вашей личности в данный момент времени. Нижняя точка означает самое низкое развитие, верхняя — наивысшее.`,
-    type: 'scale' as const,
+    type: 'number' as const,
     required: true,
-    scale: { min: 0, max: 100, step: 1, minLabel: 'Самое низкое развитие', maxLabel: 'Наивысшее развитие' },
+    validation: { min: 0, max: 100, step: 1 },
   },
   {
     code: `test_558_${index + 1}_aspiration`,
     text: `По шкале «${name}» отметьте, при каком уровне развития этого качества вы были бы удовлетворены собой или почувствовали гордость за себя. Нижняя точка означает самое низкое развитие, верхняя — наивысшее.`,
-    type: 'scale' as const,
+    type: 'number' as const,
     required: true,
-    scale: { min: 0, max: 100, step: 1, minLabel: 'Самое низкое развитие', maxLabel: 'Наивысшее развитие' },
+    validation: { min: 0, max: 100, step: 1 },
   },
 ]);
 
