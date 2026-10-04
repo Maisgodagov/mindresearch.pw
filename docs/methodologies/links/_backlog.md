@@ -346,7 +346,7 @@
 - [x] 338. Индекс сексуальной возбудимости Харлберта — `implemented-local`; [страница методики](https://psytests.org/sex/sxvh.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-0338.md);
 - [x] 339. Индекс стремлений — `implemented-local`; [страница методики](https://psytests.org/sdt/aiA.html); путеводители: [framework-sdt-ru.html](https://psytests.org/guide/framework-sdt-ru.html). [review](../reviews/method-0339.md);
 - [ ] 340. Индекс толерантности — `already-listed`; [страница методики](https://psytests.org/group/indtol.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
-- [ ] 341. Индекс тяжести инсомнии — `queued`; [страница методики](https://psytests.org/diag/isi.html); путеводители: [clinical-sleep-ru.html](https://psytests.org/guide/clinical-sleep-ru.html).
+- [x] 341. Индекс тяжести инсомнии — `blocked`; [страница методики](https://psytests.org/diag/isi.html); путеводители: [clinical-sleep-ru.html](https://psytests.org/guide/clinical-sleep-ru.html). [review](../reviews/method-0341.md);
 - [ ] 342. Индекс удовлетворенности пар — `queued`; [страница методики](https://psytests.org/close/csip.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
 - [ ] 343. Индекс Уитли — `queued`; [страница методики](https://psytests.org/diag/wi8.html); путеводители: [clinical-somatic-ru.html](https://psytests.org/guide/clinical-somatic-ru.html).
 - [ ] 344. Индекс финансовых отношений — `queued`; [страница методики](https://psytests.org/quiz/fri.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
