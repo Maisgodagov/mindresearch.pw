@@ -373,28 +373,92 @@ function Get-CurrentCommit {
 
 function Test-PreDeploymentBuild([string]$Sha) {
   Add-RunLog "PRE_DEPLOY_BUILD_START sha=$Sha"
-  $previousLocation = Get-Location
-  $output = @()
+  $buildLogPath = Join-Path $runnerDir "build-validation-$($Sha.Substring(0, 7)).log"
+  $psi = [Diagnostics.ProcessStartInfo]::new()
+  $psi.FileName = $env:ComSpec
+  $psi.WorkingDirectory = $repo
+  $psi.Arguments = "/d /s /c `"npm run build > `"$buildLogPath`" 2>&1`""
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  $proc = [Diagnostics.Process]::new()
+  $proc.StartInfo = $psi
   $exitCode = 1
   try {
-    Set-Location -LiteralPath $repo
-    $output = @(& npm run build 2>&1)
-    $exitCode = $LASTEXITCODE
+    if ($proc.Start()) { $proc.WaitForExit(); $exitCode = $proc.ExitCode }
   } catch {
-    $output += $_.Exception.Message
-  } finally {
-    Set-Location -LiteralPath $previousLocation.Path
-  }
+    [IO.File]::WriteAllText($buildLogPath, $_.Exception.Message, [Text.UTF8Encoding]::new($false))
+  } finally { $proc.Dispose() }
   if ($exitCode -eq 0) {
     Add-RunLog "PRE_DEPLOY_BUILD_OK sha=$Sha"
     return @{ passed = $true; reason = ''; log = '' }
   }
-  $buildLogPath = Join-Path $runnerDir "build-validation-$($Sha.Substring(0, 7)).log"
-  [IO.File]::WriteAllLines($buildLogPath, [string[]]@($output | ForEach-Object { [string]$_ }), [Text.UTF8Encoding]::new($false))
+  $output = if (Test-Path -LiteralPath $buildLogPath) { @(Get-Content -LiteralPath $buildLogPath -Encoding UTF8) } else { @() }
   $diagnostics = @($output | Where-Object { [string]$_ -match 'error TS\d+|npm error|Error:' } | Select-Object -First 8 | ForEach-Object { ([string]$_).Trim() })
   $detail = if ($diagnostics.Count) { $diagnostics -join ' | ' } else { "см. журнал $buildLogPath" }
   Add-RunLog "PRE_DEPLOY_BUILD_FAILED sha=$Sha exit=$exitCode log=$buildLogPath details=$detail"
   return @{ passed = $false; reason = "Локальная production-сборка не прошла (exit $exitCode): $detail"; log = $buildLogPath }
+}
+
+function Invoke-BuildRepair([string]$BuildLogPath, [string]$FailedSha, [int]$Attempt, [string]$RemoteFailure = '') {
+  $reportPath = Join-Path $runnerDir "build-repair-$($FailedSha.Substring(0, 7))-$Attempt.txt"
+  $stdoutPath = Join-Path $runnerDir "build-repair-$($FailedSha.Substring(0, 7))-$Attempt.stdout.log"
+  $stderrPath = Join-Path $runnerDir "build-repair-$($FailedSha.Substring(0, 7))-$Attempt.stderr.log"
+  $remoteContext = if ($RemoteFailure) { "`nGitHub Actions также сообщил об ошибке: $RemoteFailure. Локальный build log может не содержать удалённую диагностику; запусти npm run build, проверь соответствующий workflow и устрани корневую причину." } else { '' }
+  $repairPrompt = @"
+Production-пакет не проходит сборку. Прочитай полный лог: $BuildLogPath.
+$remoteContext
+
+Исправь все ошибки сборки в текущей интеграционной ветке $FailedSha. Сохрани тексты пунктов, варианты ответов и формулы подсчёта; не подавляй ошибки типов и не упрощай scoring. Делай минимальные исправления исходников, в первую очередь новых модулей методик `apps/api/src/data/methodologies/method-*.ts`; если диагностика показывает общую типовую причину, исправь необходимую типовую декларацию в `apps/api/src`. Не меняй backlog, workflow, скрипты, package-файлы и несвязанные файлы. Не коммить и не пушь: это сделает runner. Не запускай тесты. Верни краткое описание исправлений и файлов.
+"@
+  $psi = [Diagnostics.ProcessStartInfo]::new()
+  $psi.FileName = $codexCommand.Source
+  $psi.WorkingDirectory = $repo
+  $psi.Arguments = "exec --json --approve-for-me -c model_reasoning_effort=high -C `"$repo`" --output-last-message `"$reportPath`" -"
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  $psi.RedirectStandardInput = $true
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $psi.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+  $psi.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+  $proc = [Diagnostics.Process]::new()
+  $proc.StartInfo = $psi
+  Add-RunLog "BUILD_REPAIR_START sha=$FailedSha attempt=$Attempt"
+  if (!$proc.Start()) { throw 'Не удалось запустить Codex для исправления ошибок сборки.' }
+  $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+  $stderrTask = $proc.StandardError.ReadToEndAsync()
+  $promptBytes = [Text.UTF8Encoding]::new($false).GetBytes($repairPrompt)
+  $proc.StandardInput.BaseStream.Write($promptBytes, 0, $promptBytes.Length)
+  $proc.StandardInput.BaseStream.Flush()
+  $proc.StandardInput.Close()
+  while (!$proc.WaitForExit(5000)) {
+    if (Test-Path -LiteralPath $stopPath) { try { $proc.Kill() } catch { }; break }
+    $state.buildRepairAttempt = $Attempt
+    $state.buildRepairStatus = 'running'
+    $state.updatedAt = (Get-Date).ToString('o')
+    $state.message = "Исправляю ошибку production-сборки (попытка $Attempt); после исправления повторю сборку."
+    Write-State $state
+  }
+  try { $proc.WaitForExit() } catch { }
+  $stdout = $stdoutTask.GetAwaiter().GetResult()
+  $stderr = $stderrTask.GetAwaiter().GetResult()
+  [IO.File]::WriteAllText($stdoutPath, $stdout, [Text.UTF8Encoding]::new($false))
+  [IO.File]::WriteAllText($stderrPath, $stderr, [Text.UTF8Encoding]::new($false))
+  $exitCode = $proc.ExitCode
+  $proc.Dispose()
+  $summary = if (Test-Path -LiteralPath $reportPath) { (Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8).Trim() } else { 'Codex не создал итоговый отчёт.' }
+  Add-RunLog "BUILD_REPAIR_DONE sha=$FailedSha attempt=$Attempt exit=$exitCode summary=$summary"
+  if ($exitCode -ne 0) { return @{ changed = $false; reason = "Codex завершился с кодом $exitCode. $summary" } }
+  & git -C $repo add -- apps | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить исправления сборки в apps/.' }
+  $staged = @(& git -C $repo diff --cached --name-only)
+  if (!$staged.Count) { return @{ changed = $false; reason = $summary } }
+  $outsideApps = @($staged | Where-Object { $_ -notmatch '^apps/' })
+  if ($outsideApps.Count) { throw "Исправление сборки затронуло запрещённые пути: $($outsideApps -join ', ')" }
+  & git -C $repo commit -m "Repair methodology batch build (attempt $Attempt)" | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'Не удалось сохранить исправления production-сборки.' }
+  Add-RunLog "BUILD_REPAIR_COMMITTED sha=$(Get-CurrentCommit) attempt=$Attempt files=$($staged -join ',')"
+  return @{ changed = $true; reason = $summary }
 }
 
 function Start-DeploymentRetry([int]$ItemId) {
@@ -492,26 +556,58 @@ function Mark-ImplementedLocalAsDone([string]$Sha) {
 function Invoke-PendingDeployment([int]$AfterItemId) {
   $pending = @(Get-ImplementedLocalLines)
   if (!$pending.Count) { return @{ status = 'none'; count = 0 } }
-  $candidateSha = Get-CurrentCommit
-  $build = Test-PreDeploymentBuild $candidateSha
-  if (!$build.passed) { return @{ status = 'validation-failed'; count = $pending.Count; sha = $candidateSha; reason = $build.reason; url = '' } }
-  $sha = Start-DeploymentRetry $AfterItemId
-  Add-RunLog "DEPLOY_START id=$AfterItemId sha=$sha pending=$($pending.Count) threshold=$DeployBatchSize"
-  $deploy = Wait-Deployment $sha
-  if ($deploy.status -eq 'success') {
-    Mark-ImplementedLocalAsDone $sha
-    & git -C $repo add -- docs/methodologies/links/_backlog.md | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить статусы подтверждённых методик.' }
-    & git -C $repo commit -m 'Mark methodology batch deployed' | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'Не удалось зафиксировать статусы подтверждённых методик.' }
-    & git -C $repo push origin main | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'Не удалось сохранить статусы подтверждённых методик в main.' }
-    Add-RunLog "DEPLOY_CONFIRMED id=$AfterItemId sha=$sha count=$($pending.Count) url=$($deploy.url)"
-    return @{ status = 'success'; count = $pending.Count; sha = $sha; url = $deploy.url }
+  $repairAttempt = 0
+  $repeatErrors = @{}
+  while ($true) {
+    if (Test-Path -LiteralPath $stopPath) { return @{ status = 'deferred'; count = $pending.Count; reason = 'Остановка запрошена до завершения исправления и публикации.' } }
+    $candidateSha = Get-CurrentCommit
+    $build = Test-PreDeploymentBuild $candidateSha
+    if (!$build.passed) {
+      $repairAttempt++
+      $errorHash = (Get-FileHash -LiteralPath $build.log -Algorithm SHA256).Hash
+      $repeatErrors[$errorHash] = 1 + [int]$repeatErrors[$errorHash]
+      $state.buildRepairAttempt = $repairAttempt
+      $state.buildRepairStatus = 'repairing'
+      $state.updatedAt = (Get-Date).ToString('o')
+      $state.message = "Сборка не прошла; Codex исправляет ошибку (попытка $repairAttempt, повтор одинаковой ошибки $($repeatErrors[$errorHash])). После исправления сборка запустится снова."
+      Write-State $state
+      $repair = Invoke-BuildRepair $build.log $candidateSha $repairAttempt
+      if (!$repair.changed) {
+        Add-RunLog "BUILD_REPAIR_NO_CHANGE sha=$candidateSha attempt=$repairAttempt repeat=$($repeatErrors[$errorHash]) reason=$($repair.reason)"
+        Start-Sleep -Seconds 10
+      }
+      continue
+    }
+    $state.buildRepairStatus = 'passed'
+    $state.message = 'Локальная production-сборка прошла; отправляю пакет в деплой.'
+    $state.updatedAt = (Get-Date).ToString('o')
+    Write-State $state
+    $sha = Start-DeploymentRetry $AfterItemId
+    Add-RunLog "DEPLOY_START id=$AfterItemId sha=$sha pending=$($pending.Count) threshold=$DeployBatchSize"
+    $deploy = Wait-Deployment $sha
+    if ($deploy.status -eq 'success') {
+      Mark-ImplementedLocalAsDone $sha
+      & git -C $repo add -- docs/methodologies/links/_backlog.md | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw 'Не удалось подготовить статусы подтверждённых методик.' }
+      & git -C $repo commit -m 'Mark methodology batch deployed' | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw 'Не удалось зафиксировать статусы подтверждённых методик.' }
+      & git -C $repo push origin main | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw 'Не удалось сохранить статусы подтверждённых методик в main.' }
+      Add-RunLog "DEPLOY_CONFIRMED id=$AfterItemId sha=$sha count=$($pending.Count) url=$($deploy.url)"
+      $state.buildRepairStatus = 'idle'
+      return @{ status = 'success'; count = $pending.Count; sha = $sha; url = $deploy.url }
+    }
+    if ($deploy.status -eq 'validation-failed') {
+      $repairAttempt++
+      $remoteLogPath = Join-Path $runnerDir "build-validation-remote-$($sha.Substring(0, 7)).log"
+      [IO.File]::WriteAllText($remoteLogPath, "GitHub Actions build failed for $sha.`r`n$($deploy.reason)`r`nWorkflow: $($deploy.url)`r`nLocal pre-deployment build passed. Inspect the workflow/build configuration and the release files, then repair the root cause.", [Text.UTF8Encoding]::new($false))
+      $repair = Invoke-BuildRepair $remoteLogPath $sha $repairAttempt $deploy.reason
+      if (!$repair.changed) { Add-RunLog "REMOTE_BUILD_REPAIR_NO_CHANGE sha=$sha attempt=$repairAttempt reason=$($repair.reason)"; Start-Sleep -Seconds 10 }
+      continue
+    }
+    Add-RunLog "DEPLOY_DEFERRED id=$AfterItemId sha=$sha pending=$($pending.Count) reason=$($deploy.reason)"
+    return @{ status = 'deferred'; count = $pending.Count; sha = $sha; reason = $deploy.reason; url = $deploy.url }
   }
-  if ($deploy.status -eq 'validation-failed') { return @{ status = 'validation-failed'; count = $pending.Count; sha = $sha; reason = $deploy.reason; url = $deploy.url } }
-  Add-RunLog "DEPLOY_DEFERRED id=$AfterItemId sha=$sha pending=$($pending.Count) reason=$($deploy.reason)"
-  return @{ status = 'deferred'; count = $pending.Count; sha = $sha; reason = $deploy.reason; url = $deploy.url }
 }
 
 function Set-FinalState($State, [string]$Status, [string]$Reason) {
