@@ -184,7 +184,7 @@
 - [x] 176. Групповая рефлексивность — `blocked`; [страница методики](https://psytests.org/work/greflA.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html). [review](../reviews/method-0176.md);
 - [x] 177. Групповая рефлексивность класса — `implemented-local`; [страница методики](https://psytests.org/work/greflB.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-0177.md);
 - [x] 178. Давосская шкала когнитивных искажений — `blocked`; [страница методики](https://psytests.org/diag/dacobs.html); путеводители: [clinical-schizotypy-ru.html](https://psytests.org/guide/clinical-schizotypy-ru.html). [review](../reviews/method-0178.md);
-- [ ] 179. ДАН — `queued`; [страница методики](https://psytests.org/mmpi/mlodn.html); путеводители: [work-service-ru.html](https://psytests.org/guide/work-service-ru.html).
+- [x] 179. ДАН — `blocked`; [страница методики](https://psytests.org/mmpi/mlodn.html); путеводители: [work-service-ru.html](https://psytests.org/guide/work-service-ru.html). [review](../reviews/method-0179.md);
 - [ ] 180. Двадцать вопросов общества Анонимных Игроков — `queued`; [страница методики](https://psytests.org/diag/qga20.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html).
 - [ ] 181. Деловой шанс — `queued`; [страница методики](https://psytests.org/work/ermolB.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 182. Деловые ситуации — `queued`; [страница методики](https://psytests.org/classic/rpfsd.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
