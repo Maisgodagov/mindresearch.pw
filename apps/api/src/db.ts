@@ -32,6 +32,7 @@ export async function migrate() {
   await ensureColumn('users','public_slug','VARCHAR(120) NULL UNIQUE');
   await ensureColumn('users','is_profile_public','BOOLEAN NOT NULL DEFAULT FALSE');
   await ensureColumn('users','updated_at','TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+  await ensureColumn('users','onboarding_status',"ENUM('not_started','completed','skipped') NOT NULL DEFAULT 'not_started'");
   await ensureColumn('surveys','description','TEXT NULL');
   await ensureColumn('surveys','updated_at','TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
   await ensureColumn('surveys','show_author','BOOLEAN NOT NULL DEFAULT TRUE');

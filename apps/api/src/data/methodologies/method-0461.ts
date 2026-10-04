@@ -93,7 +93,7 @@ for (const [index, answers] of key.entries()) {
 }
 
 const validationCases: ValidationCase[] = [
-  { title: 'Ручная проверка ключа: все ответы совпадают с ключом', answers: Object.fromEntries(key.map((answer, i) => [String(i + 1), answer.split('|')[0]])), expected: { correct: 50 } },
+  { title: 'Ручная проверка ключа: все ответы совпадают с ключом', answers: Object.fromEntries(key.map((_, i) => [String(i + 1), 1])), expected: { correct: 50 } },
   { title: 'Ручная проверка: все ответы пропущены/неверны', answers: {}, expected: { correct: 0 } },
 ];
 
