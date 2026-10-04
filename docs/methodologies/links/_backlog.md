@@ -478,7 +478,7 @@
 - [x] 470. Культурно-ценностные ориентации — `blocked`; [страница методики](https://psytests.org/group/kcopoch.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0470.md);
 - [x] 471. Культурные измерения — `blocked`; [страница методики](https://psytests.org/group/kuizm.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0471.md);
 - [x] 472. Культурные синдромы — `blocked`; [страница методики](https://psytests.org/group/kulsyn.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0472.md);
-- [ ] 473. КШСУ — `queued`; [страница методики](https://psytests.org/stress/opusk.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html).
+- [x] 473. КШСУ — `implemented-local`; [страница методики](https://psytests.org/stress/opusk.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html). [review](../reviews/method-0473.md);
 - [ ] 474. Легкая ли вы добыча для манипуляторов? — `queued`; [страница методики](https://psytests.org/quiz/braium.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
 - [ ] 475. Лидер. Менеджер. Эксперт — `queued`; [страница методики](https://psytests.org/work/lme.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
 - [ ] 476. Лики Любви — `queued`; [страница методики](https://psytests.org/ipl/janda10.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html).
