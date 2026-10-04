@@ -1,4 +1,8 @@
-﻿const items = [
+import type { SeedSection } from '../../types.js';
+import type { ConfigurableScoring, ValidationCase } from '../../scoring/configurable.js';
+import type { MethodologyRegistration } from '../methodologyRegistry.js';
+
+const items = [
 'Я предпочитаю делать что-либо вместе с другими, а не самостоятельно.',
 'Я предпочитаю делать что-либо одинаковым образом из раза в раз.',
 'Если я пытаюсь представить что-то, мне очень легко удаётся создать образ в своём воображении.',
