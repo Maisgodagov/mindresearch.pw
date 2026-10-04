@@ -188,8 +188,9 @@ const expand = (...parts: (number | [number, number])[]) => parts.flatMap(part =
   typeof part === 'number' ? [part] : Array.from({ length: part[1] - part[0] + 1 }, (_, i) => part[0] + i),
 );
 
-const key = (label: string, ...parts: (number | [number, number])[]) => ({
-  key: `s${scales.length + 1}`,
+let scaleIndex = 0;
+const key = (label: string, ...parts: (number | [number, number])[]): ConfigurableScoring['scales'][number] => ({
+  key: `s${++scaleIndex}`,
   label,
   items: expand(...parts),
   reverseItems: [] as number[],
