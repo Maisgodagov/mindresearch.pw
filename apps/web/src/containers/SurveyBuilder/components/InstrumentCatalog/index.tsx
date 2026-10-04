@@ -203,7 +203,7 @@ export function InstrumentCatalog({
         </Library>
         {instruments.length > pageSize && (
           <CatalogPagination aria-label="\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u044b \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0430">
-            <span>{(page - 1) * pageSize + 1}\u2013{Math.min(page * pageSize, instruments.length)} \u0438\u0437 {instruments.length}</span>
+            <span>{(page - 1) * pageSize + 1}&#8211;{Math.min(page * pageSize, instruments.length)} {"\u0438\u0437"} {instruments.length}</span>
             <div className="pages">
               <Button className="page-arrow" disabled={page === 1} aria-label="\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page - 1)}>&#x2039;</Button>
               {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
