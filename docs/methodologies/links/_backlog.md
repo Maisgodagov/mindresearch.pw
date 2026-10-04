@@ -684,7 +684,7 @@
 - [x] 676. Методика Словарь — `blocked`; [страница методики](https://psytests.org/work/mpslovar.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html). [review](../reviews/method-0676.md);
 - [x] 677. Методика смыслового совладания — `implemented-local`; [страница методики](https://psytests.org/coping/mccs.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0677.md);
 - [x] 678. Методика Сопровождение — `blocked`; [страница методики](https://psytests.org/stress/soprov.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html). [review](../reviews/method-0678.md);
-- [ ] 679. Методика УМБК — `queued`; [страница методики](https://psytests.org/sport/umbk.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
+- [x] 679. Методика УМБК — `blocked`; [страница методики](https://psytests.org/sport/umbk.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0679.md);
 - [ ] 680. Методика ФаМеМо — `queued`; [страница методики](https://psytests.org/work/famemo.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
 - [ ] 681. Методика экспресс-диагностики невроза — `queued`; [страница методики](https://psytests.org/stress/bfb.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 682. Методика экспресс-диагностики родителей — `queued`; [страница методики](https://psytests.org/parent/medor.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
