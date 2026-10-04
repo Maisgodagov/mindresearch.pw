@@ -393,7 +393,7 @@
 - [x] 385. Карта наблюдений — `blocked`; [страница методики](https://psytests.org/diag/knnas.html); путеводители: [clinical-trauma-ru.html](https://psytests.org/guide/clinical-trauma-ru.html). [review](../reviews/method-0385.md);
 - [x] 386. Карта наблюдений за проявлениями коммуникативных способностей — `blocked`; [страница методики](https://psytests.org/school/schetE.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html). [review](../reviews/method-0386.md);
 - [x] 387. Карта наблюдений Стотта — `blocked`; [страница методики](https://psytests.org/school/stott.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html). [review](../reviews/method-0387.md);
-- [ ] 388. Карта одаренности — `queued`; [страница методики](https://psytests.org/work/kodar.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
+- [x] 388. Карта одаренности — `blocked`; [страница методики](https://psytests.org/work/kodar.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-0388.md);
 - [ ] 389. Карта проявлений особенностей развития — `queued`; [страница методики](https://psytests.org/school/schetB.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html).
 - [ ] 390. Карьера или призвание — `queued`; [страница методики](https://psytests.org/fun/lmtA.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 391. Карьерная вовлеченность — `queued`; [страница методики](https://psytests.org/work/cengs.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
