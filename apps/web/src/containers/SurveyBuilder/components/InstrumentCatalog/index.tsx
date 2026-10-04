@@ -86,6 +86,7 @@ export function InstrumentCatalog({
       >
         <Button
           className="create-custom"
+          data-onboarding="custom-test"
           disabled={locked}
           title={locked ? CATALOG_COPY.locked : undefined}
           onClick={onCreateCustom}
@@ -94,6 +95,7 @@ export function InstrumentCatalog({
         </Button>
         <Button
           className="choose-method"
+          data-onboarding="methodology"
           disabled={locked}
           title={locked ? CATALOG_COPY.locked : undefined}
           onClick={() => setOpen(true)}
@@ -191,10 +193,12 @@ export function InstrumentCatalog({
                   <Button
                     type="primary"
                     className="add"
+                    data-onboarding="catalog-add"
                     disabled={isAdded}
                     onClick={() => {
                       onAddInstrument(instrument);
                       closeCatalog();
+                      window.setTimeout(() => window.dispatchEvent(new Event("mindresearch:onboarding-methodology-added")), 0);
                     }}
                   >
                     {isAdded ? CATALOG_COPY.added : CATALOG_COPY.add}

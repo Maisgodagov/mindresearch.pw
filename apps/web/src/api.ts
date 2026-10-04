@@ -19,6 +19,7 @@ export function setAccessToken(token: string | null) {
   currentUser = null;
   currentUserPromise = null;
   localStorage.removeItem("admin_token");
+  if (token) window.dispatchEvent(new Event("mindresearch:authenticated"));
 }
 export function hasAccessToken() {
   return Boolean(accessToken);

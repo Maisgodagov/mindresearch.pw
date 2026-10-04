@@ -6,10 +6,10 @@ import { dragHandleLabels } from "./const";
 import { sortableItemStyle } from "./styles";
 import type { SortableBlockProps } from "./types";
 
-export function SortableSection({ id, children }: SortableBlockProps) {
+export function SortableSection({ id, children, onboardingTarget }: SortableBlockProps & { onboardingTarget?: string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const handle = <Button type="button" className="section-drag" aria-label={dragHandleLabels.section} {...attributes} {...listeners}><GripVertical size={17} /></Button>;
-  return <SectionCard ref={setNodeRef} style={sortableItemStyle(transform, transition, isDragging)} $dragging={isDragging}>{children(handle, isDragging)}</SectionCard>;
+  return <SectionCard ref={setNodeRef} data-onboarding={onboardingTarget} style={sortableItemStyle(transform, transition, isDragging)} $dragging={isDragging}>{children(handle, isDragging)}</SectionCard>;
 }
 
 export function SortableQuestion({ id, children }: SortableBlockProps) {

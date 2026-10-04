@@ -37,6 +37,30 @@ export const Grid = styled.div`
   gap: 16px;
   @media (max-width: 520px) { gap: 12px; }
 `;
+export const EmptyState = styled.section`
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 620px;
+  margin: clamp(36px, 9vh, 92px) auto;
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid #dce6d9;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .82);
+  text-align: center;
+  .icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    border-radius: 16px;
+    background: #e9f1e5;
+    color: #52764b;
+  }
+  h2 { margin: 4px 0 0; color: #304a38; font: 600 22px var(--font-heading), serif; }
+  p { max-width: 440px; margin: 0; color: #758178; line-height: 1.65; }
+`;
 export const SectionTitle = styled.div`
   grid-column: 1 / -1;
   display: flex;

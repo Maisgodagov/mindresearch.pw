@@ -7,6 +7,7 @@ import {
   BarChart3,
   CalendarDays,
   CheckCircle2,
+  ClipboardList,
   Clock3,
   Copy,
   ExternalLink,
@@ -26,6 +27,7 @@ import { formatSurveyDate } from "./const";
 import {
   Head,
   Grid,
+  EmptyState,
   SectionTitle,
   SurveyCard,
   TrashBar,
@@ -68,6 +70,7 @@ export function PlatformHome() {
   }, []);
   const copy = async (s: Survey) => {
     await navigator.clipboard.writeText(`${location.origin}/s/${s.slug}`);
+    window.dispatchEvent(new Event("mindresearch:onboarding-link-copied"));
     setCopied(s.id);
     setTimeout(() => setCopied(""), 1800);
   };
@@ -81,6 +84,7 @@ export function PlatformHome() {
           item.id === s.id ? { ...item, status: "active" } : item,
         ),
       );
+      window.setTimeout(() => window.dispatchEvent(new Event("mindresearch:onboarding-survey-published")), 0);
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, "Не удалось опубликовать опрос"));
     } finally {
@@ -179,15 +183,21 @@ export function PlatformHome() {
           <span className="hello">Здравствуйте{name ? `, ${name}` : ""}</span>
           <h1>Ваши опросы</h1>
         </div>
-        <Link to="/app/surveys/new">
+        <Link to="/app/surveys/new" data-onboarding="create-survey">
           <Button type="primary" size="large">
             <Plus size={17} /> Новый опрос
           </Button>
         </Link>
       </Head>
       {error && <p style={{ color: "#a25c55" }}>{error}</p>}
-      <Grid>
-        {orderedSurveys.map((s, index) => (
+      <Grid data-onboarding="survey-list">
+        {orderedSurveys.length === 0 ? (
+          <EmptyState>
+            <span className="icon"><ClipboardList size={24} /></span>
+            <h2>Опросов пока нет</h2>
+            <p>Создайте свой первый опрос — нажмите «Новый опрос» вверху страницы, чтобы начать.</p>
+          </EmptyState>
+        ) : orderedSurveys.map((s, index) => (
           <Fragment key={s.id}>
             {index === 0 && publishedSurveys.length > 0 && (
               <SectionTitle>
@@ -219,9 +229,10 @@ export function PlatformHome() {
                       ? "В архиве"
                       : "Черновик"}
                 </span>
-                <div className="card-tools">
+                <div className="card-tools" data-onboarding="survey-edit-delete">
                   <Link
                     className="tool-button edit"
+                    data-onboarding="survey-edit"
                     to={`/app/surveys/${s.id}/edit`}
                     aria-label={`${s.hasBuilderState ? "Продолжить создание" : "Редактировать опрос"} ${s.title}`}
                     title={
@@ -272,7 +283,7 @@ export function PlatformHome() {
                 <div className="links">
                   {s.status === "active" ? (
                     <>
-                      <Button className="copy" onClick={() => copy(s)}>
+                      <Button className="copy" data-onboarding="survey-copy-link" data-survey-id={s.id} onClick={() => copy(s)}>
                         <Copy size={14} />
                         {copied === s.id ? "Скопировано" : "Скопировать ссылку"}
                       </Button>
@@ -302,12 +313,26 @@ export function PlatformHome() {
                       {working === s.id ? "Возвращаем…" : "Вернуть из архива"}
                     </Button>
                   ) : s.hasBuilderState ? (
-                    <Link className="continue" to={`/app/surveys/${s.id}/edit`}>
-                      <Pencil size={14} /> Продолжить
-                    </Link>
+                    <>
+                      <Link className="continue" to={`/app/surveys/${s.id}/edit`}>
+                        <Pencil size={14} /> {"\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c"}
+                      </Link>
+                      <Button
+                        className="publish"
+                        data-onboarding="survey-publish"
+                        data-survey-id={s.id}
+                        disabled={publishing === s.id}
+                        onClick={() => publish(s)}
+                      >
+                        <Send size={14} />
+                        {publishing === s.id ? "\u041f\u0443\u0431\u043b\u0438\u043a\u0443\u0435\u043c\u2026" : "\u041e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c"}
+                      </Button>
+                    </>
                   ) : (
                     <Button
                       className="publish"
+                      data-onboarding="survey-publish"
+                      data-survey-id={s.id}
                       disabled={publishing === s.id}
                       onClick={() => publish(s)}
                     >
@@ -316,7 +341,7 @@ export function PlatformHome() {
                     </Button>
                   )}
                 </div>
-                <Link to={`/app/surveys/${s.id}/results`}>
+                <Link to={`/app/surveys/${s.id}/results`} data-onboarding="survey-statistics" data-survey-id={s.id}>
                   Статистика <ArrowRight size={14} />
                 </Link>
               </div>
