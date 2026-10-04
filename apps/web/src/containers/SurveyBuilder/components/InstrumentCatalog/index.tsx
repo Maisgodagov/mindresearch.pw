@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "antd";
 import {
   Calculator,
@@ -18,6 +18,7 @@ import {
   CatalogIntro,
   CatalogTools,
   Library,
+  CatalogPagination,
 } from "./styles";
 import type { InstrumentCatalogProps } from "./types";
 
@@ -48,34 +49,24 @@ export function InstrumentCatalog({
   onAddInstrument,
 }: InstrumentCatalogProps) {
   const [open, setOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(30);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const pageSize = 30;
-  const visibleInstruments = instruments.slice(0, visibleCount);
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  const pageCount = Math.max(1, Math.ceil(instruments.length / pageSize));
+  const visibleInstruments = instruments.slice((page - 1) * pageSize, page * pageSize);
   const closeCatalog = () => setOpen(false);
 
   useEffect(() => {
-    if (!open || visibleCount >= instruments.length) return;
-    const sentinel = loadMoreRef.current;
-    if (!sentinel) return;
-    if (!("IntersectionObserver" in window)) {
-      setVisibleCount((current) => Math.min(instruments.length, current + pageSize));
-      return;
-    }
-    const scrollContainer = sentinel.closest(".ant-modal-body");
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisibleCount((current) =>
-            Math.min(instruments.length, current + pageSize),
-          );
-        }
-      },
-      { root: scrollContainer, rootMargin: "120px 0px", threshold: 0 },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [open, visibleCount, instruments.length]);
+    setPage(1);
+  }, [query, instruments.length]);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
+  const changePage = (nextPage: number) => {
+    setPage(nextPage);
+    document.querySelector(".instrument-catalog-modal .ant-modal-body")?.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <>
@@ -98,7 +89,7 @@ export function InstrumentCatalog({
           data-onboarding="methodology"
           disabled={locked}
           title={locked ? CATALOG_COPY.locked : undefined}
-          onClick={() => setOpen(true)}
+          onClick={() => { setPage(1); setOpen(true); }}
         >
           <BookOpenText size={17} />
           <span>{CATALOG_COPY.choose}</span>
@@ -137,7 +128,6 @@ export function InstrumentCatalog({
             <FieldInput
               value={query}
               onChange={(event) => {
-                setVisibleCount(pageSize);
                 onQueryChange(event.target.value);
               }}
               placeholder={CATALOG_COPY.search}
@@ -210,10 +200,19 @@ export function InstrumentCatalog({
           {!instruments.length && (
             <p className="empty">{CATALOG_COPY.empty}</p>
           )}
-          {visibleCount < instruments.length && (
-            <div ref={loadMoreRef} className="load-more-sentinel" aria-hidden="true" />
-          )}
         </Library>
+        {instruments.length > pageSize && (
+          <CatalogPagination aria-label="\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u044b \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0430">
+            <span>{(page - 1) * pageSize + 1}\u2013{Math.min(page * pageSize, instruments.length)} \u0438\u0437 {instruments.length}</span>
+            <div className="pages">
+              <Button className="page-arrow" disabled={page === 1} aria-label="\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page - 1)}>&#x2039;</Button>
+              {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
+                <Button key={pageNumber} className={pageNumber === page ? "page-number active" : "page-number"} aria-current={pageNumber === page ? "page" : undefined} onClick={() => changePage(pageNumber)}>{pageNumber}</Button>
+              ))}
+              <Button className="page-arrow" disabled={page === pageCount} aria-label="\u0421\u043b\u0435\u0434\u0443\u044e\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page + 1)}>&#x203a;</Button>
+            </div>
+          </CatalogPagination>
+        )}
       </Modal>
     </>
   );

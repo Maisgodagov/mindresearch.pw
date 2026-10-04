@@ -292,3 +292,36 @@ export const Library = styled.div`
     .links { width: 100%; }
   }
 `;
+
+export const CatalogPagination = styled.nav`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 2px 2px;
+  border-top: 1px solid #e5ebe3;
+  color: #69786d;
+  font-size: 12px;
+  .pages { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+  .page-number,
+  .page-arrow {
+    display: inline-grid;
+    place-items: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #dce6d9;
+    border-radius: 8px;
+    background: #fff;
+    color: #405947;
+    font-size: 12px;
+    box-shadow: none;
+  }
+  .page-number:hover:not(:disabled),
+  .page-arrow:hover:not(:disabled) { border-color: #9cb396; background: #f3f7f1; color: #315238; }
+  .page-number.active { border-color: #52764b; background: #52764b; color: #fff; }
+  .page-arrow:disabled { cursor: default; opacity: .45; }
+  @media (max-width: 560px) { justify-content: center; }
+`;
