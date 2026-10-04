@@ -483,7 +483,7 @@
 - [x] 475. Лидер. Менеджер. Эксперт — `blocked`; [страница методики](https://psytests.org/work/lme.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html). [review](../reviews/method-0475.md);
 - [x] 476. Лики Любви — `blocked`; [страница методики](https://psytests.org/ipl/janda10.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html). [review](../reviews/method-0476.md);
 - [x] 477. Лики родительской любви — `implemented-local`; [страница методики](https://psytests.org/parent/lrodl.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-0477.md);
-- [ ] 478. Личная эгограмма — `queued`; [страница методики](https://psytests.org/ta/barego.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html).
+- [x] 478. Личная эгограмма — `implemented-local`; [страница методики](https://psytests.org/ta/barego.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html). [review](../reviews/method-0478.md);
 - [ ] 479. Личное отношение спортсмена к допингу — `queued`; [страница методики](https://psytests.org/sport/loskd.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
 - [ ] 480. Личностная агрессивность и конфликтность — `queued`; [страница методики](https://psytests.org/confl/ilaik.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
 - [ ] 481. Личностные дезорганизаторы времени — `queued`; [страница методики](https://psytests.org/work/ldvr.html); путеводители: [regulation-procrastination-ru.html](https://psytests.org/guide/regulation-procrastination-ru.html).
