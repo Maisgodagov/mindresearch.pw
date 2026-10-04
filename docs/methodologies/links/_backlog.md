@@ -501,7 +501,7 @@
 - [x] 493. ЛК — `implemented-local`; [страница методики](https://psytests.org/trait/usklk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html). [review](../reviews/method-0493.md);
 - [x] 494. Лого-Тест — `blocked`; [страница методики](https://psytests.org/exist/logotr.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0494.md);
 - [x] 495. Лойольская шкала генеративности — `blocked`; [страница методики](https://psytests.org/exist/lgs.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-0495.md);
-- [ ] 496. Любовь или любовная зависимость? — `queued`; [страница методики](https://psytests.org/quiz/loveor.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
+- [x] 496. Любовь или любовная зависимость? — `blocked`; [страница методики](https://psytests.org/quiz/loveor.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-0496.md);
 - [ ] 497. Люди и растения — `queued`; [страница методики](https://psytests.org/eco/lir.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
 - [ ] 498. Манчестерский цветовой круг — `queued`; [страница методики](https://psytests.org/emo/mcw.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
 - [ ] 499. Массачусетский опросник увлечения азартными играми — `queued`; [страница методики](https://psytests.org/diag/mags.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html).
