@@ -52,7 +52,7 @@ function catalogDetails(registration: MethodologyRegistration): Omit<Methodology
   const { instrument, scoringConfig, formulaVersion } = registration;
   const scales = scoringConfig?.scales ?? [];
   const steps = scales.length
-    ? scales.map((scale) => `Шкала «${scale.label}»: ${scale.aggregation === 'sum' ? 'суммируются' : 'усредняются'} ответы по пунктам ${scale.items.join(', ')}${scale.reverseItems.length ? `. Обратные пункты (${scale.reverseItems.join(', ')}) перекодируются в диапазоне ${scoringConfig!.min}–${scoringConfig!.max}` : ''}.`)
+    ? scales.map((scale) => `Шкала «${scale.label}»: ${scale.aggregation === 'sum' ? '\u0441\u0443\u043c\u043c\u0438\u0440\u0443\u044e\u0442\u0441\u044f' : scale.aggregation === 'mean' ? '\u0443\u0441\u0440\u0435\u0434\u043d\u044f\u044e\u0442\u0441\u044f' : `\u043f\u043e\u0434\u0441\u0447\u0438\u0442\u044b\u0432\u0430\u044e\u0442\u0441\u044f \u0432\u044b\u0431\u043e\u0440\u044b \u00ab${scale.optionValue}\u00bb`} ответы по пунктам ${scale.items.join(', ')}${scale.reverseItems.length ? `. Обратные пункты (${scale.reverseItems.join(', ')}) перекодируются в диапазоне ${scoringConfig!.min}–${scoringConfig!.max}` : ''}.`)
     : ['В системе доступны вопросы методики; автоматический расчёт результата для этой версии не настроен.'];
   return {
     version: formulaVersion ?? 'версия подсчёта не указана',
@@ -60,7 +60,7 @@ function catalogDetails(registration: MethodologyRegistration): Omit<Methodology
     steps,
     keys: scales.map((scale) => ({
       label: scale.label,
-      value: `Пункты: ${scale.items.join(', ')}. ${scale.reverseItems.length ? `Обратные пункты: ${scale.reverseItems.join(', ')}. ` : ''}Расчёт: ${scale.aggregation === 'sum' ? 'сумма' : 'среднее'} ответов.`,
+      value: `Пункты: ${scale.items.join(', ')}. ${scale.reverseItems.length ? `Обратные пункты: ${scale.reverseItems.join(', ')}. ` : ''}Расчёт: ${scale.aggregation === 'sum' ? '\u0441\u0443\u043c\u043c\u0430' : scale.aggregation === 'mean' ? '\u0441\u0440\u0435\u0434\u043d\u0435\u0435' : `\u0447\u0438\u0441\u043b\u043e \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0445 \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u043e\u0432 \u00ab${scale.optionValue}\u00bb`} ответов.`,
     })),
     notes: ['Сведения сформированы из зарегистрированного описания и ключа подсчёта. Если авторская публикация задаёт дополнительные правила или нормы, сверяйтесь с первоисточником.'],
     sources: [],

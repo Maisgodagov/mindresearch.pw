@@ -3,10 +3,10 @@ export type ConfigurableScale = {
   label: string;
   items: number[];
   reverseItems: number[];
-  /** Optional coefficient per item for published weighted sums. */
-  weights?: Record<number, number>;
-  aggregation: 'sum' | 'mean';
-};
+} & (
+  | { aggregation: 'sum' | 'mean'; weights?: Record<number, number>; optionValue?: never }
+  | { aggregation: 'count-option'; optionValue: string; weights?: never }
+);
 
 export type ConfigurableScoring = {
   min: number;
@@ -16,7 +16,7 @@ export type ConfigurableScoring = {
 
 export type ValidationCase = {
   title: string;
-  answers: Record<string, number>;
+  answers: Record<string, unknown>;
   expected: Record<string, number>;
 };
 
@@ -47,6 +47,8 @@ export function validateConfigurableMethodology(input: {
 }, requireCases = true) {
   const errors: string[] = [];
   const { methodology, questions, scoring, cases } = input;
+  const countsOptions = scoring.scales.some(scale => scale.aggregation === 'count-option');
+  if (countsOptions && scoring.scales.some(scale => scale.aggregation !== 'count-option')) errors.push('A scoring setup cannot mix option counts with numeric scales.');
   if (!methodology.title?.trim()) errors.push('Укажите название методики.');
   if (!methodology.author?.trim()) errors.push('Укажите автора методики.');
   if (!methodology.version?.trim()) errors.push('Укажите версию методики.');
@@ -61,20 +63,21 @@ export function validateConfigurableMethodology(input: {
   }
   if (!questions.length) errors.push('Добавьте вопросы методики.');
   if (!Number.isInteger(scoring.min) || !Number.isInteger(scoring.max) || scoring.min >= scoring.max) errors.push('Диапазон ответов должен состоять из двух целых чисел: минимум меньше максимума.');
-  const optionValues = new Set<number>();
+  const optionValues = new Set<number | string>();
   const firstOptions = questions[0]?.options ?? [];
   for (const [index, option] of firstOptions.entries()) {
-    const value = Number(option.value);
-    if (!Number.isInteger(value) || value < scoring.min || value > scoring.max) errors.push(`Вариант ответа ${index + 1} должен иметь целое значение в заданном диапазоне.`);
+    const value = countsOptions ? option.value : Number(option.value);
+    if (!countsOptions && (!Number.isInteger(value) || Number(value) < scoring.min || Number(value) > scoring.max)) errors.push(`Вариант ответа ${index + 1} должен иметь целое значение в заданном диапазоне.`);
     if (optionValues.has(value)) errors.push(`Значение ответа ${value} повторяется.`);
     optionValues.add(value);
     if (!option.label?.trim()) errors.push(`Добавьте подпись для варианта ответа ${index + 1}.`);
   }
-  if (firstOptions.length < 2 || optionValues.size !== scoring.max - scoring.min + 1) errors.push('Добавьте по одному варианту ответа для каждого целого значения диапазона.');
+  if (firstOptions.length < 2 || (!countsOptions && optionValues.size !== scoring.max - scoring.min + 1)) errors.push('Добавьте по одному варианту ответа для каждого целого значения диапазона.');
   questions.forEach((question, index) => {
     if (!question.text?.trim()) errors.push(`Заполните текст вопроса ${index + 1}.`);
-    const values = (question.options ?? []).map(option => Number(option.value)).sort((a, b) => a - b);
-    if (values.length !== optionValues.size || values.some((value, optionIndex) => value !== [...optionValues].sort((a, b) => a - b)[optionIndex])) errors.push(`В вопросе ${index + 1} отличаются варианты ответа от общей шкалы.`);
+    const values = (question.options ?? []).map(option => countsOptions ? option.value : Number(option.value)).sort((a, b) => String(a).localeCompare(String(b)));
+    const expectedValues = [...optionValues].sort((a, b) => String(a).localeCompare(String(b)));
+    if (values.length !== optionValues.size || values.some((value, optionIndex) => value !== expectedValues[optionIndex])) errors.push(`В вопросе ${index + 1} отличаются варианты ответа от общей шкалы.`);
   });
   if (!scoring.scales.length) errors.push('Добавьте хотя бы одну рассчитываемую шкалу.');
   const scaleKeys = new Set<string>();
@@ -82,10 +85,12 @@ export function validateConfigurableMethodology(input: {
     if (!scale.key?.trim() || !scale.label?.trim()) errors.push(`Шкала ${index + 1}: укажите название.`);
     if (scaleKeys.has(scale.key)) errors.push(`Код шкалы «${scale.key}» повторяется.`);
     scaleKeys.add(scale.key);
-    if (!['sum', 'mean'].includes(scale.aggregation)) errors.push(`Шкала «${scale.label}»: неизвестный способ подсчёта.`);
+    if (scale.aggregation === 'count-option' && (!scale.optionValue || !optionValues.has(scale.optionValue))) errors.push('Choose a response option for every count scale.');
+    if (scale.aggregation !== 'count-option' && !['sum', 'mean'].includes(scale.aggregation)) errors.push(`Шкала «${scale.label}»: неизвестный способ подсчёта.`);
     if (!scale.items.length) errors.push(`Шкала «${scale.label}»: выберите пункты.`);
     if (new Set(scale.items).size !== scale.items.length) errors.push(`Шкала «${scale.label}»: пункт выбран несколько раз.`);
     if (scale.items.some(item => !Number.isInteger(item) || item < 1 || item > questions.length)) errors.push(`Шкала «${scale.label}»: выбран несуществующий пункт.`);
+    if (scale.aggregation === 'count-option' && scale.reverseItems.length) errors.push('Option-count scales cannot use reverse items.');
     if (scale.reverseItems.some(item => !scale.items.includes(item))) errors.push(`Шкала «${scale.label}»: обратный пункт должен входить в эту шкалу.`);
     if (scale.weights && Object.entries(scale.weights).some(([item, weight]) => !scale.items.includes(Number(item)) || !Number.isFinite(weight))) errors.push(`Шкала «${scale.label}»: коэффициенты должны быть заданы только для включённых пунктов и быть конечными числами.`);
   });
@@ -97,7 +102,10 @@ export function calculateConfigurableScores(scoring: ConfigurableScoring, answer
   const scores: Record<string, number> = {};
   for (const scale of scoring.scales) {
     const values = scale.items.map(item => {
-      const raw = Number(answers[String(item)]);
+      const answer = answers[String(item)];
+      if (answer === null || answer === undefined) return null;
+      if (scale.aggregation === 'count-option') return String(answer) === scale.optionValue ? 1 : 0;
+      const raw = Number(answer);
       if (!Number.isInteger(raw) || raw < scoring.min || raw > scoring.max) return null;
       return scale.reverseItems.includes(item) ? scoring.min + scoring.max - raw : raw;
     });
@@ -126,15 +134,25 @@ export function checkConfigurableCases(input: {
     const missingItems = requiredItems.filter(item => !Object.prototype.hasOwnProperty.call(testCase.answers ?? {}, String(item)));
     return { title: testCase.title, passed: differences.every(item => item.passed) && missingItems.length === 0, differences, missingItems };
   });
-  const boundaryChecks = [input.scoring.min, input.scoring.max].map(value => {
-    const answers = Object.fromEntries(requiredItems.map(item => [String(item), value]));
-    const actual = calculateConfigurableScores(input.scoring, answers);
-    const expected = Object.fromEntries(input.scoring.scales.map(scale => {
-      const transformed = scale.items.map(item => scale.reverseItems.includes(item) ? input.scoring.min + input.scoring.max - value : value);
-      const total = transformed.reduce((sum, item, index) => sum + item * (scale.weights?.[scale.items[index]] ?? 1), 0);
-      return [scale.key, scale.aggregation === 'mean' ? total / transformed.length : total];
-    }));
-    return { value, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
-  });
+  const optionCountScales = input.scoring.scales.filter(scale => scale.aggregation === 'count-option');
+  const boundaryChecks = optionCountScales.length
+    ? optionCountScales.map(selectedScale => {
+      const answers = Object.fromEntries(requiredItems.map(item => [String(item), selectedScale.optionValue]));
+      const actual = calculateConfigurableScores(input.scoring, answers);
+      return {
+        value: selectedScale.optionValue,
+        passed: !!actual && input.scoring.scales.every(scale => actual[scale.key] === (scale.aggregation === 'count-option' && scale.optionValue === selectedScale.optionValue ? scale.items.length : 0)),
+      };
+    })
+    : [input.scoring.min, input.scoring.max].map(value => {
+      const answers = Object.fromEntries(requiredItems.map(item => [String(item), value]));
+      const actual = calculateConfigurableScores(input.scoring, answers);
+      const expected = Object.fromEntries(input.scoring.scales.map(scale => {
+        const transformed = scale.items.map(item => scale.reverseItems.includes(item) ? input.scoring.min + input.scoring.max - value : value);
+        const total = transformed.reduce((sum, item, index) => sum + item * (scale.weights?.[scale.items[index]] ?? 1), 0);
+        return [scale.key, scale.aggregation === 'mean' ? total / transformed.length : total];
+      }));
+      return { value, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
+    });
   return { passed: results.length >= 2 && results.every(item => item.passed) && boundaryChecks.every(item => item.passed), results, boundaryChecks };
 }

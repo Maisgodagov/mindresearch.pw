@@ -27,7 +27,7 @@ import{scoreFomosRu}from'./fomosRu.js';
 import{scoreNmpqRu}from'./nmpqRu.js';
 import{scoreCavRu}from'./cavRu.js';
 import{scoreIgds9Ru}from'./igds9Ru.js';
-import{calculateConfigurableScores}from'./configurable.js';
+import{calculateConfigurableScores,type ConfigurableScoring}from'./configurable.js';
 
 function parseValue(value:unknown):unknown{if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}}
 
@@ -245,19 +245,22 @@ async function calculateConfiguredMethodologiesForSession(sessionId:string){
   const[rows]=await db.query<any[]>(`SELECT s.id sectionId,s.code sectionCode,q.code questionCode,a.value,i.title,i.formula_version formulaVersion,i.scoring_config scoringConfig FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.source_instrument_id IS NOT NULL JOIN instruments i ON i.id=s.source_instrument_id AND i.is_verified=TRUE AND i.scoring_config IS NOT NULL JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY s.position,q.position`,[sessionId]);
   const groups=new Map<string,any[]>();for(const row of rows){const group=groups.get(row.sectionId)??[];group.push(row);groups.set(row.sectionId,group)}
   return Promise.all([...groups.values()].map(async group=>{
-    const first=group[0],scoring=parseValue(first.scoringConfig) as {min:number;max:number;scales:{key:string;label:string;items:number[];reverseItems:number[];weights?:Record<number,number>;aggregation:'sum'|'mean'}[]};
+    const first=group[0],scoring=parseValue(first.scoringConfig) as ConfigurableScoring;
     const answers:Record<string,unknown>={};
-    for(const row of group){const number=Number(String(row.questionCode).match(/(\d+)$/)?.[1]);const value=parseValue(row.value);if(Number.isInteger(number)&&value!==null&&value!==undefined&&Number.isFinite(Number(value)))answers[String(number)]=Number(value)}
+    const countsOptions=scoring.scales.some(scale=>scale.aggregation==='count-option');
+    for(const row of group){const number=Number(String(row.questionCode).match(/(\d+)$/)?.[1]);const value=parseValue(row.value);if(Number.isInteger(number)&&value!==null&&value!==undefined){if(countsOptions)answers[String(number)]=String(value);else if(Number.isFinite(Number(value)))answers[String(number)]=Number(value)}}
     const values=calculateConfigurableScores(scoring,answers);
     if(!values){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,first.sectionId]);return null}
     const scales=Object.fromEntries(scoring.scales.map(scale=>{
       const score=values[scale.key],items=scale.items.map(item=>answers[String(item)] as number);
-      const bounds=scale.items.reduce((range,item)=>{
-        const weight=scale.weights?.[item]??1;
-        const low=Math.min(scoring.min*weight,scoring.max*weight),high=Math.max(scoring.min*weight,scoring.max*weight);
-        return[range[0]+low,range[1]+high] as [number,number];
-      },[0,0] as [number,number]);
-      const minimum=scale.aggregation==='sum'?bounds[0]:scoring.min,maximum=scale.aggregation==='sum'?bounds[1]:scoring.max;
+      const bounds=scale.aggregation==='count-option'
+        ? [0,scale.items.length] as [number,number]
+        : scale.items.reduce((range,item)=>{
+          const weight=scale.weights?.[item]??1;
+          const low=Math.min(scoring.min*weight,scoring.max*weight),high=Math.max(scoring.min*weight,scoring.max*weight);
+          return[range[0]+low,range[1]+high] as [number,number];
+        },[0,0] as [number,number]);
+      const minimum=scale.aggregation==='sum'||scale.aggregation==='count-option'?bounds[0]:scoring.min,maximum=scale.aggregation==='sum'||scale.aggregation==='count-option'?bounds[1]:scoring.max;
       return[scale.key,{label:scale.label,score,average:scale.aggregation==='mean'?score:score/items.length,min:minimum,max:maximum,minScore:minimum,maxScore:maximum,aggregation:scale.aggregation,itemCount:items.length}]
     }));
     const result={instrument:first.title,complete:true,answered:Object.keys(answers).length,scales};

@@ -5,7 +5,7 @@ import {z} from 'zod';
 import {db} from './db.js';
 import {createAuthSession,requireAuth,requireRole,revokeAllUserSessions,type AuthRequest} from './auth.js';
 import {methodologies} from './scoring/methodologies.js';
-import {checkConfigurableCases, validateConfigurableMethodology} from './scoring/configurable.js';
+import {checkConfigurableCases, validateConfigurableMethodology, type ConfigurableScoring, type ValidationCase} from './scoring/configurable.js';
 import {sendPasswordReset} from './mailer.js';
 
 export const platformRouter=Router();
@@ -85,8 +85,8 @@ const parseJson=(value:unknown)=>typeof value==='string'?JSON.parse(value):value
 const studioSchema=z.object({
   methodology:z.object({title:z.string().max(255).default(''),author:z.string().max(500).default(''),version:z.string().max(80).default(''),year:z.union([z.number().int().min(1800).max(new Date().getFullYear()+1),z.null()]).default(null),summary:z.string().max(5000).default(''),adaptation:z.string().max(2000).default(''),rightsNote:z.string().max(3000).default(''),steps:z.array(z.string().max(2000)).max(30).default([]),keys:z.array(z.object({label:z.string().max(255),value:z.string().max(2000)})).max(100).default([]),notes:z.array(z.string().max(2000)).max(30).default([]),sources:z.array(z.object({title:z.string().max(500).default(''),url:z.string().max(2000).default('')})).max(30).default([])}),
   questions:z.array(z.object({text:z.string().max(5000).default(''),options:z.array(z.object({value:z.string().max(30),label:z.string().max(500)})).max(30).default([])})).max(300).default([]),
-  scoring:z.object({min:z.number().int().min(-1000).max(1000).default(1),max:z.number().int().min(-1000).max(1000).default(5),scales:z.array(z.object({key:z.string().max(100),label:z.string().max(255),items:z.array(z.number().int()).max(300),reverseItems:z.array(z.number().int()).max(300),aggregation:z.enum(['sum','mean'])})).max(100).default([])}),
-  cases:z.array(z.object({title:z.string().max(255),answers:z.record(z.string(),z.number()),expected:z.record(z.string(),z.number())})).max(30).default([]),
+  scoring:z.object({min:z.number().int().min(-1000).max(1000).default(1),max:z.number().int().min(-1000).max(1000).default(5),scales:z.array(z.object({key:z.string().max(100),label:z.string().max(255),items:z.array(z.number().int()).max(300),reverseItems:z.array(z.number().int()).max(300),aggregation:z.enum(['sum','mean','count-option']),optionValue:z.string().max(100).optional()})).max(100).default([])}),
+  cases:z.array(z.object({title:z.string().max(255),answers:z.record(z.string(),z.unknown()),expected:z.record(z.string(),z.number())})).max(30).default([]),
 });
 const readStudioInstrument=async(id:string)=>{
   const[rows]=await db.query<any[]>(`SELECT id,code,title,description,is_verified isVerified,status,methodology,scoring_config scoringConfig,validation_cases validationCases,formula_version formulaVersion FROM instruments WHERE id=?`,[id]);
@@ -144,7 +144,7 @@ platformRouter.put('/admin/methodology-studio/:id',requireRole('owner','admin'),
   await connection.commit();res.json(await readStudioInstrument(String(req.params.id)));
 }catch(e){if(connection)await connection.rollback();next(e)}finally{connection?.release()}});
 platformRouter.post('/admin/methodology-studio/validate',requireRole('owner','admin'),async(req,res,next)=>{try{
-  const body=studioSchema.parse(req.body),errors=validateConfigurableMethodology(body,false),checks=errors.length?null:checkConfigurableCases({questions:body.questions,scoring:body.scoring,cases:body.cases});
+  const body=studioSchema.parse(req.body),errors=validateConfigurableMethodology({methodology:body.methodology,questions:body.questions,scoring:body.scoring as ConfigurableScoring,cases:body.cases as ValidationCase[]},false),checks=errors.length?null:checkConfigurableCases({questions:body.questions,scoring:body.scoring as ConfigurableScoring,cases:body.cases as ValidationCase[]});
   res.json({errors,checks});
 }catch(e){next(e)}});
 platformRouter.post('/admin/methodology-studio/:id/publish',requireRole('owner','admin'),async(req,res,next)=>{let connection:any;try{
