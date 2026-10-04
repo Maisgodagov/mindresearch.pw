@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "antd";
 import {
+  Calculator,
   BookOpenText,
   Info,
+  ListChecks,
   Plus,
   Search,
   ShieldCheck,
@@ -12,11 +14,26 @@ import { FieldInput } from "../../../../components/FieldInput";
 import { CATALOG_COPY } from "./const";
 import {
   CatalogContent,
+  CatalogToolbar,
   CatalogIntro,
   CatalogTools,
   Library,
 } from "./styles";
 import type { InstrumentCatalogProps } from "./types";
+
+function formatQuestionCount(count: number) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  const noun =
+    lastTwo >= 11 && lastTwo <= 14
+      ? "вопросов"
+      : last === 1
+        ? "вопрос"
+        : last >= 2 && last <= 4
+          ? "вопроса"
+          : "вопросов";
+  return `${count} ${noun}`;
+}
 
 export function InstrumentCatalog({
   instruments,
@@ -84,7 +101,7 @@ export function InstrumentCatalog({
           <BookOpenText size={17} />
           <span>{CATALOG_COPY.choose}</span>
           <span className="available-count">
-            <ShieldCheck size={14} /> {totalCount}
+            <ShieldCheck size={14} /> Доступно {totalCount}
           </span>
         </Button>
       </CatalogContent>
@@ -94,21 +111,22 @@ export function InstrumentCatalog({
         onCancel={closeCatalog}
         footer={null}
         centered
-        width="min(880px, calc(100vw - 24px))"
+        width="min(920px, calc(100vw - 24px))"
         title={CATALOG_COPY.catalogTitle}
         className="instrument-catalog-modal"
         styles={{
           body: {
-            maxHeight: "min(76dvh, 760px)",
+            maxHeight: "min(82dvh, 820px)",
             overflowY: "auto",
-            padding: "8px 24px 24px",
+            padding: "4px 16px 16px",
           },
         }}
       >
+        <CatalogToolbar>
         <CatalogIntro>
           <p>{CATALOG_COPY.catalogDescription}</p>
-          <span>
-            <ShieldCheck size={14} /> {CATALOG_COPY.available}: {totalCount}
+          <span className="catalog-total">
+            <ShieldCheck size={14} /> {totalCount} методик
           </span>
         </CatalogIntro>
         <CatalogTools>
@@ -126,11 +144,10 @@ export function InstrumentCatalog({
             />
           </div>
           <span className="results-count">
-            {instruments.length === totalCount
-              ? `${instruments.length} методик`
-              : `${instruments.length} из ${totalCount}`}
+            {query.trim() ? `Найдено ${instruments.length}` : ""}
           </span>
         </CatalogTools>
+        </CatalogToolbar>
         <Library>
           {visibleInstruments.map((instrument) => {
             const code = instrument.code ?? instrument.scoringCode ?? "";
@@ -145,19 +162,21 @@ export function InstrumentCatalog({
                   <div className="top">
                     <span className="title">{instrument.title}</span>
                     {instrument.isVerified && (
-                      <span className="verified">
-                        <ShieldCheck size={14} /> {CATALOG_COPY.verified}
+                      <span className="verified" title={CATALOG_COPY.verified} aria-label={CATALOG_COPY.verified}>
+                        <ShieldCheck size={15} />
                       </span>
                     )}
                   </div>
                   {instrument.author && (
                     <div className="author">
-                      {CATALOG_COPY.originalAuthors} {instrument.author}
+                      <span className="author-label">{CATALOG_COPY.originalAuthors}</span>
+                      <span>{instrument.author}</span>
                     </div>
                   )}
                   <div className="description">{instrument.description}</div>
                   <div className="item-meta">
-                    {instrument.questionCount} {CATALOG_COPY.calculated}
+                    <span className="question-count"><ListChecks size={13} /> {formatQuestionCount(instrument.questionCount)}</span>
+                    <span className="scoring-type"><Calculator size={13} /> Автоматический расчёт</span>
                   </div>
                 </div>
                 <div className="links">

@@ -3,17 +3,17 @@ import { Button } from "../../components/Button";
 import { sidebarWidth, sidebarTransitionMs } from "../../components/PlatformSidebar/const";
 
 export const Frame = styled.div<{ $collapsed: boolean }>`
-  min-height: 100dvh; background: #f3f6f0; display: grid;
+  min-height: 100dvh; background: var(--color-page); display: grid;
   grid-template-columns: ${p => p.$collapsed ? sidebarWidth.collapsed : sidebarWidth.expanded}px minmax(0, 1fr);
   transition: grid-template-columns ${sidebarTransitionMs}ms ease;
   @media (max-width: 760px) { grid-template-columns: 1fr; padding-bottom: 64px; }
 `;
 
 export const Main = styled.main`
-  width: min(100% - 36px, 1180px); container-name: platform-main; container-type: inline-size;
-  margin: 0 auto; padding: 34px 0 70px; min-width: 0;
-  @media (max-width: 760px) { width: min(100% - 28px, 1180px); padding-top: 24px; padding-bottom: 32px; }
-  @media (max-width: 420px) { width: min(100% - 22px, 1180px); }
+  width: min(100% - 48px, 1320px); container-name: platform-main; container-type: inline-size;
+  margin: 0 auto; padding: 28px 0 64px; min-width: 0;
+  @media (max-width: 760px) { width: min(100% - 28px, 1320px); padding-top: 21px; padding-bottom: 32px; }
+  @media (max-width: 420px) { width: min(100% - 22px, 1320px); }
 `;
 
 export const FloatingReportButton = styled(Button)`

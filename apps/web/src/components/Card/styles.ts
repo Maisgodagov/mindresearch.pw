@@ -2,9 +2,9 @@ import styled from 'styled-components';
 import { Card as AntCard } from 'antd';
 
 export const StyledCard = styled(AntCard)`
-  border-color: rgba(87, 116, 94, 0.16);
-  border-radius: 20px;
+  border-color: #dce4da;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 12px 34px rgba(48, 70, 54, 0.055);
+  box-shadow: 0 1px 2px rgba(31, 48, 34, .035);
   & > .ant-card-body { padding: 0; }
 `;

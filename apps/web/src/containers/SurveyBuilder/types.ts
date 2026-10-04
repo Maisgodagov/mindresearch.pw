@@ -28,5 +28,6 @@ export type Section = {
   questions?: Question[];
   isVerified?: boolean;
   useSharedOptions?: boolean;
+  sharedAnswerType?: 'single' | 'multiple';
   sharedOptions?: Option[];
 };

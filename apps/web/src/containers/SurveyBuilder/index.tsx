@@ -46,6 +46,7 @@ import {
   type PreviewQuestion,
 } from "../../components/BuilderPreview";
 import { SortableQuestion, SortableSection } from "./components/SortableBlocks";
+import { SurveyScreenSection } from "./components/SurveyScreenSection";
 import { SurveyBuilderToolbar } from "./components/SurveyBuilderToolbar";
 import type { Instrument, Option, Question, Section } from "./types";
 import {
@@ -55,18 +56,30 @@ import {
 } from "./const";
 import {
   Header,
-  Flow,
+  HeaderSaveStatus,
   Columns,
   Panel,
-  SurveyBasics,
-  MetaStack,
-  SectionHeading,
-  PreviewGrid,
-  PreviewCard,
   Stack,
   SectionCard,
   AddQuestionButton,
 } from "./styles";
+
+function applySharedAnswerType(
+  section: Section,
+  type: "single" | "multiple",
+): Section {
+  const options = (section.sharedOptions ?? []).map((option) => ({ ...option }));
+  return {
+    ...section,
+    sharedAnswerType: type,
+    questions: section.questions?.map((question) => ({
+      ...question,
+      type,
+      options,
+    })),
+  };
+}
+
 export function SurveyBuilder() {
   const nav = useNavigate();
   const { surveyId } = useParams();
@@ -167,6 +180,12 @@ export function SurveyBuilder() {
             data.sections.map((section: Section) => ({
               ...section,
               useSharedOptions: section.useSharedOptions ?? false,
+              sharedAnswerType:
+                section.sharedAnswerType ??
+                (section.questions?.length &&
+                section.questions.every((question) => question.type === "multiple")
+                  ? "multiple"
+                  : "single"),
               sharedOptions: section.sharedOptions ?? [
                 { value: "1", label: "" },
                 { value: "2", label: "" },
@@ -282,6 +301,7 @@ export function SurveyBuilder() {
         title: "Свой блок вопросов",
         questions: [makeQuestion()],
         useSharedOptions: false,
+        sharedAnswerType: "single",
         sharedOptions: [
           { value: "1", label: "" },
           { value: "2", label: "" },
@@ -531,262 +551,26 @@ export function SurveyBuilder() {
   return (
     <PlatformLayout>
       <Header>
-        <h1>{surveyId ? "Редактирование опроса" : "Новый опрос"}</h1>
-        <p>
-          Соберите исследование из проверенных методик и собственных вопросов.
-        </p>
+        <div className="header-copy">
+          <h1>{surveyId ? "Редактирование опроса" : "Новый опрос"}</h1>
+          <p>
+            Соберите исследование из проверенных методик и собственных вопросов.
+          </p>
+        </div>
+        <HeaderSaveStatus role="status" aria-live="polite">
+          <span className="status-dot" />
+          <span className="status-copy">
+            {saving ? "Сохраняем опрос…" : draftRestored ? "Черновик восстановлен" : "Автосохранение включено"}
+          </span>
+          {lastSaved && !saving && (
+            <span className="saved-time">
+              · Сохранено {lastSaved.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
+        </HeaderSaveStatus>
       </Header>
-      <Flow aria-label="Этапы создания опроса">
-        <div className="step">
-          <span className="number">1</span>
-          <b>Оформление</b>
-        </div>
-        <div className="step">
-          <span className="number">2</span>
-          <b>Содержание</b>
-        </div>
-        <div className="step">
-          <span className="number">3</span>
-          <b>Публикация</b>
-        </div>
-      </Flow>
       <Columns>
-        <div>
-          <MetaStack className="meta-panel">
-            <Panel>
-              <SectionHeading>
-                <div className="copy">
-                  <h2>Данные опроса для автора</h2>
-                  <p className="hint panel-intro">
-                    Название и заметка для организации опросов в личном
-                    кабинете. Респонденты эти данные не увидят.
-                  </p>
-                </div>
-                <span className="audience private">
-                  <ShieldCheck size={13} /> Только для автора
-                </span>
-              </SectionHeading>
-              <SurveyBasics>
-                <div className="field">
-                  <label>Название опроса в кабинете</label>
-                  <FieldInput
-                    className={
-                      invalidFields.includes("title") ? "invalid" : undefined
-                    }
-                    data-validation-error={
-                      invalidFields.includes("title") || undefined
-                    }
-                    value={meta.title}
-                    onChange={(e) => {
-                      setMeta({ ...meta, title: e.target.value });
-                      clearInvalid("title");
-                    }}
-                    placeholder="Например, исследование самочувствия"
-                  />
-                </div>
-                <div className="field">
-                  <label>Внутреннее описание</label>
-                  <TextAreaField
-                    value={meta.description}
-                    onChange={(e) =>
-                      setMeta({ ...meta, description: e.target.value })
-                    }
-                    placeholder="Короткая заметка о цели или аудитории опроса"
-                  />
-                </div>
-              </SurveyBasics>
-            </Panel>
-            <Panel>
-              <SectionHeading>
-                <div className="copy">
-                  <h2>Экраны для респондента</h2>
-                  <p className="hint panel-intro">
-                    Эти тексты участник увидит перед началом опроса и после
-                    отправки ответов. Редактируйте их прямо в макетах.
-                  </p>
-                </div>
-                <span className="audience">
-                  <Eye size={13} /> Видит респондент
-                </span>
-              </SectionHeading>
-              <PreviewGrid>
-                <PreviewCard>
-                  <div className="preview-label">
-                    <span>Стартовый экран</span>
-                    <span>
-                      <Pencil size={11} /> Редактируется
-                    </span>
-                  </div>
-                  <div className="screen">
-                    <span className="eyebrow">Анонимное исследование</span>
-                    <div className="editable-field">
-                      <span className="edit-label">
-                        <Pencil size={11} /> Заголовок — нажмите, чтобы изменить
-                      </span>
-                      <TextAreaField
-                        rows={2}
-                        className={`preview-title${invalidFields.includes("welcomeTitle") ? " invalid" : ""}`}
-                        data-validation-error={
-                          invalidFields.includes("welcomeTitle") || undefined
-                        }
-                        aria-label="Заголовок приветствия"
-                        value={meta.welcomeTitle}
-                        onChange={(e) => {
-                          setMeta({ ...meta, welcomeTitle: e.target.value });
-                          clearInvalid("welcomeTitle");
-                        }}
-                        placeholder="Заголовок приветствия"
-                      />
-                    </div>
-                    <div className="editable-field">
-                      <span className="edit-label">
-                        <Pencil size={11} /> Текст перед началом
-                      </span>
-                      <TextAreaField
-                        rows={2}
-                        className={`preview-copy${invalidFields.includes("welcomeText") ? " invalid" : ""}`}
-                        data-validation-error={
-                          invalidFields.includes("welcomeText") || undefined
-                        }
-                        aria-label="Текст перед началом"
-                        value={meta.welcomeText}
-                        onChange={(e) => {
-                          setMeta({ ...meta, welcomeText: e.target.value });
-                          clearInvalid("welcomeText");
-                        }}
-                        placeholder="Расскажите участнику об исследовании"
-                      />
-                    </div>
-                    <div className="mock-meta">
-                      <span>{count || 0} вопросов</span>
-                      <span>Можно прерваться</span>
-                    </div>
-                    <span className="mock-button">Начать →</span>
-                  </div>
-                  <div className="preview-settings">
-                    <label>
-                      <FieldInput
-                        type="checkbox"
-                        checked={meta.showAuthor}
-                        onChange={(e) =>
-                          setMeta({ ...meta, showAuthor: e.target.checked })
-                        }
-                      />
-                      <span>
-                        Показывать ссылку на профиль автора
-                        <br />
-                        <small>Если профиль опубликован</small>
-                      </span>
-                    </label>
-                  </div>
-                </PreviewCard>
-                <PreviewCard>
-                  <div className="preview-label">
-                    <span>Финальный экран</span>
-                    <span>
-                      <Pencil size={11} /> Редактируется
-                    </span>
-                  </div>
-                  <div className="screen">
-                    <span className="done">
-                      <CheckCircle2 size={13} /> Опрос завершён
-                    </span>
-                    <div className="editable-field">
-                      <span className="edit-label">
-                        <Pencil size={11} /> Заголовок — нажмите, чтобы изменить
-                      </span>
-                      <TextAreaField
-                        rows={2}
-                        className={`preview-title${invalidFields.includes("resultTitle") ? " invalid" : ""}`}
-                        data-validation-error={
-                          invalidFields.includes("resultTitle") || undefined
-                        }
-                        aria-label="Заголовок финального экрана"
-                        value={meta.resultPresentation.title}
-                        onChange={(e) => {
-                          setMeta({
-                            ...meta,
-                            resultPresentation: {
-                              ...meta.resultPresentation,
-                              title: e.target.value,
-                            },
-                          });
-                          clearInvalid("resultTitle");
-                        }}
-                        placeholder="Спасибо за ваши ответы"
-                      />
-                    </div>
-                    <div className="editable-field">
-                      <span className="edit-label">
-                        <Pencil size={11} /> Сообщение после завершения
-                      </span>
-                      <TextAreaField
-                        rows={2}
-                        className="preview-copy"
-                        aria-label="Сообщение после завершения"
-                        value={meta.resultPresentation.text}
-                        onChange={(e) =>
-                          setMeta({
-                            ...meta,
-                            resultPresentation: {
-                              ...meta.resultPresentation,
-                              text: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="Ваши ответы сохранены"
-                      />
-                    </div>
-                  </div>
-                  <div className="preview-settings">
-                    <label>
-                      <FieldInput
-                        type="checkbox"
-                        checked={meta.resultPresentation.showScores}
-                        onChange={(e) =>
-                          setMeta({
-                            ...meta,
-                            resultPresentation: {
-                              ...meta.resultPresentation,
-                              showScores: e.target.checked,
-                              showResults: e.target.checked,
-                            },
-                          })
-                        }
-                      />
-                      <span>
-                        Показывать рассчитанные результаты подтверждённых
-                        методик
-                      </span>
-                    </label>
-                  </div>
-                </PreviewCard>
-              </PreviewGrid>
-            </Panel>
-          </MetaStack>
-        </div>
-        <SurveyBuilderToolbar
-          draftRestored={draftRestored}
-          lastSaved={lastSaved}
-          instruments={filteredInstruments}
-          methodologies={methodologies}
-          sections={sections}
-          query={libraryQuery}
-          locked={structureLocked}
-          previewLoading={previewLoading}
-          previewError={previewError}
-          saving={saving}
-          publishImmediately={meta.status === "active"}
-          onQueryChange={setLibraryQuery}
-          onCreateCustom={addCustom}
-          onShowMethodology={setActiveMethodology}
-          onAddInstrument={addInstrument}
-          onPreview={openPreview}
-          onPublishChange={(value) =>
-            setMeta({ ...meta, status: value ? "active" : "draft" })
-          }
-          onSave={submit}
-        />
+        <div className="editor-column">
         <Panel
           className={`structure-panel${invalidFields.includes("sections") ? " invalid-panel" : ""}`}
           data-validation-error={
@@ -795,16 +579,36 @@ export function SurveyBuilder() {
           tabIndex={invalidFields.includes("sections") ? -1 : undefined}
         >
           <h2>Содержание опроса</h2>
-          <p className="hint">
-            {sections.length || meta.collectAlias
-              ? `${sections.length + (meta.collectAlias ? 1 : 0)} блоков · ${count} вопросов. Перетаскивайте тесты и вопросы за значок слева или используйте стрелки.`
-              : "Добавьте подтверждённую методику или создайте собственный тест."}
-          </p>
+          <p className="hint">{`${sections.length + (meta.collectAlias ? 1 : 0) + 2} блока · ${count} вопросов. Экраны закреплены сверху и снизу; методики и вопросы можно перемещать.`}</p>
           <div
             style={
               structureLocked ? { pointerEvents: "none", opacity: 0.65 } : {}
             }
           >
+            <SurveyScreenSection
+              kind="start"
+              title="Стартовый экран"
+              helper="Показывается респонденту перед вопросами"
+              heading={meta.welcomeTitle}
+              body={meta.welcomeText}
+              headingInvalid={invalidFields.includes("welcomeTitle")}
+              bodyInvalid={invalidFields.includes("welcomeText")}
+              headingLabel="Заголовок"
+              bodyLabel="Текст перед началом"
+              headingPlaceholder="Заголовок стартового экрана"
+              bodyPlaceholder="Расскажите участнику об исследовании"
+              settingLabel="Показывать ссылку на профиль автора"
+              settingChecked={meta.showAuthor}
+              onHeadingChange={(welcomeTitle) => {
+                setMeta({ ...meta, welcomeTitle });
+                clearInvalid("welcomeTitle");
+              }}
+              onBodyChange={(welcomeText) => {
+                setMeta({ ...meta, welcomeText });
+                clearInvalid("welcomeText");
+              }}
+              onSettingChange={(showAuthor) => setMeta({ ...meta, showAuthor })}
+            />
             {meta.collectAlias ? (
               <SectionCard style={{ marginTop: 15 }}>
                 <div className="section-head">
@@ -818,7 +622,7 @@ export function SurveyBuilder() {
                     </span>
                   </div>
                   <Button
-                    className="icon"
+                    className="icon delete-action"
                     aria-label="Убрать вопрос о псевдониме"
                     title="Убрать вопрос о псевдониме"
                     onClick={() =>
@@ -920,7 +724,7 @@ export function SurveyBuilder() {
                               )}
                             </Button>
                             <Button
-                              className="icon"
+                              className="icon delete-action"
                               aria-label="Удалить блок"
                               onClick={() =>
                                 setSections((s) =>
@@ -1009,7 +813,7 @@ export function SurveyBuilder() {
                                 />
                               </div>
                               <div
-                                className="field"
+                                className="field shared-options-field"
                                 style={{
                                   padding: "13px",
                                   background: "#f2f6f0",
@@ -1023,21 +827,51 @@ export function SurveyBuilder() {
                                     alignItems: "center",
                                     margin: 0,
                                   }}
+                                  className="shared-options-toggle"
                                 >
-                                  <FieldInput
+                                  <input
                                     type="checkbox"
-                                    style={{ width: 18 }}
                                     checked={Boolean(section.useSharedOptions)}
-                                    onChange={(e) =>
-                                      updateSection(section.id, (s) => ({
-                                        ...s,
-                                        useSharedOptions: e.target.checked,
-                                      }))
-                                    }
+                                    onChange={(e) => updateSection(section.id, (s) => {
+                                      if (!e.target.checked)
+                                        return { ...s, useSharedOptions: false };
+                                      const answerType =
+                                        s.sharedAnswerType ??
+                                        (s.questions?.length &&
+                                        s.questions.every((question) => question.type === "multiple")
+                                          ? "multiple"
+                                          : "single");
+                                      return {
+                                        ...applySharedAnswerType(s, answerType),
+                                        useSharedOptions: true,
+                                      };
+                                    })}
                                   />
                                   Один список вариантов для всех вопросов теста
                                 </label>
                                 {section.useSharedOptions && (
+                                  <>
+                                    <div className="shared-answer-setting">
+                                      <span className="shared-answer-label">Тип ответа</span>
+                                      <div className="shared-answer-options" role="group" aria-label="Тип ответа для всех вопросов">
+                                        <button
+                                          type="button"
+                                          className={section.sharedAnswerType !== "multiple" ? "selected" : undefined}
+                                          aria-pressed={section.sharedAnswerType !== "multiple"}
+                                          onClick={() => updateSection(section.id, (s) => applySharedAnswerType(s, "single"))}
+                                        >
+                                          Один вариант
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className={section.sharedAnswerType === "multiple" ? "selected" : undefined}
+                                          aria-pressed={section.sharedAnswerType === "multiple"}
+                                          onClick={() => updateSection(section.id, (s) => applySharedAnswerType(s, "multiple"))}
+                                        >
+                                          Несколько вариантов
+                                        </button>
+                                      </div>
+                                    </div>
                                   <div
                                     className="options"
                                     style={{ marginTop: 10 }}
@@ -1088,7 +922,7 @@ export function SurveyBuilder() {
                                           {(section.sharedOptions?.length ??
                                             0) > 2 && (
                                             <Button
-                                              className="tiny"
+                                              className="tiny delete-action"
                                               onClick={() =>
                                                 updateSection(
                                                   section.id,
@@ -1142,7 +976,8 @@ export function SurveyBuilder() {
                                       выбором одного или нескольких вариантов.
                                     </p>
                                   </div>
-                                )}
+                                                                  </>
+)}
                               </div>
                               <DndContext
                                 sensors={sensors}
@@ -1181,7 +1016,7 @@ export function SurveyBuilder() {
                                                 <ArrowUp size={14} />
                                               </Button>
                                               <Button
-                                                className="tiny"
+                                                      className="tiny"
                                                 aria-label="Ниже"
                                                 onClick={() =>
                                                   moveQuestion(
@@ -1205,7 +1040,7 @@ export function SurveyBuilder() {
                                                 <Copy size={14} /> Копировать
                                               </Button>
                                               <Button
-                                                className="tiny"
+                                                className="tiny delete-action"
                                                 onClick={() =>
                                                   updateSection(
                                                     section.id,
@@ -1264,6 +1099,7 @@ export function SurveyBuilder() {
                                             <Select
                                               size="middle"
                                               value={q.type}
+                                              disabled={Boolean(section.useSharedOptions)}
                                               options={[...questionTypeOptions]}
                                               getPopupContainer={(trigger) =>
                                                 trigger.parentElement ??
@@ -1378,7 +1214,7 @@ export function SurveyBuilder() {
                                                     />
                                                     {q.options.length > 2 && (
                                                       <Button
-                                                        className="tiny"
+                                                        className="tiny delete-action"
                                                         onClick={() =>
                                                           updateSection(
                                                             section.id,
@@ -1452,7 +1288,7 @@ export function SurveyBuilder() {
                                               </div>
                                             )}
                                           <label className="required">
-                                            <FieldInput
+                                            <input
                                               type="checkbox"
                                               checked={q.required}
                                               onChange={(e) =>
@@ -1516,8 +1352,76 @@ export function SurveyBuilder() {
               </SortableContext>
             </DndContext>
           </div>
+            <SurveyScreenSection
+              kind="finish"
+              title="Финальный экран"
+              helper="Показывается после отправки ответов"
+              heading={meta.resultPresentation.title}
+              body={meta.resultPresentation.text}
+              headingInvalid={invalidFields.includes("resultTitle")}
+              headingLabel="Заголовок"
+              bodyLabel="Сообщение после завершения"
+              headingPlaceholder="Спасибо за ваши ответы"
+              bodyPlaceholder="Ваши ответы сохранены"
+              settingLabel="Показывать рассчитанные результаты подтверждённых методик"
+              settingChecked={meta.resultPresentation.showScores}
+              onHeadingChange={(title) => {
+                setMeta({
+                  ...meta,
+                  resultPresentation: { ...meta.resultPresentation, title },
+                });
+                clearInvalid("resultTitle");
+              }}
+              onBodyChange={(text) =>
+                setMeta({
+                  ...meta,
+                  resultPresentation: { ...meta.resultPresentation, text },
+                })
+              }
+              onSettingChange={(showScores) =>
+                setMeta({
+                  ...meta,
+                  resultPresentation: {
+                    ...meta.resultPresentation,
+                    showScores,
+                    showResults: showScores,
+                  },
+                })
+              }
+            />
           {error && <p className="error">{error}</p>}
         </Panel>
+
+
+        </div>
+        <SurveyBuilderToolbar
+          title={meta.title}
+          description={meta.description}
+          titleInvalid={invalidFields.includes("title")}
+          onTitleChange={(value) => {
+            setMeta({ ...meta, title: value });
+            clearInvalid("title");
+          }}
+          onDescriptionChange={(value) => setMeta({ ...meta, description: value })}
+          instruments={filteredInstruments}
+          methodologies={methodologies}
+          sections={sections}
+          query={libraryQuery}
+          locked={structureLocked}
+          previewLoading={previewLoading}
+          previewError={previewError}
+          saving={saving}
+          publishImmediately={meta.status === "active"}
+          onQueryChange={setLibraryQuery}
+          onCreateCustom={addCustom}
+          onShowMethodology={setActiveMethodology}
+          onAddInstrument={addInstrument}
+          onPreview={openPreview}
+          onPublishChange={(value) =>
+            setMeta({ ...meta, status: value ? "active" : "draft" })
+          }
+          onSave={submit}
+        />
       </Columns>
       {activeMethodology && (
         <MethodologyModal

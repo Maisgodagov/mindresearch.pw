@@ -1,16 +1,14 @@
 import styled from "styled-components";
 import { Button } from "../Button";
-import { sidebarTransitionMs } from "./const";
 
 export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean }>`
   padding: 22px ${(p) => (p.$collapsed ? "10px" : "16px")};
-  border-right: 1px solid #dce5d9;
-  background: #fafbf8;
-  box-shadow: 5px 0 24px rgba(43, 63, 47, 0.025);
+  border-right: 1px solid #e1e7df;
+  background: #fbfcfa;
   position: sticky;
   top: 0;
   height: 100dvh;
-  transition: padding ${sidebarTransitionMs}ms ease;
+  transition: none;
   .top {
     display: flex;
     flex-direction: ${(p) => (p.$collapsed ? "column" : "row")};
@@ -25,10 +23,10 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
     gap: 9px;
-    color: #385942;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: -0.035em;
+    color: #365532;
+    font-size: 17px;
+    font-weight: 750;
+    letter-spacing: -0.025em;
     min-width: 0;
     padding: ${(p) => (p.$collapsed ? "0" : "0 8px")};
   }
@@ -50,13 +48,13 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     border: 0;
     text-decoration: none;
     background: transparent;
-    color: #65746a;
+    color: #56645a;
     display: flex;
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
     gap: 10px;
-    padding: 11px 12px;
-    border-radius: 9px;
+    padding: 10px 11px;
+    border-radius: 8px;
     font-weight: 650;
     font-size: 13px;
     white-space: nowrap;
@@ -80,12 +78,12 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
   a:hover,
   .logout:hover,
   .report:hover {
-    background: #edf3e9;
-    color: #365642;
+    background: #f0f5ed;
+    color: #365532;
   }
   a.active {
-    background: #e7efe3;
-    color: #304d39;
+    background: #e5efe0;
+    color: #2f4e2b;
   }
   .report {
     width: 100%;
@@ -98,7 +96,7 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     left: ${(p) => (p.$collapsed ? "10px" : "18px")};
     right: ${(p) => (p.$collapsed ? "10px" : "18px")};
     width: auto;
-    border-top: 1px solid #e4eae1;
+    border-top: 1px solid #e1e7df;
     border-radius: 0;
     padding-top: 15px;
   }
@@ -112,10 +110,10 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     width: 100%;
     height: 62px;
     border: 0;
-    border-top: 1px solid #dce5d9;
+    border-top: 1px solid #e1e7df;
     padding: 5px 10px max(5px, env(safe-area-inset-bottom));
-    background: rgba(250, 252, 248, 0.98);
-    box-shadow: 0 -8px 24px rgba(43, 63, 47, 0.055);
+    background: rgba(251, 252, 250, 0.98);
+    box-shadow: 0 -5px 16px rgba(33, 50, 37, 0.07);
     .top {
       display: none;
     }

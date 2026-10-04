@@ -4,5 +4,5 @@ import { pageDefaults } from './const';
 export const StyledPage = styled.main`
   display:flow-root;
   min-height:100dvh;
-  background:${pageDefaults.background};
+  background:var(--color-page, ${pageDefaults.background});
 `;
