@@ -64,8 +64,8 @@ const questions: SeedSection['questions'] = itemData.map(([text, optionA, option
   type: 'single',
   required: true,
   options: [
-    { value: 'A', label: optionA },
-    { value: 'B', label: optionB },
+    { value: '0', label: optionA },
+    { value: '1', label: optionB },
   ],
 }));
 
@@ -76,25 +76,25 @@ export const instrument: SeedSection = {
   questions,
 };
 
-const weightsFor = (items: number[], keys: number[]) => Object.fromEntries(items.map((item) => [item, keys[item - 1]]));
 const positiveItems = itemData.flatMap((item, index) => item[3] === 'success' ? [index + 1] : []);
 const negativeItems = itemData.flatMap((item, index) => item[3] === 'failure' ? [index + 1] : []);
+const keyedItems = (items: number[], keys: number[], option: number) => items.filter((item) => keys[item - 1] === option);
 
 export const scoringConfig: ConfigurableScoring = {
   min: 0,
   max: 1,
   scales: [
-    { key: 'optimisticSuccess', label: 'Оптимистический стиль в ситуациях успеха', items: positiveItems, reverseItems: [], weights: weightsFor(positiveItems, positiveKeys), aggregation: 'sum' },
-    { key: 'pessimisticSuccess', label: 'Пессимистический стиль в ситуациях успеха', items: positiveItems, reverseItems: [], weights: Object.fromEntries(positiveItems.map((item) => [item, 1 - positiveKeys[item - 1]])), aggregation: 'sum' },
-    { key: 'optimisticFailure', label: 'Оптимистический стиль в ситуациях неудач', items: negativeItems, reverseItems: [], weights: weightsFor(negativeItems, negativeKeys), aggregation: 'sum' },
-    { key: 'pessimisticFailure', label: 'Пессимистический стиль в ситуациях неудач', items: negativeItems, reverseItems: [], weights: Object.fromEntries(negativeItems.map((item) => [item, 1 - negativeKeys[item - 1]])), aggregation: 'sum' },
+    { key: 'optimisticSuccess', label: 'Оптимистический стиль в ситуациях успеха', items: positiveItems, reverseItems: keyedItems(positiveItems, positiveKeys, 1), aggregation: 'sum' },
+    { key: 'pessimisticSuccess', label: 'Пессимистический стиль в ситуациях успеха', items: positiveItems, reverseItems: keyedItems(positiveItems, positiveKeys, 2), aggregation: 'sum' },
+    { key: 'optimisticFailure', label: 'Оптимистический стиль в ситуациях неудач', items: negativeItems, reverseItems: keyedItems(negativeItems, negativeKeys, 1), aggregation: 'sum' },
+    { key: 'pessimisticFailure', label: 'Пессимистический стиль в ситуациях неудач', items: negativeItems, reverseItems: keyedItems(negativeItems, negativeKeys, 2), aggregation: 'sum' },
   ],
 };
 
-const expectedByKey = (items: number[], keys: number[]) => items.reduce((total, item) => total + keys[item - 1], 0);
+const countKeyed = (items: number[], keys: number[], option: number) => items.filter((item) => keys[item - 1] === option).length;
 const validationCases: ValidationCase[] = [
-  { title: 'Все ответы A; сверка с полным опубликованным ключом', answers: Object.fromEntries(itemData.map((_, index) => [String(index + 1), 'A'])), expected: { optimisticSuccess: expectedByKey(positiveItems, positiveKeys), pessimisticSuccess: 20 - expectedByKey(positiveItems, positiveKeys), optimisticFailure: expectedByKey(negativeItems, negativeKeys), pessimisticFailure: 28 - expectedByKey(negativeItems, negativeKeys) } },
-  { title: 'Все ответы B; сверка с полным опубликованным ключом', answers: Object.fromEntries(itemData.map((_, index) => [String(index + 1), 'B'])), expected: { optimisticSuccess: 20 - expectedByKey(positiveItems, positiveKeys), pessimisticSuccess: expectedByKey(positiveItems, positiveKeys), optimisticFailure: 28 - expectedByKey(negativeItems, negativeKeys), pessimisticFailure: expectedByKey(negativeItems, negativeKeys) } },
+  { title: 'Все ответы A; сверка с полным опубликованным ключом', answers: Object.fromEntries(itemData.map((_, index) => [String(index + 1), 0])), expected: { optimisticSuccess: countKeyed(positiveItems, positiveKeys, 1), pessimisticSuccess: countKeyed(positiveItems, positiveKeys, 2), optimisticFailure: countKeyed(negativeItems, negativeKeys, 1), pessimisticFailure: countKeyed(negativeItems, negativeKeys, 2) } },
+  { title: 'Все ответы B; сверка с полным опубликованным ключом', answers: Object.fromEntries(itemData.map((_, index) => [String(index + 1), 1])), expected: { optimisticSuccess: countKeyed(positiveItems, positiveKeys, 2), pessimisticSuccess: countKeyed(positiveItems, positiveKeys, 1), optimisticFailure: countKeyed(negativeItems, negativeKeys, 2), pessimisticFailure: countKeyed(negativeItems, negativeKeys, 1) } },
 ];
 
 export const methodology: MethodologyRegistration = {
