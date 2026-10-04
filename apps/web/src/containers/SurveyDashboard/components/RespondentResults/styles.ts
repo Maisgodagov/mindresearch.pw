@@ -3,36 +3,57 @@ import { Button } from "../../../../ui";
 
 export const TableWrap = styled.div`
   overflow: auto;
-  max-width: 100%;
+  width: calc(100% + 38px);
+  max-width: none;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  margin: 0 -24px -24px;
-  padding: 0 24px 24px;
+  margin: 0 -19px -19px;
+  padding: 0 0 19px 0;
+  scrollbar-color: #a8b9a3 #f5f8f3;
 `;
 export const Table = styled.table`
   width: 100%;
   min-width: 1090px;
-  border-collapse: collapse;
-  margin-top: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
   th,
   td {
     text-align: left;
-    padding: 13px 10px;
-    border-bottom: 1px solid #edf0eb;
-    font-size: 13px;
+    padding: 11px 10px;
+    border-bottom: 1px solid #e9eee7;
+    font-size: 12px;
     vertical-align: top;
   }
   th {
-    color: #78837b;
-    font-weight: 650;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f5f8f3;
+    color: #647469;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .025em;
     white-space: nowrap;
   }
-  .select {
-    width: 28px;
-  }
+  .select { position: sticky; left: 0; width: 42px; min-width: 42px; max-width: 42px; z-index: 3; background: #fff; }
+  .select { vertical-align: middle; }
+  thead .select { z-index: 4; background: #f5f8f3; }
+  .respondent-col { position: sticky; left: 42px; z-index: 2; width: 170px; min-width: 170px; background: #fff; }
+  thead .respondent-col { z-index: 3; background: #f5f8f3; }
+  tbody tr { transition: background-color .12s ease; }
+  tbody tr:hover td { background: #f8faf7; }
+  tbody tr.is-selected td,
+  tbody tr.is-selected .select,
+  tbody tr.is-selected .respondent-col { background: #f0f6ed; }
+  tbody tr.details-row td { padding: 0; background: #f8faf7; }
+  .details-cell { min-width: 100%; }
+  .empty-state { padding: 36px 18px; color: #6c7b70; text-align: center; }
   .select input {
-    width: 17px;
-    height: 17px;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    display: block;
     accent-color: #5f8269;
     cursor: pointer;
   }
@@ -41,26 +62,42 @@ export const Table = styled.table`
     align-items: center;
     gap: 8px;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 12px;
+    color: #2d4133;
   }
   .expand {
     border: 0;
-    background: #edf2eb;
-    color: #526f5b;
-    width: 28px;
-    height: 28px;
-    border-radius: 9px;
+    outline: 0;
+    background: transparent;
+    color: #52764b;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
     display: grid;
     place-items: center;
+    flex: none;
+    box-shadow: none;
+  }
+  .expand:hover:not(:disabled),
+  .expand:focus,
+  .expand:focus-visible,
+  .expand:active {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #385942 !important;
   }
   .pill {
     display: inline-block;
-    padding: 5px 9px;
-    border-radius: 20px;
-    background: #e7efe5;
-    color: #4e6b56;
-    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
   }
+  .pill.completed { background: #edf4ea; color: #47664d; }
+  .pill.in-progress { background: #f6f2e7; color: #807046; }
   .pending {
     display: block;
     color: #879188;
@@ -70,6 +107,19 @@ export const Table = styled.table`
   .score {
     font-weight: 700;
     color: #3e6049;
+  }
+  .score small { display: block; margin-top: 4px; color: #718074; font-size: 10px; font-weight: 550; line-height: 1.4; }
+  @media (max-width: 700px) {
+    margin: 0 -15px -15px;
+    padding: 0 0 15px 0;
+    .respondent-col { width: 150px; min-width: 150px; }
+  }
+  @media (max-width: 560px) {
+    margin: 0 -13px -13px;
+    padding: 0 0 13px 0;
+    th, td { padding: 10px 8px; }
+    .select { width: 38px; min-width: 38px; max-width: 38px; }
+    .respondent-col { left: 38px; width: 142px; min-width: 142px; }
   }
 `;
 export const TrashToggle = styled(Button)`
@@ -85,6 +135,8 @@ export const TrashToggle = styled(Button)`
   cursor: pointer;
   &:hover {
     color: #526f5b;
+    border-color: transparent;
+    background: transparent;
   }
 `;
 export const TrashBox = styled.div`

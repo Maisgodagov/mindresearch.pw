@@ -4,12 +4,14 @@ export type PreviewQuestion = {
   type: "single" | "multiple" | "text" | "number";
   required: boolean;
   options: { value: string; label: string }[];
+  validation?: { min?: number; max?: number } | null;
   sectionTitle: string;
 };
 
 export type PreviewMeta = {
   welcomeTitle: string;
   welcomeText: string;
+  showAuthor?: boolean;
   resultPresentation: { title: string; text: string; showScores: boolean };
 };
 

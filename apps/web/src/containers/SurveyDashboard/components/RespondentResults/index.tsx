@@ -41,17 +41,21 @@ export function RespondentResults({
 
   return (
     <>
-      <div className="toolbar">
-        <h2>{copy.title}</h2>
-        <div className="toolbar">
+      <div className="respondent-toolbar">
+        <div className="respondent-title">
+          <h2>{copy.title}</h2>
+          <span className="respondent-count">Всего: {respondents.length}</span>
+        </div>
+        <div className="toolbar-actions">
           <Button
+            className="bulk-action"
             disabled={!selectedCount || updatingTrash}
             onClick={onDeleteSelected}
           >
             <Trash2 size={16} /> {copy.delete}
             {selectedCount ? ` (${selectedCount})` : ""}
           </Button>
-          <Button disabled={!selectedCount || exporting} onClick={onExport}>
+          <Button className="bulk-action" disabled={!selectedCount || exporting} onClick={onExport}>
             <Download size={16} />{" "}
             {exporting
               ? copy.preparing
@@ -71,7 +75,7 @@ export function RespondentResults({
                   onChange={(event) => onSelectAll(event.target.checked)}
                 />
               </th>
-              <th>{copy.respondent}</th>
+              <th className="respondent-col">{copy.respondent}</th>
               <th>{copy.status}</th>
               <th>{copy.answers}</th>
               {sections.map((section) => (
@@ -83,9 +87,9 @@ export function RespondentResults({
             </tr>
           </thead>
           <tbody>
-            {respondents.map((person) => (
-              <Fragment key={person.id}>
-                <tr>
+          {respondents.map((person) => (
+            <Fragment key={person.id}>
+                <tr className={selected[person.id] ? "is-selected" : undefined}>
                   <td className="select">
                     <FieldInput
                       type="checkbox"
@@ -96,7 +100,7 @@ export function RespondentResults({
                       }
                     />
                   </td>
-                  <td>
+                  <td className="respondent-col">
                     <div className="person">
                       <Button
                         className="expand"
@@ -113,7 +117,7 @@ export function RespondentResults({
                     </div>
                   </td>
                   <td>
-                    <span className="pill">
+                    <span className={`pill ${person.status === "completed" ? "completed" : "in-progress"}`}>
                       {person.status === "completed"
                         ? copy.completed
                         : copy.inProgress}
@@ -135,14 +139,21 @@ export function RespondentResults({
                   <td>{new Date(person.startedAt).toLocaleDateString("ru")}</td>
                 </tr>
                 {expanded[person.id] && (
-                  <tr>
-                    <td colSpan={5 + sections.length}>
+                  <tr className="details-row">
+                    <td className="details-cell" colSpan={5 + sections.length}>
                       {renderRespondentDetails(person)}
                     </td>
                   </tr>
                 )}
               </Fragment>
             ))}
+            {!respondents.length && (
+              <tr>
+                <td className="empty-state" colSpan={5 + sections.length}>
+                  Пока нет ответов. Здесь появятся участники и результаты методик.
+                </td>
+              </tr>
+            )}
           </tbody>
         </Table>
       </TableWrap>

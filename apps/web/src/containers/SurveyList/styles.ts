@@ -33,11 +33,8 @@ export const Head = styled.div`
 `;
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr));
   gap: 16px;
-  @media (max-width: 720px) {
-    grid-template-columns: 1fr;
-  }
   @media (max-width: 520px) { gap: 12px; }
 `;
 export const SectionTitle = styled.div`
@@ -75,6 +72,8 @@ export const SectionTitle = styled.div`
   }
 `;
 export const SurveyCard = styled(Card)`
+  container-name: survey-card;
+  container-type: inline-size;
   border-radius: 18px;
   border-color: #e1e8df;
   transition:
@@ -384,6 +383,31 @@ export const SurveyCard = styled(Card)`
     .metrics { gap: 6px 12px; }
     .metrics span { gap: 5px; }
     .metrics small { font-size: 11px; }
+  }
+  @container survey-card (max-width: 600px) {
+    & > .ant-card-body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "head" "info" "metrics" "actions";
+      row-gap: 0;
+    }
+    .metrics {
+      display: flex;
+      justify-self: start;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin: 12px 0 0;
+      padding: 0;
+      border: 0;
+    }
+    .actions {
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .links {
+      flex: 1 1 100%;
+      flex-wrap: wrap;
+    }
+    .actions > a { margin-left: auto; }
   }
 `;
 export const TrashBar = styled.div`

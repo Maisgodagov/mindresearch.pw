@@ -76,7 +76,6 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
   }
   a.active,
   a:hover,
-  .logout:hover,
   .report:hover {
     background: #f0f5ed;
     color: #365532;
@@ -91,6 +90,7 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     color: #69786d;
   }
   .logout {
+    appearance: none;
     position: absolute;
     bottom: 22px;
     left: ${(p) => (p.$collapsed ? "10px" : "18px")};
@@ -99,6 +99,16 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     border-top: 1px solid #e1e7df;
     border-radius: 0;
     padding-top: 15px;
+    text-align: left;
+    transition: color 0.12s ease;
+  }
+  .logout:hover {
+    background: transparent;
+    color: #4b6250;
+  }
+  .logout:focus-visible {
+    outline: 2px solid #91b784;
+    outline-offset: 2px;
   }
   @media (max-width: 760px) {
     position: fixed;

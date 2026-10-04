@@ -1,4 +1,5 @@
-import { BookOpenText, CheckCircle2, Eye } from "lucide-react";
+import { BookOpenText, CheckCircle2, ChevronDown, Eye } from "lucide-react";
+import { useState } from "react";
 import { Button } from "../../../../components/Button";
 import { FieldInput } from "../../../../components/FieldInput";
 import { TextAreaField } from "../../../../components/TextAreaField";
@@ -54,6 +55,7 @@ export function SurveyBuilderToolbar({
   onPublishChange,
   onSave,
 }: Props) {
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const saveLabel = saving ? "Сохраняем…" : "Сохранить опрос";
 
   return (
@@ -75,16 +77,32 @@ export function SurveyBuilderToolbar({
             placeholder="Например, исследование самочувствия"
           />
         </div>
-        <div className="field-group">
-          <label htmlFor="survey-description">Внутреннее описание</label>
-          <TextAreaField
-            id="survey-description"
-            rows={2}
-            value={description}
-            onChange={(event) => onDescriptionChange(event.target.value)}
-            placeholder="Краткая заметка о цели или аудитории опроса"
-          />
-          <span className="field-note">Видно только вам</span>
+        <div className="field-group description-field">
+          <label className="description-label" htmlFor="survey-description">Внутреннее описание</label>
+          <button
+            className="description-toggle"
+            type="button"
+            aria-expanded={descriptionExpanded}
+            aria-controls="survey-description-content"
+            onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+          >
+            <span>Внутреннее описание</span>
+            <span className="description-state">{description.trim() ? "Заполнено" : "Необязательно"}</span>
+            <ChevronDown size={15} aria-hidden="true" />
+          </button>
+          <div
+            className={`description-content${descriptionExpanded ? " is-expanded" : ""}`}
+            id="survey-description-content"
+          >
+            <TextAreaField
+              id="survey-description"
+              rows={2}
+              value={description}
+              onChange={(event) => onDescriptionChange(event.target.value)}
+              placeholder="Краткая заметка о цели или аудитории опроса"
+            />
+            <span className="field-note">Видно только вам</span>
+          </div>
         </div>
       </section>
 

@@ -3,13 +3,12 @@ import { Card } from '../../components/Card';
 
 export const Layout = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(290px, 0.8fr);
+  gap: 16px;
   align-items: start;
-  @media (max-width: 820px) {
+  @media (max-width: 1080px) {
     grid-template-columns: 1fr;
-    & > :first-child { grid-row: 2; }
-    & > :last-child { grid-row: 1; }
+    gap: 14px;
   }
 `;
 export const Column = styled.div`
@@ -18,7 +17,9 @@ export const Column = styled.div`
 `;
 export const Form = styled(Card)`
   padding: 28px;
-  border-radius: 22px;
+  border: 1px solid #dce6da;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(39, 57, 43, 0.035);
   h1 {
     font:
       500 34px var(--font-heading),
@@ -223,18 +224,21 @@ export const PasswordForm = styled(Form)`
 `;
 export const Avatars = styled.div`
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 10px;
-  @media (max-width: 1100px) {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-  }
-  @media (max-width: 520px) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px 8px;
-  }
+  grid-template-columns: repeat(auto-fill, minmax(42px, 54px));
+  justify-content: start;
+  gap: 9px;
+  margin-top: 9px;
+  padding: 12px;
+  border: 1px solid #e7ede5;
+  border-radius: 14px;
+  background: #f8faf7;
   button {
-    width: min(54px, 100%);
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    min-width: 42px;
+    min-height: 0;
+    max-width: 54px;
     aspect-ratio: 1;
     justify-self: center;
     border-radius: 50%;
@@ -245,14 +249,19 @@ export const Avatars = styled.div`
     cursor: pointer;
     transition: 0.15s;
   }
-  @media (max-width: 520px) { button { width: min(62px, 100%); } }
   button:hover {
-    transform: translateY(-2px);
+    transform: scale(1.04);
     background: transparent;
   }
+  button:focus-visible {
+    outline: 2px solid #78947e;
+    outline-offset: 2px;
+  }
   button.active {
-    border-color: #53755d;
-    box-shadow: 0 0 0 2px #dce8da;
+    border-color: #4f7456;
+    background: #e4eee1;
+    box-shadow: 0 0 0 3px #e4eee1;
+    transform: scale(1.04);
   }
   img {
     display: block;
@@ -265,19 +274,39 @@ export const Avatars = styled.div`
   }
 `;
 export const Preview = styled(Card)`
-  padding: 25px;
-  border-radius: 22px;
+  padding: 22px;
+  border: 1px solid #dce6da;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f9fbf8 0%, #fff 68%);
+  box-shadow: 0 5px 20px rgba(39, 57, 43, 0.035);
   position: sticky;
   top: 25px;
+  &::before {
+    content: "Предпросмотр профиля";
+    display: block;
+    margin-bottom: 17px;
+    color: #819086;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
   .avatar {
     width: 82px;
     height: 82px;
     border-radius: 50%;
     overflow: hidden;
+    padding: 0;
+    border: 1px solid #dce7d9;
+    background: #edf3e9;
+    box-shadow: 0 4px 12px rgba(44, 63, 47, 0.08);
+    box-sizing: border-box;
   }
   .avatar img {
+    display: block;
     width: 100%;
     height: 100%;
+    border-radius: 50%;
     object-fit: cover;
   }
   h2 {
@@ -303,8 +332,9 @@ export const Preview = styled(Card)`
     border-radius: 20px;
     padding: 6px 9px;
     margin-top: 12px;
+    border: 1px solid #e0e9dd;
   }
-  @media (max-width: 820px) {
+  @media (max-width: 1080px) {
     position: static;
   }
   @media (max-width: 520px) {

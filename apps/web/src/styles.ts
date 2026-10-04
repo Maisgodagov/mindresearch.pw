@@ -57,6 +57,10 @@ export const GlobalStyle = createGlobalStyle`
   .ant-btn{border-radius:9px;font-weight:650;transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease}
   .ant-btn.ant-btn:not(:disabled):not(.ant-btn-primary):not(.ant-btn-dangerous):hover,
   .ant-btn.ant-btn:not(:disabled):not(.ant-btn-primary):not(.ant-btn-dangerous):focus-visible{background:#edf4ea!important;color:#365532!important;border-color:#b8cbb2!important;box-shadow:none!important}
+  #root .ant-btn.ant-btn.toggle:not(:disabled):not(.ant-btn-primary):not(.ant-btn-dangerous):hover,
+  #root .ant-btn.ant-btn.report:not(:disabled):not(.ant-btn-primary):not(.ant-btn-dangerous):hover{border-color:transparent!important;box-shadow:none!important}
+  #root .ant-btn.ant-btn.toggle,
+  #root .ant-btn.ant-btn.report{transition:background-color .16s ease,color .16s ease,box-shadow .16s ease!important}
   #root .ant-btn.ant-btn.delete-action:not(:disabled):hover,
   #root .ant-btn.ant-btn.delete-action:not(:disabled):focus-visible{background:#fee4e2!important;color:#b42318!important;border-color:#fda29b!important;box-shadow:none!important}
   #root .structure-panel .ant-btn.ant-btn.icon:not(:disabled):hover,

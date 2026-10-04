@@ -29,9 +29,9 @@ export function PlatformSidebar({ collapsed, links, onToggle, onReport, onLogout
           <Bug size={18} /><span>Сообщить об ошибке</span>
         </Button>
       </div>
-      <Button className="logout" title={collapsed ? "Выйти" : undefined} aria-label="Выйти" onClick={onLogout}>
+      <button className="logout" type="button" title={collapsed ? "Выйти" : undefined} aria-label="Выйти" onClick={onLogout}>
         <LogOut size={17} /><span>Выйти</span>
-      </Button>
+      </button>
     </Sidebar>
   );
 }

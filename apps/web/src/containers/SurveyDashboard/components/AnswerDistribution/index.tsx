@@ -11,7 +11,7 @@ import {
 import { SelectField as Select } from "../../../../components/SelectField";
 import { Panel } from "../../styles";
 import { ANSWER_DISTRIBUTION_COPY as copy } from "./const";
-import { QuestionSelect } from "./styles";
+import { DistributionChart, QuestionSelect } from "./styles";
 import type { AnswerDistributionProps } from "./types";
 
 export function AnswerDistribution({
@@ -21,8 +21,8 @@ export function AnswerDistribution({
   onQuestionChange,
 }: AnswerDistributionProps) {
   return (
-    <Panel>
-      <div className="toolbar">
+    <Panel className="distribution-panel">
+      <div className="distribution-toolbar">
         <h2>
           <BarChart3 size={20} /> {copy.title}
         </h2>
@@ -46,22 +46,40 @@ export function AnswerDistribution({
           />
         </QuestionSelect>
       </div>
-      <div style={{ height: 300, marginTop: 20 }}>
+      <DistributionChart>
         <ResponsiveContainer>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="answer" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
+            <CartesianGrid stroke="#e5ebe3" strokeDasharray="4 4" vertical={false} />
+            <XAxis
+              dataKey="answer"
+              tick={{ fontSize: 10, fill: "#6d7b70" }}
+              tickLine={false}
+              axisLine={{ stroke: "#cbd7c9" }}
+              tickMargin={8}
+              minTickGap={16}
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 10, fill: "#77847a" }}
+              tickLine={false}
+              axisLine={false}
+              width={32}
+            />
+            <Tooltip
+              contentStyle={{ border: "1px solid #dce5da", borderRadius: 9, boxShadow: "0 6px 18px rgba(37, 55, 40, .1)" }}
+              labelStyle={{ color: "#304536", fontWeight: 650 }}
+              itemStyle={{ color: "#52764b", fontSize: 12 }}
+              cursor={{ fill: "#edf4ea" }}
+            />
             <Bar
               dataKey="count"
               name={copy.answerCount}
-              fill="#6e8e76"
-              radius={[7, 7, 0, 0]}
+              fill="#66866c"
+              radius={[5, 5, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </DistributionChart>
     </Panel>
   );
 }

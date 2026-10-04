@@ -15,6 +15,8 @@ export const Group = styled.div`
 export const GroupButton = styled(Button)`
   width: 100%;
   border: 0;
+  outline: 0;
+  box-shadow: none;
   background: transparent;
   padding: 14px 16px;
   display: flex;
@@ -29,6 +31,24 @@ export const GroupButton = styled(Button)`
     color: #819086;
     margin-left: auto;
     margin-right: 12px;
+  }
+  &:hover,
+  &:focus,
+  &:focus-visible,
+  &:active {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+  }
+  &:hover {
+    background: #edf4ea !important;
+    color: #304b36 !important;
+  }
+  &:focus,
+  &:focus-visible,
+  &:active {
+    background: transparent !important;
+    color: #354b3c !important;
   }
 `;
 export const Answers = styled.div`

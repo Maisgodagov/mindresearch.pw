@@ -120,7 +120,7 @@ export type Result = {
     code: string;
     text: string;
     value: string | number;
+    label?: string;
     count: number;
   }[];
 };
-

@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
 export const ControlPanel = styled.aside`
+  container-name: survey-control-panel;
+  container-type: inline-size;
   position: sticky;
   top: 18px;
   display: grid;
@@ -35,6 +37,8 @@ export const ControlPanel = styled.aside`
   }
   .field-group { display: grid; gap: 4px; min-width: 0; }
   .field-group label { color: #596b5d; font-size: 10px; font-weight: 700; }
+  .description-toggle { display: none; }
+  .description-content { display: grid; gap: 4px; }
   .survey-details input,
   .survey-details textarea {
     width: 100%;
@@ -72,15 +76,16 @@ export const ControlPanel = styled.aside`
     && {
       width: 100%;
       min-width: 0;
-      min-height: 40px;
+      min-height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 5px;
-      padding-inline: 7px;
+      padding-inline: 10px;
       border-radius: 8px;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
+      white-space: nowrap;
     }
   }
   .save-button {
@@ -97,11 +102,11 @@ export const ControlPanel = styled.aside`
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    min-height: 24px;
+    min-height: 32px;
     color: #5c6b5f;
     font-size: 11px;
     font-weight: 600;
-    input { width: 14px; height: 14px; margin: 0; accent-color: #456b4c; }
+    input { width: 16px; height: 16px; margin: 0; accent-color: #456b4c; flex: none; }
   }
   .preview-button {
     && {
@@ -125,10 +130,67 @@ export const ControlPanel = styled.aside`
   }
   @media (max-width: 560px) {
     grid-template-columns: 1fr;
-    gap: 13px;
-    padding: 15px;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 11px;
     .control-heading { grid-column: auto; }
-    .action-buttons { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+    .control-heading { gap: 8px; }
+    .control-heading h2 { font-size: 16px; }
+    .control-icon { width: 30px; height: 30px; border-radius: 8px; }
+    .survey-details { gap: 6px; padding-bottom: 8px; }
+    .survey-details input { min-height: 36px; padding: 5px 8px; }
+    .survey-details textarea { min-height: 44px; padding: 5px 8px; }
+    .control-add p { margin: 3px 0 4px; line-height: 1.35; }
+    .control-actions { gap: 3px; padding-top: 6px; }
+    .action-buttons { gap: 6px; }
+    .action-buttons .save-button,
+    .action-buttons .preview-button {
+      && { min-height: 40px; padding-inline: 6px; font-size: 11px; }
+    }
+  }
+
+  @media (max-width: 420px) {
+    .description-label { display: none; }
+    .description-toggle {
+      width: 100%;
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #596b5d;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+    }
+    .description-state { margin-left: auto; color: #7b887e; font-size: 9px; font-weight: 500; }
+    .description-toggle svg { flex: none; transition: transform 140ms ease; }
+    .description-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .description-content { display: none; }
+    .description-content.is-expanded { display: grid; }
+    .control-add > p { display: none; }
+  }
+
+  @container survey-control-panel (max-width: 320px) {
+    padding: 9px;
+    gap: 7px;
+
+    .action-buttons { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .action-buttons .save-button,
+    .action-buttons .preview-button {
+      && { min-height: 42px; font-size: 12px; }
+    }
+    .publish-toggle { min-height: 32px; }
+  }
+
+  @media (pointer: coarse) {
+    .publish-toggle { min-height: 40px; }
+    .action-buttons .save-button,
+    .action-buttons .preview-button { && { min-height: 44px; } }
   }
 `;
 

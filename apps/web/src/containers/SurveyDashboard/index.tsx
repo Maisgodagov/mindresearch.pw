@@ -29,6 +29,7 @@ import type { SurveyRow, Result } from "./types";
 import {
   Wrap,
   Header,
+  SurveyTitleRow,
   Grid,
   Stat,
   Panel,
@@ -113,12 +114,27 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   useEffect(() => {
     if (!selectedQuestion && questions[0]) setSelectedQuestion(questions[0][0]);
   }, [questions, selectedQuestion]);
-  const chart = result.distribution
-    .filter((x) => x.code === selectedQuestion)
-    .map((x) => ({
-      answer: String(x.value).replace(/^"|"$/g, ""),
-      count: x.count,
-    }));
+  const chart = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const respondent of result.respondents) {
+      for (const group of respondent.groups) {
+        for (const answer of group.answers) {
+          if (answer.code !== selectedQuestion) continue;
+          const label = answer.displayValue || String(answer.value ?? "");
+          counts.set(label, (counts.get(label) ?? 0) + 1);
+        }
+      }
+    }
+    if (counts.size) {
+      return Array.from(counts, ([answer, count]) => ({ answer, count }));
+    }
+    return result.distribution
+      .filter((item) => item.code === selectedQuestion)
+      .map((item) => ({
+        answer: item.label ?? String(item.value).replace(/^"|"$/g, ""),
+        count: item.count,
+      }));
+  }, [result, selectedQuestion]);
   const completed = result.respondents.filter(
     (x) => x.status === "completed",
   ).length;
@@ -222,25 +238,17 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             </Button>
           </Header>
         )}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 14,
-            flexWrap: "wrap",
-          }}
-        >
+        <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
           {survey && !location.pathname.startsWith("/admin") && (
             <Button
-              className="copy-link"
+              className="edit-survey"
               onClick={() => nav(`/app/surveys/${survey.id}/edit`)}
             >
               <Pencil size={14} /> Редактировать
             </Button>
           )}
-        </div>
+        </SurveyTitleRow>
         <Grid>
           <Stat>
             <Users />
@@ -269,9 +277,12 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             </div>
           </Stat>
         </Grid>
-        <Panel>
-          <div className="toolbar">
+        <Panel className="share-panel">
+          <div className="share-heading">
             <h2>Ссылка для участников</h2>
+          </div>
+          <div className="share-content">
+            <div className="link">{location.origin}/s/{survey?.slug}</div>
             <Button
               className="copy-link"
               onClick={() =>
@@ -283,11 +294,8 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
               <Copy size={14} /> Скопировать
             </Button>
           </div>
-          <div className="link">
-            {location.origin}/s/{survey?.slug}
-          </div>
         </Panel>
-        <Panel>
+        <Panel className="respondents-panel">
           <RespondentResults
             respondents={result.respondents}
             deletedRespondents={result.deletedRespondents}

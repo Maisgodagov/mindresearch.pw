@@ -1,5 +1,5 @@
 export const RESPONDENT_RESULTS_COPY = {
-  title: "Результаты респондентов",
+  title: "Список респондентов",
   delete: "Удалить",
   export: "Экспортировать",
   preparing: "Подготовка…",
