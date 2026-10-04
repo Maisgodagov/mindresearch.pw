@@ -1,7 +1,7 @@
 ﻿param(
   [int]$MaxItems = 0,
   [int]$MaxAttemptsPerItem = 2,
-  [ValidateRange(1, 10)][int]$ResearchSlots = 10,
+  [ValidateRange(1, 12)][int]$ResearchSlots = 12,
   [ValidateRange(1, 50)][int]$DeployBatchSize = 10,
   [switch]$DryRun,
   [switch]$SelectOnly
