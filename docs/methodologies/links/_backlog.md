@@ -1427,7 +1427,7 @@
 - [x] 1419. Понимание научного текста — `blocked`; [страница методики](https://psytests.org/learn/pnaut.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html). [review](../reviews/method-1419.md);
 - [x] 1420. Понимание объяснительного процесса — `blocked`; [страница методики](https://psytests.org/pedag/lukpop.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html). [review](../reviews/method-1420.md);
 - [x] 1421. Понимание, эмоциональное притяжение, авторитетность — `blocked`; [страница методики](https://psytests.org/family/pea.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html). [review](../reviews/method-1421.md);
-- [ ] 1422. Поощрения и наказания — `queued`; [страница методики](https://psytests.org/parent/pin.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
+- [x] 1422. Поощрения и наказания — `blocked`; [страница методики](https://psytests.org/parent/pin.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-1422.md);
 - [ ] 1423. Попали ли ваши отношения в ловушку страсти? — `queued`; [страница методики](https://psytests.org/quiz/delis.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [ ] 1424. Порог активности — `queued`; [страница методики](https://psytests.org/emvol/poract.html); путеводители: [trait-arousal-ru.html](https://psytests.org/guide/trait-arousal-ru.html).
 - [ ] 1425. Портретный ценностный опросник Шварца — `queued`; [страница методики](https://psytests.org/life/pvqrr.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
