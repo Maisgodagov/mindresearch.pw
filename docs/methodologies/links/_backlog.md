@@ -1576,7 +1576,7 @@
 - [x] 1568. Секс в жизни женщины — `blocked`; [страница методики](https://psytests.org/sex/sxpF.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1568.md);
 - [x] 1569. Секс в жизни мужчины — `blocked`; [страница методики](https://psytests.org/sex/sxpM.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1569.md);
 - [x] 1570. Сексуальная формула женская — `implemented-local`; [страница методики](https://psytests.org/sex/sff.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1570.md);
-- [ ] 1571. Сексуальная формула мужская — `queued`; [страница методики](https://psytests.org/sex/sfm.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
+- [x] 1571. Сексуальная формула мужская — `implemented-local`; [страница методики](https://psytests.org/sex/sfm.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1571.md);
 - [ ] 1572. Семантический дифференциал жизненной ситуации — `queued`; [страница методики](https://psytests.org/coping/sdjs.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html).
 - [ ] 1573. Семантический дифференциал образа профессии учителя — `queued`; [страница методики](https://psytests.org/pedag/sdopu.html); путеводители: [learning-pedagogic-ru.html](https://psytests.org/guide/learning-pedagogic-ru.html).
 - [ ] 1574. Семейные отношения и дом — `queued`; [страница методики](https://psytests.org/family/soid.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
