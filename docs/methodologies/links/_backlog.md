@@ -1574,7 +1574,7 @@
 - [x] 1566. Сбалансированная шкала эмоциональной эмпатии — `blocked`; [страница методики](https://psytests.org/eq/bees.html); путеводители: [social-empathy-ru.html](https://psytests.org/guide/social-empathy-ru.html). [review](../reviews/method-1566.md);
 - [x] 1567. СГЛ — `implemented-local`; [страница методики](https://psytests.org/trait/sgl.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-1567.md);
 - [x] 1568. Секс в жизни женщины — `blocked`; [страница методики](https://psytests.org/sex/sxpF.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1568.md);
-- [ ] 1569. Секс в жизни мужчины — `queued`; [страница методики](https://psytests.org/sex/sxpM.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
+- [x] 1569. Секс в жизни мужчины — `blocked`; [страница методики](https://psytests.org/sex/sxpM.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1569.md);
 - [ ] 1570. Сексуальная формула женская — `queued`; [страница методики](https://psytests.org/sex/sff.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
 - [ ] 1571. Сексуальная формула мужская — `queued`; [страница методики](https://psytests.org/sex/sfm.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
 - [ ] 1572. Семантический дифференциал жизненной ситуации — `queued`; [страница методики](https://psytests.org/coping/sdjs.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html).
