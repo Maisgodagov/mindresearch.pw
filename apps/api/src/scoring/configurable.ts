@@ -6,6 +6,7 @@ export type ConfigurableScale = {
 } & (
   | { aggregation: 'sum' | 'mean'; weights?: Record<number, number>; itemScores?: Record<number, Record<string, number>>; optionValue?: never }
   | { aggregation: 'count-option'; optionValue: string; weights?: never }
+  | { aggregation: 'formula'; formula: string; weights?: never; itemScores?: never; optionValue?: never }
 );
 
 export type ConfigurableScoring = {
