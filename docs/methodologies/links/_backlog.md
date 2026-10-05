@@ -1571,7 +1571,7 @@
 - [x] 1563. Саморегуляция лени — `blocked`; [страница методики](https://psytests.org/trait/leniV.html); путеводители: [trait-regulation-ru.html](https://psytests.org/guide/trait-regulation-ru.html). [review](../reviews/method-1563.md);
 - [x] 1564. Саморегуляция подготовки спортсмена — `implemented-local`; [страница методики](https://psytests.org/emvol/ssps.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-1564.md);
 - [x] 1565. Самосаботаж или успех — `blocked`; [страница методики](https://psytests.org/quiz/samosab.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-1565.md);
-- [ ] 1566. Сбалансированная шкала эмоциональной эмпатии — `queued`; [страница методики](https://psytests.org/eq/bees.html); путеводители: [social-empathy-ru.html](https://psytests.org/guide/social-empathy-ru.html).
+- [x] 1566. Сбалансированная шкала эмоциональной эмпатии — `blocked`; [страница методики](https://psytests.org/eq/bees.html); путеводители: [social-empathy-ru.html](https://psytests.org/guide/social-empathy-ru.html). [review](../reviews/method-1566.md);
 - [ ] 1567. СГЛ — `queued`; [страница методики](https://psytests.org/trait/sgl.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
 - [ ] 1568. Секс в жизни женщины — `queued`; [страница методики](https://psytests.org/sex/sxpF.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
 - [ ] 1569. Секс в жизни мужчины — `queued`; [страница методики](https://psytests.org/sex/sxpM.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
