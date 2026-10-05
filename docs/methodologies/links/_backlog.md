@@ -797,7 +797,7 @@
 - [x] 789. Новая экологическая парадигма — `ru-ineligible`; [страница методики](https://psytests.org/eco/enep.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-0789.md);
 - [x] 790. Новый опросник толерантности к неопределенности — `blocked`; [страница методики](https://psytests.org/trait/notkn.html); путеводители: [regulation-uncertainty-ru.html](https://psytests.org/guide/regulation-uncertainty-ru.html). [review](../reviews/method-0790.md);
 - [x] 791. НОЛ — `blocked`; [страница методики](https://psytests.org/darktriad/npiZ.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html). [review](../reviews/method-0791.md);
-- [ ] 792. Нормативность. Интеллект. Регуляция — `queued`; [страница методики](https://psytests.org/emvol/nir.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html).
+- [x] 792. Нормативность. Интеллект. Регуляция — `blocked`; [страница методики](https://psytests.org/emvol/nir.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html). [review](../reviews/method-0792.md);
 - [ ] 793. НЧЛ — `queued`; [страница методики](https://psytests.org/stress/nchl.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 794. Обзор ценностей Шварца — `queued`; [страница методики](https://psytests.org/life/svsK.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
 - [ ] 795. Обладаете ли вы харизмой? — `queued`; [страница методики](https://psytests.org/quiz/charizm.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
