@@ -1682,7 +1682,7 @@
 - [x] 1674. Стремление к порядку и предсказуемости — `blocked`; [страница методики](https://psytests.org/trait/spip.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html). [review](../reviews/method-1674.md);
 - [x] 1675. Стресс и тревога во время вирусной эпидемии — `implemented-local`; [страница методики](https://psytests.org/stress/save9.html); путеводители: [mood-anxiety-ru.html](https://psytests.org/guide/mood-anxiety-ru.html). [review](../reviews/method-1675.md);
 - [x] 1676. Стресс субъективной и объективной неопределенности — `implemented-local`; [страница методики](https://psytests.org/stress/sson.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html). [review](../reviews/method-1676.md);
-- [ ] 1677. Стресс усердия — `queued`; [страница методики](https://psytests.org/stress/strusA.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html).
+- [x] 1677. Стресс усердия — `blocked`; [страница методики](https://psytests.org/stress/strusA.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html). [review](../reviews/method-1677.md);
 - [ ] 1678. Стресс-восстановление в спорте — `queued`; [страница методики](https://psytests.org/sport/restqs.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
 - [ ] 1679. Стресс-симптом-тест — `queued`; [страница методики](https://psytests.org/sport/frester.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
 - [ ] 1680. Стресс-ФИЭ — `queued`; [страница методики](https://psytests.org/stress/strfie.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html).
