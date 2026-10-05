@@ -1573,7 +1573,7 @@
 - [x] 1565. Самосаботаж или успех — `blocked`; [страница методики](https://psytests.org/quiz/samosab.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-1565.md);
 - [x] 1566. Сбалансированная шкала эмоциональной эмпатии — `blocked`; [страница методики](https://psytests.org/eq/bees.html); путеводители: [social-empathy-ru.html](https://psytests.org/guide/social-empathy-ru.html). [review](../reviews/method-1566.md);
 - [x] 1567. СГЛ — `implemented-local`; [страница методики](https://psytests.org/trait/sgl.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-1567.md);
-- [ ] 1568. Секс в жизни женщины — `queued`; [страница методики](https://psytests.org/sex/sxpF.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
+- [x] 1568. Секс в жизни женщины — `blocked`; [страница методики](https://psytests.org/sex/sxpF.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html). [review](../reviews/method-1568.md);
 - [ ] 1569. Секс в жизни мужчины — `queued`; [страница методики](https://psytests.org/sex/sxpM.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
 - [ ] 1570. Сексуальная формула женская — `queued`; [страница методики](https://psytests.org/sex/sff.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
 - [ ] 1571. Сексуальная формула мужская — `queued`; [страница методики](https://psytests.org/sex/sfm.html); путеводители: [sexuality-ru.html](https://psytests.org/guide/sexuality-ru.html).
