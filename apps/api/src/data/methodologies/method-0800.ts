@@ -77,7 +77,7 @@ export const methodology: MethodologyRegistration = {
   formulaVersion: 'gerasimova-kholmogorova-gpius3-14item-five-subscale-sums-v1',
   details: {
     version: 'Русскоязычная GPIUS3, 14 пунктов (Герасимова и Холмогорова, 2018)',
-    summary: instrument.description,
+    summary: instrument.description!,
     steps: [
       'Ответы кодируются от 1 («Полностью не согласен») до 7 («Полностью согласен»).',
       'Для каждой шкалы складываются указанные в публикации ответы; отдельного общего балла ключ не задаёт.',
