@@ -46,10 +46,10 @@ const scoringConfig: ConfigurableScoring = {
   min: 1,
   max: 5,
   scales: [
-    { key: 'autonomySupport', label: 'Поддержка автономии', items: [1, 5, 9], aggregation: 'mean' },
-    { key: 'controlling', label: 'Контролирующий стиль', items: [2, 6, 10, 13], aggregation: 'mean' },
-    { key: 'structuring', label: 'Структурирующий стиль', items: [3, 7, 11, 14], aggregation: 'mean' },
-    { key: 'chaotic', label: 'Хаотичный стиль', items: [4, 8, 12], aggregation: 'mean' },
+    { key: 'autonomySupport', label: 'Поддержка автономии', items: [1, 5, 9], reverseItems: [], aggregation: 'mean' },
+    { key: 'controlling', label: 'Контролирующий стиль', items: [2, 6, 10, 13], reverseItems: [], aggregation: 'mean' },
+    { key: 'structuring', label: 'Структурирующий стиль', items: [3, 7, 11, 14], reverseItems: [], aggregation: 'mean' },
+    { key: 'chaotic', label: 'Хаотичный стиль', items: [4, 8, 12], reverseItems: [], aggregation: 'mean' },
   ],
 };
 
