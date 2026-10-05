@@ -60,7 +60,7 @@ export const instrument: SeedSection = {
   description: 'Методика оценивает стратегии, с помощью которых родители школьников регулируют цифровое поведение детей: контроль и потворствование, запреты и ограничения, вмешательство или игнорирование, активную коммуникацию и совместную деятельность. Отдельная шкала описывает психологическую комфортность таких разговоров; профиль полезен для обсуждения практик цифровой социализации ребенка.',
   questions: items.map(({ text, options }, index) => {
     const itemNumber = index + 1;
-    const sectionIndex = sectionStarts.findLastIndex(start => itemNumber >= start);
+    const sectionIndex = sectionStarts.reduce((lastIndex, start, index) => itemNumber >= start ? index : lastIndex, -1);
     return {
       code: `test_1214_${itemNumber}`,
       text: `${sections[sectionIndex]} ${itemNumber}. ${text}`,
