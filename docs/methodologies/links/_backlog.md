@@ -733,7 +733,7 @@
 - [x] 725. Мой класс — `implemented-local`; [страница методики](https://psytests.org/parent/myclass.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-0725.md);
 - [x] 726. Мой личностный рост — `implemented-local`; [страница методики](https://psytests.org/school/mylr.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-0726.md);
 - [x] 727. Мой образ взрослости — `blocked`; [страница методики](https://psytests.org/parent/obvzrB.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html). [review](../reviews/method-0727.md);
-- [ ] 728. Мой патриотизм — `queued`; [страница методики](https://psytests.org/group/patriot.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
+- [x] 728. Мой патриотизм — `blocked`; [страница методики](https://psytests.org/group/patriot.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-0728.md);
 - [ ] 729. Московская шкала аутентичности — `queued`; [страница методики](https://psytests.org/ident/mosmas.html); путеводители: [self-awareness-ru.html](https://psytests.org/guide/self-awareness-ru.html).
 - [ ] 730. Мотивации к карьере — `queued`; [страница методики](https://psytests.org/work/mkk.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 731. Мотивационная структура информационной активности — `queued`; [страница методики](https://psytests.org/cyber/msia.html); путеводители: [cyberpsychology-ru.html](https://psytests.org/guide/cyberpsychology-ru.html).
