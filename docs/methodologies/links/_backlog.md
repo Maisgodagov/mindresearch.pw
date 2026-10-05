@@ -1684,7 +1684,7 @@
 - [x] 1676. Стресс субъективной и объективной неопределенности — `implemented-local`; [страница методики](https://psytests.org/stress/sson.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html). [review](../reviews/method-1676.md);
 - [x] 1677. Стресс усердия — `blocked`; [страница методики](https://psytests.org/stress/strusA.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html). [review](../reviews/method-1677.md);
 - [x] 1678. Стресс-восстановление в спорте — `blocked`; [страница методики](https://psytests.org/sport/restqs.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-1678.md);
-- [ ] 1679. Стресс-симптом-тест — `queued`; [страница методики](https://psytests.org/sport/frester.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
+- [x] 1679. Стресс-симптом-тест — `implemented-local`; [страница методики](https://psytests.org/sport/frester.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-1679.md);
 - [ ] 1680. Стресс-ФИЭ — `queued`; [страница методики](https://psytests.org/stress/strfie.html); путеводители: [mood-stress-ru.html](https://psytests.org/guide/mood-stress-ru.html).
 - [ ] 1681. Структурные уровни мотивации — `queued`; [страница методики](https://psytests.org/pedag/sumP.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
 - [ ] 1682. Субъективная картина жизненного пути личности — `queued`; [страница методики](https://psytests.org/life/skzpl.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
