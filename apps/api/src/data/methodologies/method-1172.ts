@@ -38,7 +38,7 @@ const instrument: SeedSection = {
 const scoringConfig: ConfigurableScoring = {
   min: 1,
   max: 5,
-  scales: [{ key: 'religiousAddiction', label: 'Суммарный балл (6–30)', items: allItems, aggregation: 'sum' }],
+  scales: [{ key: 'religiousAddiction', label: 'Суммарный балл (6–30)', items: allItems, reverseItems: [], aggregation: 'sum' }],
 };
 
 const validationCases: ValidationCase[] = [

@@ -1,4 +1,4 @@
-export type Methodology={code:string;title:string;version:string;summary:string;steps:string[];keys?:{label:string;value:string}[];norms?:{label:string;value:string}[];rightsNote?:string;notes:string[];sources:{title:string;url:string}[]};
+export type Methodology={code:string;title:string;version:string;summary:string;adaptation?:string;steps:string[];keys?:{label:string;value:string}[];norms?:{label:string;value:string}[];rightsNote?:string;notes:string[];sources:{title:string;url:string}[]};
 
 export const methodologies:Record<string,Methodology>={
   test_1:{
