@@ -1,0 +1,9 @@
+# Опросник ориентации на задачу и на эго в спорте (TEOSQ)
+
+- Решение: prepared. На psytests.org опубликованы русские формулировки всех 13 пунктов и бланк с вариантами ответов; указано, что перевод выполнен по оригинальным материалам и отдельная адаптация неизвестна.
+- Русский текст и бланк: [Опросник TEOSQ — перевод и описание psytests.org](https://psytests.org/sport/teosq.html); [Бланк TEOSQ — полный русский текст пунктов и шкала ответа](https://psytests.org/sport/teosq-bl.html). Путеводитель: [Спорт и достижения: тесты и опросники](https://psytests.org/guide/sport-ru.html).
+- Первичные библиографические источники: [White & Duda (1994), “The relationship of gender, level of sport involvement, and participation motivation to task and ego orientation”, International Journal of Sport Psychology, 25](https://psytests.org/sport/teosq.html) (библиографическая запись на странице методики); [Duda, Chi, Newton, Fry & Catley (1995), “Task and Ego Orientation and Intrinsic Motivation in Sport”, International Journal of Sport Psychology, 26(1)](https://www.researchgate.net/publication/229108782). Современная статья описывает нынешнюю 13-пунктовую структуру, два фактора и традиционный подсчёт средних: [Dagsdóttir et al. (2023), “Task and Ego Orientation in Sport Questionnaire: A Mokken Scale Analysis”](https://doi.org/10.1177/21582440231195200).
+- Количество пунктов: 13. Ответы: пятибалльное согласие от «Абсолютно не согласен» (1) до «Абсолютно согласен» (5). Нумерационные цифры не включены в подписи вариантов.
+- Шкалы и ключ: задача — пункты 2, 5, 7, 8, 10, 12, 13; эго — пункты 1, 3, 4, 6, 9, 11. Обратных пунктов нет.
+- Формула: для каждой шкалы арифметическое среднее соответствующих ответов (сумма / количество пунктов), диапазон 1–5; общий балл не рассчитывается.
+- Ручная проверка: ответы 4 на все пункты дают 4 по каждой шкале.
