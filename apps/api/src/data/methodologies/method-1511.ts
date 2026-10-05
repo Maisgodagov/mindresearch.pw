@@ -67,8 +67,8 @@ const accepted = {
 } as const;
 const excluded = [10, 17, 21, 25, 26];
 const allIncluded = Array.from({ length: 31 }, (_, i) => i + 1).filter(item => !excluded.includes(item));
-const scale = (key: string, label: string, items: number[], optionValue: string) => ({
-  key, label, items, reverseItems: [] as number[], aggregation: 'count-option' as const, optionValue,
+const scale = (key: string, label: string, items: readonly number[], optionValue: string) => ({
+  key, label, items: [...items], reverseItems: [] as number[], aggregation: 'count-option' as const, optionValue,
 });
 
 export const scoringConfig: ConfigurableScoring = {
