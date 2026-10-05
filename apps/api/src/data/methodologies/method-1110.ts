@@ -113,7 +113,7 @@ const validationCases: ValidationCase[] = [
   },
   {
     title: 'Ручная проверка парных пунктов: 11 и 13 по 2, 12 и 14 по 3; включаются 11 и 13',
-    answers: Object.fromEntries(Array.from({ length: 30 }, (_, index) => [String(index + 1), 0])).map(([item, value]) => [item, (item === '11' || item === '13') ? 2 : (item === '12' || item === '14') ? 3 : value]),
+    answers: Object.fromEntries(Array.from({ length: 30 }, (_, index) => [String(index + 1), 0] as const).map(([item, value]) => [item, (item === '11' || item === '13') ? 2 : (item === '12' || item === '14') ? 3 : value] as const)),
     expected: { total: 4 },
   },
 ];
