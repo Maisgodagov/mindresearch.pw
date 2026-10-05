@@ -1293,7 +1293,7 @@
 - [x] 1285. Опросник учебной активности студента — `blocked`; [страница методики](https://psytests.org/learn/aveaq.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html). [review](../reviews/method-1285.md);
 - [x] 1286. Опросник учебной активности школьника — `blocked`; [страница методики](https://psytests.org/learn/avshk.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-1286.md);
 - [x] 1287. Опросник Фокус рефлексии — `blocked`; [страница методики](https://psytests.org/trait/ofrB.html); путеводители: [self-awareness-ru.html](https://psytests.org/guide/self-awareness-ru.html). [review](../reviews/method-1287.md);
-- [ ] 1288. Опросник формы тела — `queued`; [страница методики](https://psytests.org/body/bsq.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html).
+- [x] 1288. Опросник формы тела — `blocked`; [страница методики](https://psytests.org/body/bsq.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html). [review](../reviews/method-1288.md);
 - [ ] 1289. Опросник функциональных эго-состояний — `queued`; [страница методики](https://psytests.org/ta/haypsq.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html).
 - [ ] 1290. Опросник ХАЛ-НПН — `queued`; [страница методики](https://psytests.org/accent/halnpn.html); путеводители: [work-service-ru.html](https://psytests.org/guide/work-service-ru.html).
 - [ ] 1291. Опросник хикикомори — `queued`; [страница методики](https://psytests.org/depr/hq25.html); путеводители: [social-loneliness-ru.html](https://psytests.org/guide/social-loneliness-ru.html).
