@@ -1617,7 +1617,7 @@
 - [x] 1609. Скринирующая методика для выявления алкоголизма — `blocked`; [страница методики](https://psytests.org/diag/sma.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html). [review](../reviews/method-1609.md);
 - [x] 1610. Скрытые фигуры Терстоуна — `blocked`; [страница методики](https://psytests.org/cogn/thft.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html). [review](../reviews/method-1610.md);
 - [x] 1611. Словесные субтесты — `blocked`; [страница методики](https://psytests.org/iq/zamb.html); путеводители: [intelligence-cognitive-ru.html](https://psytests.org/guide/intelligence-cognitive-ru.html). [review](../reviews/method-1611.md);
-- [ ] 1612. Смекала-Кучера — `queued`; [страница методики](https://psytests.org/work/boiB.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
+- [x] 1612. Смекала-Кучера — `blocked`; [страница методики](https://psytests.org/work/boiB.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1612.md);
 - [ ] 1613. СМИЛ — `queued`; [страница методики](https://psytests.org/mmpi/smilF.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 1614. Смысловые базовые установки — `queued`; [страница методики](https://psytests.org/cbt/bdasE.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html).
 - [ ] 1615. Сознательное родительство — `queued`; [страница методики](https://psytests.org/parent/sozrod.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
