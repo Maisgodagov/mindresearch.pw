@@ -767,7 +767,7 @@
 - [x] 759. Мотивы спортивной деятельности — `implemented-local`; [страница методики](https://psytests.org/sport/msdk.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0759.md);
 - [x] 760. Мотивы употребления наркотиков — `implemented-local`; [страница методики](https://psytests.org/diag/munark.html); путеводители: [clinical-addictive-ru.html](https://psytests.org/guide/clinical-addictive-ru.html). [review](../reviews/method-0760.md);
 - [x] 761. Моя беременность — `ru-ineligible`; [страница методики](https://psytests.org/parent/myber.html); путеводители: [clinical-reproductive-ru.html](https://psytests.org/guide/clinical-reproductive-ru.html). [review](../reviews/method-0761.md);
-- [ ] 762. Моя психология — `queued`; [страница методики](https://psytests.org/pryad/vmopsy.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
+- [x] 762. Моя психология — `blocked`; [страница методики](https://psytests.org/pryad/vmopsy.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-0762.md);
 - [ ] 763. МТЖЦ — `queued`; [страница методики](https://psytests.org/life/mtzc.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
 - [ ] 764. Мультимодальный опросник отношения к собственному телу — `queued`; [страница методики](https://psytests.org/body/mbsrq.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html).
 - [ ] 765. Мультиопросник измерения романтической привязанности — `queued`; [страница методики](https://psytests.org/ipl/mimara.html); путеводители: [close-attachment-ru.html](https://psytests.org/guide/close-attachment-ru.html).
