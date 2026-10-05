@@ -4,7 +4,7 @@ export type ConfigurableScale = {
   items: number[];
   reverseItems: number[];
 } & (
-  | { aggregation: 'sum' | 'mean'; weights?: Record<number, number>; optionValue?: never }
+  | { aggregation: 'sum' | 'mean'; weights?: Record<number, number>; itemScores?: Record<number, Record<string, number>>; optionValue?: never }
   | { aggregation: 'count-option'; optionValue: string; weights?: never }
 );
 
@@ -48,6 +48,7 @@ export function validateConfigurableMethodology(input: {
   const errors: string[] = [];
   const { methodology, questions, scoring, cases } = input;
   const countsOptions = scoring.scales.some(scale => scale.aggregation === 'count-option');
+  const usesItemScores = scoring.scales.some(scale => 'itemScores' in scale && scale.itemScores !== undefined);
   if (countsOptions && scoring.scales.some(scale => scale.aggregation !== 'count-option')) errors.push('A scoring setup cannot mix option counts with numeric scales.');
   if (!methodology.title?.trim()) errors.push('Укажите название методики.');
   if (!methodology.author?.trim()) errors.push('Укажите автора методики.');
@@ -66,16 +67,16 @@ export function validateConfigurableMethodology(input: {
   const optionValues = new Set<number | string>();
   const firstOptions = questions[0]?.options ?? [];
   for (const [index, option] of firstOptions.entries()) {
-    const value = countsOptions ? option.value : Number(option.value);
-    if (!countsOptions && (!Number.isInteger(value) || Number(value) < scoring.min || Number(value) > scoring.max)) errors.push(`Вариант ответа ${index + 1} должен иметь целое значение в заданном диапазоне.`);
+    const value = countsOptions || usesItemScores ? option.value : Number(option.value);
+    if (!countsOptions && !usesItemScores && (!Number.isInteger(value) || Number(value) < scoring.min || Number(value) > scoring.max)) errors.push(`Вариант ответа ${index + 1} должен иметь целое значение в заданном диапазоне.`);
     if (optionValues.has(value)) errors.push(`Значение ответа ${value} повторяется.`);
     optionValues.add(value);
     if (!option.label?.trim()) errors.push(`Добавьте подпись для варианта ответа ${index + 1}.`);
   }
-  if (firstOptions.length < 2 || (!countsOptions && optionValues.size !== scoring.max - scoring.min + 1)) errors.push('Добавьте по одному варианту ответа для каждого целого значения диапазона.');
+  if (firstOptions.length < 2 || (!countsOptions && !usesItemScores && optionValues.size !== scoring.max - scoring.min + 1)) errors.push('Добавьте по одному варианту ответа для каждого целого значения диапазона.');
   questions.forEach((question, index) => {
     if (!question.text?.trim()) errors.push(`Заполните текст вопроса ${index + 1}.`);
-    const values = (question.options ?? []).map(option => countsOptions ? option.value : Number(option.value)).sort((a, b) => String(a).localeCompare(String(b)));
+    const values = (question.options ?? []).map(option => countsOptions || usesItemScores ? option.value : Number(option.value)).sort((a, b) => String(a).localeCompare(String(b)));
     const expectedValues = [...optionValues].sort((a, b) => String(a).localeCompare(String(b)));
     if (values.length !== optionValues.size || values.some((value, optionIndex) => value !== expectedValues[optionIndex])) errors.push(`В вопросе ${index + 1} отличаются варианты ответа от общей шкалы.`);
   });
@@ -93,6 +94,11 @@ export function validateConfigurableMethodology(input: {
     if (scale.aggregation === 'count-option' && scale.reverseItems.length) errors.push('Option-count scales cannot use reverse items.');
     if (scale.reverseItems.some(item => !scale.items.includes(item))) errors.push(`Шкала «${scale.label}»: обратный пункт должен входить в эту шкалу.`);
     if (scale.weights && Object.entries(scale.weights).some(([item, weight]) => !scale.items.includes(Number(item)) || !Number.isFinite(weight))) errors.push(`Шкала «${scale.label}»: коэффициенты должны быть заданы только для включённых пунктов и быть конечными числами.`);
+    if ('itemScores' in scale && scale.itemScores) {
+      const invalidItemScores = Object.entries(scale.itemScores).some(([item, optionScores]) => !scale.items.includes(Number(item)) || Object.entries(optionScores).some(([option, score]) => !optionValues.has(option) || !Number.isFinite(score)));
+      const missingItemScores = scale.items.some(item => [...optionValues].some(option => typeof option === 'string' && !Object.prototype.hasOwnProperty.call(scale.itemScores?.[item], option)));
+      if (invalidItemScores || missingItemScores) errors.push(`Шкала «${scale.label}»: баллы ответов должны быть заданы для включённых пунктов, существующих вариантов и конечными числами.`);
+    }
   });
   if (requireCases && cases.length < 2) errors.push('Добавьте не менее двух контрольных примеров с ожидаемыми результатами.');
   return errors;
@@ -105,6 +111,10 @@ export function calculateConfigurableScores(scoring: ConfigurableScoring, answer
       const answer = answers[String(item)];
       if (answer === null || answer === undefined) return null;
       if (scale.aggregation === 'count-option') return String(answer) === scale.optionValue ? 1 : 0;
+      if ('itemScores' in scale && scale.itemScores) {
+        const score = scale.itemScores[item]?.[String(answer)];
+        return typeof score === 'number' && Number.isFinite(score) ? score : null;
+      }
       const raw = Number(answer);
       if (!Number.isInteger(raw) || raw < scoring.min || raw > scoring.max) return null;
       return scale.reverseItems.includes(item) ? scoring.min + scoring.max - raw : raw;
@@ -143,6 +153,21 @@ export function checkConfigurableCases(input: {
         value: selectedScale.optionValue,
         passed: !!actual && input.scoring.scales.every(scale => actual[scale.key] === (scale.aggregation === 'count-option' && scale.optionValue === selectedScale.optionValue ? scale.items.length : 0)),
       };
+    })
+    : input.scoring.scales.some(scale => 'itemScores' in scale && scale.itemScores)
+    ? [...new Set(input.questions[0]?.options.map(option => option.value) ?? [])].map(value => {
+      const answers = Object.fromEntries(requiredItems.map(item => [String(item), value]));
+      const actual = calculateConfigurableScores(input.scoring, answers);
+      const expected = Object.fromEntries(input.scoring.scales.map(scale => {
+        const total = scale.items.reduce((sum, item) => {
+          if ('itemScores' in scale && scale.itemScores) return sum + (scale.itemScores[item]?.[value] ?? 0);
+          const raw = Number(value);
+          const transformed = scale.reverseItems.includes(item) ? input.scoring.min + input.scoring.max - raw : raw;
+          return sum + transformed * (scale.weights?.[item] ?? 1);
+        }, 0);
+        return [scale.key, scale.aggregation === 'mean' ? total / scale.items.length : total];
+      }));
+      return { value, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
     })
     : [input.scoring.min, input.scoring.max].map(value => {
       const answers = Object.fromEntries(requiredItems.map(item => [String(item), value]));

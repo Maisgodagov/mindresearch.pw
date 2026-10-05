@@ -248,13 +248,19 @@ async function calculateConfiguredMethodologiesForSession(sessionId:string){
     const first=group[0],scoring=parseValue(first.scoringConfig) as ConfigurableScoring;
     const answers:Record<string,unknown>={};
     const countsOptions=scoring.scales.some(scale=>scale.aggregation==='count-option');
-    for(const row of group){const number=Number(String(row.questionCode).match(/(\d+)$/)?.[1]);const value=parseValue(row.value);if(Number.isInteger(number)&&value!==null&&value!==undefined){if(countsOptions)answers[String(number)]=String(value);else if(Number.isFinite(Number(value)))answers[String(number)]=Number(value)}}
+    const usesItemScores=scoring.scales.some(scale=>'itemScores' in scale&&scale.itemScores!==undefined);
+    for(const row of group){const number=Number(String(row.questionCode).match(/(\d+)$/)?.[1]);const value=parseValue(row.value);if(Number.isInteger(number)&&value!==null&&value!==undefined){if(countsOptions||usesItemScores)answers[String(number)]=String(value);else if(Number.isFinite(Number(value)))answers[String(number)]=Number(value)}}
     const values=calculateConfigurableScores(scoring,answers);
     if(!values){await db.execute('DELETE FROM assessment_results WHERE session_id=? AND section_id=?',[sessionId,first.sectionId]);return null}
     const scales=Object.fromEntries(scoring.scales.map(scale=>{
       const score=values[scale.key],items=scale.items.map(item=>answers[String(item)] as number);
       const bounds=scale.aggregation==='count-option'
         ? [0,scale.items.length] as [number,number]
+        : 'itemScores' in scale && scale.itemScores
+        ? scale.items.reduce((range,item)=>{
+          const scores=Object.values(scale.itemScores?.[item]??{});
+          return [range[0]+Math.min(...scores),range[1]+Math.max(...scores)] as [number,number];
+        },[0,0] as [number,number])
         : scale.items.reduce((range,item)=>{
           const weight=scale.weights?.[item]??1;
           const low=Math.min(scoring.min*weight,scoring.max*weight),high=Math.max(scoring.min*weight,scoring.max*weight);

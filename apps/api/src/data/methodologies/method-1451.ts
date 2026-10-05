@@ -44,12 +44,13 @@ export const scoringConfig: ConfigurableScoring = {
   min: 0,
   max: 2,
   scales: [
-    { key: 'professional_pedagogical_gramotnost', label: 'Самооценка педагогической грамотности', items: prompts.map((_, index) => index + 1), itemScores: Object.fromEntries(prompts.map((_, index) => [String(index + 1), { yes: yesScores[index], no: noScores[index] }])), aggregation: 'sum' },
+    { key: 'professional_pedagogical_gramotnost', label: 'Самооценка педагогической грамотности', items: prompts.map((_, index) => index + 1), reverseItems: [], itemScores: Object.fromEntries(prompts.map((_, index) => [String(index + 1), { yes: yesScores[index], no: noScores[index] }])), aggregation: 'sum' },
   ],
 };
 
 const validationCases: ValidationCase[] = [
-  { title: 'Ручная сверка: все ответы «да»', answers: Object.fromEntries(prompts.map((_, index) => [String(index + 1), 'yes'])), expected: { professional_pedagogical_gramotnost: 7 } },
+  { title: 'Ручная сверка: все ответы «да»', answers: Object.fromEntries(prompts.map((_, index) => [String(index + 1), 'yes'])), expected: { professional_pedagogical_gramotnost: 8 } },
+  { title: 'Ручная сверка: все ответы «нет»', answers: Object.fromEntries(prompts.map((_, index) => [String(index + 1), 'no'])), expected: { professional_pedagogical_gramotnost: 11 } },
 ];
 
 export const methodology: MethodologyRegistration = {
