@@ -1004,7 +1004,7 @@
 - [x] 996. Опросник копинг-установок подростков — `blocked`; [страница методики](https://psytests.org/coping/acope.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html). [review](../reviews/method-0996.md);
 - [ ] 997. Опросник кризисного состояния несовершеннолетнего — `queued`; [страница методики](https://psytests.org/diag/oks7.html); путеводители: [clinical-s-risk-ru.html](https://psytests.org/guide/clinical-s-risk-ru.html).
 - [x] 998. Опросник кризисной идентичности — `blocked`; [страница методики](https://psytests.org/ident/oki.html); путеводители: [meaning-concerns-ru.html](https://psytests.org/guide/meaning-concerns-ru.html). [review](../reviews/method-0998.md);
-- [ ] 999. Опросник ЛА-44 — `queued`; [страница методики](https://psytests.org/confl/la44.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
+- [x] 999. Опросник ЛА-44 — `blocked`; [страница методики](https://psytests.org/confl/la44.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-0999.md);
 - [ ] 1000. Опросник Липпонена — `queued`; [страница методики](https://psytests.org/work/oisl.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html).
 - [ ] 1001. Опросник личностного динамизма — `queued`; [страница методики](https://psytests.org/emvol/sld.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html).
 - [ ] 1002. Опросник личностной склонности к творчеству — `queued`; [страница методики](https://psytests.org/school/davisP.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
