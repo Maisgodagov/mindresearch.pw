@@ -782,7 +782,7 @@
 - [ ] 774. Насколько вы контрзависимы? — `queued`; [страница методики](https://psytests.org/quiz/cskz.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [x] 775. Насколько вы совместимы? — `blocked`; [страница методики](https://psytests.org/ipl/pease.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-0775.md);
 - [x] 776. Насколько вы уверены в себе? — `blocked`; [страница методики](https://psytests.org/trait/pruvs.html); путеводители: [trait-interpersonal-ru.html](https://psytests.org/guide/trait-interpersonal-ru.html). [review](../reviews/method-0776.md);
-- [ ] 777. Насколько хороши ваши взаимоотношения с мужчинами — `queued`; [страница методики](https://psytests.org/quiz/nhvvm.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
+- [x] 777. Насколько хороши ваши взаимоотношения с мужчинами — `blocked`; [страница методики](https://psytests.org/quiz/nhvvm.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-0777.md);
 - [ ] 778. Находитесь ли вы в манипулятивных отношениях? — `queued`; [страница методики](https://psytests.org/quiz/braimo.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [ ] 779. Невоплощенность в Интернете — `queued`; [страница методики](https://psytests.org/cyber/neint.html); путеводители: [cyberpsychology-ru.html](https://psytests.org/guide/cyberpsychology-ru.html).
 - [ ] 780. Незаконченные предложения Сакса-Леви — `queued`; [страница методики](https://psytests.org/classic/ssct.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html).
