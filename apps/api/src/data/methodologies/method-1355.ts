@@ -117,6 +117,6 @@ const keyed = [
 export const scoringConfig: ConfigurableScoring = { min:0, max:1, scales:keyed.map(([key,label,items])=>({key,label,items:[...items],reverseItems:[],aggregation:'sum'})) };
 const validationCases: ValidationCase[] = [
  {title:'Все ответы «Нет»',answers:Object.fromEntries(items.map((_,i)=>[String(i+1),0])),expected:Object.fromEntries(keyed.map(([k])=>[k,0]))},
- {title:'Ручная проверка: «Да» только на пункт 6 даёт один балл творческой способности',answers:{...Object.fromEntries(items.map((_,i)=>[String(i+1),0])),'6':1},expected:Object.fromEntries(keyed.map(([k,_,numbers])=>[k,numbers.includes(6)?1:0]))},
+ {title:'Ручная проверка: «Да» только на пункт 6 даёт один балл творческой способности',answers:{...Object.fromEntries(items.map((_,i)=>[String(i+1),0])),'6':1},expected:Object.fromEntries(keyed.map(([k,_,numbers])=>[k,numbers.some(number=>number===6)?1:0]))},
 ];
 export const methodology: MethodologyRegistration = { instrument, scoringConfig, validationCases, formulaVersion:'simonov-dementyeva-pedagogical-readiness-2005-v1' };
