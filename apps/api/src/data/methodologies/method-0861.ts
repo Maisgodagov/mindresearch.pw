@@ -79,7 +79,7 @@ export const methodology: MethodologyRegistration = {
   formulaVersion: 'perma-profiler-ru-isaeva-akimova-volkova-23item-means-v1',
   details: {
     version: 'Русскоязычная адаптация PERMA-Profiler, 23 пункта (Исаева, Акимова, Волкова, 2022)',
-    summary: instrument.description,
+    summary: instrument.description ?? '',
     steps: [
       'Каждый ответ кодируется числом от 0 до 10 согласно выбранной границе шкалы конкретного вопроса.',
       'Балл каждой шкалы равен среднему арифметическому её пунктов; диапазон всех результатов — 0–10. Обратных пунктов нет.',
