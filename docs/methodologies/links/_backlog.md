@@ -1430,7 +1430,7 @@
 - [x] 1422. Поощрения и наказания — `blocked`; [страница методики](https://psytests.org/parent/pin.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-1422.md);
 - [x] 1423. Попали ли ваши отношения в ловушку страсти? — `implemented-local`; [страница методики](https://psytests.org/quiz/delis.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-1423.md);
 - [x] 1424. Порог активности — `blocked`; [страница методики](https://psytests.org/emvol/poract.html); путеводители: [trait-arousal-ru.html](https://psytests.org/guide/trait-arousal-ru.html). [review](../reviews/method-1424.md);
-- [ ] 1425. Портретный ценностный опросник Шварца — `queued`; [страница методики](https://psytests.org/life/pvqrr.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
+- [x] 1425. Портретный ценностный опросник Шварца — `blocked`; [страница методики](https://psytests.org/life/pvqrr.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1425.md);
 - [ ] 1426. Посттравматический рост – 8 — `queued`; [страница методики](https://psytests.org/diag/ptr8.html); путеводители: [clinical-trauma-ru.html](https://psytests.org/guide/clinical-trauma-ru.html).
 - [ ] 1427. Потенциал самоизменений личности — `queued`; [страница методики](https://psytests.org/emvol/potsam.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
 - [ ] 1428. Потенциальный антрепренер — `queued`; [страница методики](https://psytests.org/work/opredp.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
