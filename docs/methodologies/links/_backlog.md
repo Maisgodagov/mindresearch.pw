@@ -1332,7 +1332,7 @@
 - [x] 1324. Оптимальный стиль обучения — `blocked`; [страница методики](https://psytests.org/typo/linksA.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html). [review](../reviews/method-1324.md);
 - [x] 1325. Опыт близких отношений — `done` (release c4ce94d); [страница методики](https://psytests.org/ipl/ecrr.html); путеводители: [close-attachment-ru.html](https://psytests.org/guide/close-attachment-ru.html). [review](../reviews/method-1325.md);
 - [x] 1326. Опыт близких отношений – структуры отношений — `implemented-local`; [страница методики](https://psytests.org/ipl/ecrrs.html); путеводители: [close-attachment-ru.html](https://psytests.org/guide/close-attachment-ru.html). [review](../reviews/method-1326.md);
-- [ ] 1327. Ориентация на учет будущих последствий — `queued`; [страница методики](https://psytests.org/emvol/cfc14.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
+- [x] 1327. Ориентация на учет будущих последствий — `implemented-local`; [страница методики](https://psytests.org/emvol/cfc14.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1327.md);
 - [ ] 1328. Ориентировочная анкета Басса — `queued`; [страница методики](https://psytests.org/work/boiA.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
 - [ ] 1329. ОСА-31 — `queued`; [страница методики](https://psytests.org/life/axi31.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
 - [ ] 1330. ОСК — `queued`; [страница методики](https://psytests.org/trait/uskosk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
