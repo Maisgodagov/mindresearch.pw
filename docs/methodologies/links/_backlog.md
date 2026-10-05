@@ -800,7 +800,7 @@
 - [x] 792. Нормативность. Интеллект. Регуляция — `blocked`; [страница методики](https://psytests.org/emvol/nir.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html). [review](../reviews/method-0792.md);
 - [x] 793. НЧЛ — `implemented-local`; [страница методики](https://psytests.org/stress/nchl.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html). [review](../reviews/method-0793.md);
 - [x] 794. Обзор ценностей Шварца — `blocked`; [страница методики](https://psytests.org/life/svsK.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-0794.md);
-- [ ] 795. Обладаете ли вы харизмой? — `queued`; [страница методики](https://psytests.org/quiz/charizm.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
+- [x] 795. Обладаете ли вы харизмой? — `blocked`; [страница методики](https://psytests.org/quiz/charizm.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0795.md);
 - [ ] 796. Обнаружение своих драконов — `queued`; [страница методики](https://psytests.org/quiz/dragons.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html).
 - [ ] 797. Образ взрослости моего ребенка — `queued`; [страница методики](https://psytests.org/parent/obvzrA.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html).
 - [ ] 798. Обсессивно-компульсивная шкала Йеля-Брауна — `queued`; [страница методики](https://psytests.org/diag/ybocs.html); путеводители: [clinical-ocd-ru.html](https://psytests.org/guide/clinical-ocd-ru.html).
