@@ -841,7 +841,7 @@
 - [x] 833. Опросник EPOCH — `implemented-local`; [страница методики](https://psytests.org/life/epoch.html); путеводители: [meaning-satisfaction-ru.html](https://psytests.org/guide/meaning-satisfaction-ru.html). [review](../reviews/method-0833.md);
 - [x] 834. Опросник ICAST-P — `blocked`; [страница методики](https://psytests.org/diag/icastP.html); путеводители: [clinical-family-risk-ru.html](https://psytests.org/guide/clinical-family-risk-ru.html). [review](../reviews/method-0834.md);
 - [x] 835. Опросник INDCOL — `implemented-local`; [страница методики](https://psytests.org/group/indcol.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-0835.md);
-- [ ] 836. Опросник P-A-C — `queued`; [страница методики](https://psytests.org/ta/pacq.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html).
+- [x] 836. Опросник P-A-C — `blocked`; [страница методики](https://psytests.org/ta/pacq.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html). [review](../reviews/method-0836.md);
 - [ ] 837. Опросник ProQOL — `queued`; [страница методики](https://psytests.org/work/proqol.html); путеводители: [mood-burnout-ru.html](https://psytests.org/guide/mood-burnout-ru.html).
 - [ ] 838. Опросник Q-сортировка — `queued`; [страница методики](https://psytests.org/ipl/qsorting.html); путеводители: [trait-interpersonal-ru.html](https://psytests.org/guide/trait-interpersonal-ru.html).
 - [ ] 839. Опросник SCOFF — `queued`; [страница методики](https://psytests.org/body/scoff.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html).
