@@ -1516,7 +1516,7 @@
 - [x] 1508. Пять брачных факторов — `blocked`; [страница методики](https://psytests.org/family/brf5.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html). [review](../reviews/method-1508.md);
 - [x] 1509. Пять языков извинений — `blocked`; [страница методики](https://psytests.org/quiz/5sorry.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-1509.md);
 - [x] 1510. Пять языков любви — `blocked`; [страница методики](https://psytests.org/quiz/5loveF.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-1510.md);
-- [ ] 1511. Размышляем о жизненном опыте — `queued`; [страница методики](https://psytests.org/ipl/dinlr.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
+- [x] 1511. Размышляем о жизненном опыте — `implemented-local`; [страница методики](https://psytests.org/ipl/dinlr.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html). [review](../reviews/method-1511.md);
 - [ ] 1512. Распределение ролей в семье — `queued`; [страница методики](https://psytests.org/family/sprole.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 1513. Расширенный тест жизненных ориентаций — `queued`; [страница методики](https://psytests.org/life/elot.html); путеводители: [trait-beliefs-ru.html](https://psytests.org/guide/trait-beliefs-ru.html).
 - [ ] 1514. Реабилитационный потенциал личности — `queued`; [страница методики](https://psytests.org/diag/rpl.html); путеводители: [clinical-health-ru.html](https://psytests.org/guide/clinical-health-ru.html).
