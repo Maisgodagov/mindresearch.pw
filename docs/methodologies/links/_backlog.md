@@ -1173,7 +1173,7 @@
 - [ ] 1165. Опросник расстройств аутистического спектра — `queued`; [страница методики](https://psytests.org/diag/casd.html); путеводители: [clinical-autistic-ru.html](https://psytests.org/guide/clinical-autistic-ru.html).
 - [x] 1166. Опросник расстройств настроения — `implemented-local`; [страница методики](https://psytests.org/diag/mdq.html); путеводители: [clinical-bipolar-ru.html](https://psytests.org/guide/clinical-bipolar-ru.html). [review](../reviews/method-1166.md);
 - [x] 1167. Опросник расстройств пищевого поведения — `blocked`; [страница методики](https://psytests.org/body/edeq2.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html). [review](../reviews/method-1167.md);
-- [ ] 1168. Опросник Рациональный-Опытный — `queued`; [страница методики](https://psytests.org/emvol/rei.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html).
+- [x] 1168. Опросник Рациональный-Опытный — `blocked`; [страница методики](https://psytests.org/emvol/rei.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html). [review](../reviews/method-1168.md);
 - [ ] 1169. Опросник реакции на горе Хогана — `queued`; [страница методики](https://psytests.org/depr/hgrc.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html).
 - [ ] 1170. Опросник Ревность — `queued`; [страница методики](https://psytests.org/ipl/revnost.html); путеводители: [close-emotions-ru.html](https://psytests.org/guide/close-emotions-ru.html).
 - [ ] 1171. Опросник режимов Янга — `queued`; [страница методики](https://psytests.org/cbt/ysmi.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html).
