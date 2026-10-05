@@ -1677,7 +1677,7 @@
 - [x] 1669. Стратегия — `blocked`; [страница методики](https://psytests.org/zhar/stratg.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html). [review](../reviews/method-1669.md);
 - [x] 1670. Стратклайдский опросник — `blocked`; [страница методики](https://psytests.org/exist/si22.html); путеводители: [meaning-concerns-ru.html](https://psytests.org/guide/meaning-concerns-ru.html). [review](../reviews/method-1670.md);
 - [x] 1671. Страх негативной оценки внешности — `implemented-local`; [страница методики](https://psytests.org/anxiety/fnaes.html); путеводители: [mood-anxiety-ru.html](https://psytests.org/guide/mood-anxiety-ru.html). [review](../reviews/method-1671.md);
-- [ ] 1672. Страх перед экзаменом — `queued`; [страница методики](https://psytests.org/anxiety/spe.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html).
+- [x] 1672. Страх перед экзаменом — `blocked`; [страница методики](https://psytests.org/anxiety/spe.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html). [review](../reviews/method-1672.md);
 - [ ] 1673. Стремление к когнитивной закрытости — `queued`; [страница методики](https://psytests.org/trait/nfcs.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html).
 - [ ] 1674. Стремление к порядку и предсказуемости — `queued`; [страница методики](https://psytests.org/trait/spip.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html).
 - [ ] 1675. Стресс и тревога во время вирусной эпидемии — `queued`; [страница методики](https://psytests.org/stress/save9.html); путеводители: [mood-anxiety-ru.html](https://psytests.org/guide/mood-anxiety-ru.html).
