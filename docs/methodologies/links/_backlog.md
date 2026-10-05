@@ -1334,7 +1334,7 @@
 - [x] 1326. Опыт близких отношений – структуры отношений — `implemented-local`; [страница методики](https://psytests.org/ipl/ecrrs.html); путеводители: [close-attachment-ru.html](https://psytests.org/guide/close-attachment-ru.html). [review](../reviews/method-1326.md);
 - [x] 1327. Ориентация на учет будущих последствий — `implemented-local`; [страница методики](https://psytests.org/emvol/cfc14.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1327.md);
 - [x] 1328. Ориентировочная анкета Басса — `blocked`; [страница методики](https://psytests.org/work/boiA.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1328.md);
-- [ ] 1329. ОСА-31 — `queued`; [страница методики](https://psytests.org/life/axi31.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html).
+- [x] 1329. ОСА-31 — `implemented-local`; [страница методики](https://psytests.org/life/axi31.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-1329.md);
 - [ ] 1330. ОСК — `queued`; [страница методики](https://psytests.org/trait/uskosk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
 - [ ] 1331. ОСЛК — `queued`; [страница методики](https://psytests.org/trait/uslk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
 - [ ] 1332. Особенности общения между супругами — `queued`; [страница методики](https://psytests.org/family/spdial.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
