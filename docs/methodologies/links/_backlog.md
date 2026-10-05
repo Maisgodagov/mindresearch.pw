@@ -1674,7 +1674,7 @@
 - [x] 1666. Стратегии самопредъявления — `done` (release 0024147); [страница методики](https://psytests.org/ipl/skspl.html); путеводители: [trait-presentation-ru.html](https://psytests.org/guide/trait-presentation-ru.html). [review](../reviews/method-1666.md);
 - [x] 1667. Стратегии семейного воспитания — `blocked`; [страница методики](https://psytests.org/parent/strsv.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-1667.md);
 - [x] 1668. Стратегии совладающего поведения — `implemented-local`; [страница методики](https://psytests.org/coping/wcq.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html). [review](../reviews/method-1668.md);
-- [ ] 1669. Стратегия — `queued`; [страница методики](https://psytests.org/zhar/stratg.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html).
+- [x] 1669. Стратегия — `blocked`; [страница методики](https://psytests.org/zhar/stratg.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html). [review](../reviews/method-1669.md);
 - [ ] 1670. Стратклайдский опросник — `queued`; [страница методики](https://psytests.org/exist/si22.html); путеводители: [meaning-concerns-ru.html](https://psytests.org/guide/meaning-concerns-ru.html).
 - [ ] 1671. Страх негативной оценки внешности — `queued`; [страница методики](https://psytests.org/anxiety/fnaes.html); путеводители: [mood-anxiety-ru.html](https://psytests.org/guide/mood-anxiety-ru.html).
 - [ ] 1672. Страх перед экзаменом — `queued`; [страница методики](https://psytests.org/anxiety/spe.html); путеводители: [learning-ru.html](https://psytests.org/guide/learning-ru.html).
