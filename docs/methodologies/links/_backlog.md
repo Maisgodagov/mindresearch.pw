@@ -1747,7 +1747,7 @@
 - [x] 1739. Тест интеллекта IQtest.dk — `blocked`; [страница методики](https://psytests.org/iq/iqdk.html); путеводители: [intelligence-cognitive-ru.html](https://psytests.org/guide/intelligence-cognitive-ru.html). [review](../reviews/method-1739.md);
 - [x] 1740. Тест интеллектуального потенциала — `blocked`; [страница методики](https://psytests.org/iq/ipoA.html); путеводители: [intelligence-cognitive-ru.html](https://psytests.org/guide/intelligence-cognitive-ru.html). [review](../reviews/method-1740.md);
 - [x] 1741. Тест интересов и склонностей — `blocked`; [страница методики](https://psytests.org/work/tiis.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-1741.md);
-- [ ] 1742. Тест иррациональных убеждений — `queued`; [страница методики](https://psytests.org/cbt/ibt.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html).
+- [x] 1742. Тест иррациональных убеждений — `blocked`; [страница методики](https://psytests.org/cbt/ibt.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html). [review](../reviews/method-1742.md);
 - [ ] 1743. Тест Кеттелла-Ясюковой — `queued`; [страница методики](https://psytests.org/multi/catYC.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html).
 - [ ] 1744. Тест Кибби — `queued`; [страница методики](https://psytests.org/typo/kibbe.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 1745. Тест когнитивной рефлексии — `queued`; [страница методики](https://psytests.org/iq/crtf.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html).
