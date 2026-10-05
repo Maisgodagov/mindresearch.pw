@@ -1619,7 +1619,7 @@
 - [x] 1611. Словесные субтесты — `blocked`; [страница методики](https://psytests.org/iq/zamb.html); путеводители: [intelligence-cognitive-ru.html](https://psytests.org/guide/intelligence-cognitive-ru.html). [review](../reviews/method-1611.md);
 - [x] 1612. Смекала-Кучера — `blocked`; [страница методики](https://psytests.org/work/boiB.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1612.md);
 - [x] 1613. СМИЛ — `blocked`; [страница методики](https://psytests.org/mmpi/smilF.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html). [review](../reviews/method-1613.md);
-- [ ] 1614. Смысловые базовые установки — `queued`; [страница методики](https://psytests.org/cbt/bdasE.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html).
+- [x] 1614. Смысловые базовые установки — `implemented-local`; [страница методики](https://psytests.org/cbt/bdasE.html); путеводители: [framework-cbt-ru.html](https://psytests.org/guide/framework-cbt-ru.html). [review](../reviews/method-1614.md);
 - [ ] 1615. Сознательное родительство — `queued`; [страница методики](https://psytests.org/parent/sozrod.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 1616. Состояние безопасности у личности — `queued`; [страница методики](https://psytests.org/life/sbul.html); путеводители: [meaning-satisfaction-ru.html](https://psytests.org/guide/meaning-satisfaction-ru.html).
 - [ ] 1617. Состояния энергичности и усталости — `queued`; [страница методики](https://psytests.org/stress/stef.html); путеводители: [clinical-somatic-ru.html](https://psytests.org/guide/clinical-somatic-ru.html).
