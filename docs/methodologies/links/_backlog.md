@@ -1434,7 +1434,7 @@
 - [x] 1426. Посттравматический рост – 8 — `blocked`; [страница методики](https://psytests.org/diag/ptr8.html); путеводители: [clinical-trauma-ru.html](https://psytests.org/guide/clinical-trauma-ru.html). [review](../reviews/method-1426.md);
 - [x] 1427. Потенциал самоизменений личности — `implemented-local`; [страница методики](https://psytests.org/emvol/potsam.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html). [review](../reviews/method-1427.md);
 - [x] 1428. Потенциальный антрепренер — `blocked`; [страница методики](https://psytests.org/work/opredp.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html). [review](../reviews/method-1428.md);
-- [ ] 1429. Почему ты занимаешься спортом? — `queued`; [страница методики](https://psytests.org/sport/ptzsA.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html).
+- [x] 1429. Почему ты занимаешься спортом? — `implemented-local`; [страница методики](https://psytests.org/sport/ptzsA.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-1429.md);
 - [ ] 1430. Почти совершенная семейная шкала — `queued`; [страница методики](https://psytests.org/trait/apsf.html); путеводители: [trait-regulation-ru.html](https://psytests.org/guide/trait-regulation-ru.html).
 - [ ] 1431. Почти совершенная шкала — `queued`; [страница методики](https://psytests.org/trait/apsr.html); путеводители: [trait-regulation-ru.html](https://psytests.org/guide/trait-regulation-ru.html).
 - [ ] 1432. Правда или заблуждение — `queued`; [страница методики](https://psytests.org/ipl/piz.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
