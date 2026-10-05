@@ -1726,7 +1726,7 @@
 - [x] 1718. Тест виктимной идентичности — `blocked`; [страница методики](https://psytests.org/ipl/andvid.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html). [review](../reviews/method-1718.md);
 - [x] 1719. Тест включённых фигур — `blocked`; [страница методики](https://psytests.org/cogn/eft.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html). [review](../reviews/method-1719.md);
 - [x] 1720. Тест внутренней агрессивности — `blocked`; [страница методики](https://psytests.org/quiz/tvagr.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-1720.md);
-- [ ] 1721. Тест враждебности — `queued`; [страница методики](https://psytests.org/confl/tvhg.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
+- [x] 1721. Тест враждебности — `blocked`; [страница методики](https://psytests.org/confl/tvhg.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-1721.md);
 - [ ] 1722. Тест Герчикова — `queued`; [страница методики](https://psytests.org/work/motype.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
 - [ ] 1723. Тест Голланда — `queued`; [страница методики](https://psytests.org/typo/riasecA.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 1724. Тест Грея-Уилрайта — `queued`; [страница методики](https://psytests.org/typo/gwjts.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
