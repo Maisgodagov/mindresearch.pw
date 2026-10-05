@@ -1296,7 +1296,7 @@
 - [x] 1288. Опросник формы тела — `blocked`; [страница методики](https://psytests.org/body/bsq.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html). [review](../reviews/method-1288.md);
 - [x] 1289. Опросник функциональных эго-состояний — `blocked`; [страница методики](https://psytests.org/ta/haypsq.html); путеводители: [framework-ta-ru.html](https://psytests.org/guide/framework-ta-ru.html). [review](../reviews/method-1289.md);
 - [x] 1290. Опросник ХАЛ-НПН — `blocked`; [страница методики](https://psytests.org/accent/halnpn.html); путеводители: [work-service-ru.html](https://psytests.org/guide/work-service-ru.html). [review](../reviews/method-1290.md);
-- [ ] 1291. Опросник хикикомори — `queued`; [страница методики](https://psytests.org/depr/hq25.html); путеводители: [social-loneliness-ru.html](https://psytests.org/guide/social-loneliness-ru.html).
+- [x] 1291. Опросник хикикомори — `blocked`; [страница методики](https://psytests.org/depr/hq25.html); путеводители: [social-loneliness-ru.html](https://psytests.org/guide/social-loneliness-ru.html). [review](../reviews/method-1291.md);
 - [ ] 1292. Опросник Хомича по выявлению метапрограмм — `queued`; [страница методики](https://psytests.org/typo/metap.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 1293. Опросник ценностного материализма — `queued`; [страница методики](https://psytests.org/life/ocmat.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
 - [ ] 1294. Опросник ценностных ориентаций Олпорта — `queued`; [страница методики](https://psytests.org/life/sov.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
