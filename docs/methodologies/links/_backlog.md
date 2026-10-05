@@ -1727,7 +1727,7 @@
 - [x] 1719. Тест включённых фигур — `blocked`; [страница методики](https://psytests.org/cogn/eft.html); путеводители: [trait-cognitive-ru.html](https://psytests.org/guide/trait-cognitive-ru.html). [review](../reviews/method-1719.md);
 - [x] 1720. Тест внутренней агрессивности — `blocked`; [страница методики](https://psytests.org/quiz/tvagr.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-1720.md);
 - [x] 1721. Тест враждебности — `blocked`; [страница методики](https://psytests.org/confl/tvhg.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-1721.md);
-- [ ] 1722. Тест Герчикова — `queued`; [страница методики](https://psytests.org/work/motype.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
+- [x] 1722. Тест Герчикова — `blocked`; [страница методики](https://psytests.org/work/motype.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html). [review](../reviews/method-1722.md);
 - [ ] 1723. Тест Голланда — `queued`; [страница методики](https://psytests.org/typo/riasecA.html); путеводители: [work-career-ru.html](https://psytests.org/guide/work-career-ru.html).
 - [ ] 1724. Тест Грея-Уилрайта — `queued`; [страница методики](https://psytests.org/typo/gwjts.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
 - [ ] 1725. Тест депрессии Жмурова — `queued`; [страница методики](https://psytests.org/depr/mddds.html); путеводители: [mood-depression-ru.html](https://psytests.org/guide/mood-depression-ru.html).
