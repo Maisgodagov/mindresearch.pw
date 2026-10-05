@@ -780,7 +780,7 @@
 - [x] 772. Нарциссический опросник личности — `blocked`; [страница методики](https://psytests.org/darktriad/npi40.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html). [review](../reviews/method-0772.md);
 - [x] 773. Насколько вы интро-/экстраверт — `implemented-local`; [страница методики](https://psytests.org/quiz/sandie.html); путеводители: [pop-self-discovery-ru.html](https://psytests.org/guide/pop-self-discovery-ru.html). [review](../reviews/method-0773.md);
 - [ ] 774. Насколько вы контрзависимы? — `queued`; [страница методики](https://psytests.org/quiz/cskz.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
-- [ ] 775. Насколько вы совместимы? — `queued`; [страница методики](https://psytests.org/ipl/pease.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
+- [x] 775. Насколько вы совместимы? — `blocked`; [страница методики](https://psytests.org/ipl/pease.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-0775.md);
 - [ ] 776. Насколько вы уверены в себе? — `queued`; [страница методики](https://psytests.org/trait/pruvs.html); путеводители: [trait-interpersonal-ru.html](https://psytests.org/guide/trait-interpersonal-ru.html).
 - [ ] 777. Насколько хороши ваши взаимоотношения с мужчинами — `queued`; [страница методики](https://psytests.org/quiz/nhvvm.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
 - [ ] 778. Находитесь ли вы в манипулятивных отношениях? — `queued`; [страница методики](https://psytests.org/quiz/braimo.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html).
