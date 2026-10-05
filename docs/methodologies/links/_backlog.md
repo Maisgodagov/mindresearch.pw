@@ -1449,7 +1449,7 @@
 - [x] 1441. Привязанность к дому — `implemented-local`; [страница методики](https://psytests.org/life/fdomp.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-1441.md);
 - [x] 1442. Признаки агрессивности — `blocked`; [страница методики](https://psytests.org/confl/praggr.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html). [review](../reviews/method-1442.md);
 - [x] 1443. Присутствие отца — `blocked`; [страница методики](https://psytests.org/parent/fpq.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-1443.md);
-- [ ] 1444. Причины для жизни — `queued`; [страница методики](https://psytests.org/diag/rfl.html); путеводители: [clinical-s-risk-ru.html](https://psytests.org/guide/clinical-s-risk-ru.html).
+- [x] 1444. Причины для жизни — `blocked`; [страница методики](https://psytests.org/diag/rfl.html); путеводители: [clinical-s-risk-ru.html](https://psytests.org/guide/clinical-s-risk-ru.html). [review](../reviews/method-1444.md);
 - [ ] 1445. Причины стресса в вашей работе — `queued`; [страница методики](https://psytests.org/stress/shprof.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html).
 - [ ] 1446. Проактивное поведение — `queued`; [страница методики](https://psytests.org/trait/propov.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
 - [ ] 1447. Проактивное совладающее поведение — `queued`; [страница методики](https://psytests.org/coping/pcir.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html).
