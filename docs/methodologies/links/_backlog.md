@@ -796,7 +796,7 @@
 - [x] 788. Новая шкала монетарного поведения — `implemented-local`; [страница методики](https://psytests.org/life/nmaq.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-0788.md);
 - [x] 789. Новая экологическая парадигма — `ru-ineligible`; [страница методики](https://psytests.org/eco/enep.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-0789.md);
 - [x] 790. Новый опросник толерантности к неопределенности — `blocked`; [страница методики](https://psytests.org/trait/notkn.html); путеводители: [regulation-uncertainty-ru.html](https://psytests.org/guide/regulation-uncertainty-ru.html). [review](../reviews/method-0790.md);
-- [ ] 791. НОЛ — `queued`; [страница методики](https://psytests.org/darktriad/npiZ.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html).
+- [x] 791. НОЛ — `blocked`; [страница методики](https://psytests.org/darktriad/npiZ.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html). [review](../reviews/method-0791.md);
 - [ ] 792. Нормативность. Интеллект. Регуляция — `queued`; [страница методики](https://psytests.org/emvol/nir.html); путеводители: [work-ru.html](https://psytests.org/guide/work-ru.html).
 - [ ] 793. НЧЛ — `queued`; [страница методики](https://psytests.org/stress/nchl.html); путеводители: [clinical-general-ru.html](https://psytests.org/guide/clinical-general-ru.html).
 - [ ] 794. Обзор ценностей Шварца — `queued`; [страница методики](https://psytests.org/life/svsK.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html).
