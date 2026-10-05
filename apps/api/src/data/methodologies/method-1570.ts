@@ -48,10 +48,9 @@ const questions: SeedSection['questions'] = [
   {
     code: 'test_1587_9', text: 'Длительность полового расстройства', type: 'single', required: true, options,
   },
-].map((question, index) => ({
-  ...question,
-  text: `${index + 1}. ${question.text}`,
-}));
+];
+
+for (const [index, question] of questions.entries()) question.text = `${index + 1}. ${question.text}`;
 
 const responseTexts: string[][] = [
   [
