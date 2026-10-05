@@ -1336,7 +1336,7 @@
 - [x] 1328. Ориентировочная анкета Басса — `blocked`; [страница методики](https://psytests.org/work/boiA.html); путеводители: [trait-goal-ru.html](https://psytests.org/guide/trait-goal-ru.html). [review](../reviews/method-1328.md);
 - [x] 1329. ОСА-31 — `implemented-local`; [страница методики](https://psytests.org/life/axi31.html); путеводители: [social-culture-ru.html](https://psytests.org/guide/social-culture-ru.html). [review](../reviews/method-1329.md);
 - [x] 1330. ОСК — `implemented-local`; [страница методики](https://psytests.org/trait/uskosk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html). [review](../reviews/method-1330.md);
-- [ ] 1331. ОСЛК — `queued`; [страница методики](https://psytests.org/trait/uslk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
+- [x] 1331. ОСЛК — `blocked`; [страница методики](https://psytests.org/trait/uslk.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html). [review](../reviews/method-1331.md);
 - [ ] 1332. Особенности общения между супругами — `queued`; [страница методики](https://psytests.org/family/spdial.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
 - [ ] 1333. Особенности самоутверждения в подростковом возрасте — `queued`; [страница методики](https://psytests.org/emvol/ospv.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html).
 - [ ] 1334. Осознанное родительство для родителей — `queued`; [страница методики](https://psytests.org/parent/mpip.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
