@@ -110,7 +110,7 @@ export const scoringConfig: ConfigurableScoring = {
 const validationCases: ValidationCase[] = [
   {
     title: 'Ручная проверка ключа: постоянный ответ «часто»; обратные свойства инвертируются',
-    answers: Object.fromEntries(range(1, 60).map(item => [String(item), 2])),
+    answers: Object.fromEntries(Array.from({ length: 60 }, (_, index) => [String(index + 1), 2])),
     expected: Object.fromEntries(scales.map(scale => [scale.key, 3 * scale.base.length + Object.values(scale.keyed).reduce((sum, direction) => sum + (direction === 'up' ? 2 : 1), 0)])),
   },
 ];
