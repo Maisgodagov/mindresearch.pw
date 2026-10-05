@@ -65,10 +65,10 @@ export const scoringConfig: ConfigurableScoring = {
   min: 0,
   max: 10,
   scales: [
-    { key: 'autonomous', label: 'Автономный тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], aggregation: 'count-option', optionValue: 'А' },
-    { key: 'consumer', label: 'Потребительский тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], aggregation: 'count-option', optionValue: 'Б' },
-    { key: 'compromise', label: 'Компромиссный тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], aggregation: 'count-option', optionValue: 'В' },
-    { key: 'dependent', label: 'Зависимый тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], aggregation: 'count-option', optionValue: 'Г' },
+    { key: 'autonomous', label: 'Автономный тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], reverseItems: [], aggregation: 'count-option', optionValue: 'А' },
+    { key: 'consumer', label: 'Потребительский тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], reverseItems: [], aggregation: 'count-option', optionValue: 'Б' },
+    { key: 'compromise', label: 'Компромиссный тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], reverseItems: [], aggregation: 'count-option', optionValue: 'В' },
+    { key: 'dependent', label: 'Зависимый тип', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], reverseItems: [], aggregation: 'count-option', optionValue: 'Г' },
   ],
 };
 

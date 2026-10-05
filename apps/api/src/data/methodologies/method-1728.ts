@@ -96,7 +96,7 @@ const scoringConfig: ConfigurableScoring = {
 
 const allBestAnswers = Object.fromEntries(Array.from({ length: 44 }, (_, index) => [String(index + 1), [2, 3, 5, 8, 11, 12, 13, 14, 17, 19, 22, 23, 25, 28, 31, 32, 33, 34, 37, 39, 42, 43].includes(index + 1) ? '3' : '1']));
 const validationCases: ValidationCase[] = [
-  { title: 'Ручная сверка: ответы в направлении максимального проявления тенденций дают по 7 баллов каждому пункту; общая шкала равна 280', answers: allBestAnswers, expected: { professional: 28, education: 28, family: 28, friendship: 28, leisure: 28, social_contacts: 28, material: 28, self_development: 28, achievements: 28, health: 28, love: 28, resource_economy: 70, dynamism: 70, needs_satisfaction: 70, stability: 70, life_satisfaction: 280 },
+  { title: 'Ручная сверка: ответы в направлении максимального проявления тенденций дают по 7 баллов каждому пункту; общая шкала равна 280', answers: allBestAnswers, expected: { professional: 28, education: 28, family: 28, friendship: 28, leisure: 28, social_contacts: 28, material: 28, self_development: 28, achievements: 28, health: 28, love: 28, resource_economy: 70, dynamism: 70, needs_satisfaction: 70, stability: 70, life_satisfaction: 280 } },
 ];
 
 export const methodology: MethodologyRegistration = {
