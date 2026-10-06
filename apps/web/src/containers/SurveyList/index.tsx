@@ -70,7 +70,7 @@ export function PlatformHome() {
   }, []);
   const copy = async (s: Survey) => {
     await navigator.clipboard.writeText(`${location.origin}/s/${s.slug}`);
-    window.dispatchEvent(new Event("mindresearch:onboarding-link-copied"));
+    window.dispatchEvent(new CustomEvent("mindresearch:onboarding-link-copied", { detail: { surveyId: s.id } }));
     setCopied(s.id);
     setTimeout(() => setCopied(""), 1800);
   };
@@ -84,7 +84,7 @@ export function PlatformHome() {
           item.id === s.id ? { ...item, status: "active" } : item,
         ),
       );
-      window.setTimeout(() => window.dispatchEvent(new Event("mindresearch:onboarding-survey-published")), 0);
+      window.setTimeout(() => window.dispatchEvent(new CustomEvent("mindresearch:onboarding-survey-published", { detail: { surveyId: s.id } })), 0);
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, "Не удалось опубликовать опрос"));
     } finally {

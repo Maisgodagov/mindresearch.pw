@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { api, getCurrentUser } from "../api";
@@ -61,6 +61,7 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "not_started" | "completed" | "skipped" | "error">("loading");
   const [active, setActive] = useState(false);
+  const [promptVisible, setPromptVisible] = useState(false);
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<TourRect | null>(null);
   const [targetFound, setTargetFound] = useState(false);
@@ -68,13 +69,38 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState("");
   const [resultsPath, setResultsPath] = useState("/app");
   const [onboardingSurveyId, setOnboardingSurveyId] = useState("");
+  const [userId, setUserId] = useState("");
+  const enteredStep = useRef(-1);
+  const progressKey = userId ? `mindresearch:onboarding-progress:${userId}` : "";
   const targetSelector = (selector: string) => selector.replace("__survey_id__", CSS.escape(onboardingSurveyId));
+  const routeForStep = (candidate: Step) => candidate.path === "$results"
+    ? resultsPath
+    : candidate.path === "/app/surveys/new" && onboardingSurveyId
+      ? `/app/surveys/${onboardingSurveyId}/edit`
+      : candidate.path;
   const step = steps[index];
   const inPlatform = location.pathname.startsWith("/app");
 
   const loadOnboardingStatus = useCallback(() => {
     getCurrentUser().then(user => {
       const nextStatus = user.onboardingStatus ?? "not_started";
+      enteredStep.current = -1;
+      setUserId(user.id);
+      if (nextStatus === "not_started") {
+        try {
+          const saved = sessionStorage.getItem(`mindresearch:onboarding-progress:${user.id}`);
+          if (saved) {
+            const progress = JSON.parse(saved) as { index?: number; surveyId?: string; resultsPath?: string };
+            if (Number.isInteger(progress.index) && progress.index! >= 0 && progress.index! < steps.length) {
+              setIndex(progress.index!);
+            }
+            if (typeof progress.surveyId === "string") setOnboardingSurveyId(progress.surveyId);
+            if (typeof progress.resultsPath === "string" && progress.resultsPath.startsWith("/app/")) setResultsPath(progress.resultsPath);
+          }
+        } catch { /* Session storage is optional. */ }
+      } else {
+        try { sessionStorage.removeItem(`mindresearch:onboarding-progress:${user.id}`); } catch { /* Storage is optional. */ }
+      }
       setStatus(nextStatus);
       setActive(nextStatus === "not_started");
     }).catch(() => setStatus("error"));
@@ -94,18 +120,19 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
   }, [loadOnboardingStatus]);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || !promptVisible) return;
     const current = steps[index];
-    const currentPath = current.path === "$results" ? resultsPath : current.path;
+    const currentPath = routeForStep(current);
     if (location.pathname !== currentPath) {
-      navigate(currentPath);
+      setPromptVisible(false);
       return;
     }
+    setRect(null);
+    setTargetFound(false);
     let attempts = 0;
     let timer = 0;
     let observer: ResizeObserver | undefined;
     let element: Element | null = null;
-    let enterEventDispatched = false;
     const measure = () => {
       const selector = targetSelector(current.target);
       const found = document.querySelector(selector) ?? document.querySelector("main") ?? document.body;
@@ -122,10 +149,6 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
     const locate = () => {
       const found = document.querySelector(targetSelector(current.target));
       if (found) {
-        if (current.onEnterEvent && !enterEventDispatched) {
-          enterEventDispatched = true;
-          window.dispatchEvent(new Event(current.onEnterEvent));
-        }
         found.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
         measure();
       } else if (attempts++ < 30) timer = window.setTimeout(locate, 100);
@@ -135,51 +158,111 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => { window.clearTimeout(timer); observer?.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
-  }, [active, index, location.pathname, navigate, resultsPath, onboardingSurveyId]);
+  }, [active, index, location.pathname, promptVisible, resultsPath, onboardingSurveyId]);
 
   const finish = useCallback(async (result: "completed" | "skipped") => {
     setSaving(true); setError("");
     try {
       await api.post("/account/onboarding", { status: result });
+      if (progressKey) {
+        try { sessionStorage.removeItem(progressKey); } catch { /* Session storage is optional. */ }
+      }
       setStatus(result); setActive(false);
     } catch {
       setError("Не удалось сохранить прохождение. Проверьте соединение и повторите попытку.");
     } finally { setSaving(false); }
-  }, []);
+  }, [progressKey]);
 
   const advance = useCallback(() => {
+    setPromptVisible(false);
     if (index === steps.length - 1) void finish("completed");
     else setIndex(current => current + 1);
   }, [finish, index]);
 
   useEffect(() => {
-    if (!active || !step.onTargetClick) return;
+    if (!active || !progressKey) return;
+    try {
+      sessionStorage.setItem(progressKey, JSON.stringify({ index, surveyId: onboardingSurveyId, resultsPath }));
+    } catch { /* Session storage is optional. */ }
+  }, [active, index, onboardingSurveyId, progressKey, resultsPath]);
+
+  useEffect(() => {
+    if (!active || !inPlatform) {
+      setPromptVisible(false);
+      return;
+    }
+    if (location.pathname === routeForStep(step)) return;
+    const laterStep = steps.findIndex((candidate, candidateIndex) =>
+      candidateIndex > index && routeForStep(candidate) === location.pathname &&
+      (!candidate.target.includes("__survey_id__") || Boolean(onboardingSurveyId)),
+    );
+    if (laterStep >= 0) setIndex(laterStep);
+    setPromptVisible(false);
+  }, [active, inPlatform, index, location.pathname, onboardingSurveyId, resultsPath, step]);
+
+  useEffect(() => {
+    if (!active || !inPlatform || location.pathname !== routeForStep(step)) {
+      setPromptVisible(false);
+      return;
+    }
+    setPromptVisible(false);
+    const timer = window.setTimeout(() => setPromptVisible(true), 1800);
+    return () => window.clearTimeout(timer);
+  }, [active, inPlatform, index, location.pathname, onboardingSurveyId, resultsPath, step]);
+
+  useEffect(() => {
+    if (!active || !promptVisible || !step.onEnterEvent || enteredStep.current === index) return;
+    enteredStep.current = index;
+    window.dispatchEvent(new Event(step.onEnterEvent));
+  }, [active, index, promptVisible, step]);
+
+  useEffect(() => {
+    if (!active || !inPlatform) return;
     const handleClick = (event: MouseEvent) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const clicked = event.target instanceof Element ? event.target.closest(targetSelector(step.onTargetClick!)) : null;
-      if (!clicked || clicked.getAttribute("aria-disabled") === "true" || clicked.matches(":disabled")) return;
-      if (step.capturePath) {
-        const href = clicked.getAttribute("href") ?? clicked.closest("a")?.getAttribute("href");
-        if (href) setResultsPath(href);
+      if (!(event.target instanceof Element)) return;
+      for (let candidateIndex = index; candidateIndex < steps.length; candidateIndex += 1) {
+        const candidate = steps[candidateIndex];
+        if (!candidate.onTargetClick) continue;
+        const clicked = event.target.closest(targetSelector(candidate.onTargetClick));
+        if (!clicked || clicked.getAttribute("aria-disabled") === "true" || clicked.matches(":disabled")) continue;
+        if (candidate.capturePath) {
+          const href = clicked.getAttribute("href") ?? clicked.closest("a")?.getAttribute("href");
+          if (href) setResultsPath(href);
+        }
+        const surveyId = clicked.getAttribute("data-survey-id");
+        if (surveyId) setOnboardingSurveyId(surveyId);
+        setPromptVisible(false);
+        setIndex(Math.min(candidateIndex + 1, steps.length - 1));
+        return;
       }
-      advance();
     };
     document.addEventListener("click", handleClick, true);
     return () => document.removeEventListener("click", handleClick, true);
-  }, [active, advance, step]);
+  }, [active, inPlatform, index, onboardingSurveyId]);
 
   useEffect(() => {
-    if (!active || !step.advanceEvent) return;
-    const handleAdvance = (event: Event) => {
-      if (step.conditionalSave) {
-        const detail = (event as CustomEvent<{ published?: boolean; surveyId?: string }>).detail;
-        if (detail?.surveyId) setOnboardingSurveyId(detail.surveyId);
-        setIndex(current => current + (detail?.published ? 2 : 1));
-      } else advance();
-    };
-    window.addEventListener(step.advanceEvent, handleAdvance);
-    return () => window.removeEventListener(step.advanceEvent!, handleAdvance);
-  }, [active, advance, step]);
+    if (!active) return;
+    const cleanups = steps.flatMap((candidate, candidateIndex) => {
+      if (!candidate.advanceEvent) return [];
+      const handleAdvance = (event: Event) => {
+        if (candidateIndex < index) return;
+        const eventSurveyId = (event as CustomEvent<{ surveyId?: string }>).detail?.surveyId;
+        if (candidate.target.includes("__survey_id__") && eventSurveyId !== onboardingSurveyId) return;
+        setPromptVisible(false);
+        if (candidate.conditionalSave) {
+          const detail = (event as CustomEvent<{ published?: boolean; surveyId?: string }>).detail;
+          if (detail?.surveyId) setOnboardingSurveyId(detail.surveyId);
+          setIndex(Math.min(candidateIndex + (detail?.published ? 2 : 1), steps.length - 1));
+        } else {
+          setIndex(Math.min(candidateIndex + 1, steps.length - 1));
+        }
+      };
+      window.addEventListener(candidate.advanceEvent, handleAdvance);
+      return [() => window.removeEventListener(candidate.advanceEvent!, handleAdvance)];
+    });
+    return () => cleanups.forEach(cleanup => cleanup());
+  }, [active, index, onboardingSurveyId]);
 
   const cardPosition = useMemo<CardPosition>(() => {
     const margin = 16;
@@ -239,7 +322,7 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
     return { top: maxTop, left: Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin)) };
   }, [rect, step.target]);
 
-  return <>{children}{active && inPlatform && <>
+  return <>{children}{active && inPlatform && promptVisible && location.pathname === routeForStep(step) && <>
     {rect && targetFound && <Spotlight $rect={rect} />}
     <Card $position={cardPosition} role="dialog" aria-modal="false" aria-labelledby="onboarding-title">
       <div className="progress"><span style={{ width: `${((index + 1) / steps.length) * 100}%` }} /></div>
@@ -250,7 +333,7 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
       {error && <div className="error" role="alert">{error}</div>}
       <div className="controls">
         <Button className="skip" disabled={saving} onClick={() => void finish("skipped")}>Пропустить</Button>
-        {index > 0 && <Button disabled={saving} onClick={() => setIndex(current => current - 1)}>Назад</Button>}
+        {index > 0 && <Button disabled={saving} onClick={() => { const previousIndex = index - 1; setPromptVisible(false); setIndex(previousIndex); navigate(routeForStep(steps[previousIndex])); }}>Назад</Button>}
         {((!step.onTargetClick && !step.advanceEvent) || !targetFound) && <Button type="primary" disabled={saving} onClick={advance}>{index === steps.length - 1 ? "Завершить" : "Далее"}</Button>}
       </div>
     </Card>
