@@ -66,9 +66,8 @@ const validationCases: ValidationCase[] = [
 ];
 
 export const methodology: MethodologyRegistration = {
-  categoryIds: ["clinical-trauma"],
-  instrument,
   categoryIds,
+  instrument,
   scoringConfig,
   validationCases,
   formulaVersion: 'pss-sr-ru-zolotareva-2021-v1',
