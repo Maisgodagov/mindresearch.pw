@@ -1,0 +1,9 @@
+# Шкала психологической безопасности для рабочих групп (TPS-7)
+
+- Решение: prepared. Русская версия доступна полностью; содержание пунктов соответствует семипунктовой шкале Эдмондсон, а ключ с тремя обратными пунктами и семибалльным диапазоном подтверждён авторским источником.
+- Русский текст и бланк: [«Шкала психологической безопасности для рабочих групп» — PsyTests](https://psytests.org/work/tpss.html); [бланк TPS-7 на русском языке](https://psytests.org/work/tpss-bl.html) (перевод И. Окуньковой, 2020).
+- Первичный источник ключа: [Amy C. Edmondson, “Psychological Safety and Learning Behavior in Work Teams,” Administrative Science Quarterly, 44(2), 350–383 (1999)](https://doi.org/10.2307/2666999); [доступный текст статьи с приложением](https://web.mit.edu/curhan/www/docs/Articles/15341_Readings/Organizational_Learning_and_Change/Edmondson_1999_Psychological_safety.pdf).
+- Авторская публикация версии: [Amy C. Edmondson, *The Fearless Organization* (Wiley, 2018), Figure 1.2, “A Survey Measure of Psychological Safety”](https://ebook.app.hcu.edu.gh/wp-content/uploads/2022/06/Amy-C.-Edmondson-The-Fearless-Organization_-Creating-Psychological-Safety-in-the-Workplace-for-Learning-Innovation-and-Growth-Wiley-2018.pdf); [страница книги у издателя Wiley](https://www.wiley-vch.de/en/areas-interest/finance-economics-law/business-management-13ba/management-13ba1/management-teams-13ba15/the-fearless-organization-978-1-119-47724-2).
+- Пункты: 7. Одна шкала, ответы от 1 («Полностью не согласен») до 7 («Полностью согласен»).
+- Подсчёт: пункты 1, 3 и 5 реверсируются по формуле `8 − ответ`; затем рассчитывается среднее по всем семи пунктам. Высокое значение соответствует более высокой воспринимаемой психологической безопасности. Нормативные пороги в регистрацию не добавлены.
+- Ручная проверка ключа: при ответе 4 на все пункты среднее равно 4; при ответе 7 на все пункты после реверсирования получается `(1+7+1+7+1+7+7)/7 = 31/7`.
