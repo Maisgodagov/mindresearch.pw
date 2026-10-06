@@ -1221,4 +1221,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2441': ["close-love"],
 
   'test_2444': ["framework-cbt","self-attitude"],
+
+  'test_2445': ["cyberpsychology"],
 };
