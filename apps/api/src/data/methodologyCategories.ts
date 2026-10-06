@@ -1269,4 +1269,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2477': ["social-functioning"],
 
   'test_2478': ["trait-interpersonal"],
+
+  'test_2480': ["meaning-satisfaction"],
 };
