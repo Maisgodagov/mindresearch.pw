@@ -366,15 +366,30 @@ export const SurveyCard = styled(Card)`
       margin-top: 14px;
     }
     .actions {
-      align-items: flex-start;
-      flex-wrap: wrap;
+      align-items: center;
+      flex-wrap: nowrap;
     }
     .links {
-      flex-wrap: wrap;
-      flex: 1 1 100%;
+      align-items: center;
+      flex-wrap: nowrap;
+      flex: 1 1 auto;
+      gap: 5px;
     }
     .actions > a {
-      margin-left: auto;
+      flex: 0 0 auto;
+      margin-left: 0;
+      white-space: nowrap;
+    }
+    .links:has(.continue) > .continue,
+    .links:has(.continue) > .publish {
+      box-sizing: border-box;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 40px;
+      min-height: 40px;
+      padding: 0 8px;
+      align-items: center;
+      justify-content: center;
     }
   }
   @media (max-width: 520px) {
@@ -429,7 +444,7 @@ export const SurveyCard = styled(Card)`
     .metrics span { gap: 5px; }
     .metrics small { font-size: 11px; }
   }
-  @container survey-card (max-width: 600px) {
+  @container survey-card (max-width: 480px) {
     & > .ant-card-body {
       grid-template-columns: minmax(0, 1fr);
       grid-template-areas: "head" "info" "metrics" "actions";
@@ -444,10 +459,7 @@ export const SurveyCard = styled(Card)`
       padding: 0;
       border: 0;
     }
-    .actions {
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .actions { align-items: center; flex-wrap: wrap; }
     .links {
       flex: 1 1 100%;
       flex-wrap: wrap;
