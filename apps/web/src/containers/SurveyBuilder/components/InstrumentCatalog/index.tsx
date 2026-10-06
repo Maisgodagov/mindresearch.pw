@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "antd";
 import {
   Calculator,
   BookOpenText,
   Info,
   ListChecks,
+  ListFilter,
   Plus,
   Search,
   ShieldCheck,
@@ -50,14 +51,44 @@ export function InstrumentCatalog({
 }: InstrumentCatalogProps) {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [categoryFilter, setCategoryFilter] = useState("");
   const pageSize = 20;
-  const pageCount = Math.max(1, Math.ceil(instruments.length / pageSize));
-  const visibleInstruments = instruments.slice((page - 1) * pageSize, page * pageSize);
+  const categoriesByGroup = useMemo(() => {
+    const categories = new Map<string, { id: string; label: string; group: string; url: string; count: number }>();
+    const groupCounts = new Map<string, number>();
+    instruments.forEach((instrument) => {
+      const groups = new Set<string>();
+      instrument.categories?.forEach((category) => {
+        const current = categories.get(category.id) ?? { ...category, count: 0 };
+        current.count += 1;
+        categories.set(category.id, current);
+        groups.add(category.group);
+      });
+      groups.forEach((group) => groupCounts.set(group, (groupCounts.get(group) ?? 0) + 1));
+    });
+    const grouped = new Map<string, { count: number; categories: Array<{ id: string; label: string; group: string; url: string; count: number }> }>();
+    categories.forEach((category) => {
+      const group = grouped.get(category.group) ?? { count: groupCounts.get(category.group) ?? 0, categories: [] };
+      group.categories.push(category);
+      grouped.set(category.group, group);
+    });
+    grouped.forEach((group) => group.categories.sort((a, b) => a.label.localeCompare(b.label, "ru")));
+    return grouped;
+  }, [instruments]);
+  const categoryFilteredInstruments = categoryFilter
+    ? instruments.filter((instrument) => instrument.categories?.some((category) =>
+        categoryFilter.startsWith("group:")
+          ? category.group === categoryFilter.slice(6)
+          : category.id === categoryFilter,
+      ))
+    : instruments;
+  const pageCount = Math.max(1, Math.ceil(categoryFilteredInstruments.length / pageSize));
+  const visibleInstruments = categoryFilteredInstruments.slice((page - 1) * pageSize, page * pageSize);
   const closeCatalog = () => setOpen(false);
 
   useEffect(() => {
     setPage(1);
-  }, [query, instruments.length]);
+  }, [query, instruments.length, categoryFilter]);
 
   useEffect(() => {
     if (page > pageCount) setPage(pageCount);
@@ -136,8 +167,30 @@ export function InstrumentCatalog({
             />
           </div>
           <span className="results-count">
-            {query.trim() ? `Найдено ${instruments.length}` : ""}
+            {query.trim() || categoryFilter
+              ? `Найдено ${categoryFilteredInstruments.length}${categoryFilteredInstruments.length !== instruments.length ? ` из ${instruments.length}` : ""}`
+              : ""}
           </span>
+          <label className="category-filter">
+            <ListFilter size={16} aria-hidden="true" />
+            <select
+              value={categoryFilter}
+              aria-label="Фильтр по категории методики"
+              onChange={(event) => setCategoryFilter(event.target.value)}
+            >
+              <option value="">Все категории ({instruments.length})</option>
+              {Array.from(categoriesByGroup.entries()).map(([group, value]) => (
+                <optgroup key={group} label={`${group} (${value.count})`}>
+                  <option value={`group:${group}`}>Вся категория «{group}» ({value.count})</option>
+                  {value.categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.label} ({category.count})
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
         </CatalogTools>
         </CatalogToolbar>
         <Library>
@@ -167,6 +220,11 @@ export function InstrumentCatalog({
                   )}
                   <div className="description">{instrument.description}</div>
                   <div className="item-meta">
+                    {instrument.categories?.map((category) => (
+                      <span className="category-tag" key={category.id} title={category.group}>
+                        {category.label}
+                      </span>
+                    ))}
                     <span className="question-count"><ListChecks size={13} /> {formatQuestionCount(instrument.questionCount)}</span>
                     <span className="scoring-type"><Calculator size={13} /> Автоматический расчёт</span>
                   </div>
@@ -197,13 +255,13 @@ export function InstrumentCatalog({
               </article>
             );
           })}
-          {!instruments.length && (
-            <p className="empty">{CATALOG_COPY.empty}</p>
+          {!categoryFilteredInstruments.length && (
+            <p className="empty">{categoryFilter ? "В этой категории методики не найдены." : CATALOG_COPY.empty}</p>
           )}
         </Library>
-        {instruments.length > pageSize && (
+        {categoryFilteredInstruments.length > pageSize && (
           <CatalogPagination aria-label="\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u044b \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0430">
-            <span>{(page - 1) * pageSize + 1}&#8211;{Math.min(page * pageSize, instruments.length)} {"\u0438\u0437"} {instruments.length}</span>
+            <span>{(page - 1) * pageSize + 1}&#8211;{Math.min(page * pageSize, categoryFilteredInstruments.length)} {"\u0438\u0437"} {categoryFilteredInstruments.length}</span>
             <div className="pages">
               <Button className="page-arrow" disabled={page === 1} aria-label="\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page - 1)}>&#x2039;</Button>
               {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (

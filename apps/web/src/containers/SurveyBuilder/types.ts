@@ -7,6 +7,14 @@ export type Instrument = {
   isVerified: boolean;
   scoringCode?: string;
   author?: string;
+  categories?: InstrumentCategory[];
+};
+
+export type InstrumentCategory = {
+  id: string;
+  label: string;
+  group: string;
+  url: string;
 };
 
 export type Option = { value: string; label: string };

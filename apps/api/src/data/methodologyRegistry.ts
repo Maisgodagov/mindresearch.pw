@@ -4,9 +4,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { SeedSection } from '../types.js';
 import type { ConfigurableScoring, ValidationCase } from '../scoring/configurable.js';
 import type { Methodology } from '../scoring/methodologies.js';
+import { methodologyCategoryAssignments } from './methodologyCategories.js';
 
 export type MethodologyRegistration = {
   instrument: SeedSection;
+  categoryIds?: string[];
   scoringConfig?: ConfigurableScoring;
   validationCases?: ValidationCase[];
   formulaVersion?: string;
@@ -48,13 +50,15 @@ async function reviewSources(moduleName: string): Promise<Methodology['sources']
 }
 
 function catalogDetails(registration: MethodologyRegistration): Omit<Methodology, 'code' | 'title'> {
-  if (registration.details) return registration.details;
+  const categoryIds = registration.categoryIds ?? registration.details?.categoryIds ?? methodologyCategoryAssignments[registration.instrument.code] ?? [];
+  if (registration.details) return { ...registration.details, categoryIds };
   const { instrument, scoringConfig, formulaVersion } = registration;
   const scales = scoringConfig?.scales ?? [];
   const steps = scales.length
     ? scales.map((scale) => `Шкала «${scale.label}»: ${scale.aggregation === 'sum' ? '\u0441\u0443\u043c\u043c\u0438\u0440\u0443\u044e\u0442\u0441\u044f' : scale.aggregation === 'mean' ? '\u0443\u0441\u0440\u0435\u0434\u043d\u044f\u044e\u0442\u0441\u044f' : `\u043f\u043e\u0434\u0441\u0447\u0438\u0442\u044b\u0432\u0430\u044e\u0442\u0441\u044f \u0432\u044b\u0431\u043e\u0440\u044b \u00ab${scale.optionValue}\u00bb`} ответы по пунктам ${scale.items.join(', ')}${scale.reverseItems.length ? `. Обратные пункты (${scale.reverseItems.join(', ')}) перекодируются в диапазоне ${scoringConfig!.min}–${scoringConfig!.max}` : ''}.`)
     : ['В системе доступны вопросы методики; автоматический расчёт результата для этой версии не настроен.'];
   return {
+    categoryIds,
     version: formulaVersion ?? 'версия подсчёта не указана',
     summary: instrument.description ?? 'Описание методики пока не добавлено.',
     steps,
@@ -87,9 +91,10 @@ export async function loadMethodologyRegistry(): Promise<MethodologyRegistration
     if (!loaded.methodology?.instrument?.code?.startsWith('test_')) {
       throw new Error(`Invalid methodology registration module: ${file}`);
     }
-    const details = catalogDetails(loaded.methodology);
+    const categoryIds = loaded.methodology.categoryIds ?? methodologyCategoryAssignments[loaded.methodology.instrument.code] ?? [];
+    const details = catalogDetails({ ...loaded.methodology, categoryIds });
     if (!details.sources.length) details.sources = await reviewSources(file);
-    registrations.push({ ...loaded.methodology, details });
+    registrations.push({ ...loaded.methodology, categoryIds, details });
   }
   const codes = registrations.map(({ instrument }) => instrument.code);
   if (new Set(codes).size !== codes.length) throw new Error('Duplicate codes in methodology registry.');
