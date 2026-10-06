@@ -1925,7 +1925,7 @@
 - [x] 1917. Типология поведения родителей детей, занимающихся спортом — `implemented-local`; [страница методики](https://psytests.org/sport/tprdzs.html); путеводители: [sport-ru.html](https://psytests.org/guide/sport-ru.html). [review](../reviews/method-1917.md);
 - [x] 1918. Типология субъектной регуляции ребенка — `blocked`; [страница методики](https://psytests.org/trait/tsrr.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html). [review](../reviews/method-1918.md);
 - [x] 1919. Типология темперамента Хейманса — `blocked`; [страница методики](https://psytests.org/typo/heimans.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-1919.md);
-- [ ] 1920. Типология-2 — `queued`; [страница методики](https://psytests.org/zhar/tipol2.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html).
+- [x] 1920. Типология-2 — `blocked`; [страница методики](https://psytests.org/zhar/tipol2.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-1920.md);
 - [ ] 1921. Типология-8 — `queued`; [страница методики](https://psytests.org/zhar/tipol8.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html).
 - [ ] 1922. Типы воспитания детей — `queued`; [страница методики](https://psytests.org/parent/stvd.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
 - [ ] 1923. Типы гражданской идентичности — `queued`; [страница методики](https://psytests.org/group/tgrid.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
