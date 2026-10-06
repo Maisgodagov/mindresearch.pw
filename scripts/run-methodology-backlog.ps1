@@ -88,6 +88,48 @@ function Get-ImplementedLocalLines {
   return @(Get-Content -LiteralPath $queuePath -Encoding UTF8 | Where-Object { $_ -match '^\- \[x\] \d+\. .+ — `implemented-local`;' })
 }
 
+function Get-MethodologyCategoryIds([string]$QueueLine) {
+  $ids = [Collections.Generic.List[string]]::new()
+  $annotation = [regex]::Match($QueueLine, '(?i)Категории:\s*(?<list>[a-z0-9-]+(?:\s*,\s*[a-z0-9-]+)*)')
+  if ($annotation.Success) {
+    foreach ($value in ($annotation.Groups['list'].Value -split ',')) {
+      $id = $value.Trim().ToLowerInvariant()
+      if ($id -and !$ids.Contains($id)) { $ids.Add($id) }
+    }
+  }
+  if (!$ids.Count) {
+    foreach ($match in [regex]::Matches($QueueLine, 'https?://psytests\.org/guide/(?<slug>[^/\s)]+)')) {
+      $id = $match.Groups['slug'].Value -replace '-ru\.html$', '' -replace '\.html$', ''
+      if ($id -and !$ids.Contains($id)) { $ids.Add($id) }
+    }
+  }
+  return $ids.ToArray()
+}
+
+function Set-MethodologyCategoryAssignment([string]$Code, [string[]]$CategoryIds) {
+  $categoryPath = Join-Path $repo 'apps\api\src\data\methodologyCategories.ts'
+  if (!(Test-Path -LiteralPath $categoryPath)) { throw 'Не найден справочник категорий методик.' }
+  $mapText = [IO.File]::ReadAllText($categoryPath, [Text.Encoding]::UTF8)
+  foreach ($id in $CategoryIds) {
+    if ($mapText -notmatch ('"id":"' + [regex]::Escape($id) + '"')) { throw "Категория '$id' отсутствует в справочнике." }
+  }
+  $categoryJson = ConvertTo-Json -InputObject @($CategoryIds) -Compress
+  $escapedCode = [regex]::Escape($Code)
+  $codePattern = "(?m)^\s*'$escapedCode'\s*:\s*\[[^\r\n]*\],?"
+  $entry = "  '$Code': $categoryJson,"
+  if ([regex]::IsMatch($mapText, $codePattern)) {
+    $mapText = [regex]::Replace($mapText, $codePattern, $entry)
+  } else {
+    $marker = 'export const methodologyCategoryAssignments: Record<string, string[]> = {'
+    $mapStart = $mapText.IndexOf($marker, [StringComparison]::Ordinal)
+    if ($mapStart -lt 0) { throw 'Не найден раздел назначений категорий.' }
+    $mapClose = $mapText.IndexOf('};', $mapStart, [StringComparison]::Ordinal)
+    if ($mapClose -lt 0) { throw 'Не найден конец назначений категорий.' }
+    $mapText = $mapText.Insert($mapClose, [Environment]::NewLine + $entry + [Environment]::NewLine)
+  }
+  [IO.File]::WriteAllText($categoryPath, $mapText, [Text.UTF8Encoding]::new($false))
+}
+
 function Test-PreparedMetadata([string]$ModulePath, [string]$ReviewPath) {
   if (!(Test-Path -LiteralPath $ModulePath) -or !(Test-Path -LiteralPath $ReviewPath)) { throw 'Не найден модуль или review для проверки описания и источников.' }
   $moduleText = Get-Content -LiteralPath $ModulePath -Raw -Encoding UTF8
@@ -153,7 +195,7 @@ function Start-ReadAheadResearch($Item, [int]$Slot = 1) {
   $researchPrompt = @'
 Ты — независимый слот пакетного импорта методик. Прочитай docs/methodologies/WORKFLOW.md. Обработай только переданный пункт: достаточно проверить наличие адекватного русского текста и надёжного точного ключа/подсчёта. Пропусти остальные проверки. Используй прямые источники и не угадывай.
 
-Если оба критерия соблюдены, создай полноценную регистрацию в `apps/api/src/data/methodologies/method-__ID__.ts`, экспортируя `methodology` с `instrument`, `scoringConfig`, `validationCases` (хотя бы один вручную проверенный случай) и `formulaVersion`. Используй выданный код `__CODE__`. Включи полный доступный русский текст всех пунктов, варианты ответов без нумерационных цифр, ключи и реверсивные пункты. Алгоритм должен точно соответствовать источнику. Поле `instrument.description` обязательно: это краткое содержательное описание для автора опроса — что именно измеряет методика, какие аспекты охватывает и для какой группы/версии подходит. Не подменяй его инструкцией «оцените/выберите/ответьте»; подробности прохождения оставляй в формулировках вопросов. В review обязательно приводи библиографические источники с кликабельными ссылками на первоисточник/публикацию и страницу русской версии или бланка, если доступны. Не ограничивайся URL без названия источника. Если русский текст или ключ отсутствует, модуль не создавай.
+Если оба критерия соблюдены, создай полноценную регистрацию в `apps/api/src/data/methodologies/method-__ID__.ts`, экспортируя `methodology` с `instrument`, `scoringConfig`, `validationCases` (хотя бы один вручную проверенный случай) и `formulaVersion`. Используй выданный код `__CODE__`. Проставь в регистрации `categoryIds` строго из поля `Категории` текущей строки очереди; runner дополнительно сверит и сохранит эти категории централизованно. Включи полный доступный русский текст всех пунктов, варианты ответов без нумерационных цифр, ключи и реверсивные пункты. Алгоритм должен точно соответствовать источнику. Поле `instrument.description` обязательно: это краткое содержательное описание для автора опроса — что именно измеряет методика, какие аспекты охватывает и для какой группы/версии подходит. Не подменяй его инструкцией «оцените/выберите/ответьте»; подробности прохождения оставляй в формулировках вопросов. В review обязательно приводи библиографические источники с кликабельными ссылками на первоисточник/публикацию и страницу русской версии или бланка, если доступны. Не ограничивайся URL без названия источника. Если русский текст или ключ отсутствует, модуль не создавай.
 
 Создай короткую записку в `docs/methodologies/reviews/method-__ID__.md` с решением, библиографическими источниками и ссылками, количеством пунктов, шкалами и формулой. Не оставляй источники просто списком URL: у каждой ссылки должно быть понятное название работы, страницы, бланка или публикации. Проверь, что `instrument.description` объясняет, что методика измеряет и чем может быть полезна автору опроса; описание не должно быть инструкцией участнику. Не редактируй `seed.ts`, реестр, backlog или любые общие файлы; не коммить и не отправляй изменения. Не запускай тесты/build. Не трогай ничего кроме двух разрешённых уникальных файлов. В конце верни строго одну JSON-строку: {"status":"prepared"|"blocked"|"ru-ineligible"|"already-available","reason":"...","instrumentCode":"__CODE__","moduleFile":"apps/api/src/data/methodologies/method-__ID__.ts","reviewFile":"docs/methodologies/reviews/method-__ID__.md"}. Для prepared оба файла должны существовать.
 
@@ -329,13 +371,20 @@ function Integrate-PreparedMethod([int]$ItemId, [string]$QueueLine, [string]$Res
     $moduleSource = Join-Path $itemDir 'module.ts'
     if (!(Test-Path -LiteralPath $moduleSource)) { throw "Worker $ItemId reported prepared without a methodology module." }
     $expectedCode = [string]$result.instrumentCode
-    if (!$expectedCode -and $moduleText -match "(?<code>test_\d+)") { $expectedCode = $Matches.code }
     $moduleText = Get-Content -LiteralPath $moduleSource -Raw -Encoding UTF8
+    if (!$expectedCode -and $moduleText -match "(?<code>test_\d+)") { $expectedCode = $Matches.code }
     if (!$expectedCode -or $moduleText -notmatch [regex]::Escape($expectedCode)) { throw "Worker $ItemId produced a module without its reserved instrument code." }
+    $categoryIds = @(Get-MethodologyCategoryIds $QueueLine)
+    if (!$categoryIds.Count) { throw "Для методики $ItemId не указаны категории путеводителя." }
     Test-PreparedMetadata $moduleSource $reviewSource | Out-Null
     $moduleTarget = Join-Path $repo (Join-Path 'apps\api\src\data\methodologies' $moduleName)
     $null = New-Item -ItemType Directory -Path (Split-Path -Parent $moduleTarget) -Force
-    Copy-Item -LiteralPath $moduleSource -Destination $moduleTarget -Force
+    $registration = [regex]::Match($moduleText, 'export const methodology\s*:\s*MethodologyRegistration\s*=\s*\{')
+    if (!$registration.Success) { throw "Регистрация методики $ItemId не содержит ожидаемого объекта methodology." }
+    $categoryJson = ConvertTo-Json -InputObject @($categoryIds) -Compress
+    if ($moduleText -notmatch 'categoryIds\s*:') { $moduleText = $moduleText.Insert($registration.Index + $registration.Length, [Environment]::NewLine + "  categoryIds: $categoryJson,") }
+    [IO.File]::WriteAllText($moduleTarget, $moduleText, [Text.UTF8Encoding]::new($false))
+    Set-MethodologyCategoryAssignment $expectedCode $categoryIds
     $queueStatus = 'implemented-local'
   } else {
     if ($status -notin @('blocked','ru-ineligible','already-available')) { throw "Unsupported terminal methodology result: $status" }
@@ -354,7 +403,7 @@ function Integrate-PreparedMethod([int]$ItemId, [string]$QueueLine, [string]$Res
   [IO.File]::WriteAllText($queuePath, $content, [Text.UTF8Encoding]::new($true))
 
   $paths = @("docs/methodologies/reviews/$reviewName", 'docs/methodologies/links/_backlog.md')
-  if ($status -eq 'prepared') { $paths += "apps/api/src/data/methodologies/$moduleName" }
+  if ($status -eq 'prepared') { $paths += "apps/api/src/data/methodologies/$moduleName"; $paths += 'apps/api/src/data/methodologyCategories.ts' }
   & git -C $repo add -- $paths | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "Не удалось добавить файлы методики $ItemId в локальный commit." }
   & git -C $repo commit -m "Add methodology backlog item $ItemId ($queueStatus)" | Out-Null
