@@ -57,7 +57,6 @@ export const methodology: MethodologyRegistration = {
   validationCases,
   formulaVersion: 'ocis-ru-demin-2025-two-subscale-means-v1',
   details: {
-    title: instrument.title,
     author: 'L. C. Roll, H. De Witte, H.-J. Wang; русскоязычная адаптация: А. Н. Дёмин, Е. И. Зыкова, А. В. Рендакова, С. А. Погорелов',
     version: 'Русскоязычная адаптация, 8 пунктов',
     year: 2025,

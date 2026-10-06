@@ -40,7 +40,6 @@ export const instrument: SeedSection = {
   code: 'test_2227',
   title: 'Шкала негативного отношения к роботам (NARS), русскоязычная модификация',
   description: 'Русскоязычная модификация NARS оценивает негативное отношение к роботам по трём аспектам: дискомфорт во взаимодействии, опасения по поводу социального влияния роботов и эмоциональное отношение к роботам. Подходит для исследовательских опросов русскоязычных респондентов; модификация Акмаева изучалась на выборке студентов-медиков и практикующих врачей, поэтому перенос результатов на другие группы требует осторожности.',
-  categoryIds: ['cyberpsychology'],
   questions,
 };
 
@@ -64,6 +63,7 @@ const validationCases: ValidationCase[] = [
 
 export const methodology: MethodologyRegistration = {
   instrument,
+  categoryIds: ['cyberpsychology'],
   scoringConfig,
   validationCases,
   formulaVersion: 'nars-akmaev-ru-2022-13item-seven-point-reverse-4-7-8-sum-v1',
