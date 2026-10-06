@@ -2046,7 +2046,7 @@
 - [x] 2038. Шкала HCL-32 — `implemented-local`; [страница методики](https://psytests.org/diag/hcl32.html); путеводители: [clinical-bipolar-ru.html](https://psytests.org/guide/clinical-bipolar-ru.html). [review](../reviews/method-2038.md);
 - [x] 2039. Шкала Mini-K — `implemented-local`; [страница методики](https://psytests.org/trait/minik.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html). [review](../reviews/method-2039.md);
 - [x] 2040. Шкала автоматических мыслей у детей — `blocked`; [страница методики](https://psytests.org/cbt/cats.html); путеводители: [regulation-control-ru.html](https://psytests.org/guide/regulation-control-ru.html). [review](../reviews/method-2040.md);
-- [ ] 2041. Шкала авторитаризма — `queued`; [страница методики](https://psytests.org/classic/fscale.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
+- [x] 2041. Шкала авторитаризма — `blocked`; [страница методики](https://psytests.org/classic/fscale.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html). [review](../reviews/method-2041.md);
 - [ ] 2042. Шкала авторитаризма правого толка — `queued`; [страница методики](https://psytests.org/life/rwas.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
 - [ ] 2043. Шкала агентности — `queued`; [страница методики](https://psytests.org/emvol/sagent.html); путеводители: [self-efficacy-ru.html](https://psytests.org/guide/self-efficacy-ru.html).
 - [ ] 2044. Шкала агрессивности — `queued`; [страница методики](https://psytests.org/confl/assk.html); путеводители: [trait-aggression-ru.html](https://psytests.org/guide/trait-aggression-ru.html).
