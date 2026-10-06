@@ -2042,7 +2042,7 @@
 - [x] 2034. Чувствительность к отвержению из-за внешности — `implemented-local`; [страница методики](https://psytests.org/body/abrs.html); путеводители: [mood-anxiety-ru.html](https://psytests.org/guide/mood-anxiety-ru.html). [review](../reviews/method-2034.md);
 - [x] 2035. Чувство языка — `blocked`; [страница методики](https://psytests.org/emo/chyaz.html); путеводители: [method-projective-ru.html](https://psytests.org/guide/method-projective-ru.html). [review](../reviews/method-2035.md);
 - [ ] 2036. ШАМ-Ш — `already-listed`; [страница методики](https://psytests.org/sdt/shamsh.html); путеводители: [learning-school-ru.html](https://psytests.org/guide/learning-school-ru.html).
-- [ ] 2037. Шкала Amor Fati — `queued`; [страница методики](https://psytests.org/exist/afs.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
+- [x] 2037. Шкала Amor Fati — `ru-ineligible`; [страница методики](https://psytests.org/exist/afs.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-2037.md);
 - [ ] 2038. Шкала HCL-32 — `queued`; [страница методики](https://psytests.org/diag/hcl32.html); путеводители: [clinical-bipolar-ru.html](https://psytests.org/guide/clinical-bipolar-ru.html).
 - [ ] 2039. Шкала Mini-K — `queued`; [страница методики](https://psytests.org/trait/minik.html); путеводители: [personality-ru.html](https://psytests.org/guide/personality-ru.html).
 - [ ] 2040. Шкала автоматических мыслей у детей — `queued`; [страница методики](https://psytests.org/cbt/cats.html); путеводители: [regulation-control-ru.html](https://psytests.org/guide/regulation-control-ru.html).
