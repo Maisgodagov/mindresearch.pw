@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
-import { createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
+import { clearRefreshCookie, createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
 import { calculateAmsForSession, calculateBfi2ForSession, calculateBfi2ShortForSession, calculateBriefCopeRuForSession, calculateConfiguredAssessmentsForSession, calculateCsesForSession, calculateDebqForSession, calculateGpsForSession, calculateGsesForSession, calculateIpipNeo120ForSession, calculateMiniIpipForSession, calculateMspssForSession, calculateNspsForSession, calculatePpsForSession, calculateRsesForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession, calculateStudyAlienationForSession, calculateTipiRuForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
 import {platformRouter} from './platform.js';
@@ -15,6 +15,7 @@ if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error(
 const app=express();
 app.set('trust proxy',1);
 app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
+app.use('/api/auth',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
 app.use('/api',platformRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
@@ -95,7 +96,7 @@ app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
 app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);const [rows]=await db.query<any[]>('SELECT id,email,name,role,password_hash FROM users WHERE email=?',[body.email.toLowerCase()]);if(!rows.length||!await bcrypt.compare(body.password,rows[0].password_hash))return res.status(401).json({message:'Неверная почта или пароль'});const {password_hash,...user}=rows[0],token=await createAuthSession(req,res,{id:user.id,role:user.role});res.json({token,user})}catch(e){next(e)}});
 app.post('/api/auth/refresh',async(req,res,next)=>{try{const token=await rotateAuthSession(req,res);if(!token)return res.status(401).json({message:'Сессия истекла'});res.json({token})}catch(e){next(e)}});
 app.post('/api/auth/logout',async(req,res,next)=>{try{await revokeAuthSession(req,res);res.status(204).end()}catch(e){next(e)}});
-app.post('/api/auth/logout-all',requireAuth,async(req:AuthRequest,res,next)=>{try{await revokeAllUserSessions(req.user!.id);res.clearCookie('mindresearch_refresh',{path:'/api/auth'});res.status(204).end()}catch(e){next(e)}});
+app.post('/api/auth/logout-all',requireAuth,async(req:AuthRequest,res,next)=>{try{await revokeAllUserSessions(req.user!.id);clearRefreshCookie(res);res.status(204).end()}catch(e){next(e)}});
 app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.created_at createdAt,s.updated_at updatedAt,s.builder_state IS NOT NULL hasBuilderState,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? AND s.deleted_at IS NULL GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
 app.get('/api/admin/methodologies',requireAuth,async(_req,res,next)=>{try{const[rows]=await db.query<any[]>(`SELECT code,title,description,methodology FROM instruments WHERE is_verified=TRUE AND status='active' AND methodology IS NOT NULL`);const configured:Record<string,any>={};for(const row of rows){const metadata=typeof row.methodology==='string'?JSON.parse(row.methodology):row.methodology;configured[row.code]={...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title,summary:row.description??metadata?.summary??methodologies[row.code]?.summary}}res.json({...methodologies,...configured})}catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
