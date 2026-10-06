@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "antd";
 import {
   Calculator,
   BookOpenText,
+  ChevronDown,
   Info,
   ListChecks,
   ListFilter,
@@ -52,6 +53,9 @@ export function InstrumentCatalog({
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const categoryFilterRef = useRef<HTMLDivElement>(null);
+  const categoryTriggerRef = useRef<HTMLButtonElement>(null);
   const pageSize = 20;
   const categoriesByGroup = useMemo(() => {
     const categories = new Map<string, { id: string; label: string; group: string; url: string; count: number }>();
@@ -75,6 +79,19 @@ export function InstrumentCatalog({
     grouped.forEach((group) => group.categories.sort((a, b) => a.label.localeCompare(b.label, "ru")));
     return grouped;
   }, [instruments]);
+  const selectedCategory = useMemo(() => {
+    if (!categoryFilter) return null;
+    if (categoryFilter.startsWith("group:")) {
+      const group = categoryFilter.slice(6);
+      const entry = categoriesByGroup.get(group);
+      return entry ? { label: group, count: entry.count } : null;
+    }
+    for (const entry of categoriesByGroup.values()) {
+      const category = entry.categories.find((item) => item.id === categoryFilter);
+      if (category) return category;
+    }
+    return null;
+  }, [categoriesByGroup, categoryFilter]);
   const categoryFilteredInstruments = categoryFilter
     ? instruments.filter((instrument) => instrument.categories?.some((category) =>
         categoryFilter.startsWith("group:")
@@ -98,6 +115,25 @@ export function InstrumentCatalog({
     return items;
   }, [page, pageCount]);
   const closeCatalog = () => setOpen(false);
+
+  useEffect(() => {
+    if (!categoryOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!categoryFilterRef.current?.contains(event.target as Node)) setCategoryOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setCategoryOpen(false);
+        categoryTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [categoryOpen]);
 
   useEffect(() => {
     setPage(1);
@@ -184,26 +220,58 @@ export function InstrumentCatalog({
               ? `Найдено ${categoryFilteredInstruments.length}${categoryFilteredInstruments.length !== instruments.length ? ` из ${instruments.length}` : ""}`
               : ""}
           </span>
-          <label className="category-filter">
-            <ListFilter size={16} aria-hidden="true" />
-            <select
-              value={categoryFilter}
-              aria-label="Фильтр по категории методики"
-              onChange={(event) => setCategoryFilter(event.target.value)}
+          <div className="category-filter" ref={categoryFilterRef}>
+            <button
+              ref={categoryTriggerRef}
+              type="button"
+              className="category-trigger"
+              aria-haspopup="listbox"
+              aria-expanded={categoryOpen}
+              onClick={() => setCategoryOpen((value) => !value)}
             >
-              <option value="">Все категории ({instruments.length})</option>
-              {Array.from(categoriesByGroup.entries()).flatMap(([group, value]) => [
-                <option key={`group:${group}`} value={`group:${group}`}>{group} ({value.count})</option>,
-                ...value.categories
-                  .filter((category) => category.label !== group)
-                  .map((category) => (
-                    <option key={category.id} value={category.id}>
-                      &#8212; {category.label} ({category.count})
-                    </option>
-                  )),
-              ])}
-            </select>
-          </label>
+              <ListFilter size={16} aria-hidden="true" />
+              <span>{selectedCategory?.label ?? "\u0412\u0441\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438"} ({selectedCategory?.count ?? instruments.length})</span>
+              <ChevronDown size={15} aria-hidden="true" />
+            </button>
+            {categoryOpen && (
+              <div className="category-menu" role="listbox" aria-label="\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438 \u043c\u0435\u0442\u043e\u0434\u0438\u043a">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={!categoryFilter}
+                  className={!categoryFilter ? "category-option selected" : "category-option"}
+                  onClick={() => { setCategoryFilter(""); setCategoryOpen(false); }}
+                >
+                  {"\u0412\u0441\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438"} ({instruments.length})
+                </button>
+                {Array.from(categoriesByGroup.entries()).map(([group, value]) => (
+                  <div className="category-option-group" key={group}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={categoryFilter === `group:${group}`}
+                      className={categoryFilter === `group:${group}` ? "category-option parent selected" : "category-option parent"}
+                      onClick={() => { setCategoryFilter(`group:${group}`); setCategoryOpen(false); }}
+                    >
+                      {group} <span>({value.count})</span>
+                    </button>
+                    {value.categories.filter((category) => category.label !== group).map((category) => (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={categoryFilter === category.id}
+                        className={categoryFilter === category.id ? "category-option child selected" : "category-option child"}
+                        key={category.id}
+                        onClick={() => { setCategoryFilter(category.id); setCategoryOpen(false); }}
+                      >
+                        <span>{category.label}</span><span>({category.count})</span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CatalogTools>
         </CatalogToolbar>
         <Library>
