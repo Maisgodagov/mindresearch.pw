@@ -1189,4 +1189,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2418': ["clinical-somatic"],
 
   'test_2419': ["parenting"],
+
+  'test_2420': ["meaning-satisfaction"],
 };
