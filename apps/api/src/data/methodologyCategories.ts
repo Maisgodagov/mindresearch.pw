@@ -1131,4 +1131,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2371': ["work-service"],
 
   'test_2373': ["parenting"],
+
+  'test_2375': ["framework-cbt"],
 };
