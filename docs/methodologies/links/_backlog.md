@@ -1927,7 +1927,7 @@
 - [x] 1919. Типология темперамента Хейманса — `blocked`; [страница методики](https://psytests.org/typo/heimans.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-1919.md);
 - [x] 1920. Типология-2 — `blocked`; [страница методики](https://psytests.org/zhar/tipol2.html); путеводители: [pop-typology-ru.html](https://psytests.org/guide/pop-typology-ru.html). [review](../reviews/method-1920.md);
 - [x] 1921. Типология-8 — `blocked`; [страница методики](https://psytests.org/zhar/tipol8.html); путеводители: [work-organization-ru.html](https://psytests.org/guide/work-organization-ru.html). [review](../reviews/method-1921.md);
-- [ ] 1922. Типы воспитания детей — `queued`; [страница методики](https://psytests.org/parent/stvd.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
+- [x] 1922. Типы воспитания детей — `blocked`; [страница методики](https://psytests.org/parent/stvd.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html). [review](../reviews/method-1922.md);
 - [ ] 1923. Типы гражданской идентичности — `queued`; [страница методики](https://psytests.org/group/tgrid.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
 - [ ] 1924. Типы конспиративистской ментальности — `queued`; [страница методики](https://psytests.org/life/tkonm.html); путеводители: [social-attitude-ru.html](https://psytests.org/guide/social-attitude-ru.html).
 - [ ] 1925. Типы ориентаций в трудных ситуациях — `queued`; [страница методики](https://psytests.org/coping/torts.html); путеводители: [regulation-coping-ru.html](https://psytests.org/guide/regulation-coping-ru.html).
