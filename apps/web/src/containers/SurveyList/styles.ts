@@ -398,9 +398,22 @@ export const SurveyCard = styled(Card)`
     .links .copy-label-short { display: inline; }
     .links .open-survey-link { min-height: 29px; }
     .links .archive-action { min-height: 29px; background: #f0f2ed; }
+    .links:has(.continue) {
+      width: 100%;
+      flex: 1 1 100%;
+      gap: 4px;
+    }
     .links:has(.continue) > .continue,
     .links:has(.continue) > .publish {
+      box-sizing: border-box;
       flex: 1 1 0;
+      width: 50%;
+      min-width: 0;
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px;
+      padding: 0 8px !important;
+      align-items: center;
       justify-content: center;
     }
     .actions > a {
