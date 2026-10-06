@@ -22,14 +22,19 @@ export const Head = styled.div`
     text-decoration: none;
   }
   @media (max-width: 560px) {
-    align-items: flex-end;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    flex-direction: row;
+    gap: 12px;
     margin-bottom: 16px;
-    h1 { font-size: 25px; margin: 3px 0; }
-    .hello { font-size: 12px; }
+    h1 { font-size: 25px; margin: 3px 0; white-space: nowrap; }
+    .hello { display: none; }
     a {
-      max-width: 100%;
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+    button {
+      padding: 0 12px;
+      white-space: nowrap;
     }
   }
 `;
@@ -393,6 +398,11 @@ export const SurveyCard = styled(Card)`
     .links .copy-label-short { display: inline; }
     .links .open-survey-link { min-height: 29px; }
     .links .archive-action { min-height: 29px; background: #f0f2ed; }
+    .links:has(.continue) > .continue,
+    .links:has(.continue) > .publish {
+      flex: 1 1 0;
+      justify-content: center;
+    }
     .actions > a {
       margin-left: auto;
       max-width: 100%;
