@@ -84,6 +84,19 @@ export function InstrumentCatalog({
     : instruments;
   const pageCount = Math.max(1, Math.ceil(categoryFilteredInstruments.length / pageSize));
   const visibleInstruments = categoryFilteredInstruments.slice((page - 1) * pageSize, page * pageSize);
+  const paginationItems = useMemo(() => {
+    if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+    let pages: number[];
+    if (page <= 4) pages = [1, 2, 3, 4, 5, pageCount];
+    else if (page >= pageCount - 3) pages = [1, pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount];
+    else pages = [1, page - 1, page, page + 1, pageCount];
+    const items: Array<number | "ellipsis"> = [];
+    pages.forEach((pageNumber, index) => {
+      if (index > 0 && pageNumber - pages[index - 1] > 1) items.push("ellipsis");
+      items.push(pageNumber);
+    });
+    return items;
+  }, [page, pageCount]);
   const closeCatalog = () => setOpen(false);
 
   useEffect(() => {
@@ -179,16 +192,16 @@ export function InstrumentCatalog({
               onChange={(event) => setCategoryFilter(event.target.value)}
             >
               <option value="">Все категории ({instruments.length})</option>
-              {Array.from(categoriesByGroup.entries()).map(([group, value]) => (
-                <optgroup key={group} label={`${group} (${value.count})`}>
-                  <option value={`group:${group}`}>Вся категория «{group}» ({value.count})</option>
-                  {value.categories.map((category) => (
+              {Array.from(categoriesByGroup.entries()).flatMap(([group, value]) => [
+                <option key={`group:${group}`} value={`group:${group}`}>{group} ({value.count})</option>,
+                ...value.categories
+                  .filter((category) => category.label !== group)
+                  .map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.label} ({category.count})
+                      &#8212; {category.label} ({category.count})
                     </option>
-                  ))}
-                </optgroup>
-              ))}
+                  )),
+              ])}
             </select>
           </label>
         </CatalogTools>
@@ -264,8 +277,10 @@ export function InstrumentCatalog({
             <span>{(page - 1) * pageSize + 1}&#8211;{Math.min(page * pageSize, categoryFilteredInstruments.length)} {"\u0438\u0437"} {categoryFilteredInstruments.length}</span>
             <div className="pages">
               <Button className="page-arrow" disabled={page === 1} aria-label="\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page - 1)}>&#x2039;</Button>
-              {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
-                <Button key={pageNumber} className={pageNumber === page ? "page-number active" : "page-number"} aria-current={pageNumber === page ? "page" : undefined} onClick={() => changePage(pageNumber)}>{pageNumber}</Button>
+              {paginationItems.map((item, index) => item === "ellipsis" ? (
+                <span className="page-ellipsis" key={`ellipsis-${index}`} aria-hidden="true">&#8230;</span>
+              ) : (
+                <Button key={item} className={item === page ? "page-number active" : "page-number"} aria-current={item === page ? "page" : undefined} onClick={() => changePage(item)}>{item}</Button>
               ))}
               <Button className="page-arrow" disabled={page === pageCount} aria-label="\u0421\u043b\u0435\u0434\u0443\u044e\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page + 1)}>&#x203a;</Button>
             </div>

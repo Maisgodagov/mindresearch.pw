@@ -314,7 +314,7 @@ export function SurveyBuilder() {
     const query = libraryQuery.trim().toLocaleLowerCase("ru");
     if (!query) return instruments;
     return instruments.filter((instrument) =>
-      `${instrument.title} ${instrument.author ?? ""} ${instrument.description ?? ""}`
+      `${instrument.title} ${instrument.author ?? ""} ${instrument.description ?? ""} ${instrument.categories?.map((category) => `${category.group} ${category.label}`).join(" ") ?? ""}`
         .toLocaleLowerCase("ru")
         .includes(query),
     );

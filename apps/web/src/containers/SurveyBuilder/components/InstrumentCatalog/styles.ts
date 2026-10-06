@@ -367,6 +367,7 @@ export const CatalogPagination = styled.nav`
     font-size: 12px;
     box-shadow: none;
   }
+  .page-ellipsis { display: inline-grid; place-items: center; min-width: 20px; height: 34px; color: #738176; }
   .page-number:hover:not(:disabled),
   .page-arrow:hover:not(:disabled) { border-color: #9cb396; background: #f3f7f1; color: #315238; }
   .page-number.active { border-color: #52764b; background: #52764b; color: #fff; }
