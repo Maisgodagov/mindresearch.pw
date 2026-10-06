@@ -1017,4 +1017,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2271': ["mood-anxiety"],
 
   'test_2272': ["regulation-procrastination"],
+
+  'test_2273': ["mood-depression"],
 };
