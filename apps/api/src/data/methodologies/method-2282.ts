@@ -4,7 +4,7 @@ import type { MethodologyRegistration } from '../methodologyRegistry.js';
 
 // Each option stores the source's explicit score, because several items use
 // clinically meaningful anchors rather than an answer at every integer value.
-const questions: SeedSection['questions'] = [
+const questions = [
   {
     code: 'test_2300_1', text: 'Тошнота и рвота. Спросите: «Не испытываете ли Вы тошноты? Не было ли у Вас рвоты?» Наблюдение.', type: 'single', required: true,
     options: [
@@ -81,7 +81,7 @@ const questions: SeedSection['questions'] = [
       { value: '4', label: 'Дезориентирован в месте и/или в личности' },
     ],
   },
-];
+] satisfies SeedSection['questions'];
 
 export const instrument: SeedSection = {
   code: 'test_2300',
