@@ -1065,4 +1065,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2315': ["cyberpsychology"],
 
   'test_2316': ["trait-aggression"],
+
+  'test_2318': ["trait-regulation"],
 };
