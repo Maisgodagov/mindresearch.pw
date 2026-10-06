@@ -9,7 +9,7 @@ export const Wrap = styled.div<{ $embedded: boolean }>`
   min-width: 0;
   margin: auto;
   padding-bottom: 60px;
-  @media (max-width: 560px) {
+@media (max-width: 560px) {
     width: ${(p) => (p.$embedded ? "100%" : "calc(100% - 24px)")};
     gap: 10px;
     padding-bottom: 76px;
@@ -81,6 +81,7 @@ export const Grid = styled.div`
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 11px;
   min-width: 0;
+  @media (max-width: 560px) { gap: 6px; }
 `;
 
 export const Stat = styled(Card)`
@@ -121,15 +122,15 @@ export const Stat = styled(Card)`
   }
   @media (max-width: 560px) {
     .ant-card-body {
-      min-height: 64px;
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 5px;
-      padding: 10px;
+      min-height: 0;
+      align-items: center;
+      flex-direction: row;
+      gap: 6px;
+      padding: 8px 7px;
     }
-    .ant-card-body > svg { width: 25px; height: 25px; padding: 5px; border-radius: 7px; }
-    b { font-size: 19px; }
-    span { margin-top: 2px; font-size: 10px; }
+    .ant-card-body > svg { width: 22px; height: 22px; padding: 4px; border-radius: 6px; }
+    b { font-size: 17px; }
+    span { margin-top: 1px; font-size: 9px; }
   }
 `;
 
@@ -213,13 +214,16 @@ export const Panel = styled(Card)`
     .toolbar-actions button { flex: 1; justify-content: center; }
   }
   @media (max-width: 560px) {
-    padding: 13px;
+    padding: 10px;
     border-radius: 12px;
-    h2 { font-size: 16px; }
-    .share-heading { margin-bottom: 8px; }
-    .share-content { gap: 6px; }
-    .link { padding: 9px 8px; font-size: 10px; }
-    .copy-link { min-height: 36px; padding-inline: 8px; font-size: 10px; }
+    h2 { font-size: 15px; }
+    .share-heading { margin-bottom: 6px; }
+    .share-content { gap: 5px; }
+    .link { padding: 7px 7px; font-size: 9px; }
+    .copy-link { min-height: 32px; padding: 5px 7px; font-size: 9px; }
+    .respondent-toolbar,
+    .distribution-toolbar { gap: 6px; margin-bottom: 8px; }
+    .toolbar-actions button { min-height: 30px; padding: 4px 6px; font-size: 9px; }
   }
 `;
 

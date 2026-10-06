@@ -191,7 +191,7 @@ export function InstrumentCatalog({
           body: {
             maxHeight: "min(82dvh, 820px)",
             overflowY: "auto",
-            padding: "4px 16px 16px",
+            padding: "4px clamp(8px, 2vw, 16px) clamp(10px, 2vw, 16px)",
           },
         }}
       >

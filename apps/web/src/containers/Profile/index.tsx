@@ -114,7 +114,7 @@ export function ProfilePage() {
   return (
     <PlatformLayout>
       <Layout>
-        <Column>
+        <Column className="profile-settings">
           <Form>
             <h1>Профиль</h1>
             <p className="intro">
@@ -275,7 +275,7 @@ export function ProfilePage() {
             </Button>
           </PasswordForm>
         </Column>
-        <Preview>
+        <Preview className="profile-preview">
           <div className="avatar">
             <StockAvatar seed={profile.avatarSeed} alt="Аватар профиля" />
           </div>

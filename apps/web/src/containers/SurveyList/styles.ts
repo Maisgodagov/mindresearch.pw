@@ -22,10 +22,12 @@ export const Head = styled.div`
     text-decoration: none;
   }
   @media (max-width: 560px) {
-    align-items: flex-start;
+    align-items: flex-end;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 22px;
+    gap: 8px;
+    margin-bottom: 16px;
+    h1 { font-size: 25px; margin: 3px 0; }
+    .hello { font-size: 12px; }
     a {
       max-width: 100%;
     }
@@ -301,6 +303,7 @@ export const SurveyCard = styled(Card)`
     border-radius: 9px;
     cursor: pointer;
   }
+  .copy-label-short { display: none; }
   && .copy,
   && .archive-action,
   && .copy:hover,
@@ -375,35 +378,30 @@ export const SurveyCard = styled(Card)`
     .description { font-size: 12px; line-height: 1.4; }
     .survey-date { margin-top: 8px; }
     .metrics { margin-top: 9px; }
-    .actions {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      justify-items: start;
-      align-items: stretch;
-      gap: 6px;
-      margin-top: 10px;
-      padding-top: 8px;
-    }
+    .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 8px; padding-top: 7px; }
     .links {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
       width: auto;
-      flex: none;
-      gap: 4px 12px;
+      flex: 1 1 auto;
+      gap: 3px;
     }
-    .links > * { min-width: 0; justify-content: flex-start; white-space: nowrap; padding: 6px 7px; font-size: 12px; border-radius: 8px; }
+    .links > * { min-width: 0; justify-content: flex-start; white-space: nowrap; padding: 4px 5px; min-height: 29px; font-size: 10px; border-radius: 7px; }
     .links .copy { background: #edf3eb; }
-    .links .open-survey-link { min-height: 32px; }
-    .links .archive-action { min-height: 32px; background: #f0f2ed; }
+    .links .copy-label-full { display: none; }
+    .links .copy-label-short { display: inline; }
+    .links .open-survey-link { min-height: 29px; }
+    .links .archive-action { min-height: 29px; background: #f0f2ed; }
     .actions > a {
-      justify-self: end;
-      margin: 0;
+      margin-left: auto;
       max-width: 100%;
       white-space: normal;
       text-align: right;
+      font-size: 11px;
+      padding: 4px 0;
     }
-    .actions > .continue, .actions > .publish, .actions > .archive-action { justify-self: start; justify-content: center; }
+    .actions > .continue, .actions > .publish, .actions > .archive-action { justify-content: center; }
     .metrics { gap: 6px 12px; }
     .metrics span { gap: 5px; }
     .metrics small { font-size: 11px; }

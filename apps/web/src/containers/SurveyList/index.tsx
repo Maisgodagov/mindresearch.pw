@@ -283,9 +283,10 @@ export function PlatformHome() {
                 <div className="links">
                   {s.status === "active" ? (
                     <>
-                      <Button className="copy" data-onboarding="survey-copy-link" data-survey-id={s.id} onClick={() => copy(s)}>
+                      <Button className="copy" aria-label={copied === s.id ? "Ссылка скопирована" : "Скопировать ссылку"} data-onboarding="survey-copy-link" data-survey-id={s.id} onClick={() => copy(s)}>
                         <Copy size={14} />
-                        {copied === s.id ? "Скопировано" : "Скопировать ссылку"}
+                        <span className="copy-label-full">{copied === s.id ? "Скопировано" : "Скопировать ссылку"}</span>
+                        <span className="copy-label-short">{copied === s.id ? "Готово" : "Ссылка"}</span>
                       </Button>
                       <a
                         className="open-survey-link"

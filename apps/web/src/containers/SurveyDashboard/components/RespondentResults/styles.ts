@@ -115,11 +115,14 @@ export const Table = styled.table`
     .respondent-col { width: 150px; min-width: 150px; }
   }
   @media (max-width: 560px) {
-    margin: 0 -13px -13px;
-    padding: 0 0 13px 0;
-    th, td { padding: 10px 8px; }
-    .select { width: 38px; min-width: 38px; max-width: 38px; }
-    .respondent-col { left: 38px; width: 142px; min-width: 142px; }
+    min-width: 920px;
+    margin: 0 -10px -10px;
+    padding: 0 0 10px 0;
+    th, td { padding: 7px 6px; font-size: 10px; }
+    .select { width: 32px; min-width: 32px; max-width: 32px; }
+    .respondent-col { left: 32px; width: 118px; min-width: 118px; }
+    .person { gap: 5px; font-size: 10px; }
+    .score small { font-size: 9px; }
   }
 `;
 export const TrashToggle = styled(Button)`

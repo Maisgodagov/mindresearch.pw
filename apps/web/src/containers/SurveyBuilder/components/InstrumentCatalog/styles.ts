@@ -387,8 +387,17 @@ export const Library = styled.div`
     .links { width: min(100%, 200px); justify-self: end; align-self: auto; }
   }
   @media (max-width: 460px) {
-    .top { align-items: flex-start; flex-direction: column; gap: 5px; }
-    .links { width: 100%; }
+    .item { padding: 9px 8px; gap: 6px; border-radius: 9px; }
+    .top { align-items: center; gap: 4px 7px; }
+    .title { font-size: 12px; }
+    .description { margin-top: 4px; font-size: 11px; line-height: 1.4; }
+    .item-meta { gap: 4px; margin-top: 6px; }
+    .category-tag,
+    .question-count,
+    .scoring-type { min-height: 21px; padding: 3px 7px; font-size: 9px; }
+    .links { flex-direction: row; align-items: center; justify-content: space-between; gap: 5px; width: 100%; }
+    .more { min-height: 30px; padding: 0 5px; font-size: 11px; align-self: auto; }
+    .add { min-height: 31px; padding-inline: 9px; font-size: 11px; align-self: auto; }
   }
 `;
 

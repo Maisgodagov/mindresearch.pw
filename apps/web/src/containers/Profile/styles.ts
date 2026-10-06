@@ -9,6 +9,7 @@ export const Layout = styled.div`
   @media (max-width: 1080px) {
     grid-template-columns: 1fr;
     gap: 14px;
+    & > .profile-preview { order: -1; }
   }
 `;
 export const Column = styled.div`
@@ -162,7 +163,12 @@ export const Form = styled(Card)`
     border-radius: 18px;
     h1 { font-size: 29px; }
     .intro { margin-bottom: 20px; }
-    .switch { align-items: flex-start; padding: 13px; }
+    .switch { align-items: center; gap: 10px; padding: 10px 11px; margin: 12px 0; border-radius: 12px; }
+    .switch input { width: 36px; height: 21px; flex-basis: 36px; padding: 3px; }
+    .switch input::before { width: 15px; height: 15px; }
+    .switch input:checked::before { transform: translateX(15px); }
+    .switch b { font-size: 12px; }
+    .switch span { font-size: 11px; }
     .saved { display: block; margin: 8px 0 0; }
   }
 `;
