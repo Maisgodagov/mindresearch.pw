@@ -1159,4 +1159,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2396': ["self-efficacy"],
 
   'test_2397': ["sport"],
+
+  'test_2398': ["social-attitude"],
 };
