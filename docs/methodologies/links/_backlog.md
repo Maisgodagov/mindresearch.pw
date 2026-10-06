@@ -1952,7 +1952,7 @@
 - [x] 1944. Триангулярная шкала любви Стернберга — `blocked`; [страница методики](https://psytests.org/ipl/stlsS.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html). [review](../reviews/method-1944.md);
 - [x] 1945. Триерахический опросник психопатии — `implemented-local`; [страница методики](https://psytests.org/darktriad/tripm.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html). [review](../reviews/method-1945.md);
 - [x] 1946. Трудности социализации — `implemented-local`; [страница методики](https://psytests.org/life/spblC.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html). [review](../reviews/method-1946.md);
-- [ ] 1947. ТЭММО — `queued`; [страница методики](https://psytests.org/exist/temmo.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
+- [x] 1947. ТЭММО — `implemented-local`; [страница методики](https://psytests.org/exist/temmo.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html). [review](../reviews/method-1947.md);
 - [ ] 1948. Тёмный фактор личности — `queued`; [страница методики](https://psytests.org/darktriad/d70dc.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html).
 - [ ] 1949. Уважение в близких отношениях — `queued`; [страница методики](https://psytests.org/ipl/rps20.html); путеводители: [close-dynamics-ru.html](https://psytests.org/guide/close-dynamics-ru.html).
 - [ ] 1950. Уважение к родителям — `queued`; [страница методики](https://psytests.org/parent/ukr.html); путеводители: [parenting-ru.html](https://psytests.org/guide/parenting-ru.html).
