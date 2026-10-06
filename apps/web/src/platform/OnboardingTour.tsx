@@ -23,7 +23,7 @@ const steps: Step[] = [
   { path: "/app", target: '[data-onboarding="create-survey"]', onTargetClick: '[data-onboarding="create-survey"]', title: "Создайте", body: "Нажмите «Новый опрос», чтобы перейти к настройке" },
   { path: "/app/surveys/new", target: '[data-onboarding="survey-settings"]', onEnterEvent: "mindresearch:onboarding-fill-settings-example", title: "Настройте опрос", body: "Задайте название и описание. Черновик сохраняется автоматически." },
   { path: "/app/surveys/new", target: '[data-onboarding="methodology"]', onTargetClick: '[data-onboarding="methodology"]', title: "Выберите методику", body: "Нажмите «Выбрать методику», чтобы открыть каталог проверенных методик" },
-  { path: "/app/surveys/new", target: '[data-onboarding="catalog-add"]', advanceEvent: "mindresearch:onboarding-methodology-added", title: "Добавьте методику", body: "Выберите методику в каталоге. После нажатия она добавится в опрос." },
+  { path: "/app/surveys/new", target: '[data-onboarding="catalog-categories"]', advanceEvent: "mindresearch:onboarding-methodology-added", title: "Найдите методику по категории", body: "В каталоге можно отфильтровать методики по категориям. Выберите подходящее направление, затем нажмите «Добавить в опрос» у нужной методики." },
   { path: "/app/surveys/new", target: '[data-onboarding="added-methodology"]', title: "\u041c\u0435\u0442\u043e\u0434\u0438\u043a\u0430 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0430", body: "\u041c\u0435\u0442\u043e\u0434\u0438\u043a\u0430 \u0443\u0436\u0435 \u0432 \u043e\u043f\u0440\u043e\u0441\u0435. \u0417\u0434\u0435\u0441\u044c \u043c\u043e\u0436\u043d\u043e \u043e\u0437\u043d\u0430\u043a\u043e\u043c\u0438\u0442\u044c\u0441\u044f \u0441 \u0435\u0451 \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u043d\u0438\u0435\u043c. \u0417\u0430\u0442\u0435\u043c \u043c\u043e\u0436\u043d\u043e \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439 \u0442\u0435\u0441\u0442." },
   { path: "/app/surveys/new", target: '[data-onboarding="custom-test"]', onTargetClick: '[data-onboarding="custom-test"]', title: "Создайте свой тест", body: "Нажмите «Создать тест», чтобы добавить собственный блок вопросов." },
   { path: "/app/surveys/new", target: '[data-onboarding="custom-test-block"]', onEnterEvent: "mindresearch:onboarding-fill-question-example", title: "\u0412\u0430\u0448 \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439 \u0431\u043b\u043e\u043a", body: "\u0412 \u0431\u043b\u043e\u043a\u0435 \u0443\u0436\u0435 \u0435\u0441\u0442\u044c \u043f\u0440\u0438\u043c\u0435\u0440 \u0432\u043e\u043f\u0440\u043e\u0441\u0430 \u0438 \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u043e\u0432 \u043e\u0442\u0432\u0435\u0442\u0430. \u041c\u043e\u0436\u043d\u043e \u0438\u0445 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0438\u043b\u0438 \u043f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044e." },
@@ -185,7 +185,7 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
     const margin = 16;
     const gap = 18;
     const width = Math.min(396, window.innerWidth - margin * 2);
-    const cardHeight = 330;
+    const cardHeight = step.target === '[data-onboarding="catalog-categories"]' ? 240 : 330;
     const minTop = margin;
     const maxTop = Math.max(minTop, window.innerHeight - cardHeight - margin);
     if (!rect) return { top: Math.max(minTop, (window.innerHeight - cardHeight) / 2), left: (window.innerWidth - width) / 2 };
@@ -193,6 +193,17 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
     const rightLeft = rect.left + rect.width + gap;
     const leftLeft = rect.left - width - gap;
     const hasVerticalRoom = rect.top + cardHeight <= window.innerHeight - margin;
+    if (step.target === '[data-onboarding="catalog-categories"]') {
+      if (window.innerWidth <= 600) {
+        return {
+          top: Math.max(minTop, window.innerHeight - cardHeight - margin),
+          left: (window.innerWidth - width) / 2,
+        };
+      }
+      if (leftLeft >= margin) {
+        return { top: Math.max(minTop, Math.min(rect.top, maxTop)), left: leftLeft };
+      }
+    }
     if (step.target === '[data-onboarding="custom-test-block"]') {
       const rightEdgePosition = window.innerWidth - width - margin;
       if (window.innerWidth <= 600) {

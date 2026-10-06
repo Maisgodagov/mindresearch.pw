@@ -225,6 +225,7 @@ export function InstrumentCatalog({
               ref={categoryTriggerRef}
               type="button"
               className="category-trigger"
+              data-onboarding="catalog-categories"
               aria-haspopup="listbox"
               aria-expanded={categoryOpen}
               onClick={() => setCategoryOpen((value) => !value)}
