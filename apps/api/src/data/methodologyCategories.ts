@@ -1027,4 +1027,6 @@ export const methodologyCategoryAssignments: Record<string, string[]> = {
   'test_2278': ["cyberpsychology"],
 
   'test_2279': ["close-love"],
+
+  'test_2282': ["social-culture"],
 };
