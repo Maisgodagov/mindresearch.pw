@@ -1950,7 +1950,7 @@
 - [x] 1942. Трехфакторный опросник питания — `blocked`; [страница методики](https://psytests.org/body/tfeq.html); путеводители: [clinical-body-ru.html](https://psytests.org/guide/clinical-body-ru.html). [review](../reviews/method-1942.md);
 - [x] 1943. Три модели поведения на свидании — `blocked`; [страница методики](https://psytests.org/quiz/tdtq.html); путеводители: [pop-love-ru.html](https://psytests.org/guide/pop-love-ru.html). [review](../reviews/method-1943.md);
 - [x] 1944. Триангулярная шкала любви Стернберга — `blocked`; [страница методики](https://psytests.org/ipl/stlsS.html); путеводители: [close-love-ru.html](https://psytests.org/guide/close-love-ru.html). [review](../reviews/method-1944.md);
-- [ ] 1945. Триерахический опросник психопатии — `queued`; [страница методики](https://psytests.org/darktriad/tripm.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html).
+- [x] 1945. Триерахический опросник психопатии — `implemented-local`; [страница методики](https://psytests.org/darktriad/tripm.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html). [review](../reviews/method-1945.md);
 - [ ] 1946. Трудности социализации — `queued`; [страница методики](https://psytests.org/life/spblC.html); путеводители: [parenting-child-ru.html](https://psytests.org/guide/parenting-child-ru.html).
 - [ ] 1947. ТЭММО — `queued`; [страница методики](https://psytests.org/exist/temmo.html); путеводители: [meaning-existential-ru.html](https://psytests.org/guide/meaning-existential-ru.html).
 - [ ] 1948. Тёмный фактор личности — `queued`; [страница методики](https://psytests.org/darktriad/d70dc.html); путеводители: [trait-dark-ru.html](https://psytests.org/guide/trait-dark-ru.html).
