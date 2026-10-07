@@ -13,6 +13,14 @@ import { RESPONDENT_RESULTS_COPY as copy } from "./const";
 import { Table, TableWrap, TrashBox, TrashToggle } from "./styles";
 import type { RespondentResultsProps } from "./types";
 
+function formatDuration(startedAt: string, completedAt: string | null) {
+  if (!completedAt) return null;
+  const milliseconds = Date.parse(completedAt) - Date.parse(startedAt);
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) return null;
+  const seconds = Math.floor(milliseconds / 1000);
+  return `${Math.floor(seconds / 60)} мин ${seconds % 60} сек`;
+}
+
 export function RespondentResults({
   respondents,
   deletedRespondents,
@@ -78,6 +86,7 @@ export function RespondentResults({
               <th className="respondent-col">{copy.respondent}</th>
               <th>{copy.status}</th>
               <th>{copy.answers}</th>
+              <th className="duration-col" title="От начала до завершения опроса, включая перерывы">Время прохождения</th>
               {sections.map((section) => (
                 <th key={section.code}>
                   {shortNames[section.code] ?? section.title}
@@ -127,6 +136,13 @@ export function RespondentResults({
                     {person.answered}
                     {adminView ? " / 208" : ""}
                   </td>
+                  <td className="duration-col">
+                    {person.status === "completed" ? (
+                      <span title={person.completedAt && formatDuration(person.startedAt, person.completedAt) !== null ? "От начала до завершения опроса, включая перерывы" : "Нет данных о времени прохождения"}>
+                        {formatDuration(person.startedAt, person.completedAt) ?? "—"}
+                      </span>
+                    ) : <span title="Опрос ещё не завершён">—</span>}
+                  </td>
                   {sections.map((section) => (
                     <td key={section.code}>
                       {renderMethodResult(
@@ -140,7 +156,7 @@ export function RespondentResults({
                 </tr>
                 {expanded[person.id] && (
                   <tr className="details-row">
-                    <td className="details-cell" colSpan={5 + sections.length}>
+                    <td className="details-cell" colSpan={6 + sections.length}>
                       {renderRespondentDetails(person)}
                     </td>
                   </tr>
@@ -149,7 +165,7 @@ export function RespondentResults({
             ))}
             {!respondents.length && (
               <tr>
-                <td className="empty-state" colSpan={5 + sections.length}>
+                <td className="empty-state" colSpan={6 + sections.length}>
                   Пока нет ответов. Здесь появятся участники и результаты методик.
                 </td>
               </tr>

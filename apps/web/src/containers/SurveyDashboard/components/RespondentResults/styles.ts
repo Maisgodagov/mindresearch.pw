@@ -48,6 +48,7 @@ export const Table = styled.table`
   tbody tr.is-selected .respondent-col { background: #f0f6ed; }
   tbody tr.details-row td { padding: 0; background: #f8faf7; }
   .details-cell { min-width: 100%; }
+  .duration-col { white-space: nowrap; font-variant-numeric: tabular-nums; }
   .empty-state { padding: 36px 18px; color: #6c7b70; text-align: center; }
   .select input {
     width: 14px;
