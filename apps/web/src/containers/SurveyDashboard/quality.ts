@@ -13,17 +13,17 @@ export const METRICS = [
   { key: 'responseConfidence', label: 'Уверенность ответов', unit: '%' },
   { key: 'rpr', label: 'RPR', unit: 'r' },
   { key: 'pairs', label: 'Согласованность пар', unit: '0–1' },
-  { key: 'fastShare', label: 'Нормализованно быстрые ответы', unit: '%' },
-  { key: 'extremeShare', label: 'Крайне быстрые ответы', unit: '%' },
+  { key: 'fastShare', label: 'Доля быстрых ответов', unit: '%' },
+  { key: 'extremeShare', label: 'Доля крайне быстрых ответов', unit: '%' },
   { key: 'fastRun', label: 'Длиннейшая быстрая серия', unit: 'вопросов' },
-  { key: 'speedRatio', label: 'Отношение к медианам вопросов', unit: 'отношение' },
-  { key: 'durationRatio', label: 'Активная длительность / reference', unit: 'отношение' },
+  { key: 'speedRatio', label: 'Темп относительно эталона', unit: 'отношение' },
+  { key: 'durationRatio', label: 'Активное время относительно эталона', unit: 'отношение' },
   { key: 'acceleration', label: 'Время последней трети / первой', unit: 'отношение' },
   { key: 'sameRun', label: 'Длиннейшая одинаковая серия', unit: 'вопросов' },
-  { key: 'coverage', label: 'Покрытие телеметрией', unit: '%' },
+  { key: 'coverage', label: 'Вопросы с измеренным временем', unit: '%' },
   { key: 'strongFlags', label: 'Сильные признаки', unit: 'шт.' },
   { key: 'warningFlags', label: 'Предупреждения', unit: 'шт.' },
-  { key: 'domains', label: 'Независимые домены сильных признаков', unit: 'шт.' },
+  { key: 'domains', label: 'Направления с сильными признаками', unit: 'шт.' },
 ] as const;
 export type MetricKey = typeof METRICS[number]['key'];
 const number = (v: unknown) => typeof v === 'number' && Number.isFinite(v) ? v : null;

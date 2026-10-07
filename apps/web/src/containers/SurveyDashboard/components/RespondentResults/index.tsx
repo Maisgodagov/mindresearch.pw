@@ -97,7 +97,7 @@ export function RespondentResults({
               <th>{copy.status}</th>
               <th>{copy.answers}</th>
               <th className="duration-col" title="От начала до завершения опроса, включая перерывы">Время прохождения</th>
-              <th>Когорта</th><th>Eligibility</th>{qualityColumns.map(column => <th key={column.label} title={column.title}>{column.label}</th>)}
+              <th>Группа</th><th>Критерии участия</th>{qualityColumns.map(column => <th key={column.label} title={column.title}>{column.label}</th>)}
               {sections.map((section) => (
                 <th key={section.code}>
                   {shortNames[section.code] ?? section.title}

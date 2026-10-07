@@ -303,9 +303,8 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
           </div>
         </Panel>
         <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
-        <Panel className="respondents-panel">
-          <Button disabled={!selectedRespondents.length} onClick={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))}>Экспорт качества CSV</Button>
-          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); }} visible={visibleRespondents.length} total={result.respondents.length} />
+        <Panel className="respondents-panel" data-quality-respondents>
+          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); }} visible={visibleRespondents.length} total={result.respondents.length} selectedCount={selectedRespondents.length} onExport={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))} />
           <RespondentResults
             respondents={visibleRespondents}
             qualities={qualities}
