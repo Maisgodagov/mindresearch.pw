@@ -11,6 +11,7 @@ import {
   ResultBox,
 } from "./styles";
 import type { RespondentDetailsProps } from "./types";
+import { formatQuestionTime } from "../QuestionTiming";
 
 export function RespondentDetails({
   respondent,
@@ -62,6 +63,10 @@ export function RespondentDetails({
                   <AnswerRow key={answer.code}>
                     <div className="q">{answer.question}</div>
                     <div className="a">{answer.displayValue}</div>
+                    {answer.activeMs != null && <div className="timing">
+                      Время на вопросе: {formatQuestionTime(answer.activeMs)}
+                      {answer.visits != null && answer.visits > 1 ? ` · посещений: ${answer.visits}` : ""}
+                    </div>}
                   </AnswerRow>
                 ))}
               </Answers>

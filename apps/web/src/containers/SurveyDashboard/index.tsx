@@ -14,6 +14,7 @@ import {
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
+import { QuestionTiming } from "./components/QuestionTiming";
 import { demoSurveys } from "../../platform/demo";
 import {
   MethodologyModal,
@@ -344,6 +345,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             )}
           />
         </Panel>
+        <QuestionTiming respondents={result.respondents} />
         <AnswerDistribution
           data={chart}
           options={questionOptions}

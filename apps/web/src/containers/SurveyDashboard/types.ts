@@ -10,6 +10,8 @@ export type Answer = {
   question: string;
   value: unknown;
   displayValue: string;
+  activeMs?: number | null;
+  visits?: number | null;
 };
 export type SectionResult = {
   formulaVersion: string;

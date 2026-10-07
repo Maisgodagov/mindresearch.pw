@@ -61,6 +61,7 @@ export const Answers = styled.div`
   }
 `;
 export const AnswerRow = styled.div`
+  .timing { margin-top: 6px; font-size: 11px; color: #526557; font-variant-numeric: tabular-nums; }
   padding: 11px 0;
   border-top: 1px solid #edf1ec;
   .q {

@@ -16,6 +16,7 @@ import { Button, Page, Shell, SkeletonScreen } from "../../ui";
 import { ResultsPage } from "../SurveyResults";
 import { StockAvatar } from "../../components/StockAvatar";
 import type { Resume, Value } from "./types";
+import { useQuestionTiming } from "./useQuestionTiming";
 import {
   Header,
   Welcome,
@@ -46,6 +47,7 @@ export function SurveyPage() {
   const [transitioning, setTransitioning] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   const answering = useRef(false);
+  const questionTiming = useQuestionTiming(token, survey?.questions[index]?.id, started && !done);
   useEffect(() => {
     let active = true;
     api
@@ -122,7 +124,7 @@ export function SurveyPage() {
     setToken(r.data.token);
     setStarted(true);
   }
-  async function save(q: Question, value: Value, pos = index) {
+  async function save(q: Question, value: Value, pos = index, timing?: { visitId: string; activeMs: number }) {
     if (!token) return false;
     setSaving(true);
     setOffline(false);
@@ -131,6 +133,7 @@ export function SurveyPage() {
         questionId: q.id,
         value,
         position: pos,
+        timing,
       });
       return true;
     } catch {
@@ -149,25 +152,46 @@ export function SurveyPage() {
     if (answering.current) return;
     answering.current = true;
     setAnswers((a) => ({ ...a, [String(index)]: value }));
-    if (!(await save(q, value))) {
+    if (!(await save(q, value, index, questionTiming.stop()))) {
+      questionTiming.resume();
       answering.current = false;
       return;
     }
     await new Promise((r) => setTimeout(r, 320));
     setTransitioning(true);
     await new Promise((r) => setTimeout(r, 180));
-    await next();
+    await next(true);
     setTransitioning(false);
     answering.current = false;
   }
-  async function next() {
+  async function next(alreadySaved = false) {
     if (!survey) return;
+    window.clearTimeout(timer.current);
+    if (!alreadySaved) {
+      const question = survey.questions[index];
+      const answer = answers[String(index)];
+      if (answer !== undefined && !(await save(question, answer, index, questionTiming.stop()))) {
+        questionTiming.resume(); return;
+      }
+    }
     if (index === survey.questions.length - 1) {
-      await api.post(`/public/sessions/${token}/complete`);
+      try { await api.post(`/public/sessions/${token}/complete`); }
+      catch { setOffline(true); questionTiming.resume(); return; }
       localStorage.removeItem(`survey_session_${slug}`);
       sessionStorage.setItem(`survey_result_${slug}`, token);
       setDone(true);
     } else setIndex((i) => i + 1);
+    questionTiming.finish();
+  }
+  async function previous() {
+    if (answering.current) return;
+    window.clearTimeout(timer.current);
+    const question = survey?.questions[index], answer = answers[String(index)];
+    if (question && answer !== undefined) {
+      if (!(await save(question, answer, index - 1, questionTiming.stop()))) { questionTiming.resume(); return; }
+      questionTiming.finish();
+    }
+    setIndex((i) => i - 1);
   }
   const q = survey?.questions[index],
     value = q ? answers[String(index)] : undefined;
@@ -356,8 +380,8 @@ export function SurveyPage() {
             <Nav>
               <Button
                 aria-label="Назад"
-                disabled={index === 0}
-                onClick={() => setIndex((i) => i - 1)}
+                disabled={index === 0 || saving || transitioning}
+                onClick={previous}
                 style={{
                   background: "transparent",
                   color: "#526f5b",
@@ -370,7 +394,7 @@ export function SurveyPage() {
                 <Button
                   type="primary"
                   disabled={!valid || saving}
-                  onClick={next}
+                  onClick={() => next()}
                 >
                   {index === survey.questions.length - 1
                     ? "Завершить"
