@@ -7,6 +7,5 @@ export type CurrentUser = {
   avatarSeed: string;
   publicSlug: string | null;
   isProfilePublic: boolean;
-  onboardingStatus?: "not_started" | "completed" | "skipped";
   createdAt: string;
 };

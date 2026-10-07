@@ -1,5 +1,5 @@
 import { BookOpenText, CheckCircle2, ChevronDown, Eye } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "../../../../components/Button";
 import { FieldInput } from "../../../../components/FieldInput";
 import { TextAreaField } from "../../../../components/TextAreaField";
@@ -56,11 +56,6 @@ export function SurveyBuilderToolbar({
   onSave,
 }: Props) {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-  useEffect(() => {
-    const expandDescriptionForOnboarding = () => setDescriptionExpanded(true);
-    window.addEventListener("mindresearch:onboarding-fill-settings-example", expandDescriptionForOnboarding);
-    return () => window.removeEventListener("mindresearch:onboarding-fill-settings-example", expandDescriptionForOnboarding);
-  }, []);
   const saveLabel = saving ? "Сохраняем…" : "Сохранить опрос";
 
   return (
@@ -70,7 +65,7 @@ export function SurveyBuilderToolbar({
         <h2>Управление опросом</h2>
       </header>
 
-      <section className="survey-details" data-onboarding="survey-settings" aria-label="Основные сведения об опросе">
+      <section className="survey-details" aria-label="Основные сведения об опросе">
         <div className="field-group">
           <label htmlFor="survey-title">Название опроса</label>
           <FieldInput
@@ -113,8 +108,8 @@ export function SurveyBuilderToolbar({
         </CatalogSlot>
       </section>
 
-      <section className="control-actions" data-onboarding="publish-setting" aria-label="Сохранение и просмотр">
-        <label className="publish-toggle" data-onboarding="publish-toggle">
+      <section className="control-actions" aria-label="Сохранение и просмотр">
+        <label className="publish-toggle">
           <input
             type="checkbox"
             checked={publishImmediately}
@@ -135,7 +130,7 @@ export function SurveyBuilderToolbar({
           </Button>
           <Button
             className="save-button"
-            data-onboarding="save-survey"
+           
             type="primary"
             disabled={saving}
             onClick={onSave}

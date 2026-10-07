@@ -300,7 +300,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
         embedded ? { minHeight: "auto", background: "transparent" } : undefined
       }
     >
-      <Wrap $embedded={embedded} data-onboarding={embedded ? "survey-results" : undefined}>
+      <Wrap $embedded={embedded}>
         {!embedded && (
           <Header>
             <div className="brand">

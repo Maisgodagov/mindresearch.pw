@@ -139,55 +139,6 @@ export function SurveyBuilder() {
   });
   const initialMeta = useRef(meta);
   useEffect(() => {
-    const fillSettingsExamples = () => {
-      setMeta((current) => ({
-        ...current,
-        title: current.title.trim() ? current.title : "\u041f\u0440\u0438\u043c\u0435\u0440: \u043e\u043f\u0440\u043e\u0441 \u043e \u0441\u0430\u043c\u043e\u0447\u0443\u0432\u0441\u0442\u0432\u0438\u0438",
-        description: current.description.trim() ? current.description : "\u041f\u0440\u0438\u043c\u0435\u0440: \u043a\u043e\u0440\u043e\u0442\u043a\u0438\u0439 \u043e\u043f\u0440\u043e\u0441 \u043e \u0441\u0430\u043c\u043e\u0447\u0443\u0432\u0441\u0442\u0432\u0438\u0438.",
-        welcomeTitle: !current.welcomeTitle.trim() || current.welcomeTitle === initialMeta.current.welcomeTitle
-          ? "\u041f\u0440\u0438\u043c\u0435\u0440: \u0441\u043f\u0430\u0441\u0438\u0431\u043e \u0437\u0430 \u0443\u0447\u0430\u0441\u0442\u0438\u0435"
-          : current.welcomeTitle,
-        welcomeText: !current.welcomeText.trim() || current.welcomeText === initialMeta.current.welcomeText
-          ? "\u041f\u0440\u0438\u043c\u0435\u0440: \u043e\u043f\u0440\u043e\u0441 \u0437\u0430\u0439\u043c\u0451\u0442 \u043e\u043a\u043e\u043b\u043e 5 \u043c\u0438\u043d\u0443\u0442. \u041e\u0442\u0432\u0435\u0447\u0430\u0439\u0442\u0435 \u0442\u0430\u043a, \u043a\u0430\u043a \u0434\u0443\u043c\u0430\u0435\u0442\u0435 \u043d\u0430 \u0441\u0430\u043c\u043e\u043c \u0434\u0435\u043b\u0435.": current.welcomeText,
-        resultPresentation: {
-          ...current.resultPresentation,
-          title: !current.resultPresentation.title.trim() || current.resultPresentation.title === initialMeta.current.resultPresentation.title
-            ? "\u041f\u0440\u0438\u043c\u0435\u0440: \u0441\u043f\u0430\u0441\u0438\u0431\u043e \u0437\u0430 \u0432\u0430\u0448\u0438 \u043e\u0442\u0432\u0435\u0442\u044b"
-            : current.resultPresentation.title,
-        },
-      }));
-    };
-    const fillQuestionExamples = () => {
-      setSections((current) => current.map((section) => {
-        if (section.kind !== "custom") return section;
-        const questions = (section.questions ?? []).map((question, index) => ({
-          ...question,
-          text: question.text.trim() ? question.text : `\u041f\u0440\u0438\u043c\u0435\u0440 \u0432\u043e\u043f\u0440\u043e\u0441\u0430 ${index + 1}: \u041a\u0430\u043a \u0432\u044b \u043e\u0446\u0435\u043d\u0438\u0432\u0430\u0435\u0442\u0435 \u0441\u0432\u043e\u0451 \u0441\u0430\u043c\u043e\u0447\u0443\u0432\u0441\u0442\u0432\u0438\u0435?`,
-          options: question.type === "single" || question.type === "multiple"
-            ? (question.options.length ? question.options : [{ value: "1", label: "" }, { value: "2", label: "" }]).map((option, optionIndex) => ({
-                ...option,
-                label: option.label.trim() ? option.label : `\u041f\u0440\u0438\u043c\u0435\u0440 \u043e\u0442\u0432\u0435\u0442\u0430 ${optionIndex + 1}`,
-              }))
-            : question.options,
-        }));
-        const sharedOptions = section.useSharedOptions
-          ? (section.sharedOptions ?? []).map((option, optionIndex) => ({
-              ...option,
-              label: option.label.trim() ? option.label : `\u041f\u0440\u0438\u043c\u0435\u0440 \u043e\u0442\u0432\u0435\u0442\u0430 ${optionIndex + 1}`,
-            }))
-          : section.sharedOptions;
-        return { ...section, questions, sharedOptions };
-      }));
-      setOpen((current) => ({ ...current, ...Object.fromEntries(sections.filter((section) => section.kind === "custom").map((section) => [section.id, true])) }));
-    };
-    window.addEventListener("mindresearch:onboarding-fill-settings-example", fillSettingsExamples);
-    window.addEventListener("mindresearch:onboarding-fill-question-example", fillQuestionExamples);
-    return () => {
-      window.removeEventListener("mindresearch:onboarding-fill-settings-example", fillSettingsExamples);
-      window.removeEventListener("mindresearch:onboarding-fill-question-example", fillQuestionExamples);
-    };
-  }, [sections]);
-  useEffect(() => {
     setCatalogLoading(true);
     Promise.all([
       api.get("/account/instruments"),
@@ -362,7 +313,6 @@ export function SurveyBuilder() {
     ]);
     setOpen((o) => ({ ...o, [id]: true }));
     setInvalidFields((current) => current.filter((key) => key !== "sections"));
-    window.setTimeout(() => window.dispatchEvent(new Event("mindresearch:onboarding-custom-block-ready")), 0);
   };
   const move = (index: number, delta: number) =>
     setSections((s) => {
@@ -593,12 +543,9 @@ export function SurveyBuilder() {
     };
     try {
       const targetId = surveyId || draftSurveyId.current;
-      const response = targetId
+      targetId
         ? await api.put(`/account/surveys/${targetId}`, payload)
         : await api.post("/account/surveys", payload);
-      window.dispatchEvent(new CustomEvent("mindresearch:onboarding-survey-saved", {
-        detail: { published: meta.status === "active", surveyId: targetId ?? response.data?.id },
-      }));
       autosaveDraft.current = false;
       nav("/app");
     } catch (err: unknown) {
@@ -744,12 +691,11 @@ export function SurveyBuilder() {
                 items={sections.map((section) => section.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <Stack data-onboarding="survey-blocks">
+                <Stack>
                   {sections.map((section, index) => (
                     <SortableSection
                       key={section.id}
                       id={section.id}
-                      onboardingTarget={section.kind === "library" ? "added-methodology" : section.kind === "custom" ? "custom-test-block" : undefined}
                     >
                       {(sectionHandle) => (
                         <>
@@ -1139,7 +1085,7 @@ export function SurveyBuilder() {
                                               </Button>
                                             </div>
                                           </div>
-                                          <div className="qgrid" data-onboarding={section.kind === "custom" ? "question-fields" : undefined}>
+                                          <div className="qgrid">
                                             <FieldInput
                                               className={
                                                 invalidFields.includes(

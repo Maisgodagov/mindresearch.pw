@@ -70,7 +70,6 @@ export function PlatformHome() {
   }, []);
   const copy = async (s: Survey) => {
     await navigator.clipboard.writeText(`${location.origin}/s/${s.slug}`);
-    window.dispatchEvent(new CustomEvent("mindresearch:onboarding-link-copied", { detail: { surveyId: s.id } }));
     setCopied(s.id);
     setTimeout(() => setCopied(""), 1800);
   };
@@ -84,7 +83,6 @@ export function PlatformHome() {
           item.id === s.id ? { ...item, status: "active" } : item,
         ),
       );
-      window.setTimeout(() => window.dispatchEvent(new CustomEvent("mindresearch:onboarding-survey-published", { detail: { surveyId: s.id } })), 0);
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, "Не удалось опубликовать опрос"));
     } finally {
@@ -183,14 +181,14 @@ export function PlatformHome() {
           <span className="hello">Здравствуйте{name ? `, ${name}` : ""}</span>
           <h1>Ваши опросы</h1>
         </div>
-        <Link to="/app/surveys/new" data-onboarding="create-survey">
+        <Link to="/app/surveys/new">
           <Button type="primary" size="large">
             <Plus size={17} /> Новый опрос
           </Button>
         </Link>
       </Head>
       {error && <p style={{ color: "#a25c55" }}>{error}</p>}
-      <Grid data-onboarding="survey-list">
+      <Grid>
         {orderedSurveys.length === 0 ? (
           <EmptyState>
             <span className="icon"><ClipboardList size={24} /></span>
@@ -229,10 +227,10 @@ export function PlatformHome() {
                       ? "В архиве"
                       : "Черновик"}
                 </span>
-                <div className="card-tools" data-onboarding="survey-edit-delete">
+                <div className="card-tools">
                   <Link
                     className="tool-button edit"
-                    data-onboarding="survey-edit"
+                   
                     to={`/app/surveys/${s.id}/edit`}
                     aria-label={`${s.hasBuilderState ? "Продолжить создание" : "Редактировать опрос"} ${s.title}`}
                     title={
@@ -283,7 +281,7 @@ export function PlatformHome() {
                 <div className="links">
                   {s.status === "active" ? (
                     <>
-                      <Button className="copy" aria-label={copied === s.id ? "Ссылка скопирована" : "Скопировать ссылку"} data-onboarding="survey-copy-link" data-survey-id={s.id} onClick={() => copy(s)}>
+                      <Button className="copy" aria-label={copied === s.id ? "Ссылка скопирована" : "Скопировать ссылку"} data-survey-id={s.id} onClick={() => copy(s)}>
                         <Copy size={14} />
                         <span className="copy-label-full">{copied === s.id ? "Скопировано" : "Скопировать ссылку"}</span>
                         <span className="copy-label-short">{copied === s.id ? "Готово" : "Ссылка"}</span>
@@ -320,7 +318,7 @@ export function PlatformHome() {
                       </Link>
                       <Button
                         className="publish"
-                        data-onboarding="survey-publish"
+                       
                         data-survey-id={s.id}
                         disabled={publishing === s.id}
                         onClick={() => publish(s)}
@@ -332,7 +330,7 @@ export function PlatformHome() {
                   ) : (
                     <Button
                       className="publish"
-                      data-onboarding="survey-publish"
+                     
                       data-survey-id={s.id}
                       disabled={publishing === s.id}
                       onClick={() => publish(s)}
@@ -342,7 +340,7 @@ export function PlatformHome() {
                     </Button>
                   )}
                 </div>
-                <Link to={`/app/surveys/${s.id}/results`} data-onboarding="survey-statistics" data-survey-id={s.id}>
+                <Link to={`/app/surveys/${s.id}/results`} data-survey-id={s.id}>
                   Статистика <ArrowRight size={14} />
                 </Link>
               </div>

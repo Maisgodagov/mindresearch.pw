@@ -10,7 +10,6 @@ import { GlobalStyle } from "./styles";
 import { AuthGuard } from "./platform/AuthGuard";
 import { PlatformLayout } from "./containers/PlatformLayout";
 import { SkeletonScreen } from "./ui";
-import { OnboardingTour } from "./platform/OnboardingTour";
 
 const SurveyPage = React.lazy(() =>
   import("./containers/SurveyTaking").then((m) => ({ default: m.SurveyPage })),
@@ -123,7 +122,7 @@ function App() {
     >
       <GlobalStyle />
       <Suspense fallback={<SkeletonScreen variant="form" />}>
-        <OnboardingTour><Routes>
+        <Routes>
           <Route path="/" element={<Navigate to="/register" replace />} />
           <Route path="/s/:slug" element={<SurveyPage />} />
           <Route path="/p/:slug" element={<PublicProfile />} />
@@ -172,7 +171,7 @@ function App() {
             }
           />
           <Route path="*" element={<Navigate to="/register" replace />} />
-        </Routes></OnboardingTour>
+        </Routes>
       </Suspense>
     </ConfigProvider>
   );
