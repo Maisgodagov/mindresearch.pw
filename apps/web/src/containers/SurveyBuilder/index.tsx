@@ -576,6 +576,7 @@ export function SurveyBuilder() {
                 text: q.text,
                 type: q.type,
                 required: q.required,
+                validation: q.validation ?? undefined,
                 options:
                   q.type === "single" || q.type === "multiple"
                     ? s.useSharedOptions
@@ -1371,6 +1372,18 @@ export function SurveyBuilder() {
                                             />{" "}
                                             Обязательный вопрос
                                           </label>
+                                          <details style={{marginTop:12}}>
+                                            <summary>Настройки качества прохождения</summary>
+                                            <label className="required">
+                                              <input type="checkbox" checked={q.validation?.qualityType==='attention_check'} disabled={q.type!=='single'&&q.validation?.qualityType!=='attention_check'} onChange={e=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,validation:e.target.checked?{qualityType:'attention_check',expectedValue:(section.useSharedOptions?section.sharedOptions:q.options)?.[0]?.value,excludeFromQuality:true}:undefined}:x)}))}/>
+                                              Проверка внимания (один вариант)
+                                            </label>
+                                            {q.validation?.qualityType==='attention_check'&&<label>Ожидаемый ответ
+                                              <Select value={String(q.validation.expectedValue??'')} options={(section.useSharedOptions?section.sharedOptions:q.options)?.map(o=>({value:o.value,label:o.label||'Без названия'}))??[]} onChange={value=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,validation:{...x.validation,expectedValue:String(value)}}:x)}))}/>
+                                              <small>Не входит в психологические шкалы, RPR, пары и оценку скорости. Добавляется только вручную до сбора ответов.</small>
+                                            </label>}
+                                            {q.validation?.qualityType!=='attention_check'&&<label className="required"><input type="checkbox" checked={q.validation?.excludeFromQuality===true} onChange={e=>updateSection(section.id,s=>({...s,questions:s.questions?.map(x=>x.id===q.id?{...x,validation:{...x.validation,excludeFromQuality:e.target.checked}}:x)}))}/>Служебный вопрос: исключить из качества</label>}
+                                          </details>
                                         </>
                                       )}
                                     </SortableQuestion>

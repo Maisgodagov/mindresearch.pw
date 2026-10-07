@@ -6,6 +6,7 @@ export type SurveyRow = {
   completed: number;
 };
 export type Answer = {
+  questionId?: string;
   code: string;
   question: string;
   value: unknown;
@@ -107,6 +108,12 @@ export type AnswerGroup = {
   answers: Answer[];
 };
 export type Respondent = {
+  qualityV2?: import("./quality").Quality | null;
+  cohort?: string;
+  calibrationTrusted?: boolean;
+  eligibility?: string;
+  eligibilityReason?: string | null;
+  confirmedDuplicate?: boolean;
   id: string;
   alias: string;
   status: "in_progress" | "completed" | "abandoned";

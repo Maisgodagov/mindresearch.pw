@@ -12,7 +12,7 @@ import {
 } from "./styles";
 import type { RespondentDetailsProps } from "./types";
 import { formatQuestionTime } from "../QuestionTiming";
-import { questionKey } from "../../quality";
+
 import { fasterText } from "../ResponseQuality";
 
 export function RespondentDetails({
@@ -70,10 +70,11 @@ export function RespondentDetails({
                       Время на вопросе: {formatQuestionTime(answer.activeMs)}
                       {answer.visits != null && answer.visits > 1 ? ` · посещений: ${answer.visits}` : ""}
                     </div>}
-                    {quality?.comparisons[questionKey(group.id, answer.code)] && <div className="timing">
-                      {fasterText(quality.comparisons[questionKey(group.id, answer.code)].faster)} относительно медианы вопроса
-                      {quality.comparisons[questionKey(group.id, answer.code)].medianMs !== null && ` (${formatQuestionTime(quality.comparisons[questionKey(group.id, answer.code)].medianMs!)}; ${quality.comparisons[questionKey(group.id, answer.code)].peers} других респондентов)`}
-                    </div>}
+                    {answer.questionId && (()=>{
+                      const refs=quality?.behavioral.metrics.question_ratios as Record<string,{ratio:number;median:number;n:number;source:string}>|undefined;
+                      const ref=refs?.[answer.questionId];
+                      return ref?<div className="timing">{fasterText((1-ref.ratio)*100)} относительно замороженной reference ({formatQuestionTime(ref.median*1000)}; N={ref.n}; {ref.source})</div>:null;
+                    })()}
                   </AnswerRow>
                 ))}
               </Answers>

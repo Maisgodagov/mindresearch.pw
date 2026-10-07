@@ -7,7 +7,12 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "tsx src/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "recompute-quality-v2": "tsx src/quality/cli.ts recompute",
+    "quality-v2-backtest": "tsx src/quality/cli.ts backtest",
+    "quality-v2-freeze": "tsx src/quality/cli.ts freeze",
+    "quality-v2-cohorts": "tsx src/quality/cli.ts metadata",
+    "quality-v2-replay": "tsx src/quality/cli.ts replay"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

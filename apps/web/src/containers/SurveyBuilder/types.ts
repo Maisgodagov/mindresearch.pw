@@ -20,6 +20,7 @@ export type InstrumentCategory = {
 export type Option = { value: string; label: string };
 
 export type Question = {
+  validation?: Record<string, unknown> | null;
   id: string;
   text: string;
   type: 'single' | 'multiple' | 'text' | 'number';

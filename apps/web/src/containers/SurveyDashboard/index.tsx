@@ -13,10 +13,10 @@ import {
 } from "lucide-react";
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
-import { exportRespondents } from "../../admin/exportResults";
+import { exportRespondents, exportQualityCsv } from "../../admin/exportResults";
 import { QuestionTiming } from "./components/QuestionTiming";
-import { QualityOverview, QualityControls, QualityDetails } from "./components/ResponseQuality";
-import { calculateQuality, applyQualityView, DEFAULT_QUALITY_VIEW, type QualityView } from "./quality";
+import { QualityOverview, QualityControls, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
+import { applyQualityView, DEFAULT_QUALITY_VIEW, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
 import {
   MethodologyModal,
@@ -52,7 +52,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   });
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [qualityView, setQualityView] = useState<QualityView>({ ...DEFAULT_QUALITY_VIEW, filters: [] });
-  const qualities = useMemo(() => calculateQuality(result.respondents), [result.respondents]);
+  const qualities = useMemo(() => Object.fromEntries(result.respondents.flatMap(p => p.qualityV2 ? [[p.id, p.qualityV2]] : [])), [result.respondents]);
   const visibleRespondents = useMemo(() => applyQualityView(result.respondents, qualities, qualityView), [result.respondents, qualities, qualityView]);
   useEffect(() => { setQualityView({ ...DEFAULT_QUALITY_VIEW, filters: [] }); setSelected({}); }, [surveyId]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -302,8 +302,9 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             </Button>
           </div>
         </Panel>
-        <Panel><QualityOverview people={result.respondents} qualities={qualities} /></Panel>
+        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
         <Panel className="respondents-panel">
+          <Button disabled={!selectedRespondents.length} onClick={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))}>Экспорт качества CSV</Button>
           <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); }} visible={visibleRespondents.length} total={result.respondents.length} />
           <RespondentResults
             respondents={visibleRespondents}

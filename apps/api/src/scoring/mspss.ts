@@ -2,7 +2,7 @@ export type MspssLevel='low'|'moderate'|'high';
 export type MspssScore={label:string;score:number;min:1;max:7;level:MspssLevel;levelLabel:string;items:number[]};
 export type MspssResult={instrument:'MSPSS';complete:true;answered:12;overall:MspssScore;scales:Record<'significantOther'|'family'|'friends',MspssScore>};
 
-const definitions={
+export const definitions={
   significantOther:{label:'Поддержка значимого другого',items:[1,2,5,10]},
   family:{label:'Поддержка семьи',items:[3,4,8,11]},
   friends:{label:'Поддержка друзей',items:[6,7,9,12]},

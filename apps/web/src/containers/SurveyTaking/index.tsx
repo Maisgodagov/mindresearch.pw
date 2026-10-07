@@ -124,7 +124,7 @@ export function SurveyPage() {
     setToken(r.data.token);
     setStarted(true);
   }
-  async function save(q: Question, value: Value, pos = index, timing?: { visitId: string; activeMs: number }) {
+  async function save(q: Question, value: Value, pos = index, timing?: { visitId: string; activeMs: number; visitSequence?: number }) {
     if (!token) return false;
     setSaving(true);
     setOffline(false);
