@@ -108,6 +108,7 @@ export type AnswerGroup = {
   answers: Answer[];
 };
 export type Respondent = {
+  detailsLoaded?: boolean;
   qualityV2?: import("./quality").Quality | null;
   cohort?: string;
   calibrationTrusted?: boolean;
@@ -124,6 +125,7 @@ export type Respondent = {
   answered: number;
   groups: AnswerGroup[];
 };
+export type QuestionTimingRow = { key: string; section: string; question: string; average: number; median: number; count: number };
 export type Result = {
   sections: { code: string; title: string; sectionKind: string }[];
   respondents: Respondent[];

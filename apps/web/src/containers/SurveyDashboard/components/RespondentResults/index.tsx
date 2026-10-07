@@ -34,6 +34,7 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 
 export function RespondentResults({
   respondents,
+  totalCount,
   qualities,
   deletedRespondents,
   sections,
@@ -64,7 +65,7 @@ export function RespondentResults({
       <div className="respondent-toolbar">
         <div className="respondent-title">
           <h2>{copy.title}</h2>
-          <span className="respondent-count">Всего: {respondents.length}</span>
+          <span className="respondent-count">Всего: {totalCount}</span>
         </div>
         <div className="toolbar-actions">
           <Button
@@ -90,7 +91,7 @@ export function RespondentResults({
               <th className="select">
                 <FieldInput
                   type="checkbox"
-                  aria-label={copy.selectAll}
+                  aria-label="Выбрать респондентов на этой странице"
                   checked={allSelected}
                   onChange={(event) => onSelectAll(event.target.checked)}
                 />

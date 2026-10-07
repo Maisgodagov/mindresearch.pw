@@ -10,6 +10,7 @@ export type ResultSection = {
 
 export type RespondentResultsProps = {
   respondents: Respondent[];
+  totalCount: number;
   qualities: Record<string, Quality>;
   deletedRespondents: Respondent[];
   sections: ResultSection[];

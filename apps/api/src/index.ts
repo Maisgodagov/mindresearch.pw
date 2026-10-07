@@ -1,3 +1,4 @@
+import { loadSurveyResults, loadQuestionTimingSummary } from './survey-results.js';
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -102,22 +103,26 @@ app.post('/api/auth/refresh',async(req,res,next)=>{try{const token=await rotateA
 app.post('/api/auth/logout',async(req,res,next)=>{try{await revokeAuthSession(req,res);res.status(204).end()}catch(e){next(e)}});
 app.post('/api/auth/logout-all',requireAuth,async(req:AuthRequest,res,next)=>{try{await revokeAllUserSessions(req.user!.id);clearRefreshCookie(res);res.status(204).end()}catch(e){next(e)}});
 app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.created_at createdAt,s.updated_at updatedAt,s.builder_state IS NOT NULL hasBuilderState,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? AND s.deleted_at IS NULL GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
-app.get('/api/admin/methodologies',requireAuth,async(_req,res,next)=>{try{const[rows]=await db.query<any[]>(`SELECT code,title,description,methodology FROM instruments WHERE is_verified=TRUE AND status='active' AND methodology IS NOT NULL`);const configured:Record<string,any>={};for(const row of rows){const metadata=typeof row.methodology==='string'?JSON.parse(row.methodology):row.methodology;configured[row.code]={...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title,summary:row.description??metadata?.summary??methodologies[row.code]?.summary}}res.json({...methodologies,...configured})}catch(e){next(e)}});
+app.get('/api/admin/methodologies',requireAuth,async(req,res,next)=>{try{
+const codes=req.query.codes===undefined?undefined:z.array(z.string().min(1).max(120)).max(1000).parse(String(req.query.codes).split(',').filter(Boolean));
+if(codes?.length===0)return res.json({});
+const restriction=codes?` AND code IN (${codes.map(()=>'?').join(',')})`:'';
+const[rows]=await db.query<any[]>(`SELECT code,title,description,methodology FROM instruments WHERE is_verified=TRUE AND status='active' AND methodology IS NOT NULL${restriction}`,codes??[]);const configured:Record<string,any>={};for(const row of rows){const metadata=typeof row.methodology==='string'?JSON.parse(row.methodology):row.methodology;configured[row.code]={...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title,summary:row.description??metadata?.summary??methodologies[row.code]?.summary}}res.json({...Object.fromEntries(Object.entries(methodologies).filter(([code])=>!codes||codes.includes(code))),...configured})}catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
   const [allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);if(!allowed.length)return res.status(404).json({message:'Опрос не найден'});
-  const [surveySections]=await db.query<any[]>(`SELECT code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`,[req.params.id]);
-  const [sessions]=await db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at AS startedAt,rs.last_activity_at AS lastActivityAt,rs.completed_at AS completedAt,rs.deleted_at AS deletedAt,COUNT(a.id) answered FROM response_sessions rs LEFT JOIN answers a ON a.session_id=rs.id WHERE rs.survey_id=? GROUP BY rs.id ORDER BY rs.started_at DESC`,[req.params.id]);
-  await Promise.all(sessions.map(session=>calculateConfiguredAssessmentsForSession(session.id)));
-  const [distributionRows]=await db.query<any[]>(`SELECT q.code,q.text,q.options,a.value,COUNT(*) count FROM answers a JOIN questions q ON q.id=a.question_id JOIN response_sessions rs ON rs.id=a.session_id WHERE rs.survey_id=? AND rs.deleted_at IS NULL GROUP BY q.id,a.value ORDER BY q.position`,[req.params.id]);
-  const [answerRows]=await db.query<any[]>(`SELECT a.session_id sessionId,s.id sectionId,s.code sectionCode,s.title sectionTitle,s.position sectionPosition,q.id questionId,q.code questionCode,q.text questionText,q.type questionType,q.options,q.position questionPosition,a.value,qt.activeMs,qt.visits,ar.formula_version formulaVersion,ar.result,ar.interpretation FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.id=a.session_id LEFT JOIN assessment_results ar ON ar.session_id=a.session_id AND ar.section_id=s.id LEFT JOIN (SELECT t.session_id,t.question_id,SUM(t.active_ms) activeMs,COUNT(*) visits FROM question_timings t JOIN response_sessions timed ON timed.id=t.session_id WHERE timed.survey_id=? GROUP BY t.session_id,t.question_id) qt ON qt.session_id=a.session_id AND qt.question_id=a.question_id WHERE rs.survey_id=? ORDER BY rs.started_at DESC,s.position,q.position`,[req.params.id,req.params.id]);
-  const parseJson=(value:any)=>{if(value===null||value===undefined)return null;if(typeof value!=='string')return value;try{return JSON.parse(value)}catch{return value}};
-  const distribution=distributionRows.map(row=>{const options=parseJson(row.options)??[];const values:unknown[]=Array.isArray(row.value)?row.value:[row.value];const labels=values.map((value:unknown)=>options.find((option:any)=>String(option.value)===String(value))?.label??String(value));return {...row,label:labels.join(', ')}});
-  const grouped=new Map<string,any[]>();
-  for(const row of answerRows){const value=parseJson(row.value),options=parseJson(row.options)??[];const labels=(Array.isArray(value)?value:[value]).map(v=>options.find((o:any)=>String(o.value)===String(v))?.label??String(v));let groups=grouped.get(row.sessionId);if(!groups){groups=[];grouped.set(row.sessionId,groups)}let group=groups.find(g=>g.code===row.sectionCode);if(!group){group={id:row.sectionId,code:row.sectionCode,title:row.sectionTitle,position:row.sectionPosition,result:row.result?{formulaVersion:row.formulaVersion,values:parseJson(row.result),interpretation:parseJson(row.interpretation)}:null,answers:[]};groups.push(group)}group.answers.push({questionId:row.questionId,code:row.questionCode,question:row.questionText,type:row.questionType,position:row.questionPosition,options,value,displayValue:labels.join(', '),activeMs:row.activeMs===null?null:Number(row.activeMs),visits:row.visits===null?null:Number(row.visits)})}
-  const v2=qualityEnabled()?await storedQualities(String(req.params.id)):{};
-  const[metadata]=await db.query<any[]>(`SELECT m.* FROM quality_metadata m JOIN response_sessions rs ON rs.id=m.session_id WHERE rs.survey_id=?`,[req.params.id]);const metadataById=new Map(metadata.map(row=>[row.session_id,row]));
-  const respondents=sessions.map(session=>{const groups=grouped.get(session.id)??[];const alias=groups.find(g=>g.code==='respondent')?.answers.find((a:any)=>a.code==='alias')?.displayValue||'Без псевдонима';const meta=metadataById.get(session.id);return {...session,alias,groups,qualityV2:v2[session.id]??null,cohort:meta?.cohort??'unassigned',calibrationTrusted:Boolean(meta?.calibration_trusted),eligibility:meta?.eligibility??'unknown',eligibilityReason:meta?.eligibility_reason??null,confirmedDuplicate:Boolean(meta?.confirmed_duplicate)}});
-  res.json({sessions,sections:surveySections,respondents:respondents.filter(x=>!x.deletedAt),deletedRespondents:respondents.filter(x=>x.deletedAt),distribution});
+  res.json(await loadSurveyResults(String(req.params.id),{summary:req.query.summary==='1'}));
+}catch(e){next(e)}});
+app.get('/api/admin/surveys/:id/results/timing',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  const[allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);
+  if(!allowed.length)return res.status(404).json({message:'Survey not found'});
+  res.json(await loadQuestionTimingSummary(String(req.params.id)));
+}catch(e){next(e)}});
+app.post('/api/admin/surveys/:id/results/details',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  const[allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);
+  if(!allowed.length)return res.status(404).json({message:'Survey not found'});
+  const {sessionIds}=z.object({sessionIds:z.array(z.string().uuid()).min(1).max(100)}).parse(req.body);
+  const results=await loadSurveyResults(String(req.params.id),{sessionIds});
+  res.json([...results.respondents,...results.deletedRespondents]);
 }catch(e){next(e)}});
 const sessionIdsSchema=z.object({sessionIds:z.array(z.string().uuid()).min(1).max(1000)});
 app.post('/api/admin/surveys/:id/results/trash',requireAuth,async(req:AuthRequest,res,next)=>{try{

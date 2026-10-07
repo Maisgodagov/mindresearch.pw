@@ -96,7 +96,7 @@ export function QualityControls({view,onChange,visible,total,selectedCount=0,onE
         <p className="hint rule-note">{metricHints[f.metric]??METRIC_EXPLANATIONS[f.metric].calculation}<MetricExplanation metric={f.metric}/></p>
       </div>)}
     </div>}
-    <div className="filter-bottom"><div className="filter-result" aria-live="polite"><strong>Показано {visible} из {total}{activeCount>0?` · условий: ${activeCount}`:''}</strong><span className="hint">{metricSort?'Результаты без значения показателя остаются внизу.':view.sort==='oldest'?'Старые прохождения сверху.':view.sort==='insufficient'?'Сначала результаты без оценки, затем остальные.':'Свежие прохождения сверху. Сброс вернёт весь список.'}</span></div><Button onClick={()=>onChange(resetView())}><RotateCcw size={14}/>Сбросить всё</Button></div>
+    <div className="filter-bottom"><div className="filter-result" aria-live="polite"><strong>Найдено {visible} из {total}{activeCount>0?` · условий: ${activeCount}`:''}</strong><span className="hint">{metricSort?'Результаты без значения показателя остаются внизу.':view.sort==='oldest'?'Старые прохождения сверху.':view.sort==='insufficient'?'Сначала результаты без оценки, затем остальные.':'Свежие прохождения сверху. Сброс вернёт весь список.'}</span></div><Button onClick={()=>onChange(resetView())}><RotateCcw size={14}/>Сбросить всё</Button></div>
     {visible===0&&total>0&&<div className="empty-filter"><Notice>Нет прохождений с такими условиями. Удалите одно из условий или нажмите «Сбросить всё», чтобы снова показать весь список.</Notice></div>}
   </Surface>;
 }

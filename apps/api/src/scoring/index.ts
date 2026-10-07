@@ -241,8 +241,10 @@ export async function calculateBriefCopeRuForSession(sessionId:string){
   return result;
 }
 
-async function calculateConfiguredMethodologiesForSession(sessionId:string){
-  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,s.code sectionCode,q.code questionCode,a.value,i.title,i.formula_version formulaVersion,i.scoring_config scoringConfig FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.source_instrument_id IS NOT NULL JOIN instruments i ON i.id=s.source_instrument_id AND i.is_verified=TRUE AND i.scoring_config IS NOT NULL JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? ORDER BY s.position,q.position`,[sessionId]);
+async function calculateConfiguredMethodologiesForSession(sessionId:string,sectionCodes?:string[]){
+  if(sectionCodes?.length===0)return [];
+  const restriction=sectionCodes?` AND s.code IN (${sectionCodes.map(()=>'?').join(',')})`:"";
+  const[rows]=await db.query<any[]>(`SELECT s.id sectionId,s.code sectionCode,q.code questionCode,a.value,i.title,i.formula_version formulaVersion,i.scoring_config scoringConfig FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id AND s.source_instrument_id IS NOT NULL JOIN instruments i ON i.id=s.source_instrument_id AND i.is_verified=TRUE AND i.scoring_config IS NOT NULL JOIN questions q ON q.section_id=s.id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=?${restriction} ORDER BY s.position,q.position`,[sessionId,...(sectionCodes??[])]);
   const groups=new Map<string,any[]>();for(const row of rows){const group=groups.get(row.sectionId)??[];group.push(row);groups.set(row.sectionId,group)}
   return Promise.all([...groups.values()].map(async group=>{
     const first=group[0],scoring=parseValue(first.scoringConfig) as ConfigurableScoring;
@@ -315,4 +317,41 @@ export async function calculateNmpqRuForSession(sessionId:string){return calcula
 export async function calculateCavRuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_29','cav-ru-mikhailova-istomina-2025-v1',scoreCavRu)}
 export async function calculateIgds9RuForSession(sessionId:string){return calculateSocialMediaScaleForSession(sessionId,'test_30','igds9sf-ru-petrov-chernyak-2019-v1',scoreIgds9Ru)}
 
-export async function calculateConfiguredAssessmentsForSession(sessionId:string){return Promise.all([calculateMspssForSession(sessionId),calculateSspm2011ForSession(sessionId),calculateSccsForSession(sessionId),calculateNspsForSession(sessionId),calculateShoppForSession(sessionId),calculateDebqForSession(sessionId),calculateShamForSession(sessionId),calculateAmsForSession(sessionId),calculateStudyAlienationForSession(sessionId),calculateGpsForSession(sessionId),calculatePpsForSession(sessionId),calculateBfi2ForSession(sessionId),calculateBfi2ShortForSession(sessionId),calculateTipiRuForSession(sessionId),calculateIpipNeo120ForSession(sessionId),calculateMiniIpipForSession(sessionId),calculateRsesForSession(sessionId),calculateCsesForSession(sessionId),calculateGsesForSession(sessionId),calculateBriefCopeRuForSession(sessionId),calculateMunForSession(sessionId),calculateIafRuForSession(sessionId),calculateBsmasRuForSession(sessionId),calculateSmdsRuForSession(sessionId),calculateFomosRuForSession(sessionId),calculateNmpqRuForSession(sessionId),calculateCavRuForSession(sessionId),calculateIgds9RuForSession(sessionId),calculateConfiguredMethodologiesForSession(sessionId)])}
+export const assessmentCalculators:Record<string,(sessionId:string)=>Promise<unknown>>={
+  test_1:calculateMspssForSession,
+  test_2:calculateSspm2011ForSession,
+  test_3:calculateSccsForSession,
+  test_4:calculateNspsForSession,
+  test_5:calculateShoppForSession,
+  test_6:calculateDebqForSession,
+  test_7:calculateShamForSession,
+  test_8:calculateAmsForSession,
+  test_9:calculateStudyAlienationForSession,
+  test_10:calculateGpsForSession,
+  test_11:calculatePpsForSession,
+  test_12:calculateBfi2ForSession,
+  test_13:calculateBfi2ShortForSession,
+  test_14:calculateTipiRuForSession,
+  test_15:calculateIpipNeo120ForSession,
+  test_16:calculateMiniIpipForSession,
+  test_17:calculateRsesForSession,
+  test_18:calculateCsesForSession,
+  test_19:calculateGsesForSession,
+  test_20:calculateBriefCopeRuForSession,
+  test_21:calculateMunForSession,
+  test_24:calculateIafRuForSession,
+  test_25:calculateBsmasRuForSession,
+  test_26:calculateSmdsRuForSession,
+  test_27:calculateFomosRuForSession,
+  test_28:calculateNmpqRuForSession,
+  test_29:calculateCavRuForSession,
+  test_30:calculateIgds9RuForSession
+};
+export async function calculateConfiguredAssessmentsForSession(sessionId:string,sectionCodes?:string[]){
+  if(!sectionCodes){
+    const[rows]=await db.query<any[]>(`SELECT s.code FROM response_sessions rs JOIN sections s ON s.survey_id=rs.survey_id WHERE rs.id=?`,[sessionId]);
+    sectionCodes=rows.map(row=>row.code);
+  }
+  const nativeCodes=sectionCodes.filter(code=>assessmentCalculators[code]);
+  return Promise.all([...nativeCodes.map(code=>assessmentCalculators[code](sessionId)),calculateConfiguredMethodologiesForSession(sessionId,sectionCodes)]);
+}

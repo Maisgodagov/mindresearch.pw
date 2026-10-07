@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   CheckCircle2,
@@ -24,11 +25,12 @@ import {
 } from "../../components/MethodologyModal";
 import { AnswerDistribution } from "./components/AnswerDistribution";
 import { RespondentResults } from "./components/RespondentResults";
+import { RespondentPagination } from "./components/RespondentPagination";
 import { RespondentDetails as RespondentAnswerDetails } from "./components/RespondentDetails";
 import { MethodScoreSummary } from "./components/MethodScoreSummary";
 import { MethodologyInterpretation } from "./components/MethodologyInterpretation";
 
-import type { SurveyRow, Result } from "./types";
+import type { SurveyRow, Result, Respondent, QuestionTimingRow } from "./types";
 import {
   Wrap,
   Header,
@@ -51,10 +53,25 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
     distribution: [],
   });
   const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(() => {
+    try { const saved = Number(localStorage.getItem('statistics-page-size')); return [20,50,100].includes(saved) ? saved : 50; } catch { return 50; }
+  });
+  const [details, setDetails] = useState<Record<string, Respondent>>({});
+  const [detailErrors, setDetailErrors] = useState<Record<string, boolean>>({});
+  const pendingDetails = useRef(new Map<string, Promise<Respondent>>());
+  const resultGeneration = useRef(0);
+  const [timingSummary, setTimingSummary] = useState<QuestionTimingRow[] | undefined>();
+  const [timingLoading, setTimingLoading] = useState(false);
+  const [timingError, setTimingError] = useState(false);
+  const [timingReload, setTimingReload] = useState(0);
   const [qualityView, setQualityView] = useState<QualityView>({ ...DEFAULT_QUALITY_VIEW, filters: [] });
   const qualities = useMemo(() => Object.fromEntries(result.respondents.flatMap(p => p.qualityV2 ? [[p.id, p.qualityV2]] : [])), [result.respondents]);
   const visibleRespondents = useMemo(() => applyQualityView(result.respondents, qualities, qualityView), [result.respondents, qualities, qualityView]);
-  useEffect(() => { setQualityView({ ...DEFAULT_QUALITY_VIEW, filters: [] }); setSelected({}); }, [surveyId]);
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(visibleRespondents.length / pageSize)));
+  const pageRespondents = useMemo(() => visibleRespondents.slice((currentPage - 1) * pageSize, currentPage * pageSize), [visibleRespondents, currentPage, pageSize]);
+  useEffect(() => { setPage(currentPage); }, [currentPage]);
+  useEffect(() => { setQualityView({ ...DEFAULT_QUALITY_VIEW, filters: [] }); setSelected({}); setPage(1); setExpanded({}); }, [surveyId]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [deletedSelected, setDeletedSelected] = useState<
@@ -71,18 +88,24 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   const [activeMethodology, setActiveMethodology] =
     useState<Methodology | null>(null);
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    resultGeneration.current++;
+    setLoading(true); setDetails({}); setDetailErrors({}); pendingDetails.current.clear();
     api
-      .get("/admin/surveys")
+      .get("/admin/surveys", {signal: controller.signal})
       .then(async (r) => {
+        if(cancelled) return;
         setSurveys(r.data);
         const target =
           r.data.find((s: SurveyRow) => s.id === surveyId) ?? r.data[0];
         if (target) {
-          const x = await api.get(`/admin/surveys/${target.id}/results`);
-          setResult(x.data);
+          const x = await api.get(`/admin/surveys/${target.id}/results`, {params:{summary:1}, signal:controller.signal});
+          if(!cancelled) setResult(x.data);
         }
       })
       .catch(() => {
+        if(cancelled) return;
         if (useDemoFallbacks) {
           setSurveys(demoSurveys);
           setResult((current) => ({
@@ -99,15 +122,31 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
           }));
         } else nav("/login");
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if(!cancelled) setLoading(false); });
+    return () => { cancelled = true; controller.abort(); resultGeneration.current++; };
   }, [nav, surveyId]);
   useEffect(() => {
+    const codes = result.sections.map(section=>section.code).join(',');
+    if(!codes) return;
+    const controller = new AbortController();
     api
-      .get("/admin/methodologies")
+      .get("/admin/methodologies", {params:{codes}, signal:controller.signal})
       .then((r) => setMethodologies(r.data))
       .catch(() => {});
-  }, []);
+    return () => controller.abort();
+  }, [result.sections]);
   const survey = surveys.find((s) => s.id === surveyId) ?? surveys[0];
+  useEffect(() => {
+    setTimingSummary(undefined); setTimingError(false);
+    if(loading || !survey || !result.respondents.some(person=>person.detailsLoaded===false)) { setTimingLoading(false); return; }
+    const controller = new AbortController(); let cancelled = false;
+    setTimingLoading(true);
+    api.get(`/admin/surveys/${survey.id}/results/timing`, {signal:controller.signal})
+      .then(response=>{ if(!cancelled) setTimingSummary(response.data); })
+      .catch(()=>{ if(!cancelled) setTimingError(true); })
+      .finally(()=>{ if(!cancelled) setTimingLoading(false); });
+    return ()=>{ cancelled=true; controller.abort(); };
+  }, [loading, survey?.id, result.respondents, timingReload]);
   const questions = useMemo(
     () => [
       ...new Map(result.distribution.map((x) => [x.code, x.text])).entries(),
@@ -155,9 +194,34 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   const selectedRespondents = visibleRespondents.filter(
     (person) => selected[person.id],
   );
-  const allSelected =
-    visibleRespondents.length > 0 &&
-    selectedRespondents.length === visibleRespondents.length;
+  const allSelected = pageRespondents.length > 0 && pageRespondents.every(person=>selected[person.id]);
+  const loadDetails = async (person: Respondent): Promise<Respondent> => {
+    if(person.detailsLoaded!==false) return person;
+    if(details[person.id]) return details[person.id];
+    const pending = pendingDetails.current.get(person.id);
+    if(pending) return pending;
+    const generation = resultGeneration.current;
+    setDetailErrors(current=>({...current,[person.id]:false}));
+    const request = api.post(`/admin/surveys/${survey!.id}/results/details`, {sessionIds:[person.id]})
+      .then(response=>{
+        const full = (response.data as Respondent[]).find(item=>item.id===person.id);
+        if(!full) throw new Error('Результат больше недоступен');
+        if(generation===resultGeneration.current) setDetails(current=>({...current,[person.id]:full}));
+        return full;
+      }).catch(error=>{ if(generation===resultGeneration.current) setDetailErrors(current=>({...current,[person.id]:true})); throw error; })
+      .finally(()=>{ if(pendingDetails.current.get(person.id)===request) pendingDetails.current.delete(person.id); });
+    pendingDetails.current.set(person.id,request);
+    return request;
+  };
+  const changePage = (nextPage: number) => {
+    setPage(nextPage);
+    document.querySelector('[data-quality-respondents]')?.scrollIntoView({block:'start'});
+  };
+  const changePageSize = (size: number) => {
+    setPageSize(size); setPage(1);
+    try { localStorage.setItem('statistics-page-size',String(size)); } catch { /* Storage may be unavailable in private mode. */ }
+  };
+  const pagination = <RespondentPagination total={visibleRespondents.length} page={currentPage} pageSize={pageSize} onChange={changePage} onSizeChange={changePageSize}/>;
   if (loading)
     return (
       <Page
@@ -176,14 +240,26 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   const download = async () => {
     setExporting(true);
     try {
-      await exportRespondents(selectedRespondents.map(person => ({ ...person, qualityMetrics: qualities[person.id] })));
+      const fullById = new Map<string,Respondent>();
+      const missing = selectedRespondents.filter(person=>person.detailsLoaded===false && !details[person.id]);
+      for(let start=0;start<missing.length;start+=100) {
+        const response = await api.post(`/admin/surveys/${survey!.id}/results/details`, {sessionIds:missing.slice(start,start+100).map(person=>person.id)});
+        for(const person of response.data as Respondent[]) fullById.set(person.id,person);
+      }
+      await exportRespondents(selectedRespondents.map(person => {
+        const full = fullById.get(person.id) ?? details[person.id] ?? person;
+        if(full.detailsLoaded===false) throw new Error('Часть результатов недоступна');
+        return {...full,qualityMetrics:full.qualityV2??qualities[person.id]};
+      }));
+    } catch { message.error('Не удалось подготовить экспорт. Попробуйте ещё раз.');
     } finally {
       setExporting(false);
     }
   };
   const refreshResults = async () => {
     if (!survey) return;
-    const response = await api.get(`/admin/surveys/${survey.id}/results`);
+    const response = await api.get(`/admin/surveys/${survey.id}/results`, {params:{summary:1}});
+    resultGeneration.current++; setDetails({}); setDetailErrors({}); pendingDetails.current.clear();
     setResult(response.data);
   };
   const moveToTrash = async () => {
@@ -304,9 +380,12 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
         </Panel>
         <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
         <Panel className="respondents-panel" data-quality-respondents>
-          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); }} visible={visibleRespondents.length} total={result.respondents.length} selectedCount={selectedRespondents.length} onExport={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))} />
+          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} selectedCount={selectedRespondents.length} onExport={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))} />
+          {pagination}
+          {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
           <RespondentResults
-            respondents={visibleRespondents}
+            respondents={pageRespondents}
+            totalCount={visibleRespondents.length}
             qualities={qualities}
             deletedRespondents={result.deletedRespondents}
             sections={resultSections}
@@ -319,35 +398,33 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             exporting={exporting}
             updatingTrash={updatingTrash}
             adminView={location.pathname.startsWith("/admin")}
-            onSelectAll={(checked) =>
-              setSelected(
-                checked
-                  ? Object.fromEntries(
-                      visibleRespondents.map((person) => [person.id, true]),
-                    )
-                  : {},
-              )
-            }
+            onSelectAll={(checked) => setSelected(current=>({...current,...Object.fromEntries(pageRespondents.map(person=>[person.id,checked]))}))}
             onSelectRespondent={(id, checked) =>
               setSelected((current) => ({ ...current, [id]: checked }))
             }
             onSelectDeleted={(id, checked) =>
               setDeletedSelected((current) => ({ ...current, [id]: checked }))
             }
-            onToggleExpanded={(id) =>
-              setExpanded((current) => ({ ...current, [id]: !current[id] }))
-            }
+            onToggleExpanded={(id) => {
+              setExpanded((current) => ({ ...current, [id]: !current[id] }));
+              const person=result.respondents.find(person=>person.id===id);
+              if(person && !expanded[id]) void loadDetails(person).catch(()=>{});
+            }}
             onToggleTrash={() => setTrashOpen((current) => !current)}
             onDeleteSelected={() => setConfirmTrash(true)}
             onExport={download}
             onRestore={restore}
             renderMethodResult={(group) => <MethodScoreSummary group={group} />}
-            renderRespondentDetails={(person) => (
+            renderRespondentDetails={(summary) => {
+              const person=details[summary.id]??summary;
+              if(person.detailsLoaded===false) return <div style={{padding:18}}>{detailErrors[person.id]?<><p role="alert">Не удалось загрузить ответы.</p><Button onClick={()=>void loadDetails(person).catch(()=>{})}>Повторить</Button></>:<p role="status">Загружаем подробные ответы…</p>}</div>;
+              const quality=person.qualityV2??qualities[person.id];
+              return (
               <>
-              <QualityDetails value={qualities[person.id]} />
+              <QualityDetails value={quality} />
               <RespondentAnswerDetails
                 respondent={person}
-                quality={qualities[person.id]}
+                quality={quality}
                 methodologies={methodologies}
                 onShowMethodology={setActiveMethodology}
                 renderResult={(group) => (
@@ -355,10 +432,11 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
                 )}
               />
               </>
-            )}
+            );}}
           />
+          {pagination}
         </Panel>
-        <QuestionTiming respondents={result.respondents} />
+        <QuestionTiming respondents={result.respondents} summary={timingSummary} loading={timingLoading} error={timingError} onRetry={()=>setTimingReload(value=>value+1)} />
         <AnswerDistribution
           data={chart}
           options={questionOptions}

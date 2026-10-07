@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import styled from "styled-components";
-import type { Respondent } from "../../types";
+import { Button } from '../../../../ui';
+import type { Respondent, QuestionTimingRow } from "../../types";
 
 export function formatQuestionTime(milliseconds: number) {
   if (milliseconds < 1000) return "< 1 сек";
@@ -27,8 +28,9 @@ const Summary = styled.section`
   @media (max-width: 560px) { padding: 12px; table { min-width: 510px; } }
 `;
 
-export function QuestionTiming({ respondents }: { respondents: Respondent[] }) {
+export function QuestionTiming({ respondents, summary, loading=false, error=false, onRetry }: { respondents: Respondent[]; summary?: QuestionTimingRow[]; loading?: boolean; error?: boolean; onRetry?: () => void }) {
   const rows = useMemo(() => {
+    if(summary) return summary;
     const collected = new Map<string, { section: string; question: string; times: number[] }>();
     for (const person of respondents) {
       if (person.status !== "completed") continue;
@@ -41,21 +43,21 @@ export function QuestionTiming({ respondents }: { respondents: Respondent[] }) {
     }
     return Array.from(collected, ([key, row]) => {
       const times = row.times.sort((a, b) => a - b), middle = Math.floor(times.length / 2);
-      return { key, ...row, average: times.reduce((a, b) => a + b, 0) / times.length,
+      return { key, ...row, count:times.length, average: times.reduce((a, b) => a + b, 0) / times.length,
         median: times.length % 2 ? times[middle] : (times[middle - 1] + times[middle]) / 2 };
     });
-  }, [respondents]);
+  }, [respondents, summary]);
   return <Summary>
     <h2>Время ответа на вопросы</h2>
     <p>Время в видимой вкладке, включая повторные посещения вопроса. В сводке учитываются только завершённые прохождения с измерениями. У части старых прохождений измерений нет.</p>
     <details><summary>Как рассчитываются значения в этой таблице</summary><p><b>Время на вопросе</b> — сумма времени его просмотра в активной видимой вкладке, включая повторные посещения. Время при скрытой вкладке не учитывается. Открытая видимая вкладка может включать паузы без действий.</p><p><b>Среднее</b> — сумма измеренного времени всех завершивших этот вопрос респондентов, делённая на их число. Длинные паузы в видимой вкладке могут его увеличить.</p><p><b>Медиана</b> — середина упорядоченного ряда измерений. При чётном числе берётся среднее двух центральных значений; половина измерений не больше медианы, половина — не меньше.</p><p><b>Респондентов</b> — число завершённых прохождений с измерением именно этого вопроса. Отсутствующие измерения не заменяются нулём. Эта сводка показывает текущие данные всего опроса и может отличаться от сохранённого эталона качества.</p></details>
-    {rows.length ? <div className="scroll"><table>
+    {loading ? <p role="status">Загружаем сводку времени ответов…</p> : error ? <p role="alert">Не удалось загрузить время ответов. <Button type="text" size="small" onClick={onRetry}>Повторить</Button></p> : rows.length ? <div className="scroll"><table>
       <thead><tr><th>Вопрос</th><th>Среднее</th><th>Медиана</th><th>Респондентов</th></tr></thead>
       <tbody>{rows.map(row => <tr key={row.key}>
         <td><span className="section">{row.section}</span>{row.question}</td>
         <td className="number">{formatQuestionTime(row.average)}</td>
         <td className="number">{formatQuestionTime(row.median)}</td>
-        <td className="number">{row.times.length}</td>
+        <td className="number">{row.count}</td>
       </tr>)}</tbody>
     </table></div> : <p>Измерения появятся после новых завершённых прохождений опроса.</p>}
   </Summary>;

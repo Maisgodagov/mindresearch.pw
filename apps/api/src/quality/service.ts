@@ -18,7 +18,16 @@ export async function loadQualityInputs(surveyId:string){
   return{items,people};
 }
 export async function activeBaseline(surveyId:string){const[rows]=await db.query<any[]>(`SELECT b.snapshot FROM quality_settings s JOIN quality_baselines b ON b.id=s.active_baseline WHERE s.survey_id=?`,[surveyId]);return rows.length?json<Baseline>(rows[0].snapshot):null;}
-export async function storedQualities(surveyId:string){const baseline=await activeBaseline(surveyId),version=baseline?.version??'none';const[rows]=await db.query<any[]>(`SELECT qr.session_id sessionId,qr.result FROM quality_results qr JOIN quality_result_heads h ON h.session_id=qr.session_id AND h.algorithm_version=qr.algorithm_version AND h.baseline_version=qr.baseline_version AND h.input_hash=qr.input_hash JOIN response_sessions rs ON rs.id=qr.session_id WHERE rs.survey_id=? AND qr.algorithm_version=? AND qr.baseline_version=?`,[surveyId,QUALITY_V2_CONFIG.version,version]);return Object.fromEntries(rows.map(row=>[row.sessionId,json<QualityV2>(row.result)]));}
+export async function storedQualities(surveyId:string,options:{summary?:boolean;sessionIds?:string[]}={}){
+  if(options.sessionIds?.length===0)return {};
+  // Reading scores needs only the version, not the large frozen training snapshot.
+  const[settings]=await db.query<any[]>(`SELECT JSON_UNQUOTE(JSON_EXTRACT(b.snapshot,'$.version')) version FROM quality_settings s JOIN quality_baselines b ON b.id=s.active_baseline WHERE s.survey_id=?`,[surveyId]);
+  const version=settings[0]?.version??'none';
+  const result=options.summary?`JSON_REMOVE(qr.result,'$.behavioral.metrics.question_ratios','$.overall.components','$.behavioral.components','$.behavioral.flags','$.response.flags','$.response.metrics.rpr','$.response.metrics.pair_consistency','$.response.components.patterning.metrics.blocks','$.response.components.rpr.flags','$.response.components.pairs.flags','$.response.components.patterning.flags','$.response.components.attention.flags')`:'qr.result';
+  const restriction=options.sessionIds?` AND rs.id IN (${options.sessionIds.map(()=>'?').join(',')})`:'';
+  const[rows]=await db.query<any[]>(`SELECT qr.session_id sessionId,${result} result FROM quality_results qr JOIN quality_result_heads h ON h.session_id=qr.session_id AND h.algorithm_version=qr.algorithm_version AND h.baseline_version=qr.baseline_version AND h.input_hash=qr.input_hash JOIN response_sessions rs ON rs.id=qr.session_id WHERE rs.survey_id=? AND qr.algorithm_version=? AND qr.baseline_version=?${restriction}`,[surveyId,QUALITY_V2_CONFIG.version,version,...(options.sessionIds??[])]);
+  return Object.fromEntries(rows.map(row=>[row.sessionId,json<QualityV2>(row.result)]));
+}
 async function workerTask(task:string,surveyId:string,items:Item[],people:Participant[],baseline:Baseline|null,progress?:(done:number,total:number)=>void,highQualityIds?:string[]){
   return new Promise<any>((resolve,reject)=>{const worker=createQualityWorker();let settled=false;const finish=(error?:Error,value?:unknown)=>{if(settled)return;settled=true;void worker.terminate();error?reject(error):resolve(value)};worker.on('message',m=>{if(m.type==='progress')progress?.(m.done,m.total);else if(m.type==='error')finish(new Error(m.message));else if(m.type==='result')finish(undefined,m.value)});worker.on('error',e=>finish(e));worker.on('exit',code=>{if(!settled)finish(new Error(`Quality worker exited ${code}`))});worker.postMessage({task,surveyId,items,people,baseline,highQualityIds});});
 }
