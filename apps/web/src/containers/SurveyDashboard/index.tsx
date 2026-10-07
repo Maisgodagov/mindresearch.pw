@@ -261,14 +261,14 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             <Users />
             <div>
               <b>{result.respondents.length}</b>
-              <span>всего участников</span>
+              <span title="Все прохождения этого опроса, кроме удалённых, включая незавершённые.">всего участников</span>
             </div>
           </Stat>
           <Stat>
             <CheckCircle2 />
             <div>
               <b>{completed}</b>
-              <span>завершили</span>
+              <span title="Количество прохождений со статусом «Завершено».">завершили</span>
             </div>
           </Stat>
           <Stat>
@@ -280,7 +280,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
                   : 0}
                 %
               </b>
-              <span>завершаемость</span>
+              <span title="Число завершённых прохождений / число всех участников × 100%, с округлением до целого.">завершаемость</span>
             </div>
           </Stat>
         </Grid>

@@ -13,13 +13,15 @@ import { RESPONDENT_RESULTS_COPY as copy } from "./const";
 import { Table, TableWrap, TrashBox, TrashToggle } from "./styles";
 import type { RespondentResultsProps } from "./types";
 import { percent } from "../ResponseQuality";
-import { COHORTS, STATUS } from "../../quality";
+import { MetricExplanation } from "../ResponseQuality/explanations";
+import type { MetricKey } from "../../quality";
+import { STATUS } from "../../quality";
 import type { Quality } from "../../quality";
 
-const qualityColumns: { label: string; render: (value: Quality) => string; title: string }[] = [
-  ...(['overall','behavioral','response'] as const).map((key,index)=>({label:['Общий индекс','Поведение','Ответы'][index],render:(q:Quality)=>percent(q[key].score)+' · '+STATUS[q[key].status],title:'Эвристический индекс V2, не вероятность честности'})),
-  {label:'Уверенность',render:q=>percent(q.overall.confidence*100),title:'Полнота и качество основания расчёта'},
-  {label:'Сильные признаки',render:q=>String(q.strong_flag_count),title:'Количество сильных признаков; подробности в раскрытых результатах'},
+const qualityColumns: { metric: MetricKey; label: string; render: (value: Quality) => string; title: string }[] = [
+  ...(['overall','behavioral','response'] as const).map((key,index)=>({metric:key,label:['Общий индекс','Поведение','Ответы'][index],render:(q:Quality)=>percent(q[key].score)+' · '+STATUS[q[key].status],title:'Эвристический индекс V2, не вероятность честности'})),
+  {metric:'confidence',label:'Уверенность',render:q=>percent(q.overall.confidence*100),title:'Полнота и качество основания расчёта'},
+  {metric:'strongFlags',label:'Сильные признаки',render:q=>String(q.strong_flag_count),title:'Количество сильных признаков; подробности в раскрытых результатах'},
 ];
 
 function formatDuration(startedAt: string, completedAt: string | null) {
@@ -97,7 +99,7 @@ export function RespondentResults({
               <th>{copy.status}</th>
               <th>{copy.answers}</th>
               <th className="duration-col" title="От начала до завершения опроса, включая перерывы">Время прохождения</th>
-              <th>Группа</th><th>Критерии участия</th>{qualityColumns.map(column => <th key={column.label} title={column.title}>{column.label}</th>)}
+              {qualityColumns.map(column => <th key={column.label} title={column.title}>{column.label}<MetricExplanation metric={column.metric}/></th>)}
               {sections.map((section) => (
                 <th key={section.code}>
                   {shortNames[section.code] ?? section.title}
@@ -154,7 +156,7 @@ export function RespondentResults({
                       </span>
                     ) : <span title="Опрос ещё не завершён">—</span>}
                   </td>
-                  <td>{COHORTS[(person.cohort??"unassigned") as keyof typeof COHORTS]??person.cohort}</td><td>{person.eligibility==="pass"?"Соответствует":person.eligibility==="fail"?"Не соответствует":"Не проверено"}{person.confirmedDuplicate?" · дубликат":""}</td>{qualityColumns.map(column => <td key={column.label} className="quality-col" title={column.title}>{qualities[person.id] ? column.render(qualities[person.id]) : "—"}</td>)}
+                  {qualityColumns.map(column => <td key={column.label} className="quality-col" title={column.title}>{qualities[person.id] ? column.render(qualities[person.id]) : "—"}</td>)}
                   {sections.map((section) => (
                     <td key={section.code}>
                       {renderMethodResult(
@@ -168,7 +170,7 @@ export function RespondentResults({
                 </tr>
                 {expanded[person.id] && (
                   <tr className="details-row">
-                    <td className="details-cell" colSpan={8 + qualityColumns.length + sections.length}>
+                    <td className="details-cell" colSpan={6 + qualityColumns.length + sections.length}>
                       {renderRespondentDetails(person)}
                     </td>
                   </tr>
@@ -177,7 +179,7 @@ export function RespondentResults({
             ))}
             {!respondents.length && (
               <tr>
-                <td className="empty-state" colSpan={8 + qualityColumns.length + sections.length}>
+                <td className="empty-state" colSpan={6 + qualityColumns.length + sections.length}>
                   Нет респондентов для отображения. Если применены фильтры, нажмите «Сбросить всё».
                 </td>
               </tr>

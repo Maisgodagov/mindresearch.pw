@@ -25,6 +25,15 @@ export const Surface = styled.section`
   .disclosure > summary > .chevron { margin-left: auto; transition: transform .16s ease; flex: none; }
   .disclosure[open] > summary > .chevron { transform: rotate(180deg); }
   summary:focus-visible { outline: 2px solid #52764b; outline-offset: 4px; border-radius: 6px; }
+  .calculation-guide { margin-top: 14px; }
+  .guide-section { margin-top: 20px; }
+  .guide-item { padding: 10px 0; border-bottom: 1px solid #e4ebe1; }
+  .guide-item summary { font-size: 12px; }
+  .explanation-copy p { font-size: 12px; margin-top: 8px; }
+  .help-formula { font-weight: 650; color: #344d3b; }
+  .component-explanation { padding: 12px 0; }
+  .component-explanation > details { margin-top: 8px; }
+  .metric-help.ant-btn { min-height: 22px; height: 22px; width: 22px; padding: 0; vertical-align: middle; }
   .help-copy { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; margin-top: 14px; }
   .help-copy p { font-size: 12px; }
   .admin { margin-top: 18px; border-top: 1px solid #e4ebe1; padding-top: 16px; }

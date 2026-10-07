@@ -73,7 +73,7 @@ export function RespondentDetails({
                     {answer.questionId && (()=>{
                       const refs=quality?.behavioral.metrics.question_ratios as Record<string,{ratio:number;median:number;n:number;source:string}>|undefined;
                       const ref=refs?.[answer.questionId];
-                      return ref?<div className="timing">{fasterText((1-ref.ratio)*100)} относительно замороженной reference ({formatQuestionTime(ref.median*1000)}; N={ref.n}; {ref.source})</div>:null;
+                      return ref?<div className="timing">{fasterText((1-ref.ratio)*100)} относительно эталона ({formatQuestionTime(ref.median*1000)}; наблюдений: {ref.n}; {({question:"этот вопрос",block:"психологический блок",type:"вопросы того же типа"} as Record<string,string>)[ref.source]??ref.source})</div>:null;
                     })()}
                   </AnswerRow>
                 ))}
