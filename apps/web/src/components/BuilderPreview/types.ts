@@ -9,6 +9,7 @@ export type PreviewQuestion = {
 };
 
 export type PreviewMeta = {
+  estimatedDuration?: import("../../surveyDuration").SurveyDuration;
   welcomeTitle: string;
   welcomeText: string;
   showAuthor?: boolean;

@@ -1,3 +1,4 @@
+import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, Leaf, X } from "lucide-react";
 import { Button } from "../../ui";
@@ -109,7 +110,7 @@ export function BuilderPreview({ meta, questions, onClose }: PreviewProps) {
                   <StockAvatar seed={author.avatarSeed} alt="" /> Автор: {author.name}
                 </a>
               )}
-              <div className="meta"><span>{questions.length} вопросов</span><span>≈ 30 минут</span><span>Можно прерваться</span></div>
+              <div className="meta"><span>{questions.length} вопросов</span><span>≈ {surveyDurationLabel(questions.length, meta.estimatedDuration)}</span><span>Можно прерваться</span></div>
               {questions.length ? (
                 <Button type="primary" size="large" onClick={() => setScreen("questions")}>Начать <ArrowRight size={18} /></Button>
               ) : (

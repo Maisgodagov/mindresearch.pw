@@ -1,8 +1,10 @@
 import { LockKeyhole, Pencil } from "lucide-react";
+import type { ReactNode } from "react";
 import { TextAreaField } from "../../../../components/TextAreaField";
 import { SectionCard } from "../../styles";
 
 type Props = {
+  children?: ReactNode;
   kind: "start" | "finish";
   title: string;
   helper: string;
@@ -22,6 +24,7 @@ type Props = {
 };
 
 export function SurveyScreenSection({
+  children,
   kind,
   title,
   helper,
@@ -75,6 +78,7 @@ export function SurveyScreenSection({
             />
           </label>
         </div>
+        {children}
         <label className="screen-setting">
           <input
             type="checkbox"

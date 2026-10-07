@@ -1,3 +1,4 @@
+import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -273,7 +274,7 @@ export function SurveyPage() {
               ) : (
                 <>
                   <span>{survey.questions.length} вопросов</span>
-                  <span>≈ 30 минут</span>
+                  <span>≈ {surveyDurationLabel(survey.questions.length, survey.settings?.estimatedDuration)}</span>
                 </>
               )}
               <span>Можно прерваться</span>

@@ -631,6 +631,16 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     line-height: 20px;
     cursor: pointer;
   }
+  .duration-setting {
+    display: grid;
+    gap: 8px;
+    padding: 14px 0;
+    border-top: 1px solid #dce5d9;
+    border-bottom: 1px solid #dce5d9;
+  }
+  .duration-label { color: #33473a; font-size: 12px; font-weight: 650; }
+  .duration-setting .hint { margin: 0; font-size: 11px; }
+  .duration-setting .screen-setting { font-size: 12px; }
   .screen-setting input[type="checkbox"] {
     width: 16px;
     height: 16px;

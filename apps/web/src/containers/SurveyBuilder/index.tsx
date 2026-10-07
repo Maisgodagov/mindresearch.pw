@@ -1,3 +1,4 @@
+import { defaultSurveyDuration, surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SelectField as Select } from "../../components/SelectField";
@@ -128,6 +129,7 @@ export function SurveyBuilder() {
     status: "active" as "draft" | "active" | "archived",
     showAuthor: true,
     collectAlias: true,
+    estimatedDuration: { ...defaultSurveyDuration },
     resultPresentation: {
       showResults: true,
       showScores: true,
@@ -223,6 +225,7 @@ export function SurveyBuilder() {
             status: data.status,
             showAuthor: Boolean(data.showAuthor),
             collectAlias: data.collectAlias !== false,
+            estimatedDuration: data.estimatedDuration ?? data.settings?.estimatedDuration ?? { ...defaultSurveyDuration },
             resultPresentation: data.resultPresentation,
           });
           setSections(
@@ -510,6 +513,7 @@ export function SurveyBuilder() {
   async function submit() {
     const invalid: string[] = [];
     if (meta.title.trim().length < 2) invalid.push("title");
+    if (meta.estimatedDuration.mode === "custom" && !meta.estimatedDuration.text.trim()) invalid.push("estimatedDuration");
     if (meta.welcomeTitle.trim().length < 2) invalid.push("welcomeTitle");
     if (meta.welcomeText.trim().length < 2) invalid.push("welcomeText");
     if (meta.resultPresentation.title.trim().length < 2)
@@ -663,7 +667,25 @@ export function SurveyBuilder() {
                 clearInvalid("welcomeText");
               }}
               onSettingChange={(showAuthor) => setMeta({ ...meta, showAuthor })}
-            />
+            >
+              <div className="duration-setting">
+                <span className="duration-label">Примерное время прохождения</span>
+                <label className="screen-setting">
+                  <FieldInput type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "auto"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { ...current.estimatedDuration, mode: "auto" } }))} />
+                  <span>Рассчитать автоматически · {surveyDurationLabel(count)}</span>
+                </label>
+                <p className="hint">Из расчёта 2–5 секунд на вопрос, с округлением до 5 минут.</p>
+                <label className="screen-setting">
+                  <FieldInput type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "custom"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { mode: "custom", text: current.estimatedDuration.text || "10 минут" } }))} />
+                  <span>Указать своё время</span>
+                </label>
+                {meta.estimatedDuration.mode === "custom" && <label className="screen-field">
+                  <span>Время для респондента</span>
+                  <FieldInput aria-label="Время для респондента" maxLength={80} placeholder="Например, 10–15 минут" value={meta.estimatedDuration.text} onChange={event => { setMeta(current => ({ ...current, estimatedDuration: { mode: "custom", text: event.target.value } })); clearInvalid("estimatedDuration"); }} />
+                  {invalidFields.includes("estimatedDuration") && <span role="alert">Укажите примерное время прохождения.</span>}
+                </label>}
+              </div>
+            </SurveyScreenSection>
             {meta.collectAlias ? (
               <SectionCard style={{ marginTop: 15 }}>
                 <div className="section-head">
