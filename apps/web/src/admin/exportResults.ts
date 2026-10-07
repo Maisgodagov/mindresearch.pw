@@ -1,6 +1,7 @@
 import type { Worksheet } from "exceljs";
+import { METRICS, QUALITY_VERSION, type Quality } from "../containers/SurveyDashboard/quality";
 
-type Answer = { code: string; question: string; displayValue: string };
+type Answer = { code: string; question: string; displayValue: string; activeMs?: number | null; visits?: number | null };
 type Group = {
   code: string;
   title: string;
@@ -24,6 +25,7 @@ type ExportScores = Record<string, unknown> & {
   reference?: { zScore?: unknown };
 };
 export type ExportRespondent = {
+  qualityMetrics?: Quality;
   id: string;
   alias: string;
   status: string;
@@ -92,6 +94,19 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
     ]),
   );
   styleSheet(summary, [24, 16, 12, 21, 21, 21]);
+
+  const quality = workbook.addWorksheet("Качество прохождения");
+  quality.addRow(["Псевдоним", ...METRICS.map(metric => `${metric.label} (${metric.unit})`), "Признаки для проверки", "Измерено ответов", "Причина отсутствия индекса", "Версия правил"]);
+  respondents.forEach(person => quality.addRow([
+    person.alias,
+    ...METRICS.map(metric => {
+      const value = person.qualityMetrics?.[metric.key];
+      return value == null ? "" : ["averageMs", "medianMs", "activeMs"].includes(metric.key) ? value / 1000 : value;
+    }),
+    person.qualityMetrics?.flags.join("; ") ?? "", person.qualityMetrics?.timed ?? "",
+    person.qualityMetrics?.unavailable ?? "", QUALITY_VERSION,
+  ]));
+  styleSheet(quality, [24, ...METRICS.map(() => 22), 48, 18, 55, 14]);
 
   const scores = workbook.addWorksheet("Результаты методик");
   scores.addRow([
@@ -166,6 +181,8 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
     "Код вопроса",
     "Вопрос",
     "Ответ",
+    "Время на вопросе (сек)",
+    "Посещений вопроса",
   ]);
   respondents.forEach((person) =>
     person.groups.forEach((group) =>
@@ -176,11 +193,13 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
           answer.code,
           answer.question,
           answer.displayValue,
+          answer.activeMs == null ? "" : answer.activeMs / 1000,
+          answer.visits ?? "",
         ]),
       ),
     ),
   );
-  styleSheet(answers, [24, 30, 18, 70, 35]);
+  styleSheet(answers, [24, 30, 18, 70, 35, 24, 22]);
 
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {

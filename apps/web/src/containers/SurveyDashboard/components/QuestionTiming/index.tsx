@@ -9,13 +9,14 @@ export function formatQuestionTime(milliseconds: number) {
 }
 
 const Summary = styled.section`
+  min-width: 0;
   padding: 19px;
   border: 1px solid #dde6da;
   border-radius: 14px;
   background: #fff;
   h2 { margin: 0; font-size: 18px; color: #23372a; }
   p { color: #526557; font-size: 12px; line-height: 1.5; margin: 8px 0 14px; }
-  .scroll { overflow-x: auto; }
+  .scroll { overflow-x: auto; min-width: 0; max-width: 100%; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e9eee7; }
   th { color: #526557; background: #f5f8f3; }

@@ -49,6 +49,9 @@ export const Table = styled.table`
   tbody tr.details-row td { padding: 0; background: #f8faf7; }
   .details-cell { min-width: 100%; }
   .duration-col { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .quality-col { min-width: 100px; max-width: 180px; font-variant-numeric: tabular-nums; }
+  .details-row .details-cell > section { padding: 16px 18px; max-width: min(1100px, calc(100vw - 60px)); }
+  .details-row .details-cell > div { max-width: min(1100px, calc(100vw - 60px)); box-sizing: border-box; }
   .empty-state { padding: 36px 18px; color: #6c7b70; text-align: center; }
   .select input {
     width: 14px;

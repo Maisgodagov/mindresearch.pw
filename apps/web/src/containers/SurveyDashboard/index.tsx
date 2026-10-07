@@ -15,6 +15,8 @@ import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
 import { QuestionTiming } from "./components/QuestionTiming";
+import { QualityOverview, QualityControls, QualityDetails } from "./components/ResponseQuality";
+import { calculateQuality, applyQualityView, DEFAULT_QUALITY_VIEW, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
 import {
   MethodologyModal,
@@ -49,6 +51,10 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
     distribution: [],
   });
   const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [qualityView, setQualityView] = useState<QualityView>({ ...DEFAULT_QUALITY_VIEW, filters: [] });
+  const qualities = useMemo(() => calculateQuality(result.respondents), [result.respondents]);
+  const visibleRespondents = useMemo(() => applyQualityView(result.respondents, qualities, qualityView), [result.respondents, qualities, qualityView]);
+  useEffect(() => { setQualityView({ ...DEFAULT_QUALITY_VIEW, filters: [] }); setSelected({}); }, [surveyId]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [deletedSelected, setDeletedSelected] = useState<
@@ -146,12 +152,12 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
         title: shortNames[code],
         sectionKind: "verified",
       }));
-  const selectedRespondents = result.respondents.filter(
+  const selectedRespondents = visibleRespondents.filter(
     (person) => selected[person.id],
   );
   const allSelected =
-    result.respondents.length > 0 &&
-    selectedRespondents.length === result.respondents.length;
+    visibleRespondents.length > 0 &&
+    selectedRespondents.length === visibleRespondents.length;
   if (loading)
     return (
       <Page
@@ -170,7 +176,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   const download = async () => {
     setExporting(true);
     try {
-      await exportRespondents(selectedRespondents);
+      await exportRespondents(selectedRespondents.map(person => ({ ...person, qualityMetrics: qualities[person.id] })));
     } finally {
       setExporting(false);
     }
@@ -296,9 +302,12 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             </Button>
           </div>
         </Panel>
+        <Panel><QualityOverview people={result.respondents} qualities={qualities} /></Panel>
         <Panel className="respondents-panel">
+          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); }} visible={visibleRespondents.length} total={result.respondents.length} />
           <RespondentResults
-            respondents={result.respondents}
+            respondents={visibleRespondents}
+            qualities={qualities}
             deletedRespondents={result.deletedRespondents}
             sections={resultSections}
             selected={selected}
@@ -314,7 +323,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
               setSelected(
                 checked
                   ? Object.fromEntries(
-                      result.respondents.map((person) => [person.id, true]),
+                      visibleRespondents.map((person) => [person.id, true]),
                     )
                   : {},
               )
@@ -334,14 +343,18 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             onRestore={restore}
             renderMethodResult={(group) => <MethodScoreSummary group={group} />}
             renderRespondentDetails={(person) => (
+              <>
+              <QualityDetails value={qualities[person.id]} />
               <RespondentAnswerDetails
                 respondent={person}
+                quality={qualities[person.id]}
                 methodologies={methodologies}
                 onShowMethodology={setActiveMethodology}
                 renderResult={(group) => (
                   <MethodologyInterpretation group={group} />
                 )}
               />
+              </>
             )}
           />
         </Panel>

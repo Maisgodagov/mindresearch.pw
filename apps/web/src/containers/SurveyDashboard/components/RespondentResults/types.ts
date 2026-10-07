@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { AnswerGroup, Respondent } from "../../types";
+import type { Quality } from "../../quality";
 
 export type ResultSection = {
   code: string;
@@ -9,6 +10,7 @@ export type ResultSection = {
 
 export type RespondentResultsProps = {
   respondents: Respondent[];
+  qualities: Record<string, Quality>;
   deletedRespondents: Respondent[];
   sections: ResultSection[];
   selected: Record<string, boolean>;

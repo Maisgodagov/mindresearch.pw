@@ -12,9 +12,12 @@ import {
 } from "./styles";
 import type { RespondentDetailsProps } from "./types";
 import { formatQuestionTime } from "../QuestionTiming";
+import { questionKey } from "../../quality";
+import { fasterText } from "../ResponseQuality";
 
 export function RespondentDetails({
   respondent,
+  quality,
   methodologies,
   onShowMethodology,
   renderResult,
@@ -66,6 +69,10 @@ export function RespondentDetails({
                     {answer.activeMs != null && <div className="timing">
                       Время на вопросе: {formatQuestionTime(answer.activeMs)}
                       {answer.visits != null && answer.visits > 1 ? ` · посещений: ${answer.visits}` : ""}
+                    </div>}
+                    {quality?.comparisons[questionKey(group.id, answer.code)] && <div className="timing">
+                      {fasterText(quality.comparisons[questionKey(group.id, answer.code)].faster)} относительно медианы вопроса
+                      {quality.comparisons[questionKey(group.id, answer.code)].medianMs !== null && ` (${formatQuestionTime(quality.comparisons[questionKey(group.id, answer.code)].medianMs!)}; ${quality.comparisons[questionKey(group.id, answer.code)].peers} других респондентов)`}
                     </div>}
                   </AnswerRow>
                 ))}

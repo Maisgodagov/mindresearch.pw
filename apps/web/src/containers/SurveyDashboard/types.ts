@@ -12,6 +12,9 @@ export type Answer = {
   displayValue: string;
   activeMs?: number | null;
   visits?: number | null;
+  type?: string;
+  position?: number;
+  options?: { value: string | number; label: string }[];
 };
 export type SectionResult = {
   formulaVersion: string;
