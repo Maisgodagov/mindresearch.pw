@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bug, Leaf, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { Button } from "../Button";
 import { MobileMenuButton, Sidebar, ToggleButton } from "./styles";
 import type { PlatformSidebarProps } from "./types";
@@ -14,7 +14,7 @@ export function PlatformSidebar({ collapsed, links, onToggle, onReport, onLogout
         {mobileOpen ? <X size={22} /> : <Menu size={22} />}
       </MobileMenuButton>
       <div className="top">
-        <div className="brand"><Leaf size={24} /><span>mindresearch</span></div>
+        <Link className="brand" to="/" aria-label="Главная страница mindresearch" onClick={closeMobile} style={{ textDecoration: "none" }}><Leaf size={24} /><span>mindresearch</span></Link>
         <ToggleButton className="toggle" type="button" aria-label={collapsed ? "Развернуть боковое меню" : "Свернуть боковое меню"} title={collapsed ? "Развернуть боковое меню" : "Свернуть боковое меню"} onClick={onToggle}>
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </ToggleButton>

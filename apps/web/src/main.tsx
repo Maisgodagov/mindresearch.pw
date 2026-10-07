@@ -28,6 +28,7 @@ const LegacyLogin = React.lazy(() =>
 const Register = React.lazy(() =>
   import("./containers/Register").then((m) => ({ default: m.Register })),
 );
+const Landing = React.lazy(() => import("./containers/Landing").then(m => ({ default: m.Landing })));
 const PlatformHome = React.lazy(() =>
   import("./containers/SurveyList").then((m) => ({ default: m.PlatformHome })),
 );
@@ -123,7 +124,7 @@ function App() {
       <GlobalStyle />
       <Suspense fallback={<SkeletonScreen variant="form" />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/register" replace />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/s/:slug" element={<SurveyPage />} />
           <Route path="/p/:slug" element={<PublicProfile />} />
           <Route path="/login" element={<Login />} />

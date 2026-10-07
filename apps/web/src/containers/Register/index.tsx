@@ -29,7 +29,7 @@ export function Register() {
       const values: RegistrationValues = { name, email, password };
       const response = await api.post("/auth/register", values);
       setAccessToken(response.data.token);
-      nav("/app");
+      nav("/");
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, registrationErrors.submitFailed));
     }
