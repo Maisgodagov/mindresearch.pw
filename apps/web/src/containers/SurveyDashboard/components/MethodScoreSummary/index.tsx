@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { AnswerGroup } from "../../types";
 import type { MethodScoreSummaryProps } from "./types";
 import { Summary } from "./styles";
+import { SavedMethodResult } from "./SavedMethodResult";
 import { METHOD_SCORE_COPY as copy } from "./const";
 
 type ScoreScale = {
@@ -197,5 +198,5 @@ export function MethodScoreSummary({ group }: MethodScoreSummaryProps) {
         <small>{values.overall?.category ?? copy.categoryMissing}</small>
       </>,
     );
-  return <Summary className="pending">{copy.calculated}</Summary>;
+  return <SavedMethodResult group={group} compact />;
 }

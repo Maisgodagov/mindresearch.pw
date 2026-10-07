@@ -1,4 +1,5 @@
 import { ConfiguredMethodologyResult } from "../../../../components/ConfiguredMethodologyResult";
+import { SavedMethodResult } from "../MethodScoreSummary/SavedMethodResult";
 import {
   debqDescriptions,
   shoppDescriptions,
@@ -407,5 +408,5 @@ export function MethodologyInterpretation({
       </>
     );
   }
-  return <>{copy.calculated}</>;
+  return <SavedMethodResult group={group} />;
 }
