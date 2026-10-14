@@ -1,7 +1,7 @@
 import { useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 export const platformTitle =
-  "платформа для психологических исследований - mindresearch";
+  "Платформа для психологических исследований - mindresearch";
 export const titleForPage = (text: string) =>
   `${text.trim().replace(/\s+/g, " ").slice(0, 140)} | mindresearch`;
 export function usePageTitle(title: string | undefined) {
