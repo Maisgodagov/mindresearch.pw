@@ -144,6 +144,8 @@ export const QuestionCard = styled(Card)<{ $leaving: boolean }>`
 `;
 export const Options = styled.div`
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 10px;
   margin: auto 0;
 `;
@@ -151,6 +153,11 @@ export const Choice = styled(Button)<{ $active: boolean }>`
   && {
     justify-content: flex-start !important;
     text-align: left;
+    white-space: normal;
+    height: auto;
+    min-width: 0;
+    max-width: 100%;
+    line-height: 1.5;
   }
   display: flex;
   align-items: center;
@@ -163,6 +170,10 @@ export const Choice = styled(Button)<{ $active: boolean }>`
   color: #304036;
   min-height: 54px;
   transition: 0.15s;
+  .option-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .dot {
     width: 22px;
     height: 22px;

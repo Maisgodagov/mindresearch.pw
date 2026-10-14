@@ -1,4 +1,3 @@
-import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { CheckCircle2, ExternalLink, Leaf, ShieldCheck } from "lucide-react";
 import { api } from "../../api";
@@ -348,7 +347,7 @@ export function ResultsPage({ token }: { token: string }) {
     return (
       <Page>
         <Shell>
-          <Header><Leaf /> <BrandWordmark /></Header>
+          <Header><Leaf /> mindresearch</Header>
           <SkeletonScreen variant="public" />
         </Shell>
       </Page>
@@ -358,7 +357,7 @@ export function ResultsPage({ token }: { token: string }) {
     <Page>
       <Shell>
         <Header>
-          <Leaf /> <BrandWordmark />
+          <Leaf /> mindresearch
         </Header>
         <Hero>
           <span className="badge">

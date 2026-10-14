@@ -354,7 +354,9 @@ export function SurveyPage() {
                           {active && <Check size={14} />}
                         </span>
                       )}
-                      {formatOptionLabel(o.label, o.value)}
+                      <span className="option-label">
+                        {formatOptionLabel(o.label, o.value)}
+                      </span>
                     </Choice>
                   );
                 })}
