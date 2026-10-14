@@ -1,3 +1,4 @@
+import { BrandWordmark } from "../BrandWordmark";
 import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, Leaf, X } from "lucide-react";
@@ -99,7 +100,7 @@ export function BuilderPreview({ meta, questions, onClose }: PreviewProps) {
             <div className="context"><Eye size={18} /><span><b>Предпросмотр опроса</b>Ответы здесь не сохраняются</span></div>
             <Button className="close" onClick={onClose}><X size={16} /> Вернуться к редактированию</Button>
           </Toolbar>
-          <TakingHeader><Leaf /> mindresearch</TakingHeader>
+          <TakingHeader><Leaf /> <BrandWordmark /></TakingHeader>
 
           {screen === "welcome" && (
             <TakingWelcome>

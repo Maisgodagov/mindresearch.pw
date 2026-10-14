@@ -1,0 +1,7 @@
+@font-face {
+  font-family: "Caveat";
+  src: url("/fonts/caveat/Caveat.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}

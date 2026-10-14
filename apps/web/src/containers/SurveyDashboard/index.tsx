@@ -1,3 +1,4 @@
+import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
@@ -304,7 +305,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
         {!embedded && (
           <Header>
             <div className="brand">
-              <Leaf /> mindresearch · кабинет
+              <Leaf /> <BrandWordmark /> · кабинет
             </div>
             <Button
               aria-label="Выйти"

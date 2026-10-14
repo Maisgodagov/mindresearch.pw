@@ -1,3 +1,4 @@
+import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check, Leaf, Plus } from "lucide-react";
@@ -20,7 +21,7 @@ export function Landing() {
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
     let active = true;
-    document.title = "mindresearch — от вопросов к результатам";
+    document.title = "mindresearch by Евгения Годагова — от вопросов к результатам";
     void initializeAuth().then(token => {
       if (active) setSignedIn(Boolean(token));
     }).catch(() => {});
@@ -29,7 +30,7 @@ export function Landing() {
   const create = signedIn ? "/app/surveys/new" : "/register";
   return <div className="landing">
     <header className="landing-header">
-      <Link className="landing-brand" to="/" aria-label="Главная страница mindresearch"><Leaf size={27} />mindresearch</Link>
+      <Link className="landing-brand" to="/" aria-label="Главная страница mindresearch by Евгения Годагова"><Leaf size={27} /><BrandWordmark /></Link>
       <nav aria-label="Возможности платформы"><a href="#builder">Конструктор</a><a href="#catalog">Методики</a><a href="#results">Результаты</a></nav>
       <Link className="landing-header-action" to={signedIn ? "/app" : "/login"}>{signedIn ? "Мои опросы" : "Войти"}<ArrowRight size={16} /></Link>
     </header>
@@ -52,6 +53,6 @@ export function Landing() {
         ["Что означают показатели качества?", "Это признаки особенностей прохождения, а не доказательство недостоверности ответов. Смотрите доступность данных и отдельные метрики, прежде чем принимать решение."],
       ].map(([q, a]) => <details key={q}><summary>{q}<Plus size={18} /></summary><p>{a}</p></details>)}</section>
       <section className="landing-final landing-wrap"><Leaf size={35} /><h2>Следующее исследование<br />начинается с вашего вопроса.</h2><p>Соберите опрос — платформа поможет с остальным.</p><Link className="landing-button" to={create}>{signedIn ? "Создать опрос" : "Создать аккаунт"}<ArrowRight size={18} /></Link></section>
-    </main><footer className="landing-footer landing-wrap"><Link className="landing-brand" to="/"><Leaf size={22} />mindresearch</Link><span>Психологические исследования — в одном месте.</span><a href="#" onClick={event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Наверх ↑</a></footer>
+    </main><footer className="landing-footer landing-wrap"><Link className="landing-brand" to="/"><Leaf size={22} /><BrandWordmark /></Link><span>Психологические исследования — в одном месте.</span><a href="#" onClick={event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Наверх ↑</a></footer>
   </div>;
 }

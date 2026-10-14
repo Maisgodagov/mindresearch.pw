@@ -1,3 +1,4 @@
+import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowRight, ClipboardList, Leaf } from "lucide-react";
@@ -37,7 +38,7 @@ export function PublicProfile() {
   return (
     <Page>
       <ProfileShell>
-        <div><Leaf size={20} /> mindresearch</div>
+        <div><Leaf size={20} /> <BrandWordmark /></div>
         {loading ? (
           <div style={{ marginTop: "8vh" }}><SkeletonScreen variant="public" /></div>
         ) : error ? (

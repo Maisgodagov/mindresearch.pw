@@ -1,5 +1,5 @@
 export const loginFormCopy = {
-  brand: 'mindresearch',
+  brand: 'mindresearch by Евгения Годагова',
   eyebrow: 'Рабочее пространство исследователя',
   title: 'Личный кабинет',
   email: 'Электронная почта',

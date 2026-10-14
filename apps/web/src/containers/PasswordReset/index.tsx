@@ -1,3 +1,4 @@
+import { BrandWordmark } from "../../components/BrandWordmark";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Leaf } from "lucide-react";
@@ -8,7 +9,7 @@ import { Box } from "./styles";
 import { passwordResetDefaults } from "./const";
 import type { PasswordResetApiError } from "./types";
 
-const Brand = () => <div className="brand"><Leaf aria-hidden="true" /> mindresearch</div>;
+const Brand = () => <div className="brand"><Leaf aria-hidden="true" /> <BrandWordmark /></div>;
 
 export function ForgotPassword() {
   const [email, setEmail] = useState("");

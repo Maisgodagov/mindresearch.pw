@@ -73,7 +73,7 @@ function styleSheet(sheet: Worksheet, widths: number[]) {
 export async function exportRespondents(respondents: ExportRespondent[]) {
   const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "mindresearch";
+  workbook.creator = "mindresearch by Евгения Годагова";
   workbook.created = new Date();
 
   const summary = workbook.addWorksheet("Респонденты");

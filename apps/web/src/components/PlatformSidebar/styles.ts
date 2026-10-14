@@ -14,7 +14,7 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     flex-direction: ${(p) => (p.$collapsed ? "column" : "row")};
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px;
     margin-bottom: 31px;
     min-height: ${(p) => (p.$collapsed ? "72px" : "36px")};
   }
@@ -22,16 +22,23 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     display: flex;
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
-    gap: 9px;
+    gap: 6px;
     color: #365532;
     font-size: 17px;
     font-weight: 750;
     letter-spacing: -0.025em;
     min-width: 0;
-    padding: ${(p) => (p.$collapsed ? "0" : "0 8px")};
+    padding: 0;
   }
   .brand svg {
     flex: none;
+    align-self: flex-start;
+  }
+  .brand .brand-wordmark > small {
+    padding-left: 6px;
+  }
+  .brand .brand-wordmark .brand-author {
+    font-size: 18px;
   }
   .brand span {
     display: ${(p) => (p.$collapsed ? "none" : "block")};
