@@ -308,6 +308,11 @@ export const SurveyCard = styled(Card)`
     border-radius: 9px;
     cursor: pointer;
   }
+  .links:has(.continue) > .continue,
+  .links:has(.continue) > .publish {
+    box-sizing:border-box; width:150px; min-width:150px; height:42px; min-height:42px;
+    padding:0 12px; justify-content:center; font-size:13px; gap:6px;
+  }
   .copy-label-short { display: none; }
   && .copy,
   && .archive-action,

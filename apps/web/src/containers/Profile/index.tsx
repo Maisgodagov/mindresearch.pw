@@ -1,8 +1,16 @@
+import { Hero as AuthorHero } from "../PublicProfile/styles";
 import { ProfileLinks, LinkedBio } from "../../components/ProfileLinks";
 import { socialNetworks, emptyProfileLinks } from "../../profileLinks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ExternalLink, Globe2, KeyRound, Lock } from "lucide-react";
+import {
+  Pencil,
+  Check,
+  ExternalLink,
+  Globe2,
+  KeyRound,
+  Lock,
+} from "lucide-react";
 import {
   api,
   getCurrentUser,
@@ -43,6 +51,8 @@ export function ProfilePage() {
     [loading, setLoading] = useState(true),
     [saved, setSaved] = useState(false),
     [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [storedProfile, setStoredProfile] = useState<Profile>(initial);
   const [profileSaving, setProfileSaving] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false),
     [passwords, setPasswords] = useState({
@@ -55,14 +65,16 @@ export function ProfilePage() {
     [passwordSaving, setPasswordSaving] = useState(false);
   useEffect(() => {
     getCurrentUser()
-      .then((data) =>
-        setProfile({
+      .then((data) => {
+        const loaded = {
           ...data,
           profileLinks: data.profileLinks ?? emptyProfileLinks(),
           avatarSeed: data.avatarSeed || "willow",
           isProfilePublic: Boolean(data.isProfilePublic),
-        } as Profile),
-      )
+        } as Profile;
+        setProfile(loaded);
+        setStoredProfile(loaded);
+      })
       .catch(() => {
         if (!useDemoFallbacks)
           setError("Не удалось загрузить профиль с сервера.");
@@ -84,6 +96,8 @@ export function ProfilePage() {
     try {
       await api.patch("/account/me", profile);
       invalidateCurrentUser();
+      setStoredProfile(profile);
+      setEditing(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err: unknown) {
@@ -119,12 +133,87 @@ export function ProfilePage() {
       setPasswordSaving(false);
     }
   }
+  if (!editing)
+    return (
+      <PlatformLayout>
+        <div style={{ maxWidth: 1100 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            <h1 style={{ fontSize: 34, margin: 0 }}>Профиль</h1>
+            <Button
+              type="primary"
+              onClick={() => {
+                setError("");
+                setEditing(true);
+              }}
+            >
+              <Pencil size={16} /> Редактировать профиль
+            </Button>
+          </div>
+          {error && <p role="alert">{error}</p>}
+          {saved && <p role="status">Профиль сохранён</p>}
+          <AuthorHero>
+            <div className="avatar">
+              <StockAvatar seed={profile.avatarSeed} alt="Аватар профиля" />
+            </div>
+            <div>
+              <span>Автор исследований</span>
+              <h1>{profile.name || "Имя автора"}</h1>
+              <p>
+                <LinkedBio text={profile.bio || "Описание пока не добавлено"} />
+              </p>
+              <ProfileLinks value={profile.profileLinks} />
+              <p style={{ marginTop: 18, fontSize: 13 }}>{profile.email}</p>
+              <p style={{ fontSize: 13 }}>
+                {profile.isProfilePublic
+                  ? "Публичный профиль"
+                  : "Профиль скрыт · видите только вы"}
+              </p>
+              {profile.publicSlug && profile.isProfilePublic && (
+                <a
+                  href={`/p/${profile.publicSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 7,
+                    marginTop: 12,
+                    color: "#426c48",
+                  }}
+                >
+                  <ExternalLink size={14} /> Открыть публичную страницу
+                </a>
+              )}
+            </div>
+          </AuthorHero>
+        </div>
+      </PlatformLayout>
+    );
   return (
     <PlatformLayout>
+      <Button
+        type="button"
+        disabled={profileSaving}
+        onClick={() => {
+          setProfile(storedProfile);
+          setError("");
+          setEditing(false);
+        }}
+      >
+        Отмена редактирования
+      </Button>
       <Layout>
         <Column className="profile-settings">
           <Form>
-            <h1>Профиль</h1>
+            <h1>Редактирование профиля</h1>
             <p className="intro">
               Информация об авторе исследования и публичная страница.
             </p>
@@ -142,6 +231,7 @@ export function ProfilePage() {
                   <Button
                     type="button"
                     className={profile.avatarSeed === seed ? "active" : ""}
+                    aria-pressed={profile.avatarSeed === seed}
                     aria-label={`Выбрать аватар ${seed}`}
                     onClick={() => set("avatarSeed", seed)}
                     key={seed}

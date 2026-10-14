@@ -237,7 +237,7 @@ export const PasswordForm = styled(Form)`
 `;
 export const Avatars = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(42px, 54px));
+  grid-template-columns: repeat(auto-fill, 54px);
   justify-content: start;
   gap: 9px;
   margin-top: 9px;
@@ -249,9 +249,7 @@ export const Avatars = styled.div`
     box-sizing: border-box;
     display: block;
     width: 100%;
-    min-width: 42px;
-    min-height: 0;
-    max-width: 54px;
+    width:54px; height:54px; min-width:54px; min-height:54px; max-width:54px;
     aspect-ratio: 1;
     justify-self: center;
     border-radius: 50%;
@@ -263,7 +261,7 @@ export const Avatars = styled.div`
     transition: 0.15s;
   }
   button:hover {
-    transform: scale(1.04);
+    transform: none;
     background: transparent;
   }
   button:focus-visible {

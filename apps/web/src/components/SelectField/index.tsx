@@ -1,7 +1,23 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { selectFieldDefaults } from "./const";
-import { Arrow, Control, Empty, Menu, Option, Root, SearchInput, Value } from "./styles";
+import {
+  Arrow,
+  Control,
+  Empty,
+  Menu,
+  Option,
+  Root,
+  SearchInput,
+  Value,
+} from "./styles";
 import type { Props, SelectOption } from "./types";
 
 type Position = { top: number; left: number; width: number; maxHeight: number };
@@ -32,27 +48,55 @@ export function SelectField({
   const [position, setPosition] = useState<Position | null>(null);
   void getPopupContainer;
 
-  const selected = options.find((option) => String(option.value) === String(value));
+  const selected = options.find(
+    (option) => String(option.value) === String(value),
+  );
   const visibleOptions = useMemo(() => {
     if (!showSearch || !query) return options;
-    return options.filter((option) => typeof filterOption === "function"
-      ? filterOption(query, option)
-      : String(option.label ?? "").toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+    return options.filter((option) =>
+      typeof filterOption === "function"
+        ? filterOption(query, option)
+        : String(option.label ?? "")
+            .toLocaleLowerCase()
+            .includes(query.toLocaleLowerCase()),
+    );
   }, [filterOption, options, query, showSearch]);
 
   function updatePosition() {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const maxHeight = Math.max(120, Math.min(listHeight, window.innerHeight - 24));
-    const below = window.innerHeight - rect.bottom;
-    const above = rect.top;
-    const placeAbove = below < Math.min(220, maxHeight) && above > below;
-    setPosition({
-      left: Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8)),
-      top: placeAbove ? Math.max(8, rect.top - Math.min(maxHeight, 280) - 6) : rect.bottom + 5,
+    const viewportHeight = window.innerHeight;
+    const estimatedHeight =
+      visibleOptions.length * 40 + 12 + (showSearch ? 44 : 0);
+    const desiredHeight = Math.min(
+      listHeight,
+      menuRef.current ? menuRef.current.scrollHeight + 2 : estimatedHeight,
+    );
+    const below = Math.max(0, viewportHeight - rect.bottom - 8),
+      above = Math.max(0, rect.top - 8);
+    const placeAbove = below < desiredHeight + 6 && above > below;
+    const maxHeight = Math.max(
+      40,
+      Math.min(listHeight, (placeAbove ? above : below) - 6),
+    );
+    const height = Math.min(desiredHeight, maxHeight);
+    const next = {
+      left: Math.max(
+        8,
+        Math.min(rect.left, window.innerWidth - rect.width - 8),
+      ),
+      top: placeAbove ? Math.max(8, rect.top - height - 6) : rect.bottom + 6,
       width: rect.width,
       maxHeight,
-    });
+    };
+    setPosition((current) =>
+      current &&
+      Object.keys(next).every(
+        (key) => current[key as keyof Position] === next[key as keyof Position],
+      )
+        ? current
+        : next,
+    );
   }
 
   useLayoutEffect(() => {
@@ -67,11 +111,19 @@ export function SelectField({
     };
   }, [open, listHeight]);
 
+  useLayoutEffect(() => {
+    if (open && menuRef.current) updatePosition();
+  }, [open, position?.top, position?.width, visibleOptions.length]);
+
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) close();
+      if (
+        !rootRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      )
+        close();
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
@@ -93,7 +145,12 @@ export function SelectField({
     if (disabled) return;
     if (open) close();
     else {
-      setActiveIndex(Math.max(0, options.findIndex((option) => String(option.value) === String(value))));
+      setActiveIndex(
+        Math.max(
+          0,
+          options.findIndex((option) => String(option.value) === String(value)),
+        ),
+      );
       setOpen(true);
     }
   }
@@ -103,11 +160,21 @@ export function SelectField({
       event.preventDefault();
       if (!open) {
         setOpen(true);
-        setActiveIndex(Math.max(0, options.findIndex((option) => String(option.value) === String(value))));
+        setActiveIndex(
+          Math.max(
+            0,
+            options.findIndex(
+              (option) => String(option.value) === String(value),
+            ),
+          ),
+        );
         return;
       }
       const direction = event.key === "ArrowDown" ? 1 : -1;
-      setActiveIndex((current) => (current + direction + visibleOptions.length) % visibleOptions.length);
+      setActiveIndex(
+        (current) =>
+          (current + direction + visibleOptions.length) % visibleOptions.length,
+      );
     } else if (event.key === "Enter" && open && activeIndex >= 0) {
       event.preventDefault();
       const option = visibleOptions[activeIndex];
@@ -127,7 +194,9 @@ export function SelectField({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={id}
-        aria-activedescendant={open && activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
+        aria-activedescendant={
+          open && activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined
+        }
         aria-label={ariaProps["aria-label"]}
         disabled={disabled}
         $size={size}
@@ -138,51 +207,78 @@ export function SelectField({
         <Value $placeholder={!selected}>{selected?.label ?? placeholder}</Value>
         <Arrow $open={open} aria-hidden="true" />
       </Control>
-      {open && position && typeof document !== "undefined" && createPortal(
-        <Menu
-          id={id}
-          ref={menuRef}
-          role="listbox"
-          aria-label={ariaProps["aria-label"]}
-          $maxHeight={position.maxHeight}
-          style={{ position: "fixed", top: position.top, left: position.left, width: position.width }}
-        >
-          {showSearch && (
-            <SearchInput
-              autoFocus
-              value={query}
-              onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") { event.preventDefault(); close(); triggerRef.current?.focus(); }
-                if (event.key === "ArrowDown") { event.preventDefault(); setActiveIndex((current) => Math.min(current + 1, visibleOptions.length - 1)); }
-                if (event.key === "Enter" && visibleOptions[activeIndex]) { event.preventDefault(); choose(visibleOptions[activeIndex]); }
-              }}
-              placeholder="Поиск..."
-              aria-label="Поиск вариантов"
-            />
-          )}
-          {visibleOptions.length ? visibleOptions.map((option, index) => {
-            const isSelected = String(option.value) === String(value);
-            return (
-              <Option
-                id={`${id}-option-${index}`}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                key={String(option.value)}
-                disabled={option.disabled}
-                $selected={isSelected}
-                $active={index === activeIndex}
-                onMouseEnter={() => setActiveIndex(index)}
-                onClick={() => choose(option)}
-              >
-                {option.label}
-              </Option>
-            );
-          }) : <Empty>{notFoundContent}</Empty>}
-        </Menu>,
-        document.body,
-      )}
+      {open &&
+        position &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <Menu
+            id={id}
+            ref={menuRef}
+            role="listbox"
+            aria-label={ariaProps["aria-label"]}
+            $maxHeight={position.maxHeight}
+            style={{
+              position: "fixed",
+              top: position.top,
+              left: position.left,
+              width: position.width,
+            }}
+          >
+            {showSearch && (
+              <SearchInput
+                autoFocus
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setActiveIndex(0);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    close();
+                    triggerRef.current?.focus();
+                  }
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setActiveIndex((current) =>
+                      Math.min(current + 1, visibleOptions.length - 1),
+                    );
+                  }
+                  if (event.key === "Enter" && visibleOptions[activeIndex]) {
+                    event.preventDefault();
+                    choose(visibleOptions[activeIndex]);
+                  }
+                }}
+                placeholder="Поиск..."
+                aria-label="Поиск вариантов"
+              />
+            )}
+            {visibleOptions.length ? (
+              visibleOptions.map((option, index) => {
+                const isSelected = String(option.value) === String(value);
+                return (
+                  <Option
+                    id={`${id}-option-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    key={String(option.value)}
+                    disabled={option.disabled}
+                    $selected={isSelected}
+                    $active={index === activeIndex}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onClick={() => choose(option)}
+                  >
+                    {option.label}
+                  </Option>
+                );
+              })
+            ) : (
+              <Empty>{notFoundContent}</Empty>
+            )}
+          </Menu>,
+          document.body,
+        )}
     </Root>
   );
 }

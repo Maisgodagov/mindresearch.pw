@@ -855,7 +855,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 6px;
     min-height: 36px;
     padding: 7px 10px;
-    border: 1px solid #dce7d9;
+    border: 0 !important;
     border-radius: 8px;
     background: #f5f8f3;
     color: #49684e;
@@ -1087,7 +1087,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     gap: 6px;
     justify-self: start;
     min-height: 36px;
-    border: 1px solid #dce7d9;
+    border: 0 !important;
     border-radius: 8px;
     background: #f5f8f3;
     color: #49684e;
