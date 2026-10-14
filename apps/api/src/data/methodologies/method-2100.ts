@@ -58,12 +58,14 @@ export const scoringConfig: ConfigurableScoring = {
   ],
 };
 
-const validationCases: ValidationCase[] = [
+export const validationCases: ValidationCase[] = [
   {
     title: 'Ручная проверка: ответ 1 на все пункты даёт 14 баллов по каждой удвоенной субшкале',
     answers: Object.fromEntries(items.map((_, index) => [String(index + 1), 1])),
     expected: { depression: 14, anxiety: 14, stress: 14 },
   },
+  { title: 'Все ответы 0: нулевые суммы', answers: Object.fromEntries(items.map((_, i) => [String(i + 1), 0])), expected: { depression: 0, anxiety: 0, stress: 0 } },
+  { title: 'Все ответы 3: максимальные удвоенные суммы', answers: Object.fromEntries(items.map((_, i) => [String(i + 1), 3])), expected: { depression: 42, anxiety: 42, stress: 42 } },
 ];
 
 export const methodology: MethodologyRegistration = {
@@ -71,4 +73,13 @@ export const methodology: MethodologyRegistration = {
   scoringConfig,
   validationCases,
   formulaVersion: 'dass-21-fattakhov-gorobets-2024-lovibond-key-doubled-v1',
+  details: {
+    author: 'S. H. Lovibond, P. F. Lovibond; русский перевод — И. М. Фаттахов, Е. А. Горобец',
+    version: 'DASS-21; русский перевод 2024; удвоенные суммы 0–42', year: 2024,
+    summary: instrument.description!,
+    steps: ['Оценка относится к последней неделе; ответы кодируются от 0 до 3.', 'Для каждой из трёх субшкал складываются семь ответов, затем сумма умножается на 2 ровно один раз.', 'Итог каждой субшкалы находится в диапазоне 0–42. Обратных пунктов нет. Это отдельные показатели, не общий диагноз.'],
+    keys: [{ label: 'Депрессия', value: '3, 5, 10, 13, 16, 17, 21; сумма × 2.' }, { label: 'Тревога', value: '2, 4, 7, 9, 15, 19, 20; сумма × 2.' }, { label: 'Стресс', value: '1, 6, 8, 11, 12, 14, 18; сумма × 2.' }],
+    notes: ['Суммы уже удвоены для сопоставимости с полной DASS: повторно умножать результаты на 2 нельзя.', 'Скрининговые показатели не устанавливают клинический диагноз.', 'Порядок 21 пункта сверен с русским бланком Фаттахова и Горобец на сайте авторов DASS. Формула исправления не требовала; добавлены проверки всех пунктов и границ.'],
+    sources: [{ title: 'Фаттахов И. М., Горобец Е. А. — официальный русский бланк DASS-21', url: 'https://www2.psy.unsw.edu.au/dass/Russian/Fattakhov/Fattakhov_DASS-21_rus.pdf' }, { title: 'UNSW — официальный шаблон ключа DASS, примечание о DASS-21', url: 'https://www2.psy.unsw.edu.au/dass/Download%20files/Dass_template.pdf' }, { title: 'UNSW — DASS FAQ, правила подсчёта короткой формы', url: 'https://www2.psy.unsw.edu.au/Groups/Dass/DASSFAQ.htm' }],
+  },
 };

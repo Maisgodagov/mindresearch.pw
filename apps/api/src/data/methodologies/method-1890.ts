@@ -86,11 +86,11 @@ export const instrument: SeedSection = {
   questions,
 };
 
-const scoringConfig: ConfigurableScoring = {
+export const scoringConfig: ConfigurableScoring = {
   min: 0,
   max: 1,
   scales: [
-    { key: 'acceptance_rejection', label: 'Принятие–отвержение', items: [3, 4, 8, 10, 12, 14, 15, 16, 18, 20, 24, 26, 27, 29, 37, 38, 39, 40, 42, 43, 44, 45, 46, 47, 49, 52, 53, 55, 56, 60], reverseItems: [], aggregation: 'sum', itemScores: Object.fromEntries([3, 8, 10, 12, 14, 15, 16, 18, 24, 26, 29, 39, 40, 42, 44, 46, 47, 49, 52, 55, 60].map(item => [item, { yes: 0, no: 1 }])) },
+    { key: 'acceptance_rejection', label: 'Принятие–отвержение (сырая сумма «Да»)', items: [3, 4, 8, 10, 12, 14, 15, 16, 18, 20, 24, 26, 27, 29, 37, 38, 39, 40, 42, 43, 44, 45, 46, 47, 49, 52, 53, 55, 56, 60], reverseItems: [], aggregation: 'sum' },
     { key: 'cooperation', label: 'Кооперация (социальная желательность поведения)', items: [6, 9, 21, 25, 31, 34, 35, 36], reverseItems: [], aggregation: 'sum' },
     { key: 'symbiosis', label: 'Симбиоз', items: [1, 5, 7, 28, 32, 41, 58], reverseItems: [], aggregation: 'sum' },
     { key: 'authoritarian_hypersocialization', label: 'Авторитарная гиперсоциализация', items: [2, 19, 30, 48, 50, 57, 59], reverseItems: [], aggregation: 'sum' },
@@ -98,17 +98,34 @@ const scoringConfig: ConfigurableScoring = {
   ],
 };
 
-const validationCases: ValidationCase[] = [
+// The cited published form explicitly counts affirmative answers on all five keys.
+// Keep the existing item lists; do not invent inversions from item wording or mix editions.
+for (const scale of scoringConfig.scales) {
+  if (scale.aggregation === 'sum') scale.itemScores = Object.fromEntries(scale.items.map(item => [item, { yes: 1, no: 0 }]));
+}
+
+export const validationCases: ValidationCase[] = [
   {
-    title: 'Все ответы «Нет»: сумма по шкалам равна числу ключевых ответов «Нет»; пункт 9 учитывается в двух шкалах',
+    title: 'Все ответы «Нет»: нули по всем пяти шкалам опубликованного ключа',
     answers: Object.fromEntries(Array.from({ length: 61 }, (_, index) => [String(index + 1), 'no'])),
-    expected: { acceptance_rejection: 21, cooperation: 0, symbiosis: 0, authoritarian_hypersocialization: 0, little_loser: 0 },
+    expected: { acceptance_rejection: 0, cooperation: 0, symbiosis: 0, authoritarian_hypersocialization: 0, little_loser: 0 },
   },
+  { title: 'Все ответы «Да»: размеры пяти шкал', answers: Object.fromEntries(Array.from({ length: 61 }, (_, i) => [String(i + 1), 'yes'])), expected: { acceptance_rejection: 30, cooperation: 8, symbiosis: 7, authoritarian_hypersocialization: 7, little_loser: 8 } },
+  { title: 'Только пункты 9 и 28: пересечение шкал сохраняется', answers: Object.fromEntries(Array.from({ length: 61 }, (_, i) => [String(i + 1), [9, 28].includes(i + 1) ? 'yes' : 'no'])), expected: { acceptance_rejection: 0, cooperation: 1, symbiosis: 1, authoritarian_hypersocialization: 0, little_loser: 2 } },
 ];
 
 export const methodology: MethodologyRegistration = {
   instrument,
   scoringConfig,
   validationCases,
-  formulaVersion: 'varga-stolin-oro-1988-yes-key-v1',
+  formulaVersion: 'oro-published-30-8-7-7-8-yes-key-v2',
+  details: {
+    author: 'А. Я. Варга, В. В. Столин', version: '61 утверждение; опубликованный ключ 30/8/7/7/8, сырые суммы «Да»', year: 1988,
+    summary: instrument.description!,
+    adaptation: 'Сохранён состав пунктов пяти шкал из ранее выбранного опубликованного бланка: 30, 8, 7, 7 и 8. Это явно зафиксированная редакция ключа; она не объединяется с 33-пунктовым ключом первой шкалы или модификацией Psytests.',
+    steps: ['Ответы «Да» и «Нет» сохраняются как yes/no.', 'По каждому пункту, входящему в ключ своей шкалы, «Да» даёт 1 балл, «Нет» — 0. Это правило прямо указано в разделе «Порядок подсчета тестовых баллов» выбранного источника.', 'По пяти шкалам отдельно суммируются баллы. Обратное кодирование по смыслу формулировок не добавляется.', 'Результаты показываются как сырые суммы. Процентили, нормативные уровни и автоматические выводы о принятии или отвержении не присваиваются.'],
+    keys: scoringConfig.scales.map(scale => ({ label: scale.label, value: `Пункты ${scale.items.join(', ')}; 1 за «Да», 0 за «Нет»; диапазон 0–${scale.items.length}.` })),
+    notes: ['В доступных публикациях расходятся редакции ключа и направление интерпретации первой шкалы. У выбранной копии также есть противоречия между разделами интерпретации. Поэтому подтверждён только расчёт сырой суммы по её явному ключу; считать её автоматически валидированным показателем принятия нельзя.', 'Процентильные таблицы и пороги для другой редакции, в том числе с 33 пунктами первой шкалы, к диапазону 0–30 не применяются.', 'Пункты 9 и 28 входят в несколько шкал. Их вклад не удаляется.', 'Тексты 61 утверждения и существующие ответы сохранены. Версия формулы изменена, чтобы отличать исправленные суммы.'],
+    sources: [{ title: 'Опубликованный бланк ОРО: состав пяти шкал, с. 4 PDF; явное правило подсчёта «верно», с. 5 PDF. Копия на образовательном портале', url: 'https://rstatic.oshkole.ru/org_downloads/131296/VargaStolinTest-oprosnik.pdf' }, { title: 'Описание модификации Psytests — документирует отличия редакций; этот модифицированный ключ не используется', url: 'https://psytests.org/parent/oro.html' }],
+  },
 };

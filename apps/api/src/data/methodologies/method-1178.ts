@@ -63,9 +63,12 @@ export const scoringConfig: ConfigurableScoring = {
 };
 
 const answers = (value: number) => Object.fromEntries(statements.map((_, index) => [String(index + 1), value]));
-const validationCases: ValidationCase[] = [
-  { title: 'Ручная проверка: «никогда» по всем пунктам; обратный пункт 6 также даёт 0', answers: answers(0), expected: { emotional_exhaustion: 0, depersonalization: 0, reduced_parental_accomplishment: 0 } },
+export const validationCases: ValidationCase[] = [
+  { title: 'Все ответы «никогда»: обратный пункт 6 даёт 6 баллов', answers: answers(0), expected: { emotional_exhaustion: 6, depersonalization: 0, reduced_parental_accomplishment: 0 } },
   { title: 'Ручная проверка: «постоянно» по всем пунктам; пункт 6 инвертирован', answers: answers(6), expected: { emotional_exhaustion: 48, depersonalization: 30, reduced_parental_accomplishment: 48 } },
+  { title: 'Все ответы 3: середина диапазона каждой шкалы', answers: answers(3), expected: { emotional_exhaustion: 27, depersonalization: 15, reduced_parental_accomplishment: 24 } },
+  { title: 'Максимальное истощение: все ответы 6, но пункт 6 равен 0', answers: { ...answers(6), '6': 0 }, expected: { emotional_exhaustion: 54, depersonalization: 30, reduced_parental_accomplishment: 48 } },
+  { title: 'Минимальное истощение: все ответы 0, но пункт 6 равен 6', answers: { ...answers(0), '6': 6 }, expected: { emotional_exhaustion: 0, depersonalization: 0, reduced_parental_accomplishment: 0 } },
 ];
 
 export const methodology: MethodologyRegistration = {
@@ -73,4 +76,16 @@ export const methodology: MethodologyRegistration = {
   scoringConfig,
   validationCases,
   formulaVersion: 'efimova-parental-burnout-22-item-sum-0-6-reverse-6-v1',
+  details: {
+    author: 'И. Н. Ефимова', year: 2013, version: 'Авторская 22-пунктовая версия, 2013; ключ с обратным пунктом 6',
+    summary: instrument.description!,
+    steps: ['Ответы кодируются частотой 0–6.', 'В шестом пункте балл равен 6 − ответ; в остальных пунктах используется исходный ответ.', 'Суммы вычисляются отдельно по трём шкалам. Единого суммарного балла выгорания в этой версии нет.'],
+    keys: [
+      { label: 'Эмоциональное истощение', value: '1, 2, 3, 6, 8, 13, 14, 16, 20; пункт 6 обратный. Диапазон 0–54.' },
+      { label: 'Деперсонализация', value: '5, 10, 11, 15, 22. Диапазон 0–30.' },
+      { label: 'Редукция родительских достижений', value: '4, 7, 9, 12, 17, 18, 19, 21. Прямая сумма 0–48: меньший балл соответствует большей редукции.' },
+    ],
+    notes: ['У истощения и деперсонализации больший балл соответствует большему выгоранию. У шкалы редукции направление противоположное: большая сумма означает меньшую редукцию достижений.', 'Нулевые ответы во всех 22 пунктах дают 6 баллов истощения, а не 0: это следствие обратного шестого пункта.', 'Подтверждена формула из приложения авторской статьи, с. 38. Исправлен только контрольный пример; сама формула и сохранённые результаты не меняются.'],
+    sources: [{ title: 'Ефимова И. Н. (2013). Возможности исследования родительского «выгорания». Вестник МГОУ, № 4, с. 31–40; приложение и ключ с. 37–38 — копия авторской статьи', url: 'https://www.scribd.com/document/1025922763/918-987-1-PB' }, { title: 'Авторский список публикаций И. Н. Ефимовой', url: 'https://efimova.su/publikacii' }],
+  },
 };
