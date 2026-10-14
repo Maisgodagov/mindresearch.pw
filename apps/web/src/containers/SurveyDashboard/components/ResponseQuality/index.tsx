@@ -159,6 +159,9 @@ export function QualityAdministration({surveyId,selectedIds,onUpdated}:{surveyId
 }
 
 export function QualityDetails({value}:{value:Quality|undefined}) {
+  return <Surface><details className="disclosure"><summary><ShieldCheck size={17} aria-hidden="true"/>Качество прохождения<ChevronDown className="chevron" size={16} aria-hidden="true"/></summary><div style={{marginTop:14}}><QualityDetailsContent value={value}/></div></details></Surface>;
+}
+function QualityDetailsContent({value}:{value:Quality|undefined}) {
   if(!value)return <Surface><p>V2 ещё не рассчитана. Запустите пересчёт; старый индекс не используется.</p></Surface>;
   const patterns=value.response.metrics.patterns as Record<string,{title:string;run:number;entropy:number}>|undefined;
   return <Surface><div className="indices">{([['overall','Общий индекс качества'],['behavioral','Поведенческий индекс'],['response','Качество ответов']] as const).map(([key,label])=><div className="index" key={key}><h3>{label}<MetricExplanation metric={key}/></h3><b>{percent(value[key].score)}</b><small>{STATUS[value[key].status]} · уверенность {percent(value[key].confidence*100)}{value[key].partial?' · частичный расчёт':''}</small></div>)}</div>
