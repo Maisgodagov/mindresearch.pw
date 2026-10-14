@@ -8,6 +8,7 @@ import { TextAreaField } from "../../components/TextAreaField";
 import {
   DndContext,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
   closestCenter,
   useSensor,
@@ -678,6 +679,8 @@ export function SurveyBuilder() {
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              onDragStart={() => setOpen({})}
+              measuring={{droppable:{strategy:MeasuringStrategy.Always}}}
               onDragEnd={reorderSections}
             >
               <SortableContext
