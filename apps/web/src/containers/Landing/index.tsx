@@ -1,3 +1,4 @@
+import { platformTitle } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -21,7 +22,7 @@ export function Landing() {
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
     let active = true;
-    document.title = "mindresearch by Евгения Годагова — от вопросов к результатам";
+    document.title = platformTitle;
     void initializeAuth().then(token => {
       if (active) setSignedIn(Boolean(token));
     }).catch(() => {});
