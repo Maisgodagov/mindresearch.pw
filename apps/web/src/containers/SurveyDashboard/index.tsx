@@ -16,7 +16,6 @@ import {
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents, exportQualityCsv } from "../../admin/exportResults";
-import { QuestionTiming } from "./components/QuestionTiming";
 import { QualityOverview, QualityControls, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
 import { applyQualityView, DEFAULT_QUALITY_VIEW, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
@@ -31,7 +30,7 @@ import { RespondentDetails as RespondentAnswerDetails } from "./components/Respo
 import { MethodScoreSummary } from "./components/MethodScoreSummary";
 import { MethodologyInterpretation } from "./components/MethodologyInterpretation";
 
-import type { SurveyRow, Result, Respondent, QuestionTimingRow } from "./types";
+import type { SurveyRow, Result, Respondent } from "./types";
 import {
   Wrap,
   Header,
@@ -62,10 +61,6 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
   const [detailErrors, setDetailErrors] = useState<Record<string, boolean>>({});
   const pendingDetails = useRef(new Map<string, Promise<Respondent>>());
   const resultGeneration = useRef(0);
-  const [timingSummary, setTimingSummary] = useState<QuestionTimingRow[] | undefined>();
-  const [timingLoading, setTimingLoading] = useState(false);
-  const [timingError, setTimingError] = useState(false);
-  const [timingReload, setTimingReload] = useState(0);
   const [qualityView, setQualityView] = useState<QualityView>({ ...DEFAULT_QUALITY_VIEW, filters: [] });
   const qualities = useMemo(() => Object.fromEntries(result.respondents.flatMap(p => p.qualityV2 ? [[p.id, p.qualityV2]] : [])), [result.respondents]);
   const visibleRespondents = useMemo(() => applyQualityView(result.respondents, qualities, qualityView), [result.respondents, qualities, qualityView]);
@@ -137,17 +132,6 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
     return () => controller.abort();
   }, [result.sections]);
   const survey = surveys.find((s) => s.id === surveyId) ?? surveys[0];
-  useEffect(() => {
-    setTimingSummary(undefined); setTimingError(false);
-    if(loading || !survey || !result.respondents.some(person=>person.detailsLoaded===false)) { setTimingLoading(false); return; }
-    const controller = new AbortController(); let cancelled = false;
-    setTimingLoading(true);
-    api.get(`/admin/surveys/${survey.id}/results/timing`, {signal:controller.signal})
-      .then(response=>{ if(!cancelled) setTimingSummary(response.data); })
-      .catch(()=>{ if(!cancelled) setTimingError(true); })
-      .finally(()=>{ if(!cancelled) setTimingLoading(false); });
-    return ()=>{ cancelled=true; controller.abort(); };
-  }, [loading, survey?.id, result.respondents, timingReload]);
   const questions = useMemo(
     () => [
       ...new Map(result.distribution.map((x) => [x.code, x.text])).entries(),
@@ -379,12 +363,12 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
             </Button>
           </div>
         </Panel>
-        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
         <Panel className="respondents-panel" data-quality-respondents>
           <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} selectedCount={selectedRespondents.length} onExport={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))} />
           {pagination}
           {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
           <RespondentResults
+            key={survey?.id}
             respondents={pageRespondents}
             totalCount={visibleRespondents.length}
             qualities={qualities}
@@ -437,7 +421,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
           />
           {pagination}
         </Panel>
-        <QuestionTiming respondents={result.respondents} summary={timingSummary} loading={timingLoading} error={timingError} onRetry={()=>setTimingReload(value=>value+1)} />
+        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
         <AnswerDistribution
           data={chart}
           options={questionOptions}

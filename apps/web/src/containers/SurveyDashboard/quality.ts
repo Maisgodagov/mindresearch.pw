@@ -5,7 +5,7 @@ export const QUALITY_VERSION = '2.0.0';
 export const COHORTS = { unassigned: 'Не размечена', trusted: 'Личное приглашение', public: 'Публичный набор', admin_test: 'Проверка администратора' };
 export const STATUS = { high: 'Высокий', acceptable: 'Приемлемый', review: 'Проверить', high_concern: 'Выраженные признаки', insufficient_data: 'Недостаточно данных' };
 export const METRICS = [
-  { key: 'overall', label: 'Общий индекс', unit: 'баллы' },
+  { key: 'overall', label: 'Общий индекс качества', unit: 'баллы' },
   { key: 'behavioral', label: 'Поведенческий индекс', unit: 'баллы' },
   { key: 'response', label: 'Качество ответов', unit: 'баллы' },
   { key: 'confidence', label: 'Уверенность общего индекса', unit: '%' },

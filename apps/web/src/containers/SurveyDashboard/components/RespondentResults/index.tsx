@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useId, useState } from "react";
 import {
   ArchiveRestore,
   ChevronDown,
@@ -10,7 +10,7 @@ import { Button } from "../../../../ui";
 import { FieldInput } from "../../../../components/FieldInput";
 import { shortNames } from "../../const";
 import { RESPONDENT_RESULTS_COPY as copy } from "./const";
-import { Table, TableWrap, TrashBox, TrashToggle } from "./styles";
+import { QualityToggleBar, Table, TableWrap, TrashBox, TrashToggle } from "./styles";
 import type { RespondentResultsProps } from "./types";
 import { percent } from "../ResponseQuality";
 import { MetricExplanation } from "../ResponseQuality/explanations";
@@ -19,7 +19,7 @@ import { STATUS } from "../../quality";
 import type { Quality } from "../../quality";
 
 const qualityColumns: { metric: MetricKey; label: string; render: (value: Quality) => string; title: string }[] = [
-  ...(['overall','behavioral','response'] as const).map((key,index)=>({metric:key,label:['Общий индекс','Поведение','Ответы'][index],render:(q:Quality)=>percent(q[key].score)+' · '+STATUS[q[key].status],title:'Эвристический индекс V2, не вероятность честности'})),
+  ...(['overall','behavioral','response'] as const).map((key,index)=>({metric:key,label:['Общий индекс качества','Поведение','Ответы'][index],render:(q:Quality)=>percent(q[key].score)+' · '+STATUS[q[key].status],title:'Эвристический индекс V2, не вероятность честности'})),
   {metric:'confidence',label:'Уверенность',render:q=>percent(q.overall.confidence*100),title:'Полнота и качество основания расчёта'},
   {metric:'strongFlags',label:'Сильные признаки',render:q=>String(q.strong_flag_count),title:'Количество сильных признаков; подробности в раскрытых результатах'},
 ];
@@ -58,6 +58,9 @@ export function RespondentResults({
   renderMethodResult,
   renderRespondentDetails,
 }: RespondentResultsProps) {
+  const [qualityExpanded, setQualityExpanded] = useState(false);
+  const tableId = useId();
+  const visibleQualityColumns = qualityExpanded ? qualityColumns : qualityColumns.slice(0, 1);
   const selectedDeletedCount = Object.values(deletedSelected).some(Boolean);
 
   return (
@@ -84,8 +87,14 @@ export function RespondentResults({
           </Button>
         </div>
       </div>
+      <QualityToggleBar>
+        <Button aria-expanded={qualityExpanded} aria-controls={tableId} onClick={() => setQualityExpanded(value => !value)}>
+          {qualityExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          {qualityExpanded ? "Скрыть показатели качества" : "Показать показатели качества"}
+        </Button>
+      </QualityToggleBar>
       <TableWrap>
-        <Table>
+        <Table id={tableId} $qualityExpanded={qualityExpanded}>
           <thead>
             <tr>
               <th className="select">
@@ -100,7 +109,7 @@ export function RespondentResults({
               <th>{copy.status}</th>
               <th>{copy.answers}</th>
               <th className="duration-col" title="От начала до завершения опроса, включая перерывы">Время прохождения</th>
-              {qualityColumns.map(column => <th key={column.label} title={column.title}>{column.label}<MetricExplanation metric={column.metric}/></th>)}
+              {visibleQualityColumns.map(column => <th key={column.label} title={column.title}>{column.label}<MetricExplanation metric={column.metric}/></th>)}
               {sections.map((section) => (
                 <th key={section.code}>
                   {shortNames[section.code] ?? section.title}
@@ -157,7 +166,7 @@ export function RespondentResults({
                       </span>
                     ) : <span title="Опрос ещё не завершён">—</span>}
                   </td>
-                  {qualityColumns.map(column => <td key={column.label} className="quality-col" title={column.title}>{qualities[person.id] ? column.render(qualities[person.id]) : "—"}</td>)}
+                  {visibleQualityColumns.map(column => <td key={column.label} className="quality-col" title={column.title}>{qualities[person.id] ? column.render(qualities[person.id]) : "—"}</td>)}
                   {sections.map((section) => (
                     <td key={section.code}>
                       {renderMethodResult(
@@ -171,7 +180,7 @@ export function RespondentResults({
                 </tr>
                 {expanded[person.id] && (
                   <tr className="details-row">
-                    <td className="details-cell" colSpan={6 + qualityColumns.length + sections.length}>
+                    <td className="details-cell" colSpan={6 + visibleQualityColumns.length + sections.length}>
                       {renderRespondentDetails(person)}
                     </td>
                   </tr>
@@ -180,7 +189,7 @@ export function RespondentResults({
             ))}
             {!respondents.length && (
               <tr>
-                <td className="empty-state" colSpan={6 + qualityColumns.length + sections.length}>
+                <td className="empty-state" colSpan={6 + visibleQualityColumns.length + sections.length}>
                   Нет респондентов для отображения. Если применены фильтры, нажмите «Сбросить всё».
                 </td>
               </tr>

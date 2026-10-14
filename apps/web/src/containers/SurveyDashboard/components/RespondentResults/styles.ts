@@ -11,9 +11,15 @@ export const TableWrap = styled.div`
   padding: 0 0 19px 0;
   scrollbar-color: #a8b9a3 #f5f8f3;
 `;
-export const Table = styled.table`
+export const QualityToggleBar = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+  button { white-space: normal; height: auto; min-height: 42px; text-align: left; }
+`;
+export const Table = styled.table<{ $qualityExpanded: boolean }>`
   width: 100%;
-  min-width: 1090px;
+  min-width: ${(p) => p.$qualityExpanded ? '1090px' : '760px'};
   border-collapse: separate;
   border-spacing: 0;
   margin: 0;
