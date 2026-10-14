@@ -1,3 +1,4 @@
+import { createInstrumentIndex,searchInstruments } from "./search";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "antd";
 import {
@@ -92,11 +93,8 @@ export function InstrumentCatalog({
     }
     return null;
   }, [categoriesByGroup, categoryFilter]);
-  const searchedInstruments = useMemo(() => {
-    const search=query.trim().toLocaleLowerCase('ru');
-    if(!search)return instruments;
-    return instruments.filter(instrument=>`${instrument.title} ${instrument.author??''} ${instrument.description??''} ${instrument.categories?.map(category=>`${category.group} ${category.label}`).join(' ')??''}`.toLocaleLowerCase('ru').includes(search));
-  },[instruments,query]);
+  const searchIndex=useMemo(()=>createInstrumentIndex(instruments),[instruments]);
+  const searchedInstruments=useMemo(()=>searchInstruments(searchIndex,query),[searchIndex,query]);
   const categoryFilteredInstruments = categoryFilter
     ? searchedInstruments.filter((instrument) => instrument.categories?.some((category) =>
         categoryFilter.startsWith("group:")
@@ -142,6 +140,7 @@ export function InstrumentCatalog({
 
   useEffect(() => {
     setPage(1);
+    document.querySelector(".instrument-catalog-modal .ant-modal-body")?.scrollTo({ top: 0 });
   }, [query, instruments.length, categoryFilter]);
 
   useEffect(() => {
@@ -194,7 +193,9 @@ export function InstrumentCatalog({
         className="instrument-catalog-modal"
         styles={{
           body: {
-            maxHeight: "min(82dvh, 820px)",
+            height: "min(78dvh, 760px, calc(100dvh - 140px))",
+            boxSizing: "border-box",
+            scrollbarGutter: "stable",
             overflowY: "auto",
             padding: "4px clamp(8px, 2vw, 16px) clamp(10px, 2vw, 16px)",
           },
@@ -216,6 +217,7 @@ export function InstrumentCatalog({
                 onQueryChange(event.target.value);
               }}
               placeholder={CATALOG_COPY.search}
+              maxLength={200}
               aria-label={CATALOG_COPY.searchLabel}
               autoFocus
             />
