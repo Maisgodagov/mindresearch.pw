@@ -9,7 +9,7 @@ import { Box } from "./styles";
 import { passwordResetDefaults } from "./const";
 import type { PasswordResetApiError } from "./types";
 
-const Brand = () => <div className="brand"><Leaf aria-hidden="true" /> <BrandWordmark /></div>;
+const Brand = () => <div className="brand"><Leaf aria-hidden="true" /> <BrandWordmark inline /></div>;
 
 export function ForgotPassword() {
   const [email, setEmail] = useState("");

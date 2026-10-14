@@ -42,7 +42,7 @@ export function Register() {
         <Intro>
           <div className="brand">
             <Leaf aria-hidden="true" />
-            <BrandWordmark />
+            <BrandWordmark inline />
           </div>
           <p className="eyebrow">Инструменты для исследований</p>
           <h1>Опросы, которые удобно создавать и проходить</h1>

@@ -11,7 +11,7 @@ import { LoginCard, LoginPage } from './styles';
 export function LoginForm({ email, password, error, onEmailChange, onPasswordChange, onSubmit }: LoginFormProps) {
   return <LoginPage>
     <LoginCard>
-      <div className="brand"><Leaf aria-hidden="true" /><BrandWordmark /></div>
+      <div className="brand"><Leaf aria-hidden="true" /><BrandWordmark inline /></div>
       <p className="eyebrow">{copy.eyebrow}</p>
       <h1>{copy.title}</h1>
       <form onSubmit={onSubmit}>
