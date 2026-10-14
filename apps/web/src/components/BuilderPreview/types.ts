@@ -17,6 +17,7 @@ export type PreviewMeta = {
 };
 
 export type PreviewProps = {
+  closeLabel?:string;
   meta: PreviewMeta;
   questions: PreviewQuestion[];
   onClose: () => void;

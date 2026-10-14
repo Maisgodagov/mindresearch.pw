@@ -23,7 +23,7 @@ import { initialPreviewScreen, singleChoiceAdvanceDelayMs } from "./const";
 import { Layer, PreviewPage, PreviewShell, Toolbar } from "./styles";
 import type { PreviewProps, PreviewValue } from "./types";
 
-export function BuilderPreview({ meta, questions, onClose }: PreviewProps) {
+export function BuilderPreview({ meta, questions, onClose,closeLabel="Вернуться к редактированию" }: PreviewProps) {
   const [screen, setScreen] = useState(initialPreviewScreen);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, PreviewValue>>({});
@@ -98,7 +98,7 @@ export function BuilderPreview({ meta, questions, onClose }: PreviewProps) {
         <PreviewShell>
           <Toolbar>
             <div className="context"><Eye size={18} /><span><b>Предпросмотр опроса</b>Ответы здесь не сохраняются</span></div>
-            <Button className="close" onClick={onClose}><X size={16} /> Вернуться к редактированию</Button>
+            <Button className="close" onClick={onClose}><X size={16} /> {closeLabel}</Button>
           </Toolbar>
           <TakingHeader><Leaf /> <BrandWordmark /></TakingHeader>
 

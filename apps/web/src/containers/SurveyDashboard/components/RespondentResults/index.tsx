@@ -33,6 +33,7 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 }
 
 export function RespondentResults({
+  readOnly=false,
   respondents,
   totalCount,
   qualities,
@@ -71,14 +72,14 @@ export function RespondentResults({
           <span className="respondent-count">Всего: {totalCount}</span>
         </div>
         <div className="toolbar-actions">
-          <Button
+          {!readOnly&&<Button
             className="bulk-action"
             disabled={!selectedCount || updatingTrash}
             onClick={onDeleteSelected}
           >
             <Trash2 size={16} /> {copy.delete}
             {selectedCount ? ` (${selectedCount})` : ""}
-          </Button>
+          </Button>}
           <Button className="bulk-action" disabled={!selectedCount || exporting} onClick={onExport}>
             <Download size={16} />{" "}
             {exporting
@@ -209,8 +210,7 @@ export function RespondentResults({
           <div className="head">
             <span className="title">{copy.deletedTitle}</span>
             <Button
-              disabled={!selectedDeletedCount || updatingTrash}
-              onClick={onRestore}
+              disabled={readOnly || !selectedDeletedCount || updatingTrash} onClick={onRestore}
             >
               <ArchiveRestore size={15} /> {copy.restore}
             </Button>

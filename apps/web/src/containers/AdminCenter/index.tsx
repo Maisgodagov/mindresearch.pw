@@ -1,3 +1,5 @@
+import { useSearchParams } from "react-router-dom";
+import { AnalyticsPanel } from "./AnalyticsPanel";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, getCurrentUser } from "../../api";
 import { AdminPage } from "../../components/AdminPage";
@@ -11,7 +13,11 @@ import { initialAdminTab, toMethodQueueItem, toReportQueueItem } from "./const";
 import type { AdminUser, BugReport, MethodSubmission, Tab } from "./types";
 
 export function AdminCenter() {
-  const [activeTab, setActiveTab] = useState<Tab>(initialAdminTab);
+  const [params,setParams]=useSearchParams();
+  const requestedTab=params.get('tab');
+  const activeTab:Tab=['users','analytics','methods','reports','studio'].includes(requestedTab??'')?requestedTab as Tab:'users';
+  const setActiveTab=(tab:Tab)=>setParams({tab});
+  const [error,setError]=useState('');
   const [methods, setMethods] = useState<MethodSubmission[]>([]);
   const [reports, setReports] = useState<BugReport[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -32,7 +38,7 @@ export function AdminCenter() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
+  useEffect(() => { load().catch(() => {setError("Не удалось загрузить админ-центр. Проверьте доступ и повторите попытку.");setLoading(false);}); }, [load]);
 
   const counts = useMemo(() => ({
     methods: methods.filter((item) => ["submitted", "reviewing"].includes(item.status)).length,
@@ -61,8 +67,10 @@ export function AdminCenter() {
     <PlatformLayout>
       <AdminPage>
         <h1>Админ-центр</h1>
-        <p className="lead">Заявки, сообщения пользователей и управление доступом.</p>
+        <p className="lead">Пользователи, исследования и использование платформы.</p>
+        {error&&<p role="alert">{error} <Button onClick={()=>void load().catch(()=>{})}>Повторить</Button></p>}
         <AdminTabs activeTab={activeTab} counts={counts} onChange={setActiveTab} />
+        {activeTab === "analytics" && <AnalyticsPanel />}
         {activeTab === "studio" && <MethodologyStudio />}
         {activeTab === "methods" && (
           <AdminRequestList
@@ -93,7 +101,7 @@ export function AdminCenter() {
             users={users}
             canChangeRoles={role === "owner"}
             onRoleChange={(id, nextRole) => setUsers((current) => current.map((user) => user.id === id ? { ...user, role: nextRole } : user))}
-            onSaveRole={(user) => void updateRole(user)}
+            onSaveRole={(user) => void updateRole(user).catch(()=>setError("Не удалось изменить роль пользователя."))}
           />
         )}
       </AdminPage>

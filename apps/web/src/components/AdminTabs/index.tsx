@@ -1,17 +1,17 @@
-import { Bug, ClipboardList, Users } from "lucide-react";
+import { BarChart3, Bug, ClipboardList, Users } from "lucide-react";
 import { Button } from "../Button";
 import { tabLabels } from "./const";
 import { Tabs } from "./styles";
 import type { AdminTabsProps, Tab } from "./types";
 
-const icons = { methods: ClipboardList, reports: Bug, users: Users, studio: ClipboardList };
-const tabs: Tab[] = ["methods", "reports", "users", "studio"];
+const icons = { analytics: BarChart3, methods: ClipboardList, reports: Bug, users: Users, studio: ClipboardList };
+const tabs: Tab[] = ["users", "analytics", "methods", "reports", "studio"];
 
 export function AdminTabs({ activeTab, counts, onChange }: AdminTabsProps) {
   return <Tabs>{tabs.map((tab) => {
     const Icon = icons[tab];
     return <Button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => onChange(tab)}>
-      <Icon size={16} /> {tabLabels[tab]} {tab !== "studio" && <span className="count">{counts[tab]}</span>}
+      <Icon size={16} /> {tabLabels[tab]} {tab !== "studio" && tab !== "analytics" && <span className="count">{counts[tab]}</span>}
     </Button>;
   })}</Tabs>;
 }

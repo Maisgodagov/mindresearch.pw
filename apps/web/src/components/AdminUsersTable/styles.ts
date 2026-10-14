@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { Card } from "../../ui";
-export const UsersCard = styled(Card)`padding: 21px; border-radius: 18px; @media (max-width: 480px) { padding: 15px; }`;
+export const UsersCard = styled(Card)`padding: 21px; .user-filters{display:flex;gap:12px;flex-wrap:wrap;}.user-filters label{flex:1 1 180px;min-width:0;color:#667c6b;font-size:12px;}.user-filters input,.user-filters select{display:block;width:100%;min-height:44px;padding:10px;margin-top:7px;border:1px solid #cbd9ca;border-radius:9px;background:white;color:#304a38;font:inherit;font-size:14px;}.results-count{color:#667c6b;margin:20px 0;} border-radius: 18px; @media (max-width: 480px) { padding: 15px; }`;
 export const TableCard = styled.div`
   .meta { color: #839087; font-size: 11px; line-height: 1.5; }
   .user-grid { display: grid; grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(90px, .6fr)) minmax(255px, 1.1fr); gap: 14px; align-items: center; }

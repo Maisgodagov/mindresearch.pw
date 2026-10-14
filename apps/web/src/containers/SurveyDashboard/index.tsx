@@ -42,7 +42,8 @@ import {
   ConfirmModal,
 } from "./styles";
 import { methodCodes, shortNames } from "./const";
-export function Dashboard({ embedded = false }: { embedded?: boolean }) {
+export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: boolean; inspectionOwnerId?: string }) {
+  const [loadError,setLoadError]=useState("");
   const nav = useNavigate();
   const { surveyId } = useParams();
   const [surveys, setSurveys] = useState<SurveyRow[]>([]);
@@ -87,14 +88,15 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
     let cancelled = false;
     const controller = new AbortController();
     resultGeneration.current++;
-    setLoading(true); setDetails({}); setDetailErrors({}); pendingDetails.current.clear();
+    setLoading(true);setLoadError(""); setDetails({}); setDetailErrors({}); pendingDetails.current.clear();
     api
-      .get("/admin/surveys", {signal: controller.signal})
+      .get("/admin/surveys", {signal: controller.signal,params:inspectionOwnerId?{ownerId:inspectionOwnerId}:undefined})
       .then(async (r) => {
         if(cancelled) return;
         setSurveys(r.data);
         const target =
-          r.data.find((s: SurveyRow) => s.id === surveyId) ?? r.data[0];
+          r.data.find((s: SurveyRow) => s.id === surveyId) ?? (inspectionOwnerId ? undefined : r.data[0]);
+        if(inspectionOwnerId&&!target)throw new Error("Опрос не найден у этого пользователя");
         if (target) {
           const x = await api.get(`/admin/surveys/${target.id}/results`, {params:{summary:1}, signal:controller.signal});
           if(!cancelled) setResult(x.data);
@@ -102,6 +104,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
       })
       .catch(() => {
         if(cancelled) return;
+        if(inspectionOwnerId){setLoadError("Не удалось открыть статистику. Опрос отсутствует или доступ запрещён.");return;}
         if (useDemoFallbacks) {
           setSurveys(demoSurveys);
           setResult((current) => ({
@@ -120,7 +123,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
       })
       .finally(() => { if(!cancelled) setLoading(false); });
     return () => { cancelled = true; controller.abort(); resultGeneration.current++; };
-  }, [nav, surveyId]);
+  }, [nav, surveyId,inspectionOwnerId]);
   useEffect(() => {
     const codes = result.sections.map(section=>section.code).join(',');
     if(!codes) return;
@@ -207,6 +210,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
     try { localStorage.setItem('statistics-page-size',String(size)); } catch { /* Storage may be unavailable in private mode. */ }
   };
   const pagination = <RespondentPagination total={visibleRespondents.length} page={currentPage} pageSize={pageSize} onChange={changePage} onSizeChange={changePageSize}/>;
+  if(loadError)return <p role="alert">{loadError}</p>;
   if (loading)
     return (
       <Page
@@ -308,7 +312,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
         )}
         <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
-          {survey && !location.pathname.startsWith("/admin") && (
+          {survey && !inspectionOwnerId && !location.pathname.startsWith("/admin") && (
             <Button
               className="edit-survey"
               onClick={() => nav(`/app/surveys/${survey.id}/edit`)}
@@ -369,6 +373,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
           {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
           <RespondentResults
             key={survey?.id}
+            readOnly={!!inspectionOwnerId}
             respondents={pageRespondents}
             totalCount={visibleRespondents.length}
             qualities={qualities}
@@ -421,7 +426,7 @@ export function Dashboard({ embedded = false }: { embedded?: boolean }) {
           />
           {pagination}
         </Panel>
-        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
+        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && !inspectionOwnerId && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
         <AnswerDistribution
           data={chart}
           options={questionOptions}

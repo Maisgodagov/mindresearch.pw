@@ -1,3 +1,4 @@
+import { trackApi } from "./analytics";
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { CurrentUser } from "./types/user";
 const baseURL = import.meta.env.VITE_API_URL ?? "/api";
@@ -74,6 +75,13 @@ export function setAccessToken(token: string | null) {
 export function hasAccessToken() {
   return Boolean(accessToken);
 }
+// Keep final click/page events when the tab closes. Browser keepalive has a 64 KB limit.
+export function sendAnalyticsOnUnload(events: unknown[]) {
+  if (!accessToken || !events.length) return;
+  const body=JSON.stringify({events:events.slice(0,50)});
+  if(new Blob([body]).size>60_000)return;
+  void fetch(`${baseURL}/account/analytics/events`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${accessToken}`},body,credentials:'include',keepalive:true}).catch(()=>{});
+}
 export function getCachedCurrentUser(): CurrentUser | null {
   return currentUser;
 }
@@ -134,8 +142,9 @@ api.interceptors.request.use((c) => {
   return c;
 });
 api.interceptors.response.use(
-  (r) => r,
+  (r) => { trackApi(r.config.method ?? "get",r.config.url ?? "",r.status);return r; },
   async (error: AxiosError) => {
+    if(error.code!=="ERR_CANCELED")trackApi(error.config?.method ?? "get",error.config?.url ?? "",error.response?.status ?? 0);
     const config = error.config as
         (InternalAxiosRequestConfig & { _authRetry?: boolean }) | undefined,
       isAuthEndpoint = Boolean(config?.url?.startsWith("/auth/"));

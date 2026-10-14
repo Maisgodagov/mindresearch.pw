@@ -120,7 +120,7 @@ export function SurveyBuilderToolbar({
         <div className="action-buttons">
           <Button
             type="default"
-            className="preview-button"
+            className="preview-button" data-analytics="survey.preview"
             title="Посмотреть, как опрос увидит респондент"
             disabled={previewLoading}
             onClick={onPreview}
@@ -129,7 +129,7 @@ export function SurveyBuilderToolbar({
             {previewLoading ? "Загружаем…" : "Предпросмотр"}
           </Button>
           <Button
-            className="save-button"
+            className="save-button" data-analytics="survey.save"
            
             type="primary"
             disabled={saving}

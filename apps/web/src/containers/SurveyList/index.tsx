@@ -1,3 +1,4 @@
+import { SurveyTile } from "../../components/SurveyTile";
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -29,7 +30,6 @@ import {
   Grid,
   EmptyState,
   SectionTitle,
-  SurveyCard,
   TrashBar,
   TrashPanel,
 } from "./styles";
@@ -209,25 +209,7 @@ export function PlatformHome() {
                 <span>{draftSurveys.length}</span>
               </SectionTitle>
             )}
-            <SurveyCard>
-              <div className="card-head">
-                <span
-                  className={`status ${s.status === "draft" ? "draft" : s.status === "archived" ? "archived" : ""}`}
-                >
-                  {s.status === "active" ? (
-                    <CheckCircle2 size={12} />
-                  ) : s.status === "archived" ? (
-                    <Archive size={12} />
-                  ) : (
-                    <Clock3 size={12} />
-                  )}{" "}
-                  {s.status === "active"
-                    ? "Опубликован"
-                    : s.status === "archived"
-                      ? "В архиве"
-                      : "Черновик"}
-                </span>
-                <div className="card-tools">
+            <SurveyTile survey={s} tools={<>
                   <Link
                     className="tool-button edit"
                    
@@ -248,36 +230,7 @@ export function PlatformHome() {
                     onClick={() => setDeleteTarget(s)}
                   >
                     <Trash2 size={15} />
-                  </Button>
-                </div>
-              </div>
-              <div className="card-info">
-                <h2>{s.title}</h2>
-                <div className="description">
-                  {s.description || "Описание пока не добавлено"}
-                </div>
-                {(s.status === "draft" ? s.updatedAt : s.createdAt) && (
-                  <div className="survey-date">
-                    <CalendarDays size={13} />
-                    {s.status === "draft"
-                      ? `Изменён ${formatSurveyDate(s.updatedAt, true)}`
-                      : `Создан ${formatSurveyDate(s.createdAt)}`}
-                  </div>
-                )}
-              </div>
-              <div className="metrics">
-                <span>
-                  <BarChart3 size={14} />
-                  <b>{s.responses}</b>
-                  <small>Прохождений</small>
-                </span>
-                <span>
-                  <CheckCircle2 size={14} />
-                  <b>{s.completed}</b>
-                  <small>Завершено</small>
-                </span>
-              </div>
-              <div className="actions">
+                  </Button></>}>
                 <div className="links">
                   {s.status === "active" ? (
                     <>
@@ -342,9 +295,7 @@ export function PlatformHome() {
                 </div>
                 <Link to={`/app/surveys/${s.id}/results`} data-survey-id={s.id}>
                   Статистика <ArrowRight size={14} />
-                </Link>
-              </div>
-            </SurveyCard>
+                </Link></SurveyTile>
           </Fragment>
         ))}
       </Grid>

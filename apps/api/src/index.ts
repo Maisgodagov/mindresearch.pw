@@ -1,3 +1,6 @@
+import { adminManagementRouter } from './admin-management.js';
+import { analyticsRouter } from './analytics.js';
+import { canReadSurvey, isAdministrator } from './admin-access.js';
 import { loadSurveyResults, loadQuestionTimingSummary } from './survey-results.js';
 import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
 import 'dotenv/config';
@@ -20,6 +23,9 @@ const app=express();
 app.set('trust proxy',1);
 app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
 app.use('/api/auth',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
+app.use('/api/admin',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
+app.use('/api',adminManagementRouter);
+app.use('/api',analyticsRouter);
 app.use('/api',platformRouter);
 app.use('/api',qualityRouter);
 
@@ -103,24 +109,22 @@ app.post('/api/auth/login',async(req,res,next)=>{try{const body=z.object({email:
 app.post('/api/auth/refresh',async(req,res,next)=>{try{const token=await rotateAuthSession(req,res);if(!token)return res.status(401).json({message:'Сессия истекла'});res.json({token})}catch(e){next(e)}});
 app.post('/api/auth/logout',async(req,res,next)=>{try{await revokeAuthSession(req,res);res.status(204).end()}catch(e){next(e)}});
 app.post('/api/auth/logout-all',requireAuth,async(req:AuthRequest,res,next)=>{try{await revokeAllUserSessions(req.user!.id);clearRefreshCookie(res);res.status(204).end()}catch(e){next(e)}});
-app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.created_at createdAt,s.updated_at updatedAt,s.builder_state IS NOT NULL hasBuilderState,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? AND s.deleted_at IS NULL GROUP BY s.id ORDER BY s.created_at DESC`,[req.user!.id]);res.json(rows)}catch(e){next(e)}});
+app.get('/api/admin/surveys',requireAuth,async(req:AuthRequest,res,next)=>{try{const ownerId=req.query.ownerId?String(req.query.ownerId):req.user!.id;if(ownerId!==req.user!.id&&!isAdministrator(req))return res.status(403).json({message:'Недостаточно прав'});const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.created_at createdAt,s.updated_at updatedAt,s.builder_state IS NOT NULL hasBuilderState,COUNT(rs.id) responses,COALESCE(SUM(rs.status='completed'),0) completed FROM surveys s LEFT JOIN response_sessions rs ON rs.survey_id=s.id AND rs.deleted_at IS NULL WHERE s.owner_id=? AND s.deleted_at IS NULL GROUP BY s.id ORDER BY s.created_at DESC`,[ownerId]);res.json(rows)}catch(e){next(e)}});
 app.get('/api/admin/methodologies',requireAuth,async(req,res,next)=>{try{
 const codes=req.query.codes===undefined?undefined:z.array(z.string().min(1).max(120)).max(1000).parse(String(req.query.codes).split(',').filter(Boolean));
 if(codes?.length===0)return res.json({});
 const restriction=codes?` AND code IN (${codes.map(()=>'?').join(',')})`:'';
 const[rows]=await db.query<any[]>(`SELECT code,title,description,methodology FROM instruments WHERE is_verified=TRUE AND status='active' AND methodology IS NOT NULL${restriction}`,codes??[]);const configured:Record<string,any>={};for(const row of rows){const metadata=typeof row.methodology==='string'?JSON.parse(row.methodology):row.methodology;configured[row.code]={...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title,summary:row.description??metadata?.summary??methodologies[row.code]?.summary}}res.json({...Object.fromEntries(Object.entries(methodologies).filter(([code])=>!codes||codes.includes(code))),...configured})}catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const [allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);if(!allowed.length)return res.status(404).json({message:'Опрос не найден'});
+  if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Опрос не найден'});
   res.json(await loadSurveyResults(String(req.params.id),{summary:req.query.summary==='1'}));
 }catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results/timing',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const[allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);
-  if(!allowed.length)return res.status(404).json({message:'Survey not found'});
+  if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});
   res.json(await loadQuestionTimingSummary(String(req.params.id)));
 }catch(e){next(e)}});
 app.post('/api/admin/surveys/:id/results/details',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const[allowed]=await db.query<any[]>('SELECT id FROM surveys WHERE id=? AND owner_id=?',[req.params.id,req.user!.id]);
-  if(!allowed.length)return res.status(404).json({message:'Survey not found'});
+  if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});
   const {sessionIds}=z.object({sessionIds:z.array(z.string().uuid()).min(1).max(100)}).parse(req.body);
   const results=await loadSurveyResults(String(req.params.id),{sessionIds});
   res.json([...results.respondents,...results.deletedRespondents]);

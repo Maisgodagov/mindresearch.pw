@@ -29,5 +29,10 @@ export async function rotateAuthSession(req:Request,res:Response){
 }
 export async function revokeAuthSession(req:Request,res:Response){const token=readCookie(req,REFRESH_COOKIE);if(token)await db.execute('UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE token_hash=? AND revoked_at IS NULL',[hashToken(token)]);clearRefreshCookie(res)}
 export async function revokeAllUserSessions(userId:string){await db.execute('UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=? AND revoked_at IS NULL',[userId])}
-export function requireAuth(req:AuthRequest,res:Response,next:NextFunction){const token=req.headers.authorization?.replace(/^Bearer\s+/,'');if(!token)return res.status(401).json({message:'Требуется авторизация'});try{req.user=jwt.verify(token,process.env.JWT_SECRET!) as AuthUser;recordActivity(req.user.id);next()}catch{return res.status(401).json({message:'Сессия истекла'})}}
+export async function requireAuth(req:AuthRequest,res:Response,next:NextFunction){
+  const token=req.headers.authorization?.replace(/^Bearer\s+/,'');
+  if(!token)return res.status(401).json({message:'Требуется авторизация'});
+  let payload:AuthUser;try{payload=jwt.verify(token,process.env.JWT_SECRET!) as AuthUser;}catch{return res.status(401).json({message:'Сессия истекла'})}
+  try{const [rows]=await db.query<any[]>('SELECT id,role FROM users WHERE id=?',[payload.id]);if(!rows.length)return res.status(401).json({message:'Сессия истекла'});req.user={id:rows[0].id,role:rows[0].role};recordActivity(req.user.id);next()}catch(error){next(error)}
+}
 export const requireRole=(...roles:string[])=>(req:AuthRequest,res:Response,next:NextFunction)=>requireAuth(req,res,()=>roles.includes(req.user!.role)?next():res.status(403).json({message:'Недостаточно прав'}));

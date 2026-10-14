@@ -9,6 +9,7 @@ export type ResultSection = {
 };
 
 export type RespondentResultsProps = {
+  readOnly?:boolean;
   respondents: Respondent[];
   totalCount: number;
   qualities: Record<string, Quality>;

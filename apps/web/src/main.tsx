@@ -1,3 +1,4 @@
+import { ProductAnalytics } from "./analytics";
 import React, { Suspense } from "react";
 import { ConfigProvider } from "antd";
 import ruRU from "antd/locale/ru_RU";
@@ -55,6 +56,9 @@ const ReviewInstruments = React.lazy(() =>
     default: m.ReviewInstruments,
   })),
 );
+const AdminUserPage=React.lazy(()=>import('./containers/AdminCenter/AdminUserPage').then(m=>({default:m.AdminUserPage})));
+const AdminSurveyPage=React.lazy(()=>import('./containers/AdminCenter/AdminSurveyPage').then(m=>({default:m.AdminSurveyPage})));
+const AdminSurveyStatistics=React.lazy(()=>import('./containers/AdminCenter/AdminSurveyPage').then(m=>({default:m.AdminSurveyStatistics})));
 const AdminCenter = React.lazy(() =>
   import("./containers/AdminCenter").then((m) => ({ default: m.AdminCenter })),
 );
@@ -141,6 +145,9 @@ function App() {
             path="/app/methodologies/review"
             element={protectedPage(<ReviewInstruments />)}
           />
+          <Route path="/app/admin/users/:userId" element={protectedPage(<AdminUserPage/>)} />
+          <Route path="/app/admin/users/:userId/surveys/:surveyId" element={protectedPage(<AdminSurveyPage/>)} />
+          <Route path="/app/admin/users/:userId/surveys/:surveyId/results" element={protectedPage(<AdminSurveyStatistics/>)} />
           <Route path="/app/admin" element={protectedPage(<AdminCenter />)} />
           <Route
             path="/app/admin/methodologies"
@@ -180,7 +187,7 @@ function App() {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter><ProductAnalytics />
       <App />
     </BrowserRouter>
   </React.StrictMode>,

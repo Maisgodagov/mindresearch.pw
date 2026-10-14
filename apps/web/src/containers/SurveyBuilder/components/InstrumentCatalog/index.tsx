@@ -160,7 +160,7 @@ export function InstrumentCatalog({
          
           disabled={locked}
           title={locked ? CATALOG_COPY.locked : undefined}
-          onClick={onCreateCustom}
+          data-analytics="builder.add_custom_block" onClick={onCreateCustom}
         >
           <Plus size={17} /> {CATALOG_COPY.createCustom}
         </Button>
@@ -169,7 +169,7 @@ export function InstrumentCatalog({
          
           disabled={locked}
           title={locked ? CATALOG_COPY.locked : undefined}
-          onClick={() => { setPage(1); setOpen(true); }}
+          data-analytics="catalog.open" onClick={() => { setPage(1); setOpen(true); }}
         >
           <BookOpenText size={17} />
           <span>{CATALOG_COPY.choose}</span>
@@ -315,7 +315,7 @@ export function InstrumentCatalog({
                   {methodology && (
                     <Button
                       className="more"
-                      onClick={() => onShowMethodology(methodology)}
+                      data-analytics={`catalog.method_details.${instrument.code??"custom"}`} onClick={() => onShowMethodology(methodology)}
                     >
                       <Info size={14} /> {CATALOG_COPY.about}
                     </Button>
@@ -325,7 +325,7 @@ export function InstrumentCatalog({
                     className="add"
                    
                     disabled={isAdded}
-                    onClick={() => {
+                    data-analytics={`builder.add_method.${instrument.code??"custom"}`} onClick={() => {
                       onAddInstrument(instrument);
                       closeCatalog();
                     }}

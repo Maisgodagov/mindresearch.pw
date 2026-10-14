@@ -1,4 +1,4 @@
-export type Tab = "methods" | "reports" | "users" | "studio";
+export type Tab = "methods" | "reports" | "users" | "studio" | "analytics";
 export type AdminRole = "owner" | "admin" | "researcher";
 export type MethodSubmission = {
   id: string; submitterName: string; submitterEmail: string; createdAt: string;
@@ -17,7 +17,7 @@ export type AdminUser = {
   responseCount: number; completedCount: number;
 };
 export type AdminSurvey = { id: string; title: string; status: "draft" | "active" | "archived"; createdAt: string; updatedAt: string; responseCount: number; completedCount: number };
-export type AdminSurveyDetail = { title: string; description?: string; welcomeTitle: string; welcomeText: string; status: string; sections: Array<{ title: string; description?: string; questions: Array<{ text: string; type: string; required: boolean; options?: Array<{ label: string; value: string }> }> }> };
+export type AdminSurveyDetail = { title: string; description?: string; welcomeTitle: string; welcomeText: string; status: string; resultPresentation?: {title:string;text:string;showScores:boolean}; sections: Array<{ title: string; description?: string; questions: Array<{ text: string; type: string; required: boolean; options?: Array<{ label: string; value: string }> }> }> };
 export type AdminQueueItem = {
   id: string; submittedBy: string; submittedAt: string; title: string;
   status: string; details: Array<{ label: string; value: string }>;
