@@ -1,4 +1,3 @@
-import { BrandWordmark } from "../../components/BrandWordmark";
 import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -209,7 +208,7 @@ export function SurveyPage() {
       <Page>
         <Shell>
           <Header>
-            <Leaf /> <BrandWordmark />
+            <Leaf /> <span>mindresearch</span>
           </Header>
           <Closed>
             <div className="icon">
@@ -234,7 +233,7 @@ export function SurveyPage() {
       <Page>
         <Shell>
           <Header>
-            <Leaf /> <BrandWordmark />
+            <Leaf /> <span>mindresearch</span>
           </Header>
           <SkeletonScreen variant="public" />
         </Shell>
@@ -246,7 +245,7 @@ export function SurveyPage() {
       <Page>
         <Shell>
           <Header>
-            <Leaf /> <BrandWordmark />
+            <Leaf /> <span>mindresearch</span>
           </Header>
           <Welcome>
             <span>Анонимное исследование</span>
@@ -292,7 +291,7 @@ export function SurveyPage() {
       <Shell>
         <Top>
           <Header>
-            <Leaf /> <BrandWordmark />
+            <Leaf /> <span>mindresearch</span>
           </Header>
           <div className="save-line">
             <span className="save">
