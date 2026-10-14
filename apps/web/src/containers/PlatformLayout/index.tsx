@@ -24,6 +24,14 @@ export function PlatformLayout({ children }: PlatformLayoutProps) {
     if (!cachedUser) getCurrentUser().then(user => setRole(String(user.role ?? ""))).catch(() => {});
   }, [cachedUser?.role]);
 
+  useEffect(() => {
+    const heartbeat = () => { if (document.visibilityState === "visible") void api.get("/account/me").catch(() => {}); };
+    heartbeat();
+    const timer = window.setInterval(heartbeat, 120_000);
+    document.addEventListener("visibilitychange", heartbeat);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", heartbeat); };
+  }, []);
+
   function toggleSidebar() {
     setCollapsed(current => {
       const next = !current;

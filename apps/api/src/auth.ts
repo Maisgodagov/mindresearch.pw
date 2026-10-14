@@ -8,6 +8,8 @@ export type AuthRequest=Request & {user?:AuthUser};
 const ACCESS_TOKEN_TTL='15m',REFRESH_DAYS=180,REFRESH_COOKIE='mindresearch_refresh';
 const refreshMaxAge=REFRESH_DAYS*24*60*60*1000;
 const hashToken=(token:string)=>createHash('sha256').update(token).digest('hex');
+const lastSeenWrites=new Map<string,number>();
+function recordActivity(userId:string){const now=Date.now();if(now-(lastSeenWrites.get(userId)??0)<60_000)return;lastSeenWrites.set(userId,now);void db.execute('UPDATE users SET last_seen_at=CURRENT_TIMESTAMP WHERE id=?',[userId]).catch(error=>{lastSeenWrites.delete(userId);console.error('Could not record user activity',error)});}
 const cookieOptions={httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax' as const,path:'/api/auth',maxAge:refreshMaxAge};
 
 export function signToken(user:AuthUser){return jwt.sign(user,process.env.JWT_SECRET!,{expiresIn:ACCESS_TOKEN_TTL})}
@@ -17,6 +19,7 @@ export function clearRefreshCookie(res:Response){res.clearCookie(REFRESH_COOKIE,
 export async function createAuthSession(req:Request,res:Response,user:AuthUser){
   const refreshToken=randomBytes(48).toString('hex'),expiresAt=new Date(Date.now()+refreshMaxAge);
   await db.execute('INSERT INTO auth_sessions (id,user_id,token_hash,expires_at,user_agent,ip_address) VALUES (?,?,?,?,?,?)',[randomUUID(),user.id,hashToken(refreshToken),expiresAt,req.get('user-agent')?.slice(0,500)??null,req.ip?.slice(0,45)??null]);
+  recordActivity(user.id);
   res.cookie(REFRESH_COOKIE,refreshToken,cookieOptions);return signToken(user);
 }
 export async function rotateAuthSession(req:Request,res:Response){
@@ -26,5 +29,5 @@ export async function rotateAuthSession(req:Request,res:Response){
 }
 export async function revokeAuthSession(req:Request,res:Response){const token=readCookie(req,REFRESH_COOKIE);if(token)await db.execute('UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE token_hash=? AND revoked_at IS NULL',[hashToken(token)]);clearRefreshCookie(res)}
 export async function revokeAllUserSessions(userId:string){await db.execute('UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=? AND revoked_at IS NULL',[userId])}
-export function requireAuth(req:AuthRequest,res:Response,next:NextFunction){const token=req.headers.authorization?.replace(/^Bearer\s+/,'');if(!token)return res.status(401).json({message:'Требуется авторизация'});try{req.user=jwt.verify(token,process.env.JWT_SECRET!) as AuthUser;next()}catch{return res.status(401).json({message:'Сессия истекла'})}}
+export function requireAuth(req:AuthRequest,res:Response,next:NextFunction){const token=req.headers.authorization?.replace(/^Bearer\s+/,'');if(!token)return res.status(401).json({message:'Требуется авторизация'});try{req.user=jwt.verify(token,process.env.JWT_SECRET!) as AuthUser;recordActivity(req.user.id);next()}catch{return res.status(401).json({message:'Сессия истекла'})}}
 export const requireRole=(...roles:string[])=>(req:AuthRequest,res:Response,next:NextFunction)=>requireAuth(req,res,()=>roles.includes(req.user!.role)?next():res.status(403).json({message:'Недостаточно прав'}));

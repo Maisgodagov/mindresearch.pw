@@ -260,7 +260,7 @@ async function calculateConfiguredMethodologiesForSession(sessionId:string,secti
         ? [0,scale.items.length] as [number,number]
         : 'itemScores' in scale && scale.itemScores
         ? scale.items.reduce((range,item)=>{
-          const scores=Object.values(scale.itemScores?.[item]??{});
+          const scores=Object.values((scale.itemScores as Record<number,Record<string,number>>)?.[item]??{});
           return [range[0]+Math.min(...scores),range[1]+Math.max(...scores)] as [number,number];
         },[0,0] as [number,number])
         : scale.items.reduce((range,item)=>{
