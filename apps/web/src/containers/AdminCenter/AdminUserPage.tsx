@@ -1,3 +1,5 @@
+import { usePageTitle } from "../../pageTitle";
+import { ProfileLinks,LinkedBio } from "../../components/ProfileLinks";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Modal } from "antd";
@@ -79,6 +81,7 @@ export function AdminUserPage() {
       live = false;
     };
   }, [userId]);
+  usePageTitle(profile?`${profile.name} — пользователь`:undefined);
   const openDelete = async () => {
     setDeleteError("");
     setConfirmation("");
@@ -201,8 +204,9 @@ export function AdminUserPage() {
                       <div>
                         <h2>{profile.name}</h2>
                         <p className="survey-description">
-                          {profile.bio || "Описание профиля пока не добавлено"}
+                          <LinkedBio text={profile.bio || "Описание профиля пока не добавлено"}/>
                         </p>
+                        <ProfileLinks value={profile.profileLinks}/>
                         <span className="muted">
                           {profile.isProfilePublic ? (
                             "Публичный профиль"

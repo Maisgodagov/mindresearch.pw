@@ -42,6 +42,7 @@ export async function migrate() {
   const ensureColumn=async(table:string,column:string,definition:string)=>{const[rows]=await db.query<any[]>(`SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?`,[table,column]);if(!rows.length)await db.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`)};
   await ensureColumn('question_timings','recorded_at','TIMESTAMP NULL DEFAULT NULL');
   await ensureColumn('question_timings','visit_sequence','INT UNSIGNED NULL');
+  await ensureColumn('users','profile_links','JSON NULL');
   await ensureColumn('users','bio','TEXT NULL');
   await ensureColumn('users','avatar_url','TEXT NULL');
   await ensureColumn('users','avatar_seed','VARCHAR(120) NULL');

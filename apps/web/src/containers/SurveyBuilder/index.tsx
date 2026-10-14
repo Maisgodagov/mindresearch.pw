@@ -1,3 +1,4 @@
+import { usePageTitle } from "../../pageTitle";
 import { defaultSurveyDuration, surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -138,6 +139,7 @@ export function SurveyBuilder() {
     },
   });
   const initialMeta = useRef(meta);
+  usePageTitle(meta.title.trim()?`${meta.title} — конструктор`:"Создание опроса");
   useEffect(() => {
     setCatalogLoading(true);
     Promise.all([

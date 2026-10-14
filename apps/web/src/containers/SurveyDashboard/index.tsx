@@ -1,3 +1,4 @@
+import { usePageTitle } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { message } from "antd";
@@ -135,6 +136,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     return () => controller.abort();
   }, [result.sections]);
   const survey = surveys.find((s) => s.id === surveyId) ?? surveys[0];
+  usePageTitle(survey?.title?`${survey.title} — статистика`:undefined);
   const questions = useMemo(
     () => [
       ...new Map(result.distribution.map((x) => [x.code, x.text])).entries(),

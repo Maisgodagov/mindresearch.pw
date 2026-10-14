@@ -55,6 +55,13 @@ export const Form = styled(Card)`
     min-height: 130px;
     resize: vertical;
   }
+  .profile-links-settings { margin:24px 0;padding:20px 0;border-block:1px solid #dce5da; }
+  .profile-links-settings h2 {font-size:20px;margin:0 0 8px;}
+  .profile-links-settings h3 {font-size:16px;margin:20px 0 8px;}
+  .social-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;}
+  .custom-link-row {display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1fr) auto;gap:10px;align-items:end;margin:12px 0;}
+  .custom-link-row button {margin-bottom:0;}
+  @media(max-width:700px){.social-fields{grid-template-columns:1fr;}.custom-link-row{grid-template-columns:1fr;}.custom-link-row button{justify-self:start;}}
   #root & .slug {
     display: flex;
     align-items: center;

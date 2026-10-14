@@ -6,6 +6,7 @@ export type PublicSurvey = {
 };
 
 export type PublicProfileData = {
+  profileLinks?:import("../../profileLinks").ProfileLinks;
   name: string;
   bio?: string;
   avatarSeed?: string;

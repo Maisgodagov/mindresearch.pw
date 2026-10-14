@@ -1,11 +1,11 @@
 import styled from "styled-components";
 import { Card } from "../../ui";
 
-export const ProfileShell = styled.div`
+export const ProfileShell = styled.div<{$embedded?:boolean}>`
   width: min(100% - 48px, 1180px);
   margin: auto;
   padding: 25px 0 70px;
-  & > div:first-child {
+  .public-brand {
     display: inline-flex;
     align-items: center;
     gap: 9px;
@@ -14,7 +14,8 @@ export const ProfileShell = styled.div`
     font-weight: 800;
     letter-spacing: -0.03em;
   }
-  @media (max-width: 580px) { width: min(100% - 28px, 1180px); padding-top: 18px; }
+  ${({$embedded})=>$embedded?"width:100%;padding:0; & > .ant-card {margin-top:0;}":""}
+  @media (max-width: 580px) { width: min(100% - 28px, 1180px); padding-top: 18px; ${({$embedded})=>$embedded?"width:100%;padding-top:0;":""} }
 `;
 
 export const Hero = styled(Card)`

@@ -1,3 +1,4 @@
+import { usePageTitle } from "../../pageTitle";
 import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -45,6 +46,7 @@ export function SurveyPage() {
   const [saving, setSaving] = useState(false);
   const [offline, setOffline] = useState(false);
   const [done, setDone] = useState(false);
+  usePageTitle(survey?.title ? `${survey.title} — ${done?"результаты":"опрос"}` : undefined);
   const [transitioning, setTransitioning] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   const answering = useRef(false);

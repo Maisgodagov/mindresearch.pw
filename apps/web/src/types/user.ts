@@ -1,4 +1,5 @@
 export type CurrentUser = {
+  profileLinks?:import("../profileLinks").ProfileLinks;
   id: string;
   email: string;
   name: string;

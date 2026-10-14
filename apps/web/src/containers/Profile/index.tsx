@@ -1,3 +1,5 @@
+import { ProfileLinks, LinkedBio } from "../../components/ProfileLinks";
+import { socialNetworks, emptyProfileLinks } from "../../profileLinks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ExternalLink, Globe2, KeyRound, Lock } from "lucide-react";
@@ -24,7 +26,7 @@ import { Layout, Column, Form, PasswordForm, Avatars, Preview } from "./styles";
 export function ProfilePage() {
   const initial = (
     useDemoFallbacks
-      ? { ...demoUser, avatarSeed: "willow" }
+      ? { ...demoUser, avatarSeed: "willow", profileLinks: emptyProfileLinks() }
       : {
           name: "",
           email: "",
@@ -33,6 +35,7 @@ export function ProfilePage() {
           avatarSeed: "willow",
           publicSlug: "",
           isProfilePublic: false,
+          profileLinks: emptyProfileLinks(),
         }
   ) as Profile;
   const nav = useNavigate();
@@ -40,6 +43,7 @@ export function ProfilePage() {
     [loading, setLoading] = useState(true),
     [saved, setSaved] = useState(false),
     [error, setError] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false),
     [passwords, setPasswords] = useState({
       currentPassword: "",
@@ -54,6 +58,7 @@ export function ProfilePage() {
       .then((data) =>
         setProfile({
           ...data,
+          profileLinks: data.profileLinks ?? emptyProfileLinks(),
           avatarSeed: data.avatarSeed || "willow",
           isProfilePublic: Boolean(data.isProfilePublic),
         } as Profile),
@@ -75,6 +80,7 @@ export function ProfilePage() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setProfileSaving(true);
     try {
       await api.patch("/account/me", profile);
       invalidateCurrentUser();
@@ -86,6 +92,8 @@ export function ProfilePage() {
         return;
       }
       setError(getApiErrorMessage(err, "Не удалось сохранить"));
+    } finally {
+      setProfileSaving(false);
     }
   }
   async function changePassword(e: React.FormEvent) {
@@ -121,8 +129,9 @@ export function ProfilePage() {
               Информация об авторе исследования и публичная страница.
             </p>
             <form onSubmit={save}>
-              <label>Имя</label>
+              <label htmlFor="profile-name">Имя</label>
               <FieldInput
+                id="profile-name"
                 value={profile.name}
                 onChange={(e) => set("name", e.target.value)}
                 required
@@ -141,12 +150,123 @@ export function ProfilePage() {
                   </Button>
                 ))}
               </Avatars>
-              <label>О себе</label>
+              <label htmlFor="profile-bio">О себе</label>
               <TextAreaField
+                id="profile-bio"
                 value={profile.bio ?? ""}
                 onChange={(e) => set("bio", e.target.value)}
                 placeholder="Образование, специализация, профессиональные интересы…"
               />
+              <section
+                className="profile-links-settings"
+                data-analytics-private
+              >
+                <h2>Социальные сети и ссылки</h2>
+                <p className="intro">
+                  Ссылки появятся на странице автора. Укажите адрес профиля,
+                  канала или сообщества.
+                </p>
+                <div className="social-fields">
+                  {socialNetworks.map((network) => (
+                    <div key={network.key}>
+                      <label htmlFor={`profile-${network.key}`}>
+                        {network.label}
+                      </label>
+                      <FieldInput
+                        id={`profile-${network.key}`}
+                        value={profile.profileLinks[network.key] ?? ""}
+                        placeholder={network.placeholder}
+                        maxLength={2048}
+                        onChange={(e) =>
+                          set("profileLinks", {
+                            ...profile.profileLinks,
+                            [network.key]: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+                <h3>Другие ссылки</h3>
+                <p className="intro">
+                  Например, страница на b17, личный сайт или портфолио. Можно
+                  добавить до пяти ссылок.
+                </p>
+                {profile.profileLinks.links.map((link, index) => (
+                  <div className="custom-link-row" key={index}>
+                    <div>
+                      <label htmlFor={`profile-link-name-${index}`}>
+                        Название ссылки
+                      </label>
+                      <FieldInput
+                        id={`profile-link-name-${index}`}
+                        required
+                        maxLength={80}
+                        value={link.label}
+                        placeholder="Например, Профиль на b17"
+                        onChange={(e) =>
+                          set("profileLinks", {
+                            ...profile.profileLinks,
+                            links: profile.profileLinks.links.map((l, i) =>
+                              i === index ? { ...l, label: e.target.value } : l,
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`profile-link-url-${index}`}>
+                        Адрес ссылки
+                      </label>
+                      <FieldInput
+                        id={`profile-link-url-${index}`}
+                        required
+                        maxLength={2048}
+                        value={link.url}
+                        placeholder="https://"
+                        onChange={(e) =>
+                          set("profileLinks", {
+                            ...profile.profileLinks,
+                            links: profile.profileLinks.links.map((l, i) =>
+                              i === index ? { ...l, url: e.target.value } : l,
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      aria-label={`Удалить ссылку ${index + 1}`}
+                      onClick={() =>
+                        set("profileLinks", {
+                          ...profile.profileLinks,
+                          links: profile.profileLinks.links.filter(
+                            (_, i) => i !== index,
+                          ),
+                        })
+                      }
+                    >
+                      Удалить
+                    </Button>
+                  </div>
+                ))}
+                {profile.profileLinks.links.length < 5 && (
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      set("profileLinks", {
+                        ...profile.profileLinks,
+                        links: [
+                          ...profile.profileLinks.links,
+                          { label: "", url: "" },
+                        ],
+                      })
+                    }
+                  >
+                    Добавить ссылку
+                  </Button>
+                )}
+              </section>
               <label>Адрес публичной страницы</label>
               <div className="slug">
                 /p/
@@ -175,7 +295,13 @@ export function ProfilePage() {
                 </div>
               </label>
               {error && <p className="error">{error}</p>}
-              <Button type="submit">Сохранить</Button>
+              <Button
+                type="submit"
+                loading={profileSaving}
+                disabled={profileSaving}
+              >
+                {profileSaving ? "Сохраняем…" : "Сохранить"}
+              </Button>
               {saved && (
                 <span className="saved">
                   <Check size={13} /> Сохранено
@@ -249,7 +375,7 @@ export function ProfilePage() {
                     </p>
                   )}
                   <div className="password-actions">
-                    <Button disabled={passwordSaving}>
+                    <Button type="submit" disabled={passwordSaving}>
                       {passwordSaving ? "Сохраняем…" : "Изменить пароль"}
                     </Button>
                     <Button
@@ -281,8 +407,14 @@ export function ProfilePage() {
           </div>
           <h2>{profile.name || "Имя автора"}</h2>
           <p>
-            {profile.bio || "Здесь появится информация об авторе исследования."}
+            <LinkedBio
+              text={
+                profile.bio ||
+                "Здесь появится информация об авторе исследования."
+              }
+            />
           </p>
+          <ProfileLinks value={profile.profileLinks} />
           <span className="badge">
             {profile.isProfilePublic ? (
               <>

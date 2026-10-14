@@ -1,4 +1,5 @@
 import { ProductAnalytics } from "./analytics";
+import { PageTitles } from "./pageTitle";
 import React, { Suspense } from "react";
 import { ConfigProvider } from "antd";
 import ruRU from "antd/locale/ru_RU";
@@ -187,7 +188,7 @@ function App() {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter><ProductAnalytics />
+    <BrowserRouter><PageTitles/><ProductAnalytics />
       <App />
     </BrowserRouter>
   </React.StrictMode>,

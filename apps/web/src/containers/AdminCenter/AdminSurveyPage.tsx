@@ -1,3 +1,4 @@
+import { usePageTitle } from "../../pageTitle";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, BarChart3, Eye } from "lucide-react";
@@ -32,6 +33,7 @@ export function AdminSurveyPage() {
       live = false;
     };
   }, [userId, surveyId]);
+  usePageTitle(detail?`${detail.title} — просмотр опроса`:undefined);
   const questions: PreviewQuestion[] =
     detail?.sections.flatMap((s, i) =>
       s.questions.map((q, j) => ({
