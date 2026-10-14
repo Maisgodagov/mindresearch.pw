@@ -264,15 +264,6 @@ export function SurveyBuilder() {
       ),
     [sections, meta.collectAlias],
   );
-  const filteredInstruments = useMemo(() => {
-    const query = libraryQuery.trim().toLocaleLowerCase("ru");
-    if (!query) return instruments;
-    return instruments.filter((instrument) =>
-      `${instrument.title} ${instrument.author ?? ""} ${instrument.description ?? ""} ${instrument.categories?.map((category) => `${category.group} ${category.label}`).join(" ") ?? ""}`
-        .toLocaleLowerCase("ru")
-        .includes(query),
-    );
-  }, [instruments, libraryQuery]);
   if (!builderReady || catalogLoading)
     return (
       <PlatformLayout>
@@ -618,12 +609,12 @@ export function SurveyBuilder() {
               <div className="duration-setting">
                 <span className="duration-label">Примерное время прохождения</span>
                 <label className="screen-setting">
-                  <FieldInput type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "auto"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { ...current.estimatedDuration, mode: "auto" } }))} />
+                  <input type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "auto"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { ...current.estimatedDuration, mode: "auto" } }))} />
                   <span>Рассчитать автоматически · {surveyDurationLabel(count)}</span>
                 </label>
                 <p className="hint">Из расчёта 2–5 секунд на вопрос, с округлением до 5 минут.</p>
                 <label className="screen-setting">
-                  <FieldInput type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "custom"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { mode: "custom", text: current.estimatedDuration.text || "10 минут" } }))} />
+                  <input type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "custom"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { mode: "custom", text: current.estimatedDuration.text || "10 минут" } }))} />
                   <span>Указать своё время</span>
                 </label>
                 {meta.estimatedDuration.mode === "custom" && <label className="screen-field">
@@ -1442,7 +1433,7 @@ export function SurveyBuilder() {
             clearInvalid("title");
           }}
           onDescriptionChange={(value) => setMeta({ ...meta, description: value })}
-          instruments={filteredInstruments}
+          instruments={instruments}
           methodologies={methodologies}
           sections={sections}
           query={libraryQuery}

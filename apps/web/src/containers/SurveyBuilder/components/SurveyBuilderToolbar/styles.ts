@@ -85,9 +85,10 @@ export const ControlPanel = styled.aside`
       border-radius: 8px;
       font-size: 12px;
       font-weight: 700;
-      white-space: nowrap;
+      white-space: normal;
     }
   }
+  .action-buttons svg { flex:0 0 15px; width:15px; min-width:15px; height:15px; }
   .save-button {
     && {
       border: 1px solid #385a40 !important;
@@ -175,7 +176,7 @@ export const ControlPanel = styled.aside`
     .control-add > p { display: none; }
   }
 
-  @container survey-control-panel (max-width: 320px) {
+  @container survey-control-panel (max-width: 360px) {
     padding: 9px;
     gap: 7px;
 

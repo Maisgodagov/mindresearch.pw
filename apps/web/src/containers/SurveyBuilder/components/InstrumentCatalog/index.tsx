@@ -92,13 +92,18 @@ export function InstrumentCatalog({
     }
     return null;
   }, [categoriesByGroup, categoryFilter]);
+  const searchedInstruments = useMemo(() => {
+    const search=query.trim().toLocaleLowerCase('ru');
+    if(!search)return instruments;
+    return instruments.filter(instrument=>`${instrument.title} ${instrument.author??''} ${instrument.description??''} ${instrument.categories?.map(category=>`${category.group} ${category.label}`).join(' ')??''}`.toLocaleLowerCase('ru').includes(search));
+  },[instruments,query]);
   const categoryFilteredInstruments = categoryFilter
-    ? instruments.filter((instrument) => instrument.categories?.some((category) =>
+    ? searchedInstruments.filter((instrument) => instrument.categories?.some((category) =>
         categoryFilter.startsWith("group:")
           ? category.group === categoryFilter.slice(6)
           : category.id === categoryFilter,
       ))
-    : instruments;
+    : searchedInstruments;
   const pageCount = Math.max(1, Math.ceil(categoryFilteredInstruments.length / pageSize));
   const visibleInstruments = categoryFilteredInstruments.slice((page - 1) * pageSize, page * pageSize);
   const paginationItems = useMemo(() => {

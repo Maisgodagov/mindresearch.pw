@@ -286,7 +286,7 @@ export const Panel = styled(Card)`
     color: #65736a;
     margin-bottom: 6px;
   }
-  input:not([type="checkbox"]),
+  input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
     width: 100%;
@@ -639,9 +639,12 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     border-bottom: 1px solid #dce5d9;
   }
   .duration-label { color: #33473a; font-size: 12px; font-weight: 650; }
-  .duration-setting .hint { margin: 0; font-size: 11px; }
-  .duration-setting .screen-setting { font-size: 12px; }
-  .screen-setting input[type="checkbox"] {
+  .duration-setting .hint { margin: 0 0 4px 24px; font-size: 11px; }
+  .duration-setting .screen-setting { font-size: 12px; width:100%; min-height:32px; }
+  .duration-setting .screen-setting span { min-width:0; }
+  .screen-setting input[type="checkbox"],
+  .screen-setting input[type="radio"] {
+    min-height:16px;
     width: 16px;
     height: 16px;
     min-width: 16px;
@@ -733,7 +736,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     font-weight: 650;
     line-height: 1.35;
   }
-  .body input:not([type="checkbox"]) {
+  .body input:not([type="checkbox"]):not([type="radio"]) {
     min-height: 40px;
     padding: 8px 11px;
     box-sizing: border-box;
