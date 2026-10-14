@@ -22,20 +22,24 @@ const LinksList = styled.div`
     align-items: center;
     gap: 8px;
     min-height: 42px;
-    padding: 9px 13px;
-    border: 1px solid #d9e4d6;
-    border-radius: 10px;
+    padding: 10px 15px;
+    border: 0;
+    border-radius: 999px;
     color: #36583d;
-    background: #f4f8f1;
+    background: #edf3e9;
     text-decoration: none;
     font-size: 14px;
+    font-weight: 600;
     line-height: 1.35;
     overflow-wrap: anywhere;
     max-width: 100%;
+    transform: none;
+    transition: background-color .15s ease, color .15s ease;
   }
   a:hover {
-    background: #e8f0e3;
-    border-color: #9bb595;
+    background: #e0ebda;
+    color: #284a30;
+    transform: none;
   }
   a:focus-visible {
     outline: 2px solid #52764b;

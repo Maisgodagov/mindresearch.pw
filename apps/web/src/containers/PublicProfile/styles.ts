@@ -78,9 +78,9 @@ export const SurveyList = styled.div`
   h2 { font: 500 28px var(--font-heading), serif; color: #304a38; margin: 0 0 2px; }
   .survey {
     border-radius: 18px;
-    transition: transform .16s ease, box-shadow .16s ease;
+    transition: box-shadow .16s ease;
   }
-  .survey:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(38,58,43,.08); }
+  .survey:hover { box-shadow: 0 14px 34px rgba(38,58,43,.08); }
   .survey > .ant-card-body {
     display: grid;
     grid-template-columns: 42px minmax(0,1fr) auto;
