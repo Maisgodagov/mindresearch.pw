@@ -9,8 +9,8 @@
 .landing-brand .brand-wordmark>b{font-size:26px}
 @media(max-width:700px){.landing-header{flex-wrap:wrap}.landing-brand{font-size:16px;gap:6px}.landing-brand .brand-wordmark{gap:6px}}
 @media(max-width:700px){.landing-brand .brand-wordmark>b{font-size:20px}}
-.landing .landing-header-action{background:#d9edb9;border-color:transparent;color:#25442e;font-size:14px;font-weight:700;padding:12px 20px;transition:background .15s}
-.landing .landing-header-action:hover{background:#c9e39f}
+.landing .landing-header-action{background:#e5ecdf;border-color:transparent;color:#304d3a;font-size:14px;font-weight:700;padding:12px 20px;transition:background .15s}
+.landing .landing-header-action:hover{background:#d6e1ce}
 .landing .landing-hero .landing-button{background:#365f3d;color:#fff;font-size:16px;font-weight:650;line-height:1.4;letter-spacing:0;padding:16px 24px;border-radius:12px;box-shadow:0 5px 12px #304d3a14}
 .landing .landing-hero .landing-button:hover{background:#294e31}
 .landing .landing-hero .landing-button>svg{width:20px;height:20px;flex:none;stroke-width:1.8}
