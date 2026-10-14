@@ -7,3 +7,10 @@
 - **Scales and formula:** the four primary scales are unweighted sums with no reverse-coded items: job satisfaction — 1, 3, 4, 6, 16, 20, 22, 24, 27, 29; profession satisfaction — 12, 15, 17, 18, 30; secondary trauma — 10, 11, 19, 21, 25, 26, 28; burnout — 2, 7, 8, 9, 13, 14. Second-order sums: professional satisfaction = job satisfaction + profession satisfaction; compassion fatigue = secondary trauma + burnout. The adaptation authors state that all Russian items are direct and that the scale membership differs from the original key.
 - **Scope:** validated primarily with counseling psychologists. For other helping professions, the article recommends adapting wording to the profession and rechecking factor structure. No diagnostic cutoffs or norms were added.
 - **Manual check:** answers cycling 1, 2, 3, 4, 5 across items 1–30 produce primary totals 30, 15, 23, and 19; second-order totals are 45 and 42.
+
+
+## Решение после аудита 14–15.10.2026: удалена из каталога
+
+Предыдущее решение prepared/verified не подтверждает работоспособность расчёта. Для test_867 остались неразрешённые противоречия ключа, формата ввода, реализации или контрольных данных. По указанию владельца редакция снята из каталога; вопросы и ответы существующих опросов сохраняются. Автоматический расчёт и выдача её баллов отключены. Это не заключение о научной непригодности оригинальной методики.
+
+Причины: control-case-mismatch. Полная запись и зарегистрированные источники: [общий отчёт](../scoring-remediation-2026-10-14.md), [JSON](../scoring-remediation-2026-10-14.json). Возврат требует подтверждения конкретной редакции и независимых тестов; повторный seed не восстанавливает запись.

@@ -58,8 +58,13 @@ import { ders18RuInstrument, ders18RuScoring, ders18RuValidationCases } from './
 import { db, migrate } from './db.js';
 import type { SeedSection } from './types.js';
 import { loadMethodologyRegistry } from './data/methodologyRegistry.js';
+import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
+import { registryScoringIssues } from './scoring/registryAudit.js';
 
 export async function seed() {
+  const methodologyRegistrations=await loadMethodologyRegistry();
+  const inconsistent=methodologyRegistrations.filter(r=>!withdrawnMethodologyCodes.has(r.instrument.code)&&registryScoringIssues(r).length);
+  if(inconsistent.length)throw new Error(`Refusing seed: inconsistent scoring for ${inconsistent.map(r=>r.instrument.code).join(', ')}`);
   await migrate();
   const email=process.env.ADMIN_EMAIL ?? 'admin@example.ru';
   const password=process.env.ADMIN_PASSWORD ?? 'change-me-now';
@@ -94,7 +99,6 @@ export async function seed() {
       if(instrumentId&&seedInstrumentQuestions){const[iq]=await db.query<any[]>('SELECT id FROM instrument_questions WHERE instrument_id=? AND code=?',[instrumentId,q.code]);if(iq.length)await db.execute('UPDATE instrument_questions SET text=?,type=?,required=?,position=?,options=?,validation=? WHERE id=?',[...values,iq[0].id]);else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,q.code,...values])}
     }
   }
-  const methodologyRegistrations=await loadMethodologyRegistry();
   const methodologyByCode=new Map(methodologyRegistrations.map((registration)=>[registration.instrument.code,registration]));
   const verifiedInstruments:SeedSection[]=[shamInstrument,amsInstrument,studyAlienationInstrument,gpsInstrument,ppsInstrument,bfi2Instrument,bfi2ShortInstrument,tipiRuInstrument,ipipNeo120Instrument,miniIpipInstrument,rsesInstrument,csesInstrument,gsesInstrument,briefCopeRuInstrument,munInstrument,paqShortRuInstrument,caasRuInstrument,iafRuInstrument,bsmasRuInstrument,smdsRuInstrument,fomosRuInstrument,nmpqRuInstrument,cavRuInstrument,igds9RuInstrument,bfasRuInstrument,fivePfqInstrument,cpmqRuInstrument,bisBasRuInstrument,spsrqJuniorRuInstrument,spsrqChildRuInstrument,scsRuInstrument,riscRuInstrument,didsRuInstrument,isriRuInstrument,aiqIvRuInstrument,loskRuInstrument,makarevskayaPersonalIdentityRuInstrument,belongingExclusionRuInstrument,fourFactorSelfRuInstrument,ideaErofeevaRuInstrument,ideaKlementyevaRuInstrument,cognitiveAgeRuInstrument,easKonshinaRuInstrument,pryginAutonomyRuInstrument,karabanovaAutonomyRuInstrument,identityResilienceRuInstrument,grbsShortRuInstrument,mrniShortRuInstrument,lopukhovaGenderTypeRuInstrument,genderPersonalityTypeTitovaRuInstrument,genderDifferencesGurievaRuInstrument,pid5bfPlusMRuInstrument,bitRuInstrument,cageAidRuInstrument,coreOmRuInstrument,cyrm28RuInstrument,ders18RuInstrument,...methodologyRegistrations.map((registration)=>registration.instrument)];
   for(const instrument of verifiedInstruments){
@@ -114,7 +118,12 @@ export async function seed() {
       else await db.execute('INSERT INTO instrument_questions (id,instrument_id,code,text,type,required,position,options,validation) VALUES (?,?,?,?,?,?,?,?,?)',[randomUUID(),instrumentId,question.code,...values]);
     }
   }
-  console.log(`Survey ready: ${data.reduce((n,s)=>n+s.questions.length,0)} questions; /s/anketa`);
+  // Remove audited, unconfirmed editions from the catalogue without deleting
+  // instruments, survey questions, responses or historical research records.
+  for (const code of withdrawnMethodologyCodes) {
+    await db.execute("UPDATE instruments SET status='archived',is_verified=FALSE WHERE code=? AND owner_id IS NULL", [code]);
+  }
+  console.log(`Survey ready: ${data.reduce((n,s)=>n+s.questions.length,0)} questions; /s/anketa; ${withdrawnMethodologyCodes.size} unconfirmed editions withdrawn`);
 }
 
 if(import.meta.url===`file://${process.argv[1].replace(/\\/g,'/')}`) seed().then(()=>db.end()).catch(e=>{console.error(e);process.exit(1)});

@@ -51,7 +51,7 @@ export const scoringConfig: ConfigurableScoring = {
 
 const validationCases: ValidationCase[] = [
   { title: 'Все ответы 0%: среднее равно 0', answers: Object.fromEntries(items.map((_, index) => [String(index + 1), 0])), expected: { mds16_mean: 0 } },
-  { title: 'Ответы 0%, 10%, …, 100%, затем 50–100%: среднее вручную равно 53.125', answers: Object.fromEntries(items.map((_, index) => [String(index + 1), index < 11 ? index * 10 : (index + 39) * 10])), expected: { mds16_mean: 53.125 } },
+  { title: 'Ответы 0%, 10%, …, 100%, затем 50–90%: (550 + 350) / 16 = 56,25', answers: Object.fromEntries(items.map((_, index) => [String(index + 1), index < 11 ? index * 10 : (index - 6) * 10])), expected: { mds16_mean: 56.25 } },
 ];
 
 export const methodology: MethodologyRegistration = {

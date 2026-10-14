@@ -6,10 +6,10 @@ vi.mock('../db.js', () => ({ db: database }));
 import { calculateConfiguredAssessmentsForSession } from './index.js';
 
 it('saves the MC-SDS result and range from stored JSON yes/no answers', async () => {
-  database.query.mockResolvedValue([instrument.questions.map(question => ({
+  database.query.mockResolvedValue([instrument.questions.map((question,index) => ({
     sectionId: 'section-mcsds', sectionCode: instrument.code, questionCode: question.code,
     value: JSON.stringify('yes'), title: instrument.title, formulaVersion: methodology.formulaVersion,
-    scoringConfig: JSON.stringify(scoringConfig),
+    scoringConfig: JSON.stringify(scoringConfig), itemNumber:index+1,
   }))]);
   await calculateConfiguredAssessmentsForSession('session-mcsds', [instrument.code]);
   const [sql, parameters] = database.execute.mock.calls[0];

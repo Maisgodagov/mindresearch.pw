@@ -57,7 +57,7 @@ const validationCases: ValidationCase[] = [
   {
     title: 'Ручная проверка: ответы 1–5 циклически; сумма двенадцати ответов',
     answers: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [String(i + 1), (i % 5) + 1])),
-    expected: { total: 35 },
+    expected: { total: 33 },
   },
 ];
 

@@ -94,7 +94,7 @@ export const scoringConfig: ConfigurableScoring = {
 const answers = (value: number) => Object.fromEntries(items.map((_, index) => [String(index + 1), value]));
 const validationCases: ValidationCase[] = [
   { title: 'Все ответы нейтральны: реверсированные пункты также дают 3', answers: answers(3), expected: { E: 30, A: 30, C: 30, ES: 30, I: 30 } },
-  { title: 'Высокие ответы: ручная проверка прямых и обратных ключей', answers: answers(5), expected: { E: 30, A: 34, C: 34, ES: 18, I: 42 } },
+  { title: 'Высокие ответы: ручная проверка прямых и обратных ключей', answers: answers(5), expected: { E: 30, A: 34, C: 34, ES: 18, I: 38 } },
 ];
 
 export const methodology: MethodologyRegistration = {

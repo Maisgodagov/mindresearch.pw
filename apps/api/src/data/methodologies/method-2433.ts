@@ -48,7 +48,7 @@ const scoringConfig: ConfigurableScoring = {
 };
 
 const validationCases: ValidationCase[] = [
-  { title: 'Проверка реверсивного пункта: одинаковые ответы 1 дают среднее 6,5', answers: { '1': 1, '2': 1, '3': 1, '4': 1 }, expected: { shs: 6.5 } },
+  { title: 'Проверка реверсивного пункта: (1 + 1 + 1 + 7) / 4 = 2,5', answers: { '1': 1, '2': 1, '3': 1, '4': 1 }, expected: { shs: 2.5 } },
   { title: 'Все ответы по центру: среднее 4', answers: { '1': 4, '2': 4, '3': 4, '4': 4 }, expected: { shs: 4 } },
 ];
 

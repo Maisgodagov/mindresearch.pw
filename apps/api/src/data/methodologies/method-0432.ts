@@ -54,13 +54,18 @@ export const instrument: SeedSection = {
   questions,
 };
 
+// Borritz & Kristensen, CBI first edition (2004), pp. 2–4.
+const burnoutScores = (items: number[]) => Object.fromEntries(items.map(item => [item,
+  item === 10 ? { '1': 0, '2': 25, '3': 50, '4': 75, '5': 100 }
+    : { '1': 100, '2': 75, '3': 50, '4': 25, '5': 0 },
+]));
 const scoringConfig: ConfigurableScoring = {
   min: 1,
   max: 5,
   scales: [
-    { key: 'personal', label: 'Личное выгорание', items: [1, 2, 3, 4, 5, 6], reverseItems: [], aggregation: 'mean', weights: { 1: 100, 2: 75, 3: 50, 4: 25, 5: 0, 6: 0 } },
-    { key: 'work', label: 'Выгорание, связанное с работой', items: [7, 8, 9, 10, 11, 12, 13], reverseItems: [10], aggregation: 'mean', weights: { 7: 100, 8: 75, 9: 50, 10: 25, 11: 0, 12: 0, 13: 0 } },
-    { key: 'client', label: 'Выгорание, связанное с клиентами', items: [14, 15, 16, 17, 18, 19], reverseItems: [], aggregation: 'mean', weights: { 14: 100, 15: 75, 16: 50, 17: 25, 18: 0, 19: 0 } },
+    { key: 'personal', label: 'Личное выгорание', items: [1, 2, 3, 4, 5, 6], reverseItems: [], aggregation: 'mean', itemScores: burnoutScores([1, 2, 3, 4, 5, 6]) },
+    { key: 'work', label: 'Выгорание, связанное с работой', items: [7, 8, 9, 10, 11, 12, 13], reverseItems: [], aggregation: 'mean', itemScores: burnoutScores([7, 8, 9, 10, 11, 12, 13]) },
+    { key: 'client', label: 'Выгорание, связанное с клиентами', items: [14, 15, 16, 17, 18, 19], reverseItems: [], aggregation: 'mean', itemScores: burnoutScores([14, 15, 16, 17, 18, 19]) },
   ],
 };
 // Scores map responses to 100, 75, 50, 25, 0 in order; item 10 is reverse keyed.
@@ -81,5 +86,14 @@ export const methodology: MethodologyRegistration = {
   instrument,
   scoringConfig,
   validationCases,
-  formulaVersion: 'cbi-kristensen-2005-psytests-ru-2025-v1',
+  formulaVersion: 'cbi-kristensen-2005-response-scores-0-100-v2',
+  details: {
+    author: 'Marianne Borritz, Tage S. Kristensen',
+    version: 'cbi-kristensen-2005-response-scores-0-100-v2',
+    summary: instrument.description!,
+    steps: ['Варианты в порядке предъявления кодируются 100, 75, 50, 25, 0 баллами.', 'В используемом русском порядке пункт 10 («Хватает ли у вас энергии на семью и друзей…») имеет обратный ключ: 0, 25, 50, 75, 100.', 'Для каждой шкалы вычисляется среднее баллов её пунктов: личное выгорание — 1–6; связанное с работой — 7–13; с клиентами — 14–19. Диапазон каждой шкалы 0–100.', 'В этой реализации рассчитывается полный протокол; все предъявленные пункты обязательны.'],
+    keys: [{ label: 'Личное выгорание', value: 'Среднее баллов пунктов 1–6 (6 пунктов).' }, { label: 'Рабочее выгорание', value: 'Среднее баллов пунктов 7–13 (7 пунктов); пункт 10 обратный.' }, { label: 'Клиентское выгорание', value: 'Среднее баллов пунктов 14–19 (6 пунктов).' }],
+    notes: ['Числа 100/75/50/25/0 относятся к вариантам ответа, а не являются весами отдельных вопросов.', 'Используется русский перевод psytests.org (2025); российская психометрическая адаптация не заявлена.', 'Клиентская шкала применима к людям, работающим с клиентами/получателями услуг. Результат не является диагнозом.'],
+    sources: [{ title: 'Borritz & Kristensen — CBI first edition, February 2004, правила подсчёта на стр. 2–4', url: 'https://nfa.dk/media/hl5nbers/cbi-first-edition.pdf' }, { title: 'Исходная публикация CBI (2005)', url: 'https://doi.org/10.1080/02678370500297720' }, { title: 'Русскоязычный порядок пунктов', url: 'https://psytests.org/stress/cbi-bl.html' }],
+  },
 };

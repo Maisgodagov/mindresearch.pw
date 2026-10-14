@@ -16,3 +16,10 @@
 - J. P. Meyer, N. J. Allen, C. A. Smith. [“Commitment to Organizations and Occupations: Extension and Test of a Three-Component Conceptualization”](https://doi.org/10.1037/0021-9010.78.4.538), *Journal of Applied Psychology*, 1993, 78(4), 538–551 — публикация, соответствующая 18-пунктовой версии OCS-93.
 - N. J. Allen, J. P. Meyer. [“The Measurement and Antecedents of Affective, Continuance and Normative Commitment to the Organization”](https://doi.org/10.1111/j.2044-8325.1990.tb00506.x), *Journal of Occupational Psychology*, 1990, 63(1), 1–18 — исходная публикация трёхкомпонентных шкал.
 - [Страница методики OCS-93 на PsyTests](https://psytests.org/work/ocs93.html) — карточка русской версии и описание измеряемых компонентов.
+
+
+## Решение после аудита 14–15.10.2026: удалена из каталога
+
+Предыдущее решение prepared/verified не подтверждает работоспособность расчёта. Для test_2250 остались неразрешённые противоречия ключа, формата ввода, реализации или контрольных данных. По указанию владельца редакция снята из каталога; вопросы и ответы существующих опросов сохраняются. Автоматический расчёт и выдача её баллов отключены. Это не заключение о научной непригодности оригинальной методики.
+
+Причины: control-case-mismatch. Полная запись и зарегистрированные источники: [общий отчёт](../scoring-remediation-2026-10-14.md), [JSON](../scoring-remediation-2026-10-14.json). Возврат требует подтверждения конкретной редакции и независимых тестов; повторный seed не восстанавливает запись.

@@ -1,4 +1,5 @@
 import { db } from './db.js';
+import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
 import { assessmentCalculators, calculateConfiguredAssessmentsForSession } from './scoring/index.js';
 import { qualityEnabled, storedQualities } from './quality/service.js';
 
@@ -76,8 +77,8 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
       LEFT JOIN quality_metadata m ON m.session_id=rs.id
       WHERE rs.survey_id=?${restriction} GROUP BY rs.id ORDER BY rs.started_at DESC,rs.id DESC`, values),
     db.query<any[]>(`SELECT ar.session_id sessionId,s.id sectionId,s.code,s.title,s.position,
-      ar.formula_version formulaVersion,ar.result${summary ? '' : ',ar.interpretation'}
-      FROM assessment_results ar JOIN sections s ON s.id=ar.section_id JOIN response_sessions rs ON rs.id=ar.session_id
+      i.code instrumentCode,ar.formula_version formulaVersion,ar.result${summary ? '' : ',ar.interpretation'}
+      FROM assessment_results ar JOIN sections s ON s.id=ar.section_id LEFT JOIN instruments i ON i.id=s.source_instrument_id JOIN response_sessions rs ON rs.id=ar.session_id
       WHERE rs.survey_id=?${restriction} ORDER BY s.position`, values),
     qualityEnabled() ? storedQualities(surveyId, { summary, sessionIds }) : Promise.resolve({} as Record<string, any>),
   ]);
@@ -92,7 +93,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     }
     return group;
   };
-  for (const row of scoreRows) groupFor(row.sessionId, row).result = {
+  for (const row of scoreRows.filter(row => !withdrawnMethodologyCodes.has(String(row.instrumentCode ?? row.code)))) groupFor(row.sessionId, row).result = {
     formulaVersion: row.formulaVersion, values: parseJson(row.result), interpretation: parseJson(row.interpretation) ?? null,
   };
   if (!summary && sessions.length) {

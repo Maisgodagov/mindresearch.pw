@@ -52,7 +52,7 @@ export const instrument: SeedSection = {
 
 export const scoringConfig: ConfigurableScoring = {
   min: 0,
-  max: 3,
+  max: 1,
   scales: [
     { key: 'intrinsic_motivation', label: 'Внутренняя мотивация изучения предмета', items: Array.from({ length: 20 }, (_, index) => index + 1), reverseItems, aggregation: 'sum' },
   ],
@@ -75,5 +75,5 @@ export const methodology: MethodologyRegistration = {
   instrument,
   scoringConfig,
   validationCases,
-  formulaVersion: 'dubovitskaya-study-motivation-direction-2002-v1',
+  formulaVersion: 'dubovitskaya-study-motivation-direction-binary-2002-v2',
 };

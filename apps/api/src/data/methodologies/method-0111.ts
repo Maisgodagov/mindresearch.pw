@@ -66,14 +66,17 @@ export const scoringConfig: ConfigurableScoring = {
     label: 'Количество ответов «Да»',
     items: Array.from({ length: 33 }, (_, index) => index + 1),
     reverseItems: [],
-    aggregation: 'sum',
+    aggregation: 'count-option',
+    optionValue: 'yes',
   }],
 };
 
 const validationCases: ValidationCase[] = [
+  { title: 'Все ответы «Нет»', answers: Object.fromEntries(Array.from({ length: 33 }, (_, i) => [String(i + 1), 'no'])), expected: { yes_count: 0 } },
+  { title: 'Все ответы «Да»', answers: Object.fromEntries(Array.from({ length: 33 }, (_, i) => [String(i + 1), 'yes'])), expected: { yes_count: 33 } },
   {
     title: 'Ручная проверка: «Да» по пункту 1 и «Нет» по остальным — один утвердительный ответ',
-    answers: Object.fromEntries(Array.from({ length: 33 }, (_, index) => [String(index + 1), index === 0 ? 1 : 0])),
+    answers: Object.fromEntries(Array.from({ length: 33 }, (_, index) => [String(index + 1), index === 0 ? 'yes' : 'no'])),
     expected: { yes_count: 1 },
   },
 ];
@@ -82,5 +85,5 @@ export const methodology: MethodologyRegistration = {
   instrument,
   scoringConfig,
   validationCases,
-  formulaVersion: 'mcbride-adult-child-narcissistic-parent-2023-yes-count-v1',
+  formulaVersion: 'mcbride-adult-child-narcissistic-parent-string-yes-count-v2',
 };

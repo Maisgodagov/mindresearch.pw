@@ -12,7 +12,7 @@ it.each([
   {m:oro,value:'yes',expected:{acceptance_rejection:{score:30,max:30},cooperation:{score:8,max:8},symbiosis:{score:7,max:7},authoritarian_hypersocialization:{score:7,max:7},little_loser:{score:8,max:8}}},
   {m:dass,value:'3',expected:{depression:{score:42,max:42},anxiety:{score:42,max:42},stress:{score:42,max:42}}},
 ])('saves scores, version and ranges for $m.instrument.code from stored JSON answers',async({m,value,expected})=>{
-  database.query.mockResolvedValue([m.instrument.questions.map(q=>({sectionId:'section',sectionCode:m.instrument.code,questionCode:q.code,value:JSON.stringify(value),title:m.instrument.title,formulaVersion:m.formulaVersion,scoringConfig:JSON.stringify(m.scoringConfig)}))]);
+  database.query.mockResolvedValue([m.instrument.questions.map((q,index)=>({sectionId:'section',sectionCode:m.instrument.code,questionCode:q.code,itemNumber:index+1,value:JSON.stringify(value),title:m.instrument.title,formulaVersion:m.formulaVersion,scoringConfig:JSON.stringify(m.scoringConfig)}))]);
   await calculateConfiguredAssessmentsForSession('session',[m.instrument.code]);
   expect(database.execute).toHaveBeenCalledTimes(1);
   const [sql,args]=database.execute.mock.calls[0];

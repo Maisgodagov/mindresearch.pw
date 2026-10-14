@@ -66,15 +66,12 @@ const formulaScale = (key: string, label: string, items: number[], signs: number
   label,
   items,
   reverseItems: [] as number[],
-  // The generic scorer has no intercept field. For an even number of items,
-  // adding offset / item-count to each coefficient reproduces the exact intercept
-  // because each response is scored from 1 to 5 and centered around 3.
-  weights: Object.fromEntries(items.map((item, index) => [item, signs[index] + offset / (items.length * 3)])),
+  offset,
+  weights: Object.fromEntries(items.map((item, index) => [item, signs[index]])),
   aggregation: 'sum' as const,
 });
 
-// The published equations use signed raw item values plus a constant; the
-// coefficient adjustment above encodes each constant exactly in the sum scorer.
+// Jorgenson (2015), page 3: signed raw values plus a constant.
 export const scoringConfig: ConfigurableScoring = {
   min: 1,
   max: 5,
@@ -82,7 +79,7 @@ export const scoringConfig: ConfigurableScoring = {
     formulaScale('IE', 'E / I (более 24 = E; иначе I)', [3, 7, 11, 15, 19, 23, 27, 31], [-1, -1, -1, 1, -1, 1, 1, -1], 30),
     formulaScale('SN', 'N / S (более 24 = N; иначе S)', [4, 8, 12, 16, 20, 24, 28, 32], [1, 1, 1, 1, 1, -1, -1, 1], 12),
     formulaScale('FT', 'T / F (более 24 = T; иначе F)', [2, 6, 10, 14, 18, 22, 26, 30], [-1, 1, 1, -1, -1, 1, -1, -1], 30),
-    formulaScale('JP', 'P / J (более 24 = P; иначе J)', [1, 5, 9, 13, 17, 21, 25, 29], [1, 1, 1, -1, 1, -1, 1, -1], 18),
+    formulaScale('JP', 'P / J (более 24 = P; иначе J)', [1, 5, 9, 13, 17, 21, 25, 29], [1, 1, -1, 1, -1, 1, -1, 1], 18),
   ],
 };
 
@@ -96,7 +93,7 @@ const validationCases: ValidationCase[] = [
   {
     title: 'Ручная проверка формул: ответы 1..32 по порядку',
     answers: answers(seq(1, 32).map(item => ((item - 1) % 5) + 1)),
-    expected: { IE: 26, SN: 22, FT: 24, JP: 18 },
+    expected: { IE: 29, SN: 22, FT: 23, JP: 21 },
   },
 ];
 
@@ -104,5 +101,20 @@ export const methodology: MethodologyRegistration = {
   instrument,
   scoringConfig,
   validationCases,
-  formulaVersion: 'oejts-1.2-openpsychometrics-2015-psytests-ru-v1',
+  formulaVersion: 'oejts-1.2-openpsychometrics-2015-explicit-intercepts-v2',
+  details: {
+    author: 'Eric Jorgenson', year: 2015,
+    version: 'oejts-1.2-openpsychometrics-2015-explicit-intercepts-v2',
+    summary: instrument.description!,
+    steps: ['Используются исходные ответы 1–5 по 32 пунктам.', 'Для каждой дихотомии применяется авторское уравнение со знаками и отдельной константой. Константа не распределяется по коэффициентам пунктов.', 'Каждый показатель находится в диапазоне 8–40. Значение более 24 соответствует E, N, T или P; значение 24 и менее — I, S, F или J соответственно.'],
+    keys: [
+      { label: 'IE', value: '30 − Q3 − Q7 − Q11 + Q15 − Q19 + Q23 + Q27 − Q31' },
+      { label: 'SN', value: '12 + Q4 + Q8 + Q12 + Q16 + Q20 − Q24 − Q28 + Q32' },
+      { label: 'FT', value: '30 − Q2 + Q6 + Q10 − Q14 − Q18 + Q22 − Q26 − Q30' },
+      { label: 'JP', value: '18 + Q1 + Q5 − Q9 + Q13 − Q17 + Q21 − Q25 + Q29' },
+    ],
+    notes: ['Это OEJTS 1.2, а не официальный MBTI и не клиническая диагностика.', 'Ключ сверён с авторским бланком 03.03.2015, страница 3. Русские формулировки не означают подтверждения отдельной российской стандартизации.'],
+    rightsNote: 'Авторский бланк опубликован по CC BY-NC-SA 4.0.',
+    sources: [{ title: 'Eric Jorgenson — Open Extended Jungian Type Scales 1.2, авторский бланк и четыре уравнения, стр. 3', url: 'https://openpsychometrics.org/tests/OJTS/development/OEJTS1.2.pdf' }, { title: 'Русскоязычный бланк использованной редакции', url: 'https://psytests.org/opm/oejts-bl.html' }],
+  },
 };

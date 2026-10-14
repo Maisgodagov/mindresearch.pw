@@ -3,6 +3,8 @@ export type ConfigurableScale = {
   label: string;
   items: number[];
   reverseItems: number[];
+  /** Added after aggregation, independently of item weights. */
+  offset?: number;
 } & (
   | { aggregation: 'sum' | 'mean'; weights?: Record<number, number>; itemScores?: Record<number, Record<string, number>>; optionValue?: never }
   | { aggregation: 'count-option'; optionValue: string; weights?: never }
@@ -106,11 +108,18 @@ export function validateConfigurableMethodology(input: {
 }
 
 export function calculateConfigurableScores(scoring: ConfigurableScoring, answers: Record<string, unknown>) {
+  if (!scoring.scales.length || !Number.isFinite(scoring.min) || !Number.isFinite(scoring.max)) return null;
   const scores: Record<string, number> = {};
   for (const scale of scoring.scales) {
+    if (!['sum', 'mean', 'count-option'].includes(scale.aggregation) || !scale.items.length ||
+      !Number.isFinite(scale.offset ?? 0) ||
+      scale.items.some(item => !Number.isInteger(item) || item < 1) ||
+      Object.values(scale.weights ?? {}).some(weight => !Number.isFinite(weight))) return null;
     const values = scale.items.map(item => {
       const answer = answers[String(item)];
       if (answer === null || answer === undefined) return null;
+      if (typeof answer !== 'number' && typeof answer !== 'string') return null;
+      if (typeof answer === 'string' && answer.trim() === '') return null;
       if (scale.aggregation === 'count-option') return String(answer) === scale.optionValue ? 1 : 0;
       if ('itemScores' in scale && scale.itemScores) {
         const score = scale.itemScores[item]?.[String(answer)];
@@ -122,9 +131,27 @@ export function calculateConfigurableScores(scoring: ConfigurableScoring, answer
     });
     if (values.some(value => value === null)) return null;
     const total = (values as number[]).reduce((sum, value, index) => sum + value * (scale.weights?.[scale.items[index]] ?? 1), 0);
-    scores[scale.key] = scale.aggregation === 'mean' ? total / values.length : total;
+    scores[scale.key] = (scale.aggregation === 'mean' ? total / values.length : total) + (scale.offset ?? 0);
+    if (!Number.isFinite(scores[scale.key])) return null;
   }
   return scores;
+}
+
+/** Mathematical output range, including response maps, signed weights and intercepts. */
+export function configurableScaleBounds(scoring: ConfigurableScoring, scale: ConfigurableScale): [number, number] | null {
+  if (!['sum', 'mean', 'count-option'].includes(scale.aggregation) || !scale.items.length) return null;
+  let low = 0, high = 0;
+  for (const item of scale.items) {
+    const candidates = scale.aggregation === 'count-option' ? [0, 1]
+      : 'itemScores' in scale && scale.itemScores ? Object.values(scale.itemScores[item] ?? {})
+      : [scoring.min, scoring.max];
+    if (!candidates.length || candidates.some(value => !Number.isFinite(value))) return null;
+    const weight = scale.weights?.[item] ?? 1;
+    const values = candidates.map(value => value * weight);
+    low += Math.min(...values); high += Math.max(...values);
+  }
+  const divisor = scale.aggregation === 'mean' ? scale.items.length : 1;
+  return [low / divisor + (scale.offset ?? 0), high / divisor + (scale.offset ?? 0)];
 }
 
 export function checkConfigurableCases(input: {
@@ -145,40 +172,30 @@ export function checkConfigurableCases(input: {
     const missingItems = requiredItems.filter(item => !Object.prototype.hasOwnProperty.call(testCase.answers ?? {}, String(item)));
     return { title: testCase.title, passed: differences.every(item => item.passed) && missingItems.length === 0, differences, missingItems };
   });
-  const optionCountScales = input.scoring.scales.filter(scale => scale.aggregation === 'count-option');
-  const boundaryChecks = optionCountScales.length
-    ? optionCountScales.map(selectedScale => {
-      const answers = Object.fromEntries(requiredItems.map(item => [String(item), selectedScale.optionValue]));
-      const actual = calculateConfigurableScores(input.scoring, answers);
-      return {
-        value: selectedScale.optionValue,
-        passed: !!actual && input.scoring.scales.every(scale => actual[scale.key] === (scale.aggregation === 'count-option' && scale.optionValue === selectedScale.optionValue ? scale.items.length : 0)),
-      };
-    })
-    : input.scoring.scales.some(scale => 'itemScores' in scale && scale.itemScores)
-    ? [...new Set(input.questions[0]?.options.map(option => option.value) ?? [])].map(value => {
-      const answers = Object.fromEntries(requiredItems.map(item => [String(item), value]));
-      const actual = calculateConfigurableScores(input.scoring, answers);
-      const expected = Object.fromEntries(input.scoring.scales.map(scale => {
-        const total = scale.items.reduce((sum, item) => {
-          if ('itemScores' in scale && scale.itemScores) return sum + (scale.itemScores[item]?.[value] ?? 0);
-          const raw = Number(value);
-          const transformed = scale.reverseItems.includes(item) ? input.scoring.min + input.scoring.max - raw : raw;
-          return sum + transformed * (scale.weights?.[item] ?? 1);
-        }, 0);
-        return [scale.key, scale.aggregation === 'mean' ? total / scale.items.length : total];
-      }));
-      return { value, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
-    })
-    : [input.scoring.min, input.scoring.max].map(value => {
-      const answers = Object.fromEntries(requiredItems.map(item => [String(item), value]));
-      const actual = calculateConfigurableScores(input.scoring, answers);
-      const expected = Object.fromEntries(input.scoring.scales.map(scale => {
-        const transformed = scale.items.map(item => scale.reverseItems.includes(item) ? input.scoring.min + input.scoring.max - value : value);
-        const total = transformed.reduce((sum, item, index) => sum + item * (scale.weights?.[scale.items[index]] ?? 1), 0);
-        return [scale.key, scale.aggregation === 'mean' ? total / transformed.length : total];
-      }));
-      return { value, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
-    });
+  // Boundaries must use the actual options of each question, not the first
+  // question's option list for every item (FTND and mixed-format tools differ).
+  const boundaryChecks = ['first', 'last'].map(edge => {
+    const answers = Object.fromEntries(requiredItems.map(item => {
+      const options = input.questions[item - 1]?.options ?? [];
+      return [String(item), options.length
+        ? options[edge === 'first' ? 0 : options.length - 1].value
+        : edge === 'first' ? input.scoring.min : input.scoring.max];
+    }));
+    const actual = calculateConfigurableScores(input.scoring, answers);
+    const expected = Object.fromEntries(input.scoring.scales.map(scale => {
+      const total = scale.items.reduce((sum, item) => {
+        const value = answers[String(item)];
+        const transformed = scale.aggregation === 'count-option'
+          ? String(value) === scale.optionValue ? 1 : 0
+          : 'itemScores' in scale && scale.itemScores
+          ? scale.itemScores[item]?.[String(value)]
+          : scale.reverseItems.includes(item)
+          ? input.scoring.min + input.scoring.max - Number(value) : Number(value);
+        return sum + transformed * (scale.weights?.[item] ?? 1);
+      }, 0);
+      return [scale.key, (scale.aggregation === 'mean' ? total / scale.items.length : total) + (scale.offset ?? 0)];
+    }));
+    return { value: edge, passed: !!actual && input.scoring.scales.every(scale => Math.abs(actual[scale.key] - expected[scale.key]) <= tolerance) };
+  });
   return { passed: results.length >= 2 && results.every(item => item.passed) && boundaryChecks.every(item => item.passed), results, boundaryChecks };
 }

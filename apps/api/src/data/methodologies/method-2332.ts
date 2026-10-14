@@ -61,9 +61,9 @@ const validationCases: ValidationCase[] = [
     expected: { total: 14 },
   },
   {
-    title: 'Ручная проверка смешанного профиля: сумма прямых ответов равна 42',
+    title: 'Ручная проверка смешанного профиля: 15 + 15 + 10 = 40',
     answers: Object.fromEntries(items.map((_, index) => [String(index + 1), (index % 5) + 1])),
-    expected: { total: 42 },
+    expected: { total: 40 },
   },
   {
     title: 'Ручная проверка: все ответы «Всегда» дают максимум 70',
