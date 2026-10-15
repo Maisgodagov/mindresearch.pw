@@ -106,7 +106,7 @@ export const SurveyCard = styled(Card)`
   container-name: survey-card;
   container-type: inline-size;
   border-radius: 18px;
-  border-color: #e1e8df;
+  border-color: transparent;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -121,7 +121,7 @@ export const SurveyCard = styled(Card)`
     padding: 18px 20px 16px;
   }
   &:hover {
-    border-color: #d2ded0;
+    border-color: transparent;
     box-shadow: 0 17px 44px rgba(48, 70, 54, 0.08);
   }
   .card-head {
