@@ -1,3 +1,4 @@
+import { eligibleReferenceCount, shouldGrowBaseline } from "./baseline-growth.js";
 import { createQualityWorker } from './worker-runtime.js';
 import { randomUUID } from 'node:crypto';
 import { db } from '../db.js';
@@ -36,11 +37,15 @@ export async function freezeBaseline(surveyId:string,cohort?:string){const{items
   const baseline:Baseline=await workerTask('baseline',surveyId,items,selected,null,undefined,high);
   await db.execute(`INSERT IGNORE INTO quality_baselines(id,survey_id,algorithm_version,config_hash,snapshot) VALUES (?,?,?,?,?)`,[baseline.id,surveyId,baseline.config.version,baseline.configHash,JSON.stringify(baseline)]);await db.execute(`INSERT INTO quality_settings(survey_id,active_baseline) VALUES (?,?) ON DUPLICATE KEY UPDATE active_baseline=VALUES(active_baseline)`,[surveyId,baseline.id]);return baseline;
 }
-export async function recompute(surveyId:string,options:{sessionId?:string;cohort?:string;baselineVersion?:string}={},progress?:(done:number,total:number)=>void){const{items,people}=await loadQualityInputs(surveyId);let baseline=await activeBaseline(surveyId);if(options.baselineVersion){const[rows]=await db.query<any[]>('SELECT snapshot FROM quality_baselines WHERE id=? AND survey_id=?',[options.baselineVersion,surveyId]);if(!rows.length)throw new Error('Baseline не найден');baseline=json<Baseline>(rows[0].snapshot);}if(!baseline&&people.some(p=>p.status==='completed'))baseline=await freezeBaseline(surveyId);
+export async function recompute(surveyId:string,options:{sessionId?:string;cohort?:string;baselineVersion?:string}={},progress?:(done:number,total:number)=>void){const{items,people}=await loadQualityInputs(surveyId);let baseline=await activeBaseline(surveyId);if(options.baselineVersion){const[rows]=await db.query<any[]>('SELECT snapshot FROM quality_baselines WHERE id=? AND survey_id=?',[options.baselineVersion,surveyId]);if(!rows.length)throw new Error('Baseline не найден');baseline=json<Baseline>(rows[0].snapshot);}let refreshAll=false;
+  if(!baseline&&people.some(p=>p.status==='completed')){baseline=await freezeBaseline(surveyId);refreshAll=true;}
   if(baseline&&baseline.config.version!==QUALITY_V2_CONFIG.version&&!options.baselineVersion)throw new Error('Algorithm version changed; create a new baseline');
   if(baseline&&baseline.itemHash!==hash(items))throw new Error('Структура вопросов изменилась; создайте новую версию baseline');
-  const selected=people.filter(p=>(!options.sessionId||p.id===options.sessionId)&&(!options.cohort||(options.cohort==='trusted'?p.trusted:p.cohort===options.cohort)));
-  const data=await workerTask(options.sessionId||options.cohort?'calculate_subset':'calculate',surveyId,items,selected,baseline,progress);for(const p of selected){const result:QualityV2|undefined=data.results[p.id];if(!result)continue;await db.execute(`INSERT IGNORE INTO quality_results(session_id,algorithm_version,baseline_version,input_hash,result,input_snapshot) VALUES (?,?,?,?,?,?)`,[p.id,result.algorithm_version,result.baseline_version??'none',result.input_hash,JSON.stringify(result),JSON.stringify({items,participant:p})]);await db.execute('INSERT INTO quality_result_heads(session_id,algorithm_version,baseline_version,input_hash) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE input_hash=VALUES(input_hash)',[p.id,result.algorithm_version,result.baseline_version??'none',result.input_hash]);}return{count:Object.keys(data.results).length,baseline_version:baseline?.version??null,diagnostics:data.diagnostics};
+  if (!options.baselineVersion && !options.cohort && shouldGrowBaseline(baseline, eligibleReferenceCount(people))) {
+    baseline=await freezeBaseline(surveyId);refreshAll=true;
+  }
+  const selected=people.filter(p=>(refreshAll||!options.sessionId||p.id===options.sessionId)&&(!options.cohort||(options.cohort==='trusted'?p.trusted:p.cohort===options.cohort)));
+  const data=await workerTask(!refreshAll&&(options.sessionId||options.cohort)?'calculate_subset':'calculate',surveyId,items,selected,baseline,progress);for(const p of selected){const result:QualityV2|undefined=data.results[p.id];if(!result)continue;await db.execute(`INSERT IGNORE INTO quality_results(session_id,algorithm_version,baseline_version,input_hash,result,input_snapshot) VALUES (?,?,?,?,?,?)`,[p.id,result.algorithm_version,result.baseline_version??'none',result.input_hash,JSON.stringify(result),JSON.stringify({items,participant:p})]);await db.execute('INSERT INTO quality_result_heads(session_id,algorithm_version,baseline_version,input_hash) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE input_hash=VALUES(input_hash)',[p.id,result.algorithm_version,result.baseline_version??'none',result.input_hash]);}return{count:Object.keys(data.results).length,baseline_version:baseline?.version??null,diagnostics:data.diagnostics};
 }
 let running=false;
 export async function enqueueQuality(surveyId:string,kind='recompute',options:Record<string,unknown>={}){if(!qualityEnabled())return null;const id=randomUUID();await db.execute('INSERT INTO quality_jobs(id,survey_id,kind,options) VALUES (?,?,?,?)',[id,surveyId,kind,JSON.stringify(options)]);void runJobs();return id;}
@@ -83,4 +88,19 @@ export async function runJobs() {
   } catch (error) { console.error('Quality V2 job runner error', error instanceof Error ? error.message : error); }
   finally { running = false; }
 }
-export async function resumeQualityJobs(){await db.execute("UPDATE quality_jobs SET status='queued',error='Resumed after server restart' WHERE status='running'");void runJobs();const interval=setInterval(()=>{void runJobs()},30000);interval.unref();}
+async function recoverGrowingBaselines() {
+  if (!qualityEnabled()) return;
+  const [rows]=await db.query<any[]>(`SELECT s.survey_id,b.snapshot,COUNT(rs.id) eligible
+    FROM quality_settings s JOIN quality_baselines b ON b.id=s.active_baseline
+    JOIN response_sessions rs ON rs.survey_id=s.survey_id AND rs.status='completed' AND rs.deleted_at IS NULL
+    LEFT JOIN quality_metadata m ON m.session_id=rs.id
+    WHERE COALESCE(m.confirmed_duplicate,0)=0 AND COALESCE(m.eligibility,'unknown')<>'fail'
+      AND COALESCE(m.cohort,'unassigned')<>'admin_test'
+    GROUP BY s.survey_id,b.id`);
+  for (const row of rows) {
+    if (!shouldGrowBaseline(json<Baseline>(row.snapshot), Number(row.eligible))) continue;
+    const [pending]=await db.query<any[]>("SELECT id FROM quality_jobs WHERE survey_id=? AND status IN ('queued','running') LIMIT 1",[row.survey_id]);
+    if (!pending.length) await enqueueQuality(row.survey_id);
+  }
+}
+export async function resumeQualityJobs(){await db.execute("UPDATE quality_jobs SET status='queued',error='Resumed after server restart' WHERE status='running'");await recoverGrowingBaselines();void runJobs();const interval=setInterval(()=>{void runJobs()},30000);interval.unref();}
