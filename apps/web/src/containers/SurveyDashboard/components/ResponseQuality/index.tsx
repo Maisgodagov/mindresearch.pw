@@ -56,14 +56,13 @@ const metricHints: Partial<Record<MetricKey,string>> = {
   fastRun:'Максимальная серия быстрых ответов внутри одного блока.',
 };
 
-export function QualityControls({view,onChange,visible,total,selectedCount=0,onExport}:{view:QualityView;onChange:(v:QualityView)=>void;visible:number;total:number;selectedCount?:number;onExport?:()=>void}) {
+export function QualityControls({view,onChange,visible,total}:{view:QualityView;onChange:(v:QualityView)=>void;visible:number;total:number}) {
   const basicCount=[view.status,view.qualityStatus,view.cohort,view.eligibility,view.available,view.telemetry].filter(v=>v!=='all').length;
   const activeCount=basicCount+view.filters.filter(f=>f.operator==='missing'||f.value.trim()!=='').length;
   const metricSort=!['newest','oldest','insufficient'].includes(view.sort);
   const patch=(next:Partial<QualityView>)=>onChange({...view,...next});
   const changeRule=(i:number,next:Partial<QualityView['filters'][number]>)=>patch({filters:view.filters.map((f,n)=>n===i?{...f,...next}:f)});
-  return <Surface aria-label="Фильтры респондентов">
-    <div className="filter-top"><div className="heading"><div className="heading-title"><ListFilter size={19} aria-hidden="true"/><h2>Фильтры и сортировка</h2></div>{onExport&&<Button disabled={!selectedCount} onClick={onExport}><Download size={14}/>Качество в CSV{selectedCount?` (${selectedCount})`:''}</Button>}</div><p>Условия применяются сразу. Для экспорта отметьте респондентов в таблице ниже.</p></div>
+  return <Surface className="compact-filters" aria-label="Фильтры респондентов">
     <div className="sort-row">
       <div><QualitySelect label="Сортировка" value={view.sort} options={[{value:'newest',label:'По дате · свежие сверху'},{value:'oldest',label:'По дате · старые сверху'},{value:'insufficient',label:'Сначала без оценки'},...METRICS.map(m=>({value:m.key,label:m.label}))]} onChange={sort=>patch({sort:sort as QualityView['sort']})} search/>
         {metricSort&&<div className="sort-direction" aria-label="Порядок сортировки"><button type="button" aria-pressed={view.direction==='asc'} onClick={()=>patch({direction:'asc'})}>Сначала низкие значения</button><button type="button" aria-pressed={view.direction==='desc'} onClick={()=>patch({direction:'desc'})}>Сначала высокие значения</button></div>}
@@ -71,13 +70,13 @@ export function QualityControls({view,onChange,visible,total,selectedCount=0,onE
       <QualitySelect label="Прохождение" value={view.status} options={choices({all:'Все прохождения',completed:'Завершённые',in_progress:'В процессе'})} onChange={status=>patch({status})}/>
       <QualitySelect label="Качество прохождения" value={view.qualityStatus} options={choices({all:'Любое качество',...STATUS})} onChange={qualityStatus=>patch({qualityStatus})}/>
     </div>
+    <details className="disclosure filter-extra"><summary><ListFilter size={15} aria-hidden="true"/>Дополнительные фильтры{activeCount>0&&<span className="active-count">{activeCount}</span>}<ChevronDown className="chevron" size={16}/></summary>
     <div className="presets" aria-label="Быстрый отбор">
       <Button onClick={()=>onChange({...resetView(),status:'completed',filters:[{metric:'overall',operator:'lte',value:'55'}]})}>Индекс ≤ 55</Button>
       <Button onClick={()=>onChange({...resetView(),status:'completed',filters:[{metric:'fastShare',operator:'gte',value:'20'}]})}>Быстрые ответы ≥ 20%</Button>
       <Button onClick={()=>onChange({...resetView(),available:'missing'})}>Без оценки</Button>
       <Button onClick={()=>patch({filters:[...view.filters,{metric:'overall',operator:'lte',value:''}]})}><Plus size={14}/>Своё условие</Button>
     </div>
-    <details className="disclosure filter-extra"><summary>Дополнительные фильтры<ChevronDown className="chevron" size={16}/></summary>
       <div className="fields">
         <QualitySelect label="Группа участников" value={view.cohort} options={choices({all:'Все группы',...COHORTS})} onChange={cohort=>patch({cohort})} hint="Группу назначает исследователь в настройках качества."/>
         <QualitySelect label="Критерии участия" value={view.eligibility} options={choices({all:'Любой статус',unknown:'Не проверены',pass:'Соответствует',fail:'Не соответствует'})} onChange={eligibility=>patch({eligibility})} hint="Например, возраст или другие условия включения в исследование."/>
@@ -96,7 +95,7 @@ export function QualityControls({view,onChange,visible,total,selectedCount=0,onE
         <p className="hint rule-note">{metricHints[f.metric]??METRIC_EXPLANATIONS[f.metric].calculation}<MetricExplanation metric={f.metric}/></p>
       </div>)}
     </div>}
-    <div className="filter-bottom"><div className="filter-result" aria-live="polite"><strong>Найдено {visible} из {total}{activeCount>0?` · условий: ${activeCount}`:''}</strong><span className="hint">{metricSort?'Результаты без значения показателя остаются внизу.':view.sort==='oldest'?'Старые прохождения сверху.':view.sort==='insufficient'?'Сначала результаты без оценки, затем остальные.':'Свежие прохождения сверху. Сброс вернёт весь список.'}</span></div><Button onClick={()=>onChange(resetView())}><RotateCcw size={14}/>Сбросить всё</Button></div>
+    <div className="filter-bottom"><span className="filter-result" role="status">Найдено <strong>{visible}</strong> из {total}</span>{(activeCount>0||view.sort!=='newest'||view.filters.length>0)&&<button className="reset-filters" type="button" onClick={()=>onChange(resetView())}><RotateCcw size={13}/>Сбросить всё</button>}</div>
     {visible===0&&total>0&&<div className="empty-filter"><Notice>Нет прохождений с такими условиями. Удалите одно из условий или нажмите «Сбросить всё», чтобы снова показать весь список.</Notice></div>}
   </Surface>;
 }

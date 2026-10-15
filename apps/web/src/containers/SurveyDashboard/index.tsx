@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
-import { exportRespondents, exportQualityCsv } from "../../admin/exportResults";
+import { exportRespondents } from "../../admin/exportResults";
 import { QualityOverview, QualityControls, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
 import { applyQualityView, DEFAULT_QUALITY_VIEW, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
@@ -361,7 +361,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           </Stat>
         </Grid>
         <Panel className="respondents-panel" data-quality-respondents>
-          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} selectedCount={selectedRespondents.length} onExport={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))} />
+          <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} />
           {pagination}
           {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
           <RespondentResults
