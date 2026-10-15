@@ -142,9 +142,13 @@ export const ProfileSurface = styled.div`
   .edit-details {
     align-self: start;
     margin-top: 6px;
-    border-color: #d8e2d4;
+    border-color: transparent;
     color: #3e5b44;
     background: #f6f9f3;
+  }
+  && .edit-details:hover,
+  && .edit-details:active {
+    border-color: transparent;
   }
   .profile-facts {
     display: grid;
