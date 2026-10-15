@@ -131,6 +131,8 @@ export type Result = {
   respondents: Respondent[];
   deletedRespondents: Respondent[];
   distribution: {
+    questionId?: string;
+    type?: string;
     code: string;
     text: string;
     value: string | number;

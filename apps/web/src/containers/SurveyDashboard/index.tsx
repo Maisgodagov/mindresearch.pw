@@ -1,3 +1,4 @@
+import { distributionQuestionKey } from "./components/AnswerDistribution/questionKey";
 import { usePageTitle } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -139,7 +140,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
   usePageTitle(survey?.title?`${survey.title} — статистика`:undefined);
   const questions = useMemo(
     () => [
-      ...new Map(result.distribution.map((x) => [x.code, x.text])).entries(),
+      ...new Map(result.distribution.map((x) => [distributionQuestionKey(x), x.text])).entries(),
     ],
     [result],
   );
@@ -155,7 +156,8 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     for (const respondent of result.respondents) {
       for (const group of respondent.groups) {
         for (const answer of group.answers) {
-          if (answer.code !== selectedQuestion) continue;
+          const selected = result.distribution.find(item => distributionQuestionKey(item) === selectedQuestion);
+          if (!selected || (selected.questionId ? answer.questionId !== selected.questionId : answer.code !== selected.code || answer.question !== selected.text)) continue;
           const label = answer.displayValue || String(answer.value ?? "");
           counts.set(label, (counts.get(label) ?? 0) + 1);
         }
@@ -165,7 +167,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
       return Array.from(counts, ([answer, count]) => ({ answer, count }));
     }
     return result.distribution
-      .filter((item) => item.code === selectedQuestion)
+      .filter((item) => distributionQuestionKey(item) === selectedQuestion)
       .map((item) => ({
         answer: item.label ?? String(item.value).replace(/^"|"$/g, ""),
         count: item.count,

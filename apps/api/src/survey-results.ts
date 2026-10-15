@@ -122,10 +122,10 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     groups: [...(grouped.get(session.id)?.values() ?? [])].sort((a, b) => a.position - b.position).map(group => ({ ...group, answers: group.answers.sort((a: any, b: any) => a.position - b.position) })),
     qualityV2: qualities[session.id] ?? null, detailsLoaded: !summary,
   }));
-  const [distributionRows] = sessionIds ? [[]] : await db.query<any[]>(`SELECT q.code,q.text,q.options,a.value,COUNT(*) count
+  const [distributionRows] = sessionIds ? [[]] : await db.query<any[]>(`SELECT q.id questionId,q.type,q.code,q.text,q.options,a.value,COUNT(*) count
     FROM answers a JOIN questions q ON q.id=a.question_id JOIN response_sessions rs ON rs.id=a.session_id
     WHERE rs.survey_id=? AND rs.deleted_at IS NULL GROUP BY q.id,a.value ORDER BY q.position`, [surveyId]);
-  const distribution = distributionRows.map(row => ({ code: row.code, text: row.text, value: parseJson(row.value),
+  const distribution = distributionRows.map(row => ({ questionId: row.questionId, type: row.type, code: row.code, text: row.text, value: parseJson(row.value),
     count: Number(row.count), label: displayValue(parseJson(row.value), parseJson(row.options) ?? []) }));
   return { sections, respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
 }
