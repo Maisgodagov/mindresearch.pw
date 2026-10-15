@@ -477,6 +477,32 @@ export const SurveyCard = styled(Card)`
     }
     .actions > a { margin-left: auto; }
   }
+  && .actions > .results-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 9px;
+    background: #52734c;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 160ms ease;
+  }
+  && .actions > .results-action:hover { background: #3e5e39; color: #fff; }
+  && .actions > .results-action:active { background: #324f2e; }
+  && .actions > .results-action:focus-visible { outline: 2px solid #64845c; outline-offset: 3px; }
+  .results-action svg { flex: none; }
+  @media (max-width: 520px) {
+    && .actions > .results-action { min-height: 40px; padding: 9px 12px; font-size: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { && .actions > .results-action { transition: none; } }
 `;
 export const TrashBar = styled.div`
   display: flex;

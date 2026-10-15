@@ -301,6 +301,7 @@ export function AdminUserPage() {
                             )}
                           </div>
                           <Link
+                            className="results-action"
                             to={`/app/admin/users/${userId}/surveys/${s.id}/results`}
                           >
                             Результаты опроса <ArrowRight size={14} />

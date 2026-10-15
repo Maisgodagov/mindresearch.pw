@@ -300,7 +300,7 @@ export function PlatformHome() {
                     </Button>
                   )}
                 </div>
-                <Link to={`/app/surveys/${s.id}/results`} data-survey-id={s.id}>
+                <Link className="results-action" to={`/app/surveys/${s.id}/results`} data-survey-id={s.id}>
                   Результаты опроса <ArrowRight size={14} />
                 </Link></SurveyTile>
           </Fragment>
