@@ -15,7 +15,7 @@ export function PlatformSidebar({ collapsed, links, onToggle, onReport, onLogout
         {mobileOpen ? <X size={22} /> : <Menu size={22} />}
       </MobileMenuButton>
       <div className="top">
-        <Link className="brand" to="/" aria-label="Главная страница mindresearch by Евгения Годагова" onClick={closeMobile} style={{ textDecoration: "none" }}><Leaf size={24} /><BrandWordmark /></Link>
+        <Link className="brand" to="/app" aria-label="Мои опросы — mindresearch" onClick={closeMobile} style={{ textDecoration: "none" }}><Leaf size={24} /><BrandWordmark /></Link>
         <ToggleButton className="toggle" type="button" aria-label={collapsed ? "Развернуть боковое меню" : "Свернуть боковое меню"} title={collapsed ? "Развернуть боковое меню" : "Свернуть боковое меню"} onClick={onToggle}>
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </ToggleButton>
