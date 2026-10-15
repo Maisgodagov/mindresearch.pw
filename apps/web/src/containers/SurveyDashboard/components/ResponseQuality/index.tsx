@@ -22,10 +22,12 @@ function QualitySelect({label,value,options,onChange,hint,disabled=false,search=
 function Notice({children}:{children:ReactNode}) { return <div className="notice"><Info size={16} aria-hidden="true"/><p>{children}</p></div>; }
 
 export function QualityOverview({people,qualities}:{people:Respondent[];qualities:Record<string,Quality>}) {
+  const completedCount=people.filter(p=>p.status==='completed').length;
   const values=people.filter(p=>p.status==='completed').flatMap(p=>qualities[p.id]?[qualities[p.id]]:[]);
   return <Surface>
     <div className="heading"><div className="heading-title"><ShieldCheck size={20} aria-hidden="true"/><h2>Качество прохождения</h2><span className="version-tag">V2</span></div></div>
     <p>Три индекса помогают заметить невнимательное прохождение и выбрать ответы для ручной проверки.</p>
+    <Notice>Для формирования эталона качества нужно минимум 10 подходящих завершённых прохождений. Сейчас завершено: {completedCount}. Расчёт запускается автоматически; для отдельных показателей может потребоваться больше участников и данных о времени ответов.</Notice>
     <div className="overview">
       <div><b>{values.length}</b><span title="Количество завершённых прохождений, для которых сохранён результат расчёта V2.">прохождений рассчитано</span></div>
       <div><b>{values.filter(q=>q.overall.partial).length}</b><span title="У общего индекса доступно только одно направление оценки: поведение либо ответы.">с частичным расчётом</span></div>

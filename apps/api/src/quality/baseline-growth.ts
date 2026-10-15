@@ -11,5 +11,5 @@ export function shouldGrowBaseline(baseline: Baseline | null, eligible: number):
   if (!baseline || baseline.source !== 'completed' || baseline.config.version !== QUALITY_V2_CONFIG.version) return false;
   const ref = QUALITY_V2_CONFIG.reference;
   const first = Math.ceil(ref.minQuestionN * ref.folds / (ref.folds - 1));
-  return [first, ref.minCalibrationN, ref.stableTailN].some(n => baseline.memberIds.length < n && eligible >= n);
+  return [10, first, ref.minCalibrationN, ref.stableTailN].some(n => baseline.memberIds.length < n && eligible >= n);
 }

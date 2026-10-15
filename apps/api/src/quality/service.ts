@@ -38,7 +38,7 @@ export async function freezeBaseline(surveyId:string,cohort?:string){const{items
   await db.execute(`INSERT IGNORE INTO quality_baselines(id,survey_id,algorithm_version,config_hash,snapshot) VALUES (?,?,?,?,?)`,[baseline.id,surveyId,baseline.config.version,baseline.configHash,JSON.stringify(baseline)]);await db.execute(`INSERT INTO quality_settings(survey_id,active_baseline) VALUES (?,?) ON DUPLICATE KEY UPDATE active_baseline=VALUES(active_baseline)`,[surveyId,baseline.id]);return baseline;
 }
 export async function recompute(surveyId:string,options:{sessionId?:string;cohort?:string;baselineVersion?:string}={},progress?:(done:number,total:number)=>void){const{items,people}=await loadQualityInputs(surveyId);let baseline=await activeBaseline(surveyId);if(options.baselineVersion){const[rows]=await db.query<any[]>('SELECT snapshot FROM quality_baselines WHERE id=? AND survey_id=?',[options.baselineVersion,surveyId]);if(!rows.length)throw new Error('Baseline не найден');baseline=json<Baseline>(rows[0].snapshot);}let refreshAll=false;
-  if(!baseline&&people.some(p=>p.status==='completed')){baseline=await freezeBaseline(surveyId);refreshAll=true;}
+  if(!baseline&&eligibleReferenceCount(people)>=10){baseline=await freezeBaseline(surveyId);refreshAll=true;}
   if(baseline&&baseline.config.version!==QUALITY_V2_CONFIG.version&&!options.baselineVersion)throw new Error('Algorithm version changed; create a new baseline');
   if(baseline&&baseline.itemHash!==hash(items))throw new Error('Структура вопросов изменилась; создайте новую версию baseline');
   if (!options.baselineVersion && !options.cohort && shouldGrowBaseline(baseline, eligibleReferenceCount(people))) {

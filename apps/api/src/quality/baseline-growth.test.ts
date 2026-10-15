@@ -4,7 +4,7 @@ import { QUALITY_V2_CONFIG } from './config.js';
 import type { Baseline } from './types.js';
 const baseline=(n:number,source='completed')=>({memberIds:Array.from({length:n},(_,i)=>String(i)),source,config:QUALITY_V2_CONFIG}) as Baseline;
 describe('reference growth',()=>{
- it('upgrades stale first-participant reference at 25 eligible completions',()=>{expect(shouldGrowBaseline(baseline(1),24)).toBe(false);expect(shouldGrowBaseline(baseline(1),36)).toBe(true)});
+ it('upgrades stale first-participant reference at 25 eligible completions',()=>{expect(shouldGrowBaseline(baseline(1),9)).toBe(false);expect(shouldGrowBaseline(baseline(1),10)).toBe(true);expect(shouldGrowBaseline(baseline(10),24)).toBe(false);expect(shouldGrowBaseline(baseline(1),36)).toBe(true)});
  it('grows in stages, then stays frozen',()=>{expect(shouldGrowBaseline(baseline(25),36)).toBe(false);expect(shouldGrowBaseline(baseline(25),50)).toBe(true);expect(shouldGrowBaseline(baseline(50),100)).toBe(true);expect(shouldGrowBaseline(baseline(100),500)).toBe(false)});
  it('preserves trusted references and other algorithm versions',()=>{expect(shouldGrowBaseline(baseline(1,'trusted'),100)).toBe(false);expect(shouldGrowBaseline({...baseline(1),config:{...QUALITY_V2_CONFIG,version:'old'}},100)).toBe(false);expect(shouldGrowBaseline(null,100)).toBe(false)});
  it('excludes incomplete, deleted upstream, test, duplicate and ineligible participants',()=>{const people=[{}, {status:'in_progress'}, {duplicate:true}, {eligibility:'fail'}, {cohort:'admin_test'}].map(p=>({status:'completed',duplicate:false,eligibility:'unknown',cohort:'unassigned',...p})) as Parameters<typeof eligibleReferenceCount>[0];expect(eligibleReferenceCount(people)).toBe(1)});
