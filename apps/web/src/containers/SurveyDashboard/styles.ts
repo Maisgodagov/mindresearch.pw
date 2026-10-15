@@ -56,7 +56,7 @@ export const SurveyTitleRow = styled.div`
     overflow-wrap: anywhere;
   }
   .title-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; max-width: 100%; min-width: 0; }
-  .participant-share { display: flex; align-items: center; gap: 10px; padding: 5px 6px 5px 12px; border: 1px solid #dce5d8; border-radius: 9px; background: #fff; max-width: 100%; min-width: 0; }
+  .participant-share { display: flex; align-items: center; gap: 10px; padding: 5px 6px 5px 12px; border: 0; height: 44px; box-sizing: border-box; border-radius: 9px; background: #fff; max-width: 100%; min-width: 0; }
   .participant-address { min-width: 0; display: grid; gap: 2px; }
   .share-label { color: #617266; font-size: 10px; line-height: 1.4; }
   .participant-url { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #405c46; font-size: 12px; line-height: 1.5; user-select: all; }
@@ -64,16 +64,16 @@ export const SurveyTitleRow = styled.div`
   .copy-participant-link svg { flex: none; }
   .copy-participant-link:focus-visible { outline: 2px solid #64845c; outline-offset: 2px; }
   .edit-survey {
-    min-height: 38px;
+    height: 44px;
+    min-height: 44px;
     flex: none;
     padding-inline: 13px;
     border-radius: 9px;
-    border-color: #d6e1d4;
+    border: 0 !important;
     color: #405c46;
     font-size: 12px;
   }
   .edit-survey:hover:not(:disabled) {
-    border-color: #c7d8c3;
     background: #edf4ea;
     color: #365532;
   }
@@ -84,7 +84,7 @@ export const SurveyTitleRow = styled.div`
     .title-actions { width: 100%; flex-wrap: nowrap; justify-content: flex-start; gap: 8px; }
     .participant-share { flex: 1; }
     .participant-url { max-width: 100%; font-size: 11px; }
-    .edit-survey { min-height: 36px; padding-inline: 10px; font-size: 11px; }
+    .edit-survey { min-height: 44px; padding-inline: 10px; font-size: 11px; }
   }
 `;
 
