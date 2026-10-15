@@ -2,7 +2,7 @@ import { BrandWordmark } from "../BrandWordmark";
 import { useState } from "react";
 import { Bug, Leaf, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
-import { Button } from "../Button";
+
 import { MobileMenuButton, Sidebar, ToggleButton } from "./styles";
 import type { PlatformSidebarProps } from "./types";
 
@@ -26,9 +26,9 @@ export function PlatformSidebar({ collapsed, links, onToggle, onReport, onLogout
             <Icon size={18} /><span>{label}</span>
           </NavLink>
         ))}
-        <Button className="report" type="button" title={collapsed ? "Сообщить об ошибке" : undefined} onClick={onReport}>
+        <button className="report" type="button" title={collapsed ? "Сообщить об ошибке" : undefined} onClick={onReport}>
           <Bug size={18} /><span>Сообщить об ошибке</span>
-        </Button>
+        </button>
       </div>
       <button className="logout" type="button" title={collapsed ? "Выйти" : undefined} aria-label="Выйти" onClick={onLogout}>
         <LogOut size={17} /><span>Выйти</span>

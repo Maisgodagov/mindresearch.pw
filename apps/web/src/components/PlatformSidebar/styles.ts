@@ -92,6 +92,8 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     color: #2f4e2b;
   }
   .report {
+    font-family: inherit;
+    line-height: inherit;
     width: 100%;
     margin-top: 16px;
     color: #69786d;
