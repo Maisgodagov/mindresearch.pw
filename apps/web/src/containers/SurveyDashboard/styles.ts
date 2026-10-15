@@ -40,6 +40,7 @@ export const Header = styled.header`
 
 export const SurveyTitleRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -54,6 +55,14 @@ export const SurveyTitleRow = styled.div`
     letter-spacing: -0.035em;
     overflow-wrap: anywhere;
   }
+  .title-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; max-width: 100%; min-width: 0; }
+  .participant-share { display: flex; align-items: center; gap: 10px; padding: 5px 6px 5px 12px; border: 1px solid #dce5d8; border-radius: 9px; background: #fff; max-width: 100%; min-width: 0; }
+  .participant-address { min-width: 0; display: grid; gap: 2px; }
+  .share-label { color: #617266; font-size: 10px; line-height: 1.4; }
+  .participant-url { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #405c46; font-size: 12px; line-height: 1.5; user-select: all; }
+  .copy-participant-link { width: 32px; min-width: 32px; height: 32px; min-height: 32px; padding: 0; flex: none; border: 0; border-radius: 6px; color: #44634b; background: #edf3e8; display: inline-flex; align-items: center; justify-content: center; }
+  .copy-participant-link svg { flex: none; }
+  .copy-participant-link:focus-visible { outline: 2px solid #64845c; outline-offset: 2px; }
   .edit-survey {
     min-height: 38px;
     flex: none;
@@ -72,6 +81,9 @@ export const SurveyTitleRow = styled.div`
     align-items: flex-start;
     min-height: 0;
     h1 { font-size: 23px; }
+    .title-actions { width: 100%; flex-wrap: nowrap; justify-content: flex-start; gap: 8px; }
+    .participant-share { flex: 1; }
+    .participant-url { max-width: 100%; font-size: 11px; }
     .edit-survey { min-height: 36px; padding-inline: 10px; font-size: 11px; }
   }
 `;
@@ -150,42 +162,6 @@ export const Panel = styled(Card)`
     line-height: 1.3;
     letter-spacing: -0.02em;
   }
-  .share-heading { margin-bottom: 10px; }
-  .share-content {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    min-width: 0;
-  }
-  .link {
-    min-width: 0;
-    flex: 1;
-    overflow: hidden;
-    padding: 10px 12px;
-    border: 1px solid #e4ebe1;
-    border-radius: 9px;
-    background: #f7f9f6;
-    color: #506957;
-    font-size: 12px;
-    line-height: 1.3;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .copy-link {
-    min-height: 38px;
-    flex: none;
-    padding: 7px 12px;
-    border: 1px solid #d8e2d6;
-    border-radius: 9px;
-    background: #fff;
-    color: #405a46;
-    font-size: 12px;
-  }
-  .copy-link:hover:not(:disabled) {
-    border-color: #c6d6c2;
-    background: #f1f6ef;
-    color: #365532;
-  }
   .respondent-toolbar,
   .distribution-toolbar {
     display: flex;
@@ -217,10 +193,6 @@ export const Panel = styled(Card)`
     padding: 10px;
     border-radius: 12px;
     h2 { font-size: 15px; }
-    .share-heading { margin-bottom: 6px; }
-    .share-content { gap: 5px; }
-    .link { padding: 7px 7px; font-size: 9px; }
-    .copy-link { min-height: 32px; padding: 5px 7px; font-size: 9px; }
     .respondent-toolbar,
     .distribution-toolbar { gap: 6px; margin-bottom: 8px; }
     .toolbar-actions button { min-height: 30px; padding: 4px 6px; font-size: 9px; }

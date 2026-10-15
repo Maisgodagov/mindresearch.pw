@@ -314,6 +314,14 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         )}
         <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
+          <div className="title-actions">
+            {survey && <div className="participant-share" role="group" aria-label="Ссылка для участников">
+              <div className="participant-address"><span className="share-label">Ссылка для участников</span><span className="participant-url" title={`${location.origin}/s/${survey.slug}`}>{location.origin}/s/{survey.slug}</span></div>
+              <Button className="copy-participant-link" aria-label="Скопировать ссылку для участников" title="Скопировать ссылку для участников" onClick={async () => {
+                try { await navigator.clipboard.writeText(`${location.origin}/s/${survey.slug}`); message.success("Ссылка скопирована"); }
+                catch { message.error("Не удалось скопировать ссылку. Её можно выделить вручную."); }
+              }}><Copy size={16} /></Button>
+            </div>}
           {survey && !inspectionOwnerId && !location.pathname.startsWith("/admin") && (
             <Button
               className="edit-survey"
@@ -322,6 +330,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
               <Pencil size={14} /> Редактировать
             </Button>
           )}
+          </div>
         </SurveyTitleRow>
         <Grid>
           <Stat>
@@ -351,24 +360,6 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             </div>
           </Stat>
         </Grid>
-        <Panel className="share-panel">
-          <div className="share-heading">
-            <h2>Ссылка для участников</h2>
-          </div>
-          <div className="share-content">
-            <div className="link">{location.origin}/s/{survey?.slug}</div>
-            <Button
-              className="copy-link"
-              onClick={() =>
-                navigator.clipboard.writeText(
-                  `${location.origin}/s/${survey?.slug}`,
-                )
-              }
-            >
-              <Copy size={14} /> Скопировать
-            </Button>
-          </div>
-        </Panel>
         <Panel className="respondents-panel" data-quality-respondents>
           <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} selectedCount={selectedRespondents.length} onExport={()=>exportQualityCsv(selectedRespondents.map(p=>({...p,qualityMetrics:qualities[p.id]})))} />
           {pagination}
