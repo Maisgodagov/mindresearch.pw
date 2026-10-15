@@ -103,6 +103,8 @@ export const SectionTitle = styled.div`
   }
 `;
 export const SurveyCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
   container-name: survey-card;
   container-type: inline-size;
   border-radius: 18px;
@@ -111,7 +113,9 @@ export const SurveyCard = styled(Card)`
     border-color 0.15s ease,
     box-shadow 0.15s ease;
   & > .ant-card-body {
+    flex: 1;
     display: grid;
+    grid-template-rows: auto 1fr auto;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       "head head"
@@ -226,7 +230,7 @@ export const SurveyCard = styled(Card)`
   .metrics {
     grid-area: metrics;
     display: grid;
-    align-content: center;
+    align-content: start;
     justify-self: stretch;
     gap: 12px;
     margin: 0;
@@ -355,6 +359,7 @@ export const SurveyCard = styled(Card)`
     & > .ant-card-body {
       grid-template-columns: minmax(0, 1fr);
       grid-template-areas: "head" "info" "metrics" "actions";
+      grid-template-rows: auto auto 1fr auto;
       row-gap: 0;
     }
     .card-info {
@@ -459,6 +464,7 @@ export const SurveyCard = styled(Card)`
     & > .ant-card-body {
       grid-template-columns: minmax(0, 1fr);
       grid-template-areas: "head" "info" "metrics" "actions";
+      grid-template-rows: auto auto 1fr auto;
       row-gap: 0;
     }
     .metrics {
