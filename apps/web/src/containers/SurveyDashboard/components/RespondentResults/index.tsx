@@ -10,7 +10,7 @@ import { Button } from "../../../../ui";
 import { FieldInput } from "../../../../components/FieldInput";
 import { shortNames } from "../../const";
 import { RESPONDENT_RESULTS_COPY as copy } from "./const";
-import { QualityToggleBar, Table, TableWrap, TrashBox, TrashToggle } from "./styles";
+import { Table, TableWrap, TrashBox, TrashToggle } from "./styles";
 import type { RespondentResultsProps } from "./types";
 import { percent } from "../ResponseQuality";
 import { MetricExplanation } from "../ResponseQuality/explanations";
@@ -86,14 +86,12 @@ export function RespondentResults({
               ? copy.preparing
               : `${copy.export}${selectedCount ? ` (${selectedCount})` : ""}`}
           </Button>
-        </div>
-      </div>
-      <QualityToggleBar>
         <Button aria-expanded={qualityExpanded} aria-controls={tableId} onClick={() => setQualityExpanded(value => !value)}>
           {qualityExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           {qualityExpanded ? "Скрыть показатели качества" : "Показать показатели качества"}
         </Button>
-      </QualityToggleBar>
+        </div>
+      </div>
       <TableWrap>
         <Table id={tableId} $qualityExpanded={qualityExpanded}>
           <thead>

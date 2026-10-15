@@ -173,7 +173,7 @@ export const Panel = styled(Card)`
   }
   .respondent-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px; min-width: 0; }
   .respondent-count { color: #77857a; font-size: 11px; font-variant-numeric: tabular-nums; }
-  .toolbar-actions { display: flex; align-items: center; flex: none; gap: 7px; }
+  .toolbar-actions { display: flex; align-items: center; flex: 0 1 auto; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
   .toolbar-actions button {
     min-height: 36px;
     padding: 6px 10px;
@@ -187,7 +187,7 @@ export const Panel = styled(Card)`
     .respondent-toolbar,
     .distribution-toolbar { align-items: flex-start; flex-direction: column; gap: 9px; }
     .toolbar-actions { width: 100%; }
-    .toolbar-actions button { flex: 1; justify-content: center; }
+    .toolbar-actions button { flex: 0 1 auto; justify-content: center; }
   }
   @media (max-width: 560px) {
     padding: 10px;

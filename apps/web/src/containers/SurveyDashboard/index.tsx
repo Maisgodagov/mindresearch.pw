@@ -362,7 +362,6 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         </Grid>
         <Panel className="respondents-panel" data-quality-respondents>
           <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} />
-          {pagination}
           {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
           <RespondentResults
             key={survey?.id}
