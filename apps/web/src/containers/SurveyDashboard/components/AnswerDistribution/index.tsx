@@ -1,3 +1,4 @@
+import { sortNumericAnswers } from "./sortAnswers";
 import { BarChart3 } from "lucide-react";
 import {
   Bar,
@@ -48,7 +49,7 @@ export function AnswerDistribution({
       </div>
       <DistributionChart>
         <ResponsiveContainer>
-          <BarChart data={data}>
+          <BarChart data={sortNumericAnswers(data)}>
             <CartesianGrid stroke="#e5ebe3" strokeDasharray="4 4" vertical={false} />
             <XAxis
               dataKey="answer"
