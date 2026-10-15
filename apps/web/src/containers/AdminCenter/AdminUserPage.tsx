@@ -303,7 +303,7 @@ export function AdminUserPage() {
                           <Link
                             to={`/app/admin/users/${userId}/surveys/${s.id}/results`}
                           >
-                            Статистика <ArrowRight size={14} />
+                            Результаты опроса <ArrowRight size={14} />
                           </Link>
                         </SurveyTile>
                         <div className="link-line">

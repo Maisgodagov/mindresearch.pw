@@ -156,10 +156,16 @@ export const SurveyCard = styled(Card)`
       background 0.15s ease,
       color 0.15s ease;
   }
-  .card-tools .edit:hover {
+  .card-tools .edit:hover,
+  .card-tools .archive:hover {
     background: #edf3eb;
     color: #45624e;
   }
+  .card-tools .tool-button:focus-visible {
+    outline: 2px solid #64845c;
+    outline-offset: 2px;
+  }
+  .card-tools .archive:disabled { opacity: 0.55; cursor: wait; }
   &&&&& .card-tools .delete:hover {
     background: #f7e3e0 !important;
     color: #9c413a !important;

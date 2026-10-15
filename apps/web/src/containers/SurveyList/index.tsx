@@ -223,6 +223,18 @@ export function PlatformHome() {
                   >
                     <Pencil size={15} />
                   </Link>
+                  {s.status === "active" && (
+                    <button
+                      type="button"
+                      className="tool-button archive"
+                      aria-label={`Завершить опрос ${s.title}`}
+                      title="Завершить сбор ответов"
+                      disabled={working === s.id}
+                      onClick={() => setArchiveTarget(s)}
+                    >
+                      <Archive size={16} />
+                    </button>
+                  )}
                   <Button
                     className="delete"
                     aria-label={`Удалить опрос ${s.title}`}
@@ -248,12 +260,7 @@ export function PlatformHome() {
                       >
                         <ExternalLink size={14} /> Открыть
                       </a>
-                      <Button
-                        className="archive-action"
-                        onClick={() => setArchiveTarget(s)}
-                      >
-                        <Archive size={14} /> Завершить
-                      </Button>
+
                     </>
                   ) : s.status === "archived" ? (
                     <Button
@@ -294,7 +301,7 @@ export function PlatformHome() {
                   )}
                 </div>
                 <Link to={`/app/surveys/${s.id}/results`} data-survey-id={s.id}>
-                  Статистика <ArrowRight size={14} />
+                  Результаты опроса <ArrowRight size={14} />
                 </Link></SurveyTile>
           </Fragment>
         ))}
