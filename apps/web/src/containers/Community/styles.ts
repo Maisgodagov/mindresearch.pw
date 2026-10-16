@@ -14,6 +14,47 @@ export const CommunityModal = styled(Modal)`
 `;
 
 export const CommunitySurface = styled.div`
+  .panel.listing-editor { max-width: 840px; margin: 20px auto; padding: 26px; }
+  .listing-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+  .listing-heading h2 { font-size: 23px; font-weight: 650; margin: 0; }
+  .listing-heading > span { color: var(--color-muted); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .listing-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 26px; }
+  .listing-steps span { font-size: 13px; color: var(--color-muted); padding: 0 4px 12px; border-bottom: 2px solid var(--color-border); }
+  .listing-steps [aria-current="step"] { color: var(--color-brand-strong); border-color: var(--color-brand-strong); font-weight: 650; }
+  .listing-editor .ant-form-item { margin-bottom: 16px; }
+  .listing-editor .ant-form-item-label { padding-bottom: 5px; }
+  .listing-editor .ant-form-item-label > label { font-size: 13px; }
+  .listing-editor .ant-form-item-extra { font-size: 12px; color: var(--color-muted); }
+  .listing-editor .ant-select-multiple,
+  .listing-editor .ant-select-multiple .ant-select-selector { min-height: 42px; }
+  .listing-editor .fields { gap: 0 16px; }
+  .listing-editor .listing-hint { font-size: 13px; color: var(--color-muted); margin: 0 0 18px; }
+  .listing-editor details.listing-extra { margin: 0; font-size: 13px; }
+  .listing-editor .listing-extra > summary { color: var(--color-brand-strong); font-size: 13px; font-weight: 550; padding: 11px 0; cursor: pointer; }
+  .listing-editor .listing-extra[open] > summary { margin-bottom: 8px; }
+  .listing-quotas { margin: 18px 0 8px; padding-top: 18px; border-top: 1px solid var(--color-border); }
+  .listing-quota + .listing-quota, .listing-screening + .listing-screening { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-border); }
+  .listing-editor .listing-add { padding: 6px 0; height: auto; font-size: 13px; }
+  .listing-review { margin: 0 0 24px; }
+  .listing-review > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 16px; padding: 9px 0; }
+  .listing-review dt { font-size: 13px; color: var(--color-muted); }
+  .listing-review dd { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+  .listing-editor .listing-budget-note { font-size: 13px; line-height: 1.65; color: var(--color-muted); }
+  .listing-budget-note strong { color: var(--color-ink); font-weight: 650; }
+  .listing-editor .listing-error { font-size: 13px; color: #9b322d; margin: 18px 0 0; }
+  .listing-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
+  .listing-actions > div { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+  .listing-actions .ant-btn { min-height: 42px; height: auto; white-space: normal; }
+  @media (max-width: 760px) {
+    .panel.listing-editor { padding: 22px 18px; margin: 12px 0; }
+    .listing-heading { gap: 12px; }
+    .listing-heading h2 { font-size: 21px; }
+    .listing-editor .listing-basic-criteria { grid-template-columns: 1fr 1fr; }
+    .listing-steps span { font-size: 12px; }
+    .listing-actions { gap: 8px; align-items: flex-start; }
+    .listing-actions > .ant-btn { padding-inline: 6px; }
+    .listing-review > div { grid-template-columns: 82px minmax(0, 1fr); gap: 12px; }
+  }
   .community-header {
     display: flex;
     align-items: center;
