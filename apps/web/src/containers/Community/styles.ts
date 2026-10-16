@@ -24,6 +24,14 @@ export const CommunitySurface = styled.div`
   .listing-editor .ant-form-item { margin-bottom: 16px; }
   .listing-editor .ant-form-item-label { padding-bottom: 5px; }
   .listing-editor .ant-form-item-label > label { font-size: 13px; }
+  .listing-editor .ant-input { min-height: 44px; border-radius: 12px; border-color: #d2ddd2; font-size: 14px; }
+  .listing-editor textarea.ant-input { padding: 12px 14px; }
+  .listing-range-control { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; background: #fff; border: 1px solid #d2ddd2; border-radius: 12px; color: #26382f; font: inherit; font-size: 14px; cursor: pointer; }
+  .listing-range-control:hover { border-color: #78947e; }
+  .listing-range-control:focus-visible, .listing-choice-field button:focus-visible { outline: 3px solid #dfe9db; outline-offset: 2px; }
+  .listing-choice-field { display: flex; flex-wrap: wrap; gap: 7px; }
+  .listing-choice-field button { background: #fff; border: 1px solid #d2ddd2; border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 12px; color: #405449; cursor: pointer; }
+  .listing-choice-field button[aria-pressed="true"] { background: #e8f0e3; color: #365532; border-color: #78947e; }
   .listing-editor .ant-form-item-extra { font-size: 12px; color: var(--color-muted); }
   .listing-editor .ant-select-multiple,
   .listing-editor .ant-select-multiple .ant-select-selector { min-height: 42px; }

@@ -98,6 +98,17 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     const [rows]=await db.query<any[]>('SELECT COUNT(*) count FROM community_participations WHERE listing_id=?',[l.id]);expect(rows[0].count).toBe(1);
     expect((await request(author,`/listings/${l.id}/join`,'POST',{})).status).toBe(403);
   });
+  it('derives listing duration from the owned survey instead of client input',async()=>{
+    const surveyId=randomUUID();
+    await db.execute("INSERT INTO surveys(id,owner_id,slug,title,welcome_title,welcome_text,status,settings) VALUES (?,?,?,?,?,?,'active',?)",[surveyId,author,`fixture-${surveyId}`,'Время из опроса','Начало','Тест',JSON.stringify({estimatedDuration:{mode:'custom',text:'10–15 минут'}})]);
+    const choices=await request(author,'/surveys');
+    expect(choices.data.find((s:any)=>s.id===surveyId)).toMatchObject({minutes:15,durationLabel:'10–15 минут',eligible:true});
+    const made=await request(author,'/listings','POST',{surveyId,description:'Описание для проверки времени из опроса',topic:'Исследование',minutes:1,criteria:{},screening:[],quotas:[{id:'all',label:'Все',target:10}],budget:4});
+    expect(made.status).toBe(201);
+    const saved=(await request(author,'/listings')).data.find((l:any)=>l.id===made.data.id);
+    expect(saved.config.minutes).toBe(15);expect(saved.reward).toBe(2);
+    expect((await request(researcher,'/surveys')).status).toBe(403);
+  });
   it('records failed screening once without consuming budget or creating response sessions',async()=>{
     const l=await create(2,[{id:'q1',question:'Живёте с ребёнком?',options:['Да','Нет'],accepted:[0]}]);
     expect((await request(a,`/listings/${l.id}/join`,'POST',{answers:{q1:1}})).data.screenedOut).toBe(true);
