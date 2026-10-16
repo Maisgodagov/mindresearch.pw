@@ -451,6 +451,18 @@ export const CommunitySurface = styled.div`
   }
   .research-list { display: grid; gap: 16px; }
   .promotion-card, .participation-card { margin-bottom: 16px; }
+  .research-row.promotion-card { display: block; padding: 24px; }
+  .promotion-card .research-content { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 0 16px; }
+  .promotion-card .research-content > h2 { margin: 0; }
+  .promotion-card .research-content > .ant-tag { margin: 0; }
+  .promotion-stats { grid-column: 1 / -1; display: flex; gap: 24px 48px; flex-wrap: wrap; margin: 24px 0 16px; }
+  .promotion-stats > div { min-width: 100px; }
+  .promotion-stats dt { color: var(--color-muted); font-size: 12px; margin-bottom: 6px; }
+  .promotion-stats dd { margin: 0; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .promotion-stats dd span { font-size: 14px; color: var(--color-muted); font-weight: 400; }
+  .promotion-card .listing-details { grid-column: 1 / -1; }
+  .promotion-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 16px; }
+  .promotion-actions > .ant-btn:first-child { margin-right: auto; }
   .research-content { min-width: 0; }
   .research-content > .ant-tag { margin: 2px 0 10px; padding: 4px 10px; border: 0; border-radius: 7px; background: #f0f5ec; color: #405b3c; font-size: 12px; }
   .research-content > .ant-tag.ant-tag-warning { background: #faf5e9; color: #6e5938; }
@@ -613,6 +625,15 @@ export const CommunitySurface = styled.div`
     .participate > .ant-btn { grid-column: 1 / -1; }
     .participate > .actions { grid-column: 1 / -1; }
     .promotion-card .participate > .ant-btn { margin-top: 0; }
+    .research-row.promotion-card { padding: 20px; }
+    .promotion-card .research-content { grid-template-columns: 1fr; gap: 10px; }
+    .promotion-card .research-content > .ant-tag { justify-self: start; }
+    .promotion-stats { gap: 20px; margin: 10px 0 0; }
+    .promotion-stats > div { min-width: 0; flex: 1 1 auto; }
+    .promotion-stats dd { font-size: 18px; }
+    .promotion-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+    .promotion-actions > .ant-btn { width: 100%; margin: 0; }
+    .promotion-actions > .ant-btn-primary { grid-column: 1 / -1; grid-row: 1; }
     .questionnaire {
       margin: 20px auto;
     }

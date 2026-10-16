@@ -490,9 +490,11 @@ export function Community() {
                                           ? "Бюджет исчерпан"
                                           : "Продвигается"}
                                 </Tag>
-                                <p className="listing-summary">
-                                  Зачтено: <strong>{l.completed}</strong> · В работе: {Number(l.pending) + Number(l.reserved)}
-                                </p>
+                                <dl className="promotion-stats">
+                                  <div><dt>Зачтено ответов</dt><dd>{l.completed}<span> / {l.config.quotas.reduce((sum: number, q: any) => sum + Number(q.target), 0)}</span></dd></div>
+                                  <div><dt>В работе</dt><dd>{Number(l.pending) + Number(l.reserved)}</dd></div>
+                                  <div><dt>Бюджет</dt><dd>{points(l.earned_budget + l.bonus_budget)}</dd></div>
+                                </dl>
                                 <details className="listing-details">
                                 <summary>Статистика и выборка</summary>
                                 <div className="research-meta">
@@ -526,9 +528,7 @@ export function Community() {
                                 </p>
                                 </details>
                                 </div>
-                                <div className="participate">
-                                  <span className="research-time">Бюджет продвижения</span>
-                                  <strong>{points(l.earned_budget + l.bonus_budget)}</strong>
+                                <div className="promotion-actions">
                                 {l.state !== "closed" && (
                                   <>
                                     <Button
