@@ -3,7 +3,6 @@ import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Archive,
-  Handshake,
   ArchiveRestore,
   ArrowRight,
   BarChart3,
@@ -37,7 +36,6 @@ import {
 import { SurveyConfirmModal } from "../../components/SurveyConfirmModal";
 
 export function PlatformHome() {
-  const [communityAllowed, setCommunityAllowed] = useState(false);
   const [surveys, setSurveys] = useState<Survey[]>([]),
     [trash, setTrash] = useState<Survey[]>([]),
     [loading, setLoading] = useState(true),
@@ -59,7 +57,6 @@ export function PlatformHome() {
         setSurveys(s.data);
         setTrash(t.data);
         setName(u.name);
-        setCommunityAllowed(["owner", "admin"].includes(u.role));
       })
       .catch(() => {
         if (useDemoFallbacks) {
@@ -213,7 +210,6 @@ export function PlatformHome() {
               </SectionTitle>
             )}
             <SurveyTile survey={s} tools={<>
-                  {communityAllowed && s.status === "active" && <Link className="tool-button" to={`/app/community?survey=${s.id}`} title="Разместить во взаимопомощи" aria-label={`Разместить во взаимопомощи: ${s.title}`}><Handshake size={16}/></Link>}
                   <Link
                     className="tool-button edit"
                    
