@@ -3,7 +3,7 @@ import type { SidebarLink } from "../../components/PlatformSidebar";
 
 const coreLinks: SidebarLink[] = [
   { to: "/app", end: true, label: "Мои опросы", icon: ClipboardList },
-  { to: "/app/surveys/new", label: "Создать", icon: Plus },
+  { to: "/app/surveys/new", label: "Создать опрос", icon: Plus },
   { to: "/app/methodologies/suggest", label: "Запросить методику", icon: Send },
   { to: "/app/profile", label: "Профиль", icon: UserRound },
 ];
