@@ -95,6 +95,13 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     expect(results.map(r=>r.status).sort()).toEqual([200,409]);
     const winner=results[0].status===200?a:b;
     const retry=await request(winner,`/listings/${l.id}/join`,'POST',{});expect(retry.data.token).toBe(results.find(r=>r.status===200)!.data.token);
+    const ongoing=(await request(winner,'/feed')).data.find((x:any)=>x.id===l.id);
+    expect(ongoing.match).toBe('resume');expect(ongoing.participation.token).toBe(retry.data.token);
+    await request(author,`/listings/${l.id}`,'PATCH',{state:'paused'});
+    expect((await request(winner,'/feed')).data.some((x:any)=>x.id===l.id)).toBe(true);
+    await finish(retry.data.token);
+    expect((await request(winner,'/feed')).data.some((x:any)=>x.id===l.id)).toBe(false);
+    await settle();
     const [rows]=await db.query<any[]>('SELECT COUNT(*) count FROM community_participations WHERE listing_id=?',[l.id]);expect(rows[0].count).toBe(1);
     expect((await request(author,`/listings/${l.id}/join`,'POST',{})).status).toBe(403);
   });

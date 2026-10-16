@@ -299,7 +299,23 @@ communityRouter.get(
         authors.add(row.owner_id);
       }
     }
-    res.json([...feed, ...deferred]);
+    const [started] = await db.query<any[]>(`SELECT p.id participationId,p.reward,p.expires_at expiresAt,p.snapshot,
+      l.id,s.title,s.slug,rs.public_token token,u.name author
+      FROM community_participations p JOIN community_listings l ON l.id=p.listing_id
+      JOIN surveys s ON s.id=l.survey_id JOIN response_sessions rs ON rs.id=p.session_id
+      JOIN users u ON u.id=l.owner_id
+      WHERE p.user_id=? AND p.status='reserved' AND p.expires_at>NOW()
+      AND rs.status<>'completed' AND s.status='active' AND s.deleted_at IS NULL
+      ORDER BY p.created_at DESC`, [req.user!.id]);
+    const ongoing = started.map(row => {
+      const snapshot = json(row.snapshot);
+      const config = snapshot.config ?? snapshot.listing;
+      return { id: row.id, title: row.title, author: row.author, description: config.description,
+        topic: config.topic, sensitive: config.sensitive, minutes: config.minutes, reward: row.reward,
+        criteria: config.criteria, screening: [], quotas: [], match: "resume",
+        participation: { id: row.participationId, slug: row.slug, token: row.token, expiresAt: row.expiresAt } };
+    });
+    res.json([...ongoing, ...feed, ...deferred]);
   }),
 );
 

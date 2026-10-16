@@ -380,7 +380,7 @@ export function Community() {
                                       </p>
                                     )}
                                     <p className="research-match">
-                                      {x.match === "pass"
+                                      {x.participation ? "Вы уже начали этот опрос" : x.match === "pass"
                                         ? "Подходит по вашей карточке"
                                         : x.match === "screening"
                                           ? "Короткий отбор перед участием"
@@ -395,7 +395,8 @@ export function Community() {
                                       type="primary"
                                       loading={working}
                                       onClick={() => {
-                                        if (x.match === "unknown")
+                                        if (x.participation) openParticipation(x.participation);
+                                        else if (x.match === "unknown")
                                           setEditingProfile(true);
                                         else if (x.screening.length) {
                                           screenForm.resetFields();
@@ -403,7 +404,7 @@ export function Community() {
                                         } else void join(x);
                                       }}
                                     >
-                                      {x.match === "unknown"
+                                      {x.participation ? "Продолжить опрос" : x.match === "unknown"
                                         ? "Уточнить карточку"
                                         : "Участвовать"}
                                     </Button>
