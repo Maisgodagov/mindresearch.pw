@@ -145,6 +145,7 @@ export function RespondentResults({
                         )}
                       </Button>
                       {person.alias}
+                      {person.source === "community" && <small title="Источник участия">Взаимопомощь</small>}
                     </div>
                   </td>
                   <td>

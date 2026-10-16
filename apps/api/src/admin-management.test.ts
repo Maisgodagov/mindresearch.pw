@@ -146,6 +146,16 @@ describe("administrator inspection and deletion", () => {
     expect(mocks.connection.rollback).toHaveBeenCalledOnce();
     expect(mocks.connection.commit).not.toHaveBeenCalled();
   });
+  it("preserves community rewards and budgets while a user has unsettled participations", async () => {
+    const original = mocks.connection.query.getMockImplementation()!;
+    mocks.connection.query.mockImplementation(async (sql: string, ...args: any[]) =>
+      sql.includes('FROM community_participations') ? [[{id:'reserved-participation'}]] : original(sql,...args),
+    );
+    const r = await request('/admin/users/target', 'actor', { method:'DELETE', body:{confirmEmail:'target@example.test'} });
+    expect(r.status).toBe(409);
+    expect(mocks.connection.execute).not.toHaveBeenCalled();
+    expect(mocks.connection.rollback).toHaveBeenCalledOnce();
+  });
   it("does not delete a survey during background recomputation", async () => {
     mocks.connection.query.mockImplementation(async (sql: string) =>
       sql.includes("FROM users")

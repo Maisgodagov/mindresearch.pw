@@ -102,6 +102,15 @@ adminManagementRouter.delete(
               "Дождитесь завершения пересчёта качества в опросах этого пользователя",
           });
       }
+      const [communityReservations] = await connection.query<any[]>(
+        `SELECT p.id FROM community_participations p JOIN community_listings l ON l.id=p.listing_id
+         WHERE (p.user_id=? OR l.owner_id=?) AND p.status IN ('reserved','pending','review') LIMIT 1`,
+        [user.id, user.id],
+      );
+      if (communityReservations.length) {
+        await connection.rollback();
+        return res.status(409).json({ message: 'Сначала завершите проверку участий во взаимопомощи и дождитесь освобождения резервов. Это сохранит обещанные награды и бюджеты.' });
+      }
       const [counts] = await connection.query<any[]>(
         "SELECT COUNT(*) count FROM response_sessions rs JOIN surveys s ON s.id=rs.survey_id WHERE s.owner_id=?",
         [user.id],

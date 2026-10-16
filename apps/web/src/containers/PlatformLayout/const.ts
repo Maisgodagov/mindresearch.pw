@@ -1,4 +1,4 @@
-import { ClipboardList, Plus, Send, ShieldCheck, UserRound } from "lucide-react";
+import { ClipboardList, Handshake, Plus, Send, ShieldCheck, UserRound } from "lucide-react";
 import type { SidebarLink } from "../../components/PlatformSidebar";
 
 const coreLinks: SidebarLink[] = [
@@ -12,6 +12,7 @@ export function getSidebarLinks(role: string): SidebarLink[] {
   if (!["owner", "admin"].includes(role)) return coreLinks;
   return [
     ...coreLinks.slice(0, 3),
+    { to: "/app/community", label: "Взаимопомощь", icon: Handshake },
     { to: "/app/admin/methodologies", label: "Конструктор методик", icon: ClipboardList },
     { to: "/app/admin", label: "Админ-центр", icon: ShieldCheck },
     coreLinks[3],

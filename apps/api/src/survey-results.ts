@@ -71,6 +71,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at startedAt,rs.last_activity_at lastActivityAt,
       rs.completed_at completedAt,rs.deleted_at deletedAt,COUNT(a.id) answered,
       MAX(CASE WHEN s.code='respondent' AND q.code='alias' THEN CAST(a.value AS CHAR) END) aliasValue,
+      IF(EXISTS(SELECT 1 FROM community_participations cp WHERE cp.session_id=rs.id),'community','direct') source,
       m.cohort,m.calibration_trusted calibrationTrusted,m.eligibility,m.eligibility_reason eligibilityReason,m.confirmed_duplicate confirmedDuplicate
       FROM response_sessions rs LEFT JOIN answers a ON a.session_id=rs.id
       LEFT JOIN questions q ON q.id=a.question_id LEFT JOIN sections s ON s.id=q.section_id

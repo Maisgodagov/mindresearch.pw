@@ -11,6 +11,8 @@ import bcrypt from 'bcryptjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
+import { migrateCommunity } from './community/schema.js';
+import { communityRouter, startCommunityWorker } from './community/router.js';
 import { clearRefreshCookie, createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
 import { calculateAmsForSession, calculateBfi2ForSession, calculateBfi2ShortForSession, calculateBriefCopeRuForSession, calculateConfiguredAssessmentsForSession, calculateCsesForSession, calculateDebqForSession, calculateGpsForSession, calculateGsesForSession, calculateIpipNeo120ForSession, calculateMiniIpipForSession, calculateMspssForSession, calculateNspsForSession, calculatePpsForSession, calculateRsesForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession, calculateStudyAlienationForSession, calculateTipiRuForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
@@ -28,6 +30,7 @@ app.use('/api',adminManagementRouter);
 app.use('/api',analyticsRouter);
 app.use('/api',platformRouter);
 app.use('/api',qualityRouter);
+app.use('/api',communityRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/public/surveys/:slug',async(req,res,next)=>{try{
@@ -142,4 +145,4 @@ app.post('/api/admin/surveys/:id/results/restore',requireAuth,async(req:AuthRequ
 }catch(e){next(e)}});
 app.get('/api/admin/sessions/:id',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT q.code,q.text,q.options,a.value,a.answered_at AS answeredAt,s.title sectionTitle FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN surveys sv ON sv.id=s.survey_id WHERE a.session_id=? AND sv.owner_id=? ORDER BY s.position,q.position`,[req.params.id,req.user!.id]);res.json(rows)}catch(e){next(e)}});
 app.use((err:any,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{console.error(err);if(err instanceof z.ZodError)return res.status(400).json({message:'Некорректные данные',issues:err.issues});res.status(500).json({message:'Внутренняя ошибка сервера'})});
-const port=Number(process.env.PORT??4000); migrate().then(()=>{void resumeQualityJobs();return app.listen(port,()=>console.log(`API http://localhost:${port}`))}).catch(e=>{console.error(e);process.exit(1)});
+const port=Number(process.env.PORT??4000); migrate().then(migrateCommunity).then(()=>{startCommunityWorker();void resumeQualityJobs();return app.listen(port,()=>console.log(`API http://localhost:${port}`))}).catch(e=>{console.error(e);process.exit(1)});

@@ -108,6 +108,7 @@ export type AnswerGroup = {
   answers: Answer[];
 };
 export type Respondent = {
+  source?: "community" | "direct";
   detailsLoaded?: boolean;
   qualityV2?: import("./quality").Quality | null;
   cohort?: string;

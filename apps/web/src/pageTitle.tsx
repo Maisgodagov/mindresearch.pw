@@ -19,6 +19,7 @@ export function PageTitles() {
       "/forgot-password": "Восстановление пароля",
       "/reset-password": "Новый пароль",
       "/app": "Мои опросы",
+      "/app/community": "Взаимопомощь",
       "/app/profile": "Профиль и настройки",
       "/app/surveys/new": "Создание опроса",
       "/app/methodologies/suggest": "Запрос методики",

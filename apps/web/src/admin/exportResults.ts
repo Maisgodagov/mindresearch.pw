@@ -25,6 +25,7 @@ type ExportScores = Record<string, unknown> & {
   reference?: { zScore?: unknown };
 };
 export type ExportRespondent = {
+  source?: "community" | "direct";
   qualityMetrics?: Quality;
   cohort?: string;
   eligibility?: string;
@@ -84,6 +85,7 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
     "Начато",
     "Последняя активность",
     "Завершено",
+    "Источник",
   ]);
   respondents.forEach((person) =>
     summary.addRow([
@@ -93,9 +95,10 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
       date(person.startedAt),
       date(person.lastActivityAt),
       date(person.completedAt),
+      person.source === "community" ? "Взаимопомощь" : "Прямая ссылка",
     ]),
   );
-  styleSheet(summary, [24, 16, 12, 21, 21, 21]);
+  styleSheet(summary, [24, 16, 12, 21, 21, 21, 22]);
 
   const quality = workbook.addWorksheet("Качество V2");
   const rows = respondents.map(qualityExportRow);

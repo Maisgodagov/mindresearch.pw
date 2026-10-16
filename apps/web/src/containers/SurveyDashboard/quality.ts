@@ -55,12 +55,13 @@ export function metricValue(q: Quality | undefined, key: MetricKey): number | nu
   }
 }
 export type QualityFilter = { metric: MetricKey; operator: 'gte' | 'lte' | 'missing'; value: string };
-export type QualityView = { sort: 'newest' | 'oldest' | 'insufficient' | MetricKey; direction: 'asc' | 'desc'; status: string; cohort: string; eligibility: string; available: string; telemetry: string; qualityStatus: string; filters: QualityFilter[] };
+export type QualityView = { sort: 'newest' | 'oldest' | 'insufficient' | MetricKey; direction: 'asc' | 'desc'; status: string; source?: string; cohort: string; eligibility: string; available: string; telemetry: string; qualityStatus: string; filters: QualityFilter[] };
 export const DEFAULT_QUALITY_VIEW: QualityView = { sort: 'newest', direction: 'desc', status: 'all', cohort: 'all', eligibility: 'all', available: 'all', telemetry: 'all', qualityStatus: 'all', filters: [] };
 export function applyQualityView(people: Respondent[], qualities: Record<string, Quality>, view: QualityView) {
   const visible = people.filter(p => {
     const q = qualities[p.id];
-    return (view.status === 'all' || p.status === view.status)
+    return (!view.source || view.source === 'all' || (p.source ?? 'direct') === view.source)
+      && (view.status === 'all' || p.status === view.status)
       && (view.cohort === 'all' || (p.cohort ?? 'unassigned') === view.cohort)
       && (view.eligibility === 'all' || (p.eligibility ?? 'unknown') === view.eligibility)
       && (view.available === 'all' || (view.available === 'present' ? q?.overall.score != null : q?.overall.score == null))

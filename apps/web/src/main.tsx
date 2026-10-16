@@ -13,6 +13,7 @@ import { AuthGuard } from "./platform/AuthGuard";
 import { PlatformLayout } from "./containers/PlatformLayout";
 import { SkeletonScreen } from "./ui";
 
+const Community = React.lazy(() => import("./containers/Community").then(m => ({ default: m.Community })));
 const SurveyPage = React.lazy(() =>
   import("./containers/SurveyTaking").then((m) => ({ default: m.SurveyPage })),
 );
@@ -137,6 +138,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Register />} />
           <Route path="/app" element={protectedPage(<PlatformHome />)} />
+          <Route path="/app/community" element={protectedPage(<Community />)} />
           <Route path="/app/profile" element={protectedPage(<ProfilePage />)} />
           <Route
             path="/app/methodologies/suggest"

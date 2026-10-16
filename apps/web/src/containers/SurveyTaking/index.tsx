@@ -241,7 +241,7 @@ export function SurveyPage() {
         </Shell>
       </Page>
     );
-  if (done) return <ResultsPage token={token} />;
+  if (done) return <>{new URLSearchParams(window.location.search).has("community") && <div style={{padding:"20px",textAlign:"center"}}><p>Спасибо за участие! Статус начисления появится после проверки.</p><a href="/app/community?tab=participation">Вернуться во взаимопомощь</a></div>}<ResultsPage token={token} /></>;
   if (!started)
     return (
       <Page>

@@ -2,7 +2,7 @@ import { distributionQuestionKey } from "./components/AnswerDistribution/questio
 import { usePageTitle } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { message } from "antd";
+import { message, Select } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   CheckCircle2,
@@ -365,6 +365,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         <Panel className="respondents-panel" data-quality-respondents>
           <QualityControls view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} />
           {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
+          <div style={{marginBottom:16}}><label htmlFor="response-source" style={{marginRight:12}}>Источник участников</label><Select id="response-source" value={qualityView.source ?? "all"} style={{minWidth:190}} options={[{value:"all",label:"Все источники"},{value:"community",label:"Взаимопомощь"},{value:"direct",label:"Прямая ссылка"}]} onChange={source=>{setQualityView(v=>({...v,source}));setPage(1);setSelected({});}} /></div>
           <RespondentResults
             key={survey?.id}
             readOnly={!!inspectionOwnerId}
