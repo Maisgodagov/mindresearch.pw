@@ -2,7 +2,6 @@ export const labels: Record<string, string> = {
   female: "Женщины",
   male: "Мужчины",
   other: "Другой",
-  private: "Предпочитаю не указывать",
   school: "Среднее",
   college: "Среднее профессиональное",
   university_student: "Неоконченное высшее",
@@ -22,13 +21,13 @@ export const labels: Record<string, string> = {
   yes: "Да",
   no: "Нет",
 };
-export const options = (keys: string[], privateOption = false) =>
-  [...keys, ...(privateOption ? ["private"] : [])].map((value) => ({
+export const options = (keys: string[]) =>
+  keys.map((value) => ({
     value,
     label: labels[value] ?? value,
   }));
 export const profileFields = {
-  sex: ["female", "male", "other"],
+  sex: ["female", "male"],
   education: [
     "school",
     "college",

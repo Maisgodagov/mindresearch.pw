@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ageAt, ageForProfile } from "./age.js";
+export { ageAt, ageForProfile } from "./age.js";
 
 export const choices = {
   sex: ["female", "male", "other", "private"],
@@ -32,10 +34,12 @@ const text = z.string().trim().min(1).max(160);
 export const profileSchema = z
   .object({
     adultConfirmed: z.literal(true),
-    birthDate: z.iso.date().nullable(),
+    birthDate: z.iso.date().nullable().optional(),
+    age: z.number().int().min(18).max(100).optional(),
+    ageRecordedAt: z.iso.date().optional(),
     sex: z.enum(choices.sex),
-    country: text,
-    region: text,
+    country: text.optional(),
+    region: text.optional(),
     education: z.enum(choices.education),
     studying: z.enum(["yes", "no", "private"]),
     employment: z.enum(choices.employment),
@@ -58,17 +62,38 @@ export const profileSchema = z
       });
   });
 export type Profile = z.infer<typeof profileSchema>;
-export function ageAt(date: string, today = new Date()) {
-  const [y, m, d] = date.split("-").map(Number);
-  return (
-    today.getUTCFullYear() -
-    y -
-    (today.getUTCMonth() + 1 < m ||
-    (today.getUTCMonth() + 1 === m && today.getUTCDate() < d)
-      ? 1
-      : 0)
-  );
-}
+// New submissions are mandatory except for information about children.
+// The wider read schema above preserves already saved cards and snapshots.
+export const profileInputSchema = profileSchema
+  .safeExtend({
+    age: z.number().int().min(18).max(100),
+    birthDate: z.never().optional(),
+    sex: z.enum(["female", "male"]),
+    education: z.enum([
+      "school",
+      "college",
+      "university_student",
+      "higher",
+      "postgraduate",
+    ]),
+    studying: z.enum(["yes", "no"]),
+    employment: z.enum([
+      "employed",
+      "self_employed",
+      "student",
+      "unemployed",
+      "retired",
+      "parental_leave",
+    ]),
+    marital: z.enum([
+      "single",
+      "relationship",
+      "married",
+      "divorced",
+      "widowed",
+    ]),
+    childAges: z.array(z.number().int().min(0).max(100)).max(30),
+  });
 export const criteriaSchema = z
   .object({
     ageMin: z.number().int().min(18).max(100).optional(),
@@ -182,7 +207,7 @@ export function matches(
     else if (!valid(value)) return false;
     return true;
   };
-  const age = p.birthDate ? ageAt(p.birthDate, today) : null;
+  const age = ageForProfile(p, today);
   if (
     (c.ageMin !== undefined || c.ageMax !== undefined) &&
     !check(age, (a) => a >= (c.ageMin ?? 18) && a <= (c.ageMax ?? 100))
@@ -223,9 +248,9 @@ export function quotaFor(
     (q) =>
       (!q.sex || q.sex === p.sex) &&
       ((q.ageMin === 18 && q.ageMax === 100) ||
-        (p.birthDate &&
-          ageAt(p.birthDate, today) >= q.ageMin &&
-          ageAt(p.birthDate, today) <= q.ageMax)),
+        (ageForProfile(p, today) !== null &&
+          ageForProfile(p, today)! >= q.ageMin &&
+          ageForProfile(p, today)! <= q.ageMax)),
   );
 }
 export function screeningPass(

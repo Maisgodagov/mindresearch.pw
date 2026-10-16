@@ -56,7 +56,7 @@ const controls = css`
 export const ProfileSurface = styled.div`
   --profile-ink: #304d3a;
   --profile-muted: #647469;
-  max-width: 1060px;
+  width: 100%;
   color: var(--profile-ink);
   ${controls}
   .page-heading {

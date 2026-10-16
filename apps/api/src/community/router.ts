@@ -7,6 +7,8 @@ import { requireRole, type AuthRequest } from "../auth.js";
 import {
   listingSchema,
   profileSchema,
+  profileInputSchema,
+  ageForProfile,
   matches,
   quotaFor,
   rewardFor,
@@ -54,11 +56,9 @@ function route(fn: (req: AuthRequest, res: any) => Promise<unknown>) {
       e instanceof CommunityError
         ? res.status(e.status).json({ message: e.message })
         : e instanceof z.ZodError
-          ? res
-              .status(400)
-              .json({
-                message: e.issues[0]?.message ?? "Проверьте данные анкеты.",
-              })
+          ? res.status(400).json({
+              message: e.issues[0]?.message ?? "Проверьте данные анкеты.",
+            })
           : next(e),
     );
   };
@@ -171,9 +171,9 @@ communityRouter.put(
     const fields = [
       "adultConfirmed",
       "birthDate",
+      "age",
+      "ageRecordedAt",
       "sex",
-      "country",
-      "region",
       "education",
       "studying",
       "employment",
@@ -181,11 +181,12 @@ communityRouter.put(
       "children",
       "childAges",
     ];
-    const data = body.complete
-      ? profileSchema.parse(body.data)
-      : Object.fromEntries(
-          Object.entries(body.data).filter(([key]) => fields.includes(key)),
-        );
+    const submittedFields = Object.fromEntries(
+      Object.entries(body.data).filter(([key]) => fields.includes(key)),
+    );
+    const data: Record<string, any> = body.complete
+      ? profileInputSchema.parse(submittedFields)
+      : submittedFields;
     if (JSON.stringify(data).length > 6000)
       throw new CommunityError(400, "Анкета слишком большая.");
     await tx(async (c) => {
@@ -198,12 +199,18 @@ communityRouter.put(
           409,
           "Заполненную анкету нельзя заменить черновиком. Сохраните все изменения.",
         );
-      const previous = json(old[0]?.data ?? {}),
-        changed = fields.filter(
-          (key) =>
-            JSON.stringify(previous[key]) !==
-            JSON.stringify((data as any)[key]),
-        );
+      const previous = json(old[0]?.data ?? {});
+      if (typeof data.age === "number") {
+        if (previous.ageRecordedAt && data.age === ageForProfile(previous)) {
+          data.age = previous.age;
+          data.ageRecordedAt = previous.ageRecordedAt;
+        } else data.ageRecordedAt = new Date().toISOString().slice(0, 10);
+        delete data.birthDate;
+      } else delete data.ageRecordedAt;
+      const changed = fields.filter(
+        (key) =>
+          JSON.stringify(previous[key]) !== JSON.stringify((data as any)[key]),
+      );
       await c.execute(
         "INSERT INTO community_profiles(user_id,data,complete,confirmed_at) VALUES (?,?,?,IF(?,NOW(),NULL)) ON DUPLICATE KEY UPDATE data=VALUES(data),complete=VALUES(complete),confirmed_at=IF(VALUES(complete),NOW(),confirmed_at)",
         [req.user!.id, JSON.stringify(data), body.complete, body.complete],
@@ -247,7 +254,7 @@ communityRouter.get(
         occupied = json(row.occupied ?? {});
       if (match === "fail" || row.participation) continue;
       if (quota && Number(occupied[quota.id] ?? 0) >= quota.target) continue;
-      if (!quota && p.birthDate && p.sex !== "private") continue;
+      if (!quota && ageForProfile(p) !== null && p.sex !== "private") continue;
       const item = {
         id: row.id,
         title: row.title,

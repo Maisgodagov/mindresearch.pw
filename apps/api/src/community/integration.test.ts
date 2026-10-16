@@ -9,7 +9,7 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
   let db: typeof import('../db.js').db, server: Server, base: string;
   let signToken: typeof import('../auth.js').signToken, settle: typeof import('./router.js').settleCommunity;
   const author=randomUUID(), a=randomUUID(), b=randomUUID(), reviewer=randomUUID(), researcher=randomUUID(), noProfile=randomUUID();
-  const profile={adultConfirmed:true,birthDate:'1996-01-10',sex:'female',country:'Россия',region:'Москва',education:'higher',studying:'no',employment:'employed',marital:'married',children:2,childAges:[3,7]};
+  const profile={adultConfirmed:true,age:30,sex:'female',country:'Россия',region:'Москва',education:'higher',studying:'no',employment:'employed',marital:'married',children:2,childAges:[3,7]};
   async function request(user: string | null, path: string, method='GET', body?: unknown) {
     const res=await fetch(`${base}/api/community${path}`,{method,headers:{'Content-Type':'application/json',...(user?{Authorization:`Bearer ${signToken({id:user,role:'owner'})}`}:{})},body:body?JSON.stringify(body):undefined});
     return {status:res.status,data:await res.json()};
@@ -46,6 +46,19 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     expect((await request(noProfile,'/feed')).status).toBe(409);
     expect((await request(a,'/profile','PUT',{data:profile,complete:false})).status).toBe(409);
   });
+  it('stamps age on the server, preserves its anniversary during unrelated edits and disallows omitted demographics',async()=>{
+    const stamp=new Date().toISOString().slice(0,10);
+    expect((await request(noProfile,'/profile','PUT',{data:{...profile,ageRecordedAt:'2099-01-01'},complete:true})).status).toBe(200);
+    const first=(await request(noProfile,'/me')).data.profile.data;
+    expect(first.ageRecordedAt).toBe(stamp);expect(first).not.toHaveProperty('birthDate');
+    const past=new Date();past.setUTCFullYear(past.getUTCFullYear()-1);const anniversary=past.toISOString().slice(0,10);
+    await db.execute('UPDATE community_profiles SET data=? WHERE user_id=?',[JSON.stringify({...profile,age:29,ageRecordedAt:anniversary}),noProfile]);
+    expect((await request(noProfile,'/profile','PUT',{data:{...profile,age:30,region:'Новый регион',ageRecordedAt:'2099-01-01'},complete:true})).status).toBe(200);
+    const updated=(await request(noProfile,'/me')).data.profile.data;
+    expect(updated.age).toBe(29);expect(updated.ageRecordedAt).toBe(anniversary);expect(updated.region).toBeUndefined();expect(updated.country).toBeUndefined();
+    for(const change of [{sex:'private'},{sex:'other'},{education:'private'},{studying:'private'},{employment:'private'},{marital:'private'}])expect((await request(noProfile,'/profile','PUT',{data:{...profile,...change},complete:true})).status).toBe(400);
+    expect((await request(noProfile,'/profile','PUT',{data:{...profile,children:null,childAges:[]},complete:true})).status).toBe(200);
+  });
   it('executes the actual feed SQL and hides accepted screening answers',async()=>{
     const l=await create(2,[{id:'q1',question:'Живёте с ребёнком?',options:['Да','Нет'],accepted:[0]}]);
     const feed=await request(a,'/feed');expect(feed.status).toBe(200);
@@ -53,6 +66,17 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     expect((await request(a,'/impressions','POST',{ids:[l.id]})).status).toBe(200);
     await request(a,'/impressions','POST',{ids:[l.id]});
     const [rows]=await db.query<any[]>('SELECT impressions FROM community_listings WHERE id=?',[l.id]);expect(rows[0].impressions).toBe(1);
+  });
+  it('saves a completed card with zero children and no location, then loads the feed',async()=>{
+    const {country,region,...withoutLocation}=profile;
+    expect((await request(noProfile,'/profile','PUT',{data:{...withoutLocation,children:0,childAges:[]},complete:true})).status).toBe(200);
+    const saved=(await request(noProfile,'/me')).data.profile;
+    expect(saved.complete).toBe(true);
+    expect(saved.data.children).toBe(0);
+    expect(saved.data.childAges).toEqual([]);
+    expect(saved.data).not.toHaveProperty('country');
+    expect(saved.data).not.toHaveProperty('region');
+    expect((await request(noProfile,'/feed')).status).toBe(200);
   });
   it('grants the closed-pilot starter bonus exactly once, with separate bonus accounting',async()=>{
     const surveyId=randomUUID();await db.execute('INSERT INTO surveys(id,owner_id,slug,title,welcome_title,welcome_text,status) VALUES (?,?,?,?,?,?,\'active\')',[surveyId,reviewer,`fixture-${surveyId}`,'Пилот','Начало','Тест']);

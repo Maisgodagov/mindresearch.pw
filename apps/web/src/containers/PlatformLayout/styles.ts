@@ -12,6 +12,16 @@ export const Frame = styled.div<{ $collapsed: boolean }>`
 export const Main = styled.main`
   width: min(100% - 48px, 1320px); container-name: platform-main; container-type: inline-size;
   margin: 0 auto; padding: 28px 0 64px; min-width: 0;
+  &&& h1 {
+    font-family: var(--font-heading), serif;
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    color: #304a38;
+    white-space: normal;
+  }
+  @media (max-width: 600px) { &&& h1 { font-size: 28px; } }
   @media (max-width: 760px) { width: min(100% - 28px, 1320px); padding-top: 21px; padding-bottom: 32px; }
   @media (max-width: 420px) { width: min(100% - 22px, 1320px); }
 `;

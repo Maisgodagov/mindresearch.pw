@@ -21,6 +21,7 @@ import { getApiErrorMessage } from "../../utils/apiErrors";
 import { PlatformLayout } from "../PlatformLayout";
 import { CommunitySurface } from "./styles";
 import { ProfileForm } from "./ProfileForm";
+import { CommunityIntro } from "./CommunityIntro";
 import { ListingForm } from "./ListingForm";
 import { criteriaText, dateLabel, statusLabels } from "./model";
 
@@ -39,6 +40,7 @@ export function Community() {
           : "feed",
     ),
     [editingProfile, setEditingProfile] = useState(false),
+    [questionnaireOpen, setQuestionnaireOpen] = useState(false),
     [editor, setEditor] = useState<any>(null);
   const [feed, setFeed] = useState<any[]>([]),
     [listings, setListings] = useState<any[]>([]),
@@ -202,26 +204,23 @@ export function Community() {
   return (
     <PlatformLayout>
       <CommunitySurface>
-        <div className="page-head">
-          <div>
-            <h1>Взаимопомощь</h1>
-            <p className="muted">
-              Помогайте другим собрать выборку — получайте больше участников для
-              своего исследования.
-            </p>
-            <Tag>Закрытый пилот · админ и владелец</Tag>
-          </div>
-          {ready && (
-            <div className="balance">
-              <strong>{balance} балл(а)</strong>
-              <small className="muted">
-                Заработано: {me.wallet.earned} · Бонусных: {me.wallet.bonus}
-              </small>
+        {ready && (
+          <div className="page-head">
+            <div>
+              <h1>Найти респондентов</h1>
             </div>
-          )}
-        </div>
+            {ready && (
+              <div className="balance">
+                <strong>{balance} балл(а)</strong>
+                <small className="muted">
+                  Заработано: {me.wallet.earned} · Бонусных: {me.wallet.bonus}
+                </small>
+              </div>
+            )}
+          </div>
+        )}
         {loading ? (
-          <Spin tip="Открываем взаимопомощь">
+          <Spin tip="Открываем раздел">
             <div style={{ minHeight: 180 }} />
           </Spin>
         ) : forbidden ? (
@@ -250,10 +249,31 @@ export function Community() {
                 style={{ marginBottom: 20 }}
               />
             )}
-            {!ready || editingProfile ? (
+            {!ready && !questionnaireOpen ? (
+              <CommunityIntro
+                hasDraft={Boolean(
+                  me.profile?.data && Object.keys(me.profile.data).length,
+                )}
+                onStart={() => setQuestionnaireOpen(true)}
+              />
+            ) : !ready || editingProfile ? (
               <ProfileForm
                 profile={me.profile}
-                onCancel={ready ? () => setEditingProfile(false) : undefined}
+                onCancel={
+                  ready
+                    ? () => setEditingProfile(false)
+                    : () => {
+                        setQuestionnaireOpen(false);
+                        void loadMe().catch((e) =>
+                          setError(
+                            getApiErrorMessage(
+                              e,
+                              "Не удалось обновить карточку. Попробуйте ещё раз.",
+                            ),
+                          ),
+                        );
+                      }
+                }
                 onSaved={async () => {
                   await loadMe();
                   setEditingProfile(false);
@@ -288,10 +308,10 @@ export function Community() {
                     180 * 86400000 && (
                     <Alert
                       type="info"
-                      title="Проверьте актуальность анкеты участника"
+                      title="Проверьте актуальность карточки участника"
                       action={
                         <Button onClick={() => setEditingProfile(true)}>
-                          Проверить анкету
+                          Проверить карточку
                         </Button>
                       }
                     />
@@ -310,8 +330,8 @@ export function Community() {
                         <section aria-label="Исследования сообщества">
                           <h2>Исследования сообщества</h2>
                           <p className="muted">
-                            Подобраны по вашей анкете. Некоторые авторы зададут
-                            дополнительные вопросы перед началом.
+                            Подобраны по вашей карточке. Некоторые авторы
+                            зададут дополнительные вопросы перед началом.
                           </p>
                           <div className="filter-bar">
                             <Input
@@ -380,10 +400,10 @@ export function Community() {
                                     )}
                                     <Tag>
                                       {x.match === "pass"
-                                        ? "Подходит по вашей анкете"
+                                        ? "Подходит по вашей карточке"
                                         : x.match === "screening"
                                           ? "Короткий отбор перед участием"
-                                          : "Нужно уточнить анкету"}
+                                          : "Нужно уточнить карточку"}
                                     </Tag>
                                   </div>
                                   <div className="participate">
@@ -401,7 +421,7 @@ export function Community() {
                                       }}
                                     >
                                       {x.match === "unknown"
-                                        ? "Уточнить анкету"
+                                        ? "Уточнить карточку"
                                         : "Участвовать"}
                                     </Button>
                                     <small className="muted">
@@ -418,7 +438,7 @@ export function Community() {
                                 description={
                                   search || topic || duration < 60
                                     ? "По этим фильтрам ничего не найдено"
-                                    : "Сейчас нет исследований, подходящих по вашей анкете"
+                                    : "Сейчас нет исследований, подходящих по вашей карточке"
                                 }
                               />
                               <p className="muted">
@@ -519,7 +539,9 @@ export function Community() {
                                   Цель:{" "}
                                   {l.config.quotas
                                     .map((q: any) => {
-                                      const group = l.groups?.find((g: any) => g.quota_id === q.id);
+                                      const group = l.groups?.find(
+                                        (g: any) => g.quota_id === q.id,
+                                      );
                                       return `${q.label}: ${Number(group?.completed ?? 0)} зачтено, ${Number(group?.pending ?? 0) + Number(group?.reserved ?? 0)} в работе / ${q.target}`;
                                     })
                                     .join("; ")}
@@ -687,12 +709,12 @@ export function Community() {
                     },
                     {
                       key: "profile",
-                      label: "Анкета участника",
+                      label: "Карточка участника",
                       children: (
                         <section className="panel">
                           <h2>Ваши сведения для подбора</h2>
                           <p>
-                            Анкета используется для отбора и не публикуется.
+                            Карточка используется для отбора и не публикуется.
                             Проверяйте её, если изменились семейное положение,
                             работа или другие сведения.
                           </p>
@@ -702,7 +724,7 @@ export function Community() {
                               : ""}
                           </p>
                           <Button onClick={() => setEditingProfile(true)}>
-                            Редактировать анкету
+                            Редактировать карточку
                           </Button>
                         </section>
                       ),
@@ -874,16 +896,50 @@ export function Community() {
           }
         >
           <p>{review?.reason}</p>
-          {review && <>
-            <p>Фактическое время: {Math.round((review.seconds ?? 0) / 6) / 10} мин · Ожидалось: {review.minutes} мин</p>
-            <p>Подтверждённый дубликат: {review.duplicate ? 'Да' : 'Нет'} · Группа: {review.cohort ?? 'Не размечена'} · Соответствие: {review.eligibility ?? 'Не отмечено'}</p>
-            {review.quality ? <>
-              <p>Общий индекс: {review.quality.overall?.score ?? 'Недостаточно данных'} · Независимых групп признаков: {review.quality.independent_concerning_domains}</p>
-              <ul>{(review.quality.overall?.flags ?? []).map((flag: any, i: number) => <li key={i}>{flag.explanation}</li>)}</ul>
-            </> : <p>Статистический индекс пока недоступен.</p>}
-            {review.screening?.map((q: any, i: number) => <p key={i}>{q.question}: {q.answer}</p>)}
-            <a href={`/app/admin/users/${review.ownerId}/surveys/${review.surveyId}/results`} target="_blank" rel="noreferrer">Открыть результаты исследования</a>
-          </>}
+          {review && (
+            <>
+              <p>
+                Фактическое время: {Math.round((review.seconds ?? 0) / 6) / 10}{" "}
+                мин · Ожидалось: {review.minutes} мин
+              </p>
+              <p>
+                Подтверждённый дубликат: {review.duplicate ? "Да" : "Нет"} ·
+                Группа: {review.cohort ?? "Не размечена"} · Соответствие:{" "}
+                {review.eligibility ?? "Не отмечено"}
+              </p>
+              {review.quality ? (
+                <>
+                  <p>
+                    Общий индекс:{" "}
+                    {review.quality.overall?.score ?? "Недостаточно данных"} ·
+                    Независимых групп признаков:{" "}
+                    {review.quality.independent_concerning_domains}
+                  </p>
+                  <ul>
+                    {(review.quality.overall?.flags ?? []).map(
+                      (flag: any, i: number) => (
+                        <li key={i}>{flag.explanation}</li>
+                      ),
+                    )}
+                  </ul>
+                </>
+              ) : (
+                <p>Статистический индекс пока недоступен.</p>
+              )}
+              {review.screening?.map((q: any, i: number) => (
+                <p key={i}>
+                  {q.question}: {q.answer}
+                </p>
+              ))}
+              <a
+                href={`/app/admin/users/${review.ownerId}/surveys/${review.surveyId}/results`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Открыть результаты исследования
+              </a>
+            </>
+          )}
           <p>
             Рассмотрите доступные результаты и обстоятельства участия. Необычные
             ответы сами по себе не доказывают недобросовестность.

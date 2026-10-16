@@ -3,7 +3,6 @@ import {
   Button,
   Checkbox,
   Form,
-  Input,
   InputNumber,
   Select,
   message,
@@ -11,9 +10,10 @@ import {
 import { api } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
 import { options, profileFields } from "./model";
+import { ageForProfile } from "../../../../api/src/community/age";
 
 const groups = [
-  ["birthDate", "sex", "country", "region", "adultConfirmed"],
+  ["age", "sex", "adultConfirmed"],
   ["education", "studying", "employment"],
   ["marital", "children", "childAges"],
 ];
@@ -30,10 +30,9 @@ export function ProfileForm({
     [step, setStep] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  const [hideDate, setHideDate] = useState(profile?.data?.birthDate === null),
-    [hideChildren, setHideChildren] = useState(
-      profile?.data?.children === null,
-    );
+  const [hideChildren, setHideChildren] = useState(
+    profile?.data?.children === null,
+  );
   const children = Form.useWatch("children", form) ?? 0;
   const pick = (name: string, label: string, values: string[]) => (
     <Form.Item
@@ -41,7 +40,17 @@ export function ProfileForm({
       label={label}
       rules={[{ required: true, message: "Выберите ответ" }]}
     >
-      <Select options={options(values, true)} />
+      <Select
+        placeholder="Выберите ответ"
+        options={
+          name === "sex"
+            ? [
+                { value: "female", label: "Женский" },
+                { value: "male", label: "Мужской" },
+              ]
+            : options(values)
+        }
+      />
     </Form.Item>
   );
   async function persist(complete: boolean, silent = false) {
@@ -49,8 +58,13 @@ export function ProfileForm({
     setError("");
     try {
       if (complete) await form.validateFields();
-      const values = form.getFieldsValue(true);
-      if (hideDate) values.birthDate = null;
+      const {
+        birthDate: _legacyDate,
+        ageRecordedAt: _recordedAt,
+        country: _country,
+        region: _region,
+        ...values
+      } = form.getFieldsValue(true);
       if (hideChildren) {
         values.children = null;
         values.childAges = [];
@@ -61,14 +75,15 @@ export function ProfileForm({
         );
       await api.put("/community/profile", { data: values, complete });
       if (complete) await onSaved();
-      else if (!silent) message.success("Черновик анкеты сохранён. Можно вернуться позже.");
+      else if (!silent)
+        message.success("Черновик карточки сохранён. Можно вернуться позже.");
       return true;
     } catch (e) {
       if (!(e as any)?.errorFields)
         setError(
           getApiErrorMessage(
             e,
-            "Не удалось сохранить анкету. Попробуйте ещё раз.",
+            "Не удалось сохранить карточку. Попробуйте ещё раз.",
           ),
         );
       return false;
@@ -80,7 +95,7 @@ export function ProfileForm({
     try {
       await form.validateFields(groups[step]);
       if (!profile?.complete) {
-        if (!await persist(false, true)) return;
+        if (!(await persist(false, true))) return;
       }
       setStep((s) => s + 1);
     } catch {
@@ -89,11 +104,11 @@ export function ProfileForm({
   }
   return (
     <section className="panel questionnaire" aria-label="Анкета участника">
-      <h2>{profile?.complete ? "Анкета участника" : "Сначала познакомимся"}</h2>
-      <p className="muted">
-        Расскажите немного о себе, чтобы мы подобрали подходящие исследования.
-        Ответы не публикуются в вашем профиле. Около 3 минут.
-      </p>
+      <div className="questionnaire-heading">
+        <h2>Карточка участника</h2>
+        <span className="questionnaire-progress">{step + 1} / 3</span>
+      </div>
+      <p className="questionnaire-caption">Анонимные сведения для подбора опросов</p>
       <div className="step-line" aria-label={`Шаг ${step + 1} из 3`}>
         {["Основное", "Учёба и работа", "Семья"].map((s, i) => (
           <span
@@ -108,56 +123,43 @@ export function ProfileForm({
       <Form
         form={form}
         layout="vertical"
-        initialValues={{ childAges: [], ...profile?.data }}
+        initialValues={{
+          childAges: [],
+          ...profile?.data,
+          age: ageForProfile(profile?.data ?? {}) ?? undefined,
+          ...Object.fromEntries(
+            ["sex", "education", "employment", "studying", "marital"]
+              .filter((key) =>
+                ["private", "other"].includes(profile?.data?.[key]),
+              )
+              .map((key) => [key, undefined]),
+          ),
+        }}
         scrollToFirstError
       >
         <div style={{ display: step === 0 ? "block" : "none" }}>
           <div className="fields">
-            <div>
-              <Form.Item
-                name="birthDate"
-                label="Дата рождения"
-                rules={
-                  hideDate
-                    ? []
-                    : [{ required: true, message: "Укажите дату рождения" }]
-                }
-              >
-                <Input type="date" disabled={hideDate} />
-              </Form.Item>
-              <Checkbox
-                checked={hideDate}
-                onChange={(e) => {
-                  setHideDate(e.target.checked);
-                  if (e.target.checked) form.setFieldValue("birthDate", null);
-                }}
-              >
-                Не указывать дату рождения
-              </Checkbox>
-            </div>
-            {pick("sex", "Пол", profileFields.sex)}
             <Form.Item
-              name="country"
-              label="Страна проживания"
-              rules={[{ required: true, message: "Укажите страну" }]}
-            >
-              <Input maxLength={160} />
-            </Form.Item>
-            <Form.Item
-              name="region"
-              label="Регион проживания"
+              name="age"
+              label="Возраст, полных лет"
               rules={[
+                { required: true, message: "Укажите ваш возраст" },
                 {
-                  required: true,
-                  message: "Укажите регион или «Не указывать»",
+                  type: "number",
+                  min: 18,
+                  max: 100,
+                  message: "Укажите возраст от 18 до 100 лет",
                 },
               ]}
             >
-              <Input
-                maxLength={160}
-                placeholder="Например, Московская область"
+              <InputNumber
+                min={18}
+                max={100}
+                precision={0}
+                placeholder="Например, 27"
               />
             </Form.Item>
+            {pick("sex", "Пол", profileFields.sex)}
           </div>
           <Form.Item
             name="adultConfirmed"
@@ -176,7 +178,7 @@ export function ProfileForm({
             ]}
           >
             <Checkbox>
-              Мне исполнилось 18 лет. Я согласен использовать анкету для подбора
+              Мне исполнилось 18 лет. Я согласен использовать карточку для подбора
               исследований.
             </Checkbox>
           </Form.Item>
@@ -192,7 +194,6 @@ export function ProfileForm({
         <div style={{ display: step === 2 ? "block" : "none" }}>
           <div className="fields">
             {pick("marital", "Семейное положение", profileFields.marital)}
-            <div>
               <Form.Item
                 name="children"
                 label="Количество детей"
@@ -209,6 +210,8 @@ export function ProfileForm({
                   disabled={hideChildren}
                 />
               </Form.Item>
+          </div>
+          <div className="children-privacy">
               <Checkbox
                 checked={hideChildren}
                 onChange={(e) => {
@@ -219,7 +222,6 @@ export function ProfileForm({
               >
                 Не указывать сведения о детях
               </Checkbox>
-            </div>
           </div>
           {!hideChildren && children > 0 && (
             <div className="fields">
@@ -228,7 +230,9 @@ export function ProfileForm({
                   name={["childAges", i]}
                   label={`Возраст ребёнка ${i + 1}, полных лет`}
                   key={i}
-                  extra="Можно оставить пустым"
+                  rules={[
+                    { required: true, message: "Укажите возраст ребёнка" },
+                  ]}
                 >
                   <InputNumber min={0} max={100} precision={0} />
                 </Form.Item>
@@ -236,11 +240,6 @@ export function ProfileForm({
             </div>
           )}
         </div>
-        <p className="muted">
-          Если вы предпочитаете не указывать сведения, исследования с такими
-          требованиями будут доступны после уточнения анкеты. Специфические
-          вопросы авторы задают отдельно перед участием.
-        </p>
         {error && <p role="alert">{error}</p>}
         <div className="actions">
           {step > 0 && (
@@ -258,16 +257,19 @@ export function ProfileForm({
               loading={busy}
               onClick={() => void persist(true)}
             >
-              {profile?.complete ? "Сохранить анкету" : "Найти исследования"}
+              {profile?.complete
+                ? "Сохранить карточку"
+                : "Показать подходящие исследования"}
             </Button>
           )}
-          {!profile?.complete && (
-            <Button disabled={busy} onClick={() => void persist(false)}>
-              Сохранить и продолжить позже
-            </Button>
-          )}
-          {onCancel && (
-            <Button disabled={busy} onClick={onCancel}>
+          {onCancel && profile?.complete && (
+            <Button
+              type="text"
+              disabled={busy}
+              onClick={() => {
+                onCancel();
+              }}
+            >
               Отмена
             </Button>
           )}

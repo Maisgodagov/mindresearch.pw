@@ -50,7 +50,9 @@ export function ListingForm({
       }));
       for (const key of ["ageMin", "ageMax", "childrenMin", "childrenMax"])
         if (config.criteria[key] === null) delete config.criteria[key];
-      for (const key of ["country", "region", "studying"])
+      delete config.criteria.country;
+      delete config.criteria.region;
+      for (const key of ["studying"])
         if (!config.criteria[key]) delete config.criteria[key];
       if (initial)
         await api.patch(`/community/listings/${initial.id}`, {
@@ -216,12 +218,6 @@ export function ListingForm({
           {multiple("education", "Образование")}
           {multiple("employment", "Занятость")}
           {multiple("marital", "Семейное положение")}
-          <Form.Item name={["criteria", "country"]} label="Страна проживания">
-            <Input maxLength={160} placeholder="Любая" />
-          </Form.Item>
-          <Form.Item name={["criteria", "region"]} label="Регион проживания">
-            <Input maxLength={160} placeholder="Любой" />
-          </Form.Item>
         </div>
         <div className="preview">
           <strong>Условия на карточке</strong>

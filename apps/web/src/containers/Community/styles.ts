@@ -1,15 +1,158 @@
 import styled from "styled-components";
 
 export const CommunitySurface = styled.div`
-  input::placeholder, textarea::placeholder {
+  .questionnaire .ant-form-item-extra {
+    color: var(--color-muted);
+  }
+  .community-intro {
+    margin: 0;
+  }
+  .intro-title {
+    padding: 0 0 30px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 36px;
+  }
+  .intro-title h1 {
+    margin: 0;
+    font-size: clamp(27px, 2.8vw, 34px);
+    font-weight: 650;
+    letter-spacing: -0.025em;
+  }
+  .intro-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr);
+    align-items: start;
+    gap: clamp(28px, 3vw, 44px);
+  }
+  .intro-overview {
+    padding-top: 20px;
+  }
+  .intro-overview h2 {
+    color: var(--color-muted);
+    font-size: 18px;
+    font-weight: 550;
+    margin: 0 0 22px;
+  }
+  .intro-overview .intro-lead {
+    font-size: clamp(32px, 3.5vw, 46px);
+    line-height: 1.18;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+    margin: 0 0 24px;
+  }
+  .intro-lead strong {
+    color: var(--color-brand-strong);
+    font-weight: 700;
+    display: inline-block;
+    margin-top: 8px;
+  }
+  .intro-description {
+    color: var(--color-muted);
+    font-size: 17px;
+    max-width: 52ch;
+  }
+  .intro-preparation {
+    padding: 28px;
+    background: #fff;
+    border: 1px solid #d9e2d8;
+    border-radius: 16px;
+  }
+  .intro-card-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .intro-card-heading h2 {
+    font-size: 25px;
+    line-height: 1.25;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    margin: 0;
+    max-width: 26ch;
+  }
+  .intro-anonymous {
+    color: var(--color-brand-strong);
+  }
+  .intro-preparation > p {
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+  .intro-start {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .intro-start .ant-btn {
+    height: auto;
+    min-height: 48px;
+    padding: 12px 14px;
+    white-space: normal;
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .intro-preparation .intro-privacy {
+    font-size: 12px;
+    line-height: 1.65;
+    margin: 22px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--color-border);
+  }
+  @media (max-width: 1050px) {
+    .intro-layout {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    .intro-overview {
+      padding-top: 0;
+    }
+    .intro-overview .intro-lead {
+      font-size: clamp(34px, 5vw, 46px);
+    }
+    .intro-description {
+      max-width: 48ch;
+    }
+  }
+  @media (max-width: 600px) {
+    .intro-title {
+      margin-bottom: 26px;
+      padding-bottom: 22px;
+    }
+    .intro-overview h2 {
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+    .intro-overview .intro-lead {
+      font-size: 34px;
+    }
+    .intro-description {
+      font-size: 15px;
+    }
+    .intro-preparation {
+      padding: 24px 20px;
+    }
+    .intro-card-heading h2 {
+      font-size: 24px;
+    }
+    .intro-layout {
+      gap: 28px;
+    }
+  }
+  input::placeholder,
+  textarea::placeholder {
     color: #647268 !important;
     opacity: 1;
   }
-  .ant-select-placeholder, .ant-select-selection-placeholder {
+  .ant-select-placeholder,
+  .ant-select-selection-placeholder {
     color: #647268 !important;
     opacity: 1;
   }
-  .ant-select-input, .ant-select-selection-search-input {
+  .ant-select-input,
+  .ant-select-selection-search-input {
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
@@ -19,8 +162,7 @@ export const CommunitySurface = styled.div`
     min-height: 0 !important;
   }
   color: var(--color-ink);
-  max-width: 1120px;
-  margin: 0 auto;
+  width: 100%;
   h1 {
     font-size: clamp(26px, 3vw, 36px);
     line-height: 1.2;
@@ -74,8 +216,77 @@ export const CommunitySurface = styled.div`
     margin: 20px 0;
   }
   .questionnaire {
-    max-width: 760px;
-    margin: 32px auto;
+    max-width: 680px;
+    margin: 20px auto;
+    padding: 24px;
+  }
+  .questionnaire-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .questionnaire-heading h2 {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 650;
+  }
+  .questionnaire-progress {
+    color: var(--color-muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .questionnaire .questionnaire-caption {
+    color: var(--color-muted);
+    font-size: 13px;
+    margin: 6px 0 20px;
+  }
+  .questionnaire .step-line {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 6px;
+    padding: 0;
+    margin-bottom: 22px;
+    border: 0;
+  }
+  .questionnaire .step-line span {
+    padding: 9px 4px;
+    border-bottom: 2px solid var(--color-border);
+    font-size: 12px;
+    text-align: center;
+  }
+  .questionnaire .step-line .current {
+    border-color: var(--color-brand-strong);
+    color: var(--color-brand-strong);
+  }
+  .questionnaire .ant-form-item {
+    margin-bottom: 16px;
+  }
+  .questionnaire .ant-form-item-label {
+    padding-bottom: 5px;
+  }
+  .questionnaire .ant-form-item-label > label,
+  .questionnaire .ant-checkbox-wrapper {
+    font-size: 13px;
+  }
+  .questionnaire .actions {
+    justify-content: flex-end;
+    padding-top: 16px;
+    margin-top: 20px;
+    gap: 8px;
+  }
+  .questionnaire .children-privacy {
+    margin: 0 0 20px;
+  }
+  @media (max-width: 600px) {
+    .questionnaire {
+      padding: 20px 16px;
+      margin: 12px 0;
+    }
+    .questionnaire-heading h2 {
+      font-size: 21px;
+    }
   }
   .step-line {
     display: flex;
