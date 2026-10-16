@@ -370,9 +370,6 @@ export function Community() {
                                 <article className="research-row" key={x.id}>
                                   <div className="research-content">
                                     <h2>{x.title}</h2>
-                                    <p className="research-author">
-                                      {x.author}{x.topic && x.topic !== "Исследование" ? ` · ${x.topic}` : ""}
-                                    </p>
                                     <p className="research-description">{x.description}</p>
                                     <div className="research-criteria" aria-label="Условия участия">
                                       {criteriaTags(x.criteria).map((label, i) => <span key={`${label}-${i}`}>{label}</span>)}
