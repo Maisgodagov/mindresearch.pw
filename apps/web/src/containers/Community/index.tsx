@@ -16,7 +16,7 @@ import {
   Tag,
   message,
 } from "antd";
-import { ChevronDown, CircleHelp, Clock3, RefreshCw, Search, UserRound, Users, Wallet } from "lucide-react";
+import { ChevronDown, CircleHelp, Clock3, RefreshCw, Search, UserRound, Wallet } from "lucide-react";
 import { api, getCurrentUser } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
 import { PlatformLayout } from "../PlatformLayout";
@@ -24,7 +24,7 @@ import { CommunityModal, CommunitySurface } from "./styles";
 import { ProfileForm } from "./ProfileForm";
 import { CommunityIntro } from "./CommunityIntro";
 import { ListingForm } from "./ListingForm";
-import { criteriaText, dateLabel, statusLabels } from "./model";
+import { criteriaTags, criteriaText, dateLabel, statusLabels } from "./model";
 
 const pointWords = { one: "балл", few: "балла", other: "баллов", many: "баллов", zero: "баллов", two: "балла" };
 const points = (amount: number) => `${amount} ${pointWords[new Intl.PluralRules("ru").select(amount)]}`;
@@ -368,37 +368,32 @@ export function Community() {
                             <div className="research-list">
                               {shown.map((x) => (
                                 <article className="research-row" key={x.id}>
-                                  <div>
+                                  <div className="research-content">
                                     <h2>{x.title}</h2>
-                                    <p className="muted">
-                                      {x.author} · {x.topic}
+                                    <p className="research-author">
+                                      {x.author}{x.topic && x.topic !== "Исследование" ? ` · ${x.topic}` : ""}
                                     </p>
-                                    <p>{x.description}</p>
-                                    <div className="research-meta">
-                                      <span>
-                                        <Clock3 size={16} />
-                                        {x.minutes} мин
-                                      </span>
-                                      <span>
-                                        <Users size={16} />
-                                        {criteriaText(x.criteria)}
-                                      </span>
+                                    <p className="research-description">{x.description}</p>
+                                    <div className="research-criteria" aria-label="Условия участия">
+                                      {criteriaTags(x.criteria).map((label, i) => <span key={`${label}-${i}`}>{label}</span>)}
                                     </div>
                                     {x.sensitive && (
-                                      <p className="notice">
-                                        Перед участием: {x.sensitive}
+                                      <p className="research-warning">
+                                        <strong>Перед участием</strong>{x.sensitive}
                                       </p>
                                     )}
-                                    <Tag>
+                                    <p className="research-match">
                                       {x.match === "pass"
                                         ? "Подходит по вашей карточке"
                                         : x.match === "screening"
                                           ? "Короткий отбор перед участием"
                                           : "Нужно уточнить карточку"}
-                                    </Tag>
+                                    </p>
                                   </div>
                                   <div className="participate">
+                                    <span className="research-time"><Clock3 size={16} />{x.minutes} мин</span>
                                     <strong>+{points(x.reward)}</strong>
+                                    <small className="muted">За зачтённое прохождение</small>
                                     <Button
                                       type="primary"
                                       loading={working}
@@ -415,9 +410,6 @@ export function Community() {
                                         ? "Уточнить карточку"
                                         : "Участвовать"}
                                     </Button>
-                                    <small className="muted">
-                                      За зачтённое прохождение
-                                    </small>
                                   </div>
                                 </article>
                               ))}

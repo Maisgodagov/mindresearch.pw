@@ -449,14 +449,14 @@ export const CommunitySurface = styled.div`
   .filter-bar .ant-input-affix-wrapper {
     width: min(100%, 340px);
   }
-  .research-list {
-    border-top: 1px solid var(--color-border);
-  }
+  .research-list { display: grid; gap: 16px; }
   .research-row {
-    padding: 26px 0;
-    border-bottom: 1px solid var(--color-border);
+    padding: 26px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 180px;
+    grid-template-columns: minmax(0, 1fr) 200px;
     gap: 28px;
   }
   .research-row h2 {
@@ -485,7 +485,18 @@ export const CommunitySurface = styled.div`
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+    padding: 4px 0 4px 24px;
+    border-left: 1px solid var(--color-border);
   }
+  .research-row .research-author { font-size: 13px; color: var(--color-muted); margin: 0 0 18px; }
+  .research-row .research-description { font-size: 15px; margin: 0 0 18px; max-width: 65ch; }
+  .research-criteria { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+  .research-criteria > span { padding: 5px 10px; border-radius: 7px; background: #f0f5ec; color: #405b3c; font-size: 12px; }
+  .research-row .research-warning { margin: 18px 0 0; font-size: 13px; color: #6e5938; padding: 12px 14px; border-radius: 9px; background: #faf5e9; }
+  .research-warning strong { display: block; font-weight: 650; margin-bottom: 3px; }
+  .research-row .research-match { color: var(--color-brand-strong); font-size: 12px; margin: 16px 0 0; }
+  .research-time { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--color-muted); }
+  .participate > .ant-btn { width: 100%; margin-top: 6px; }
   .participate strong {
     font-size: 20px;
   }
@@ -578,14 +589,21 @@ export const CommunitySurface = styled.div`
     .research-row {
       grid-template-columns: 1fr;
       gap: 8px;
-      padding: 22px 0;
+      padding: 20px;
     }
     .participate {
-      flex-direction: row;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       align-items: center;
-      flex-wrap: wrap;
-      justify-content: space-between;
+      padding: 18px 0 0;
+      margin-top: 10px;
+      border-left: 0;
+      border-top: 1px solid var(--color-border);
+      gap: 8px 16px;
     }
+    .participate > strong { text-align: right; }
+    .participate > small { grid-column: 1 / -1; text-align: right; }
+    .participate > .ant-btn { grid-column: 1 / -1; }
     .questionnaire {
       margin: 20px auto;
     }

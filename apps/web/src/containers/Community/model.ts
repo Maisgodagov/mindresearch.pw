@@ -55,6 +55,21 @@ export const statusLabels: Record<string, string> = {
   screened_out: "Другая группа участников",
 };
 export { rewardFor } from "../../../../api/src/community/duration";
+export function criteriaTags(c: any = {}): string[] {
+  const tags = [`${c.ageMin ?? 18}–${c.ageMax ?? 100} лет`];
+  for (const key of ["sex", "education", "employment", "marital"] as const) {
+    const selected: string[] = c[key] ?? [];
+    if (selected.length && !profileFields[key].every(v => selected.includes(v)))
+      tags.push(...selected.map(v => labels[v] ?? v));
+  }
+  if (c.childrenMax === 0) tags.push("Без детей");
+  else if (c.childrenMin !== undefined || c.childrenMax !== undefined)
+    tags.push(c.childrenMin === 1 && (c.childrenMax ?? 30) === 30 ? "Есть дети" : `Детей: ${c.childrenMin ?? 0}–${c.childrenMax ?? 30}`);
+  if (c.studying) tags.push(c.studying === "yes" ? "Учится сейчас" : "Не учится сейчас");
+  if (c.country) tags.push(c.country);
+  if (c.region) tags.push(c.region);
+  return tags;
+}
 export function criteriaText(c: any = {}) {
   const parts = [];
   if (c.ageMin !== undefined || c.ageMax !== undefined)
