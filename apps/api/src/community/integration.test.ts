@@ -107,6 +107,12 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     expect(made.status).toBe(201);
     const saved=(await request(author,'/listings')).data.find((l:any)=>l.id===made.data.id);
     expect(saved.config.minutes).toBe(15);expect(saved.reward).toBe(2);
+    const longId=randomUUID();
+    await db.execute("INSERT INTO surveys(id,owner_id,slug,title,welcome_title,welcome_text,status,settings) VALUES (?,?,?,?,?,?,'active',?)",[longId,author,`fixture-${longId}`,'Длинный опрос','Начало','Тест',JSON.stringify({estimatedDuration:{mode:'custom',text:'60–90 минут'}})]);
+    expect((await request(author,'/surveys')).data.find((s:any)=>s.id===longId)).toMatchObject({minutes:90,eligible:true});
+    const long=await request(author,'/listings','POST',{surveyId:longId,description:'Проверяем размещение длинного исследования',topic:'Исследование',minutes:90,criteria:{},quotas:[{id:'all',label:'Все',target:10}],budget:9});
+    expect(long.status).toBe(201);
+    expect((await request(author,'/listings')).data.find((l:any)=>l.id===long.data.id).reward).toBe(9);
     expect((await request(researcher,'/surveys')).status).toBe(403);
   });
   it('records failed screening once without consuming budget or creating response sessions',async()=>{

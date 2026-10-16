@@ -613,9 +613,9 @@ export function SurveyBuilder() {
                 <span className="duration-label">Примерное время прохождения</span>
                 <label className="screen-setting">
                   <input type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "auto"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { ...current.estimatedDuration, mode: "auto" } }))} />
-                  <span>Рассчитать автоматически · {surveyDurationLabel(count)}</span>
+                  <span>Рассчитать автоматически · {surveyDurationLabel([...sections.flatMap(s => s.questions ?? Array.from({ length: s.questionCount ?? 0 }, () => ({ type: "single" }))), ...(meta.collectAlias ? [{ type: "text" }] : [])])}</span>
                 </label>
-                <p className="hint">Из расчёта 2–5 секунд на вопрос, с округлением до 5 минут.</p>
+                <p className="hint">Из расчёта 5–10 секунд на закрытый вопрос и 30–90 секунд на открытый вопрос, с округлением до 5 минут.</p>
                 <label className="screen-setting">
                   <input type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "custom"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { mode: "custom", text: current.estimatedDuration.text || "10 минут" } }))} />
                   <span>Указать своё время</span>

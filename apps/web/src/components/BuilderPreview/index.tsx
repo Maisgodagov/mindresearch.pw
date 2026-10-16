@@ -111,7 +111,7 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
                   <StockAvatar seed={author.avatarSeed} alt="" /> Автор: {author.name}
                 </a>
               )}
-              <div className="meta"><span>{questions.length} вопросов</span><span>≈ {surveyDurationLabel(questions.length, meta.estimatedDuration)}</span><span>Можно прерваться</span></div>
+              <div className="meta"><span>{questions.length} вопросов</span><span>≈ {surveyDurationLabel(questions, meta.estimatedDuration)}</span><span>Можно прерваться</span></div>
               {questions.length ? (
                 <Button type="primary" size="large" onClick={() => setScreen("questions")}>Начать <ArrowRight size={18} /></Button>
               ) : (

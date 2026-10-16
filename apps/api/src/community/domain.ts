@@ -153,7 +153,7 @@ export const listingSchema = z
     description: z.string().trim().min(20).max(1500),
     topic: z.string().trim().min(2).max(80),
     sensitive: z.string().trim().max(300).default(""),
-    minutes: z.number().int().min(1).max(60),
+    minutes: z.number().int().min(1).max(240),
     criteria: criteriaSchema,
     screening: z.array(screeningSchema).max(5).default([]),
     quotas: z.array(quotaSchema).min(1).max(12),
@@ -188,8 +188,7 @@ export const listingSchema = z
     }
   });
 export type Listing = z.infer<typeof listingSchema>;
-export const rewardFor = (minutes: number) =>
-  minutes <= 5 ? 1 : minutes <= 15 ? 2 : minutes <= 30 ? 4 : 6;
+export { rewardFor } from "./duration.js";
 const known = (v: unknown) =>
   v !== null &&
   v !== undefined &&

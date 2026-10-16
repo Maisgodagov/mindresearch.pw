@@ -331,12 +331,14 @@ communityRouter.get(
   "/community/surveys",
   route(async (req, res) => {
     const [rows] = await db.query<any[]>(`SELECT s.id,s.title,s.description,s.settings,
-      (SELECT COUNT(*) FROM questions q JOIN sections sec ON sec.id=q.section_id WHERE sec.survey_id=s.id) questionCount
+      (SELECT COUNT(*) FROM questions q JOIN sections sec ON sec.id=q.section_id WHERE sec.survey_id=s.id) questionCount,
+      (SELECT COUNT(*) FROM questions q JOIN sections sec ON sec.id=q.section_id WHERE sec.survey_id=s.id AND q.type='text') openCount
       FROM surveys s WHERE s.owner_id=? AND s.status='active' AND s.deleted_at IS NULL ORDER BY s.created_at DESC`, [req.user!.id]);
     res.json(rows.map(s => {
       const setting = json(s.settings ?? {}).estimatedDuration;
-      const minutes = surveyDurationMinutes(Number(s.questionCount), setting);
-      return { id: s.id, title: s.title, description: s.description, minutes, durationLabel: surveyDurationLabel(Number(s.questionCount), setting), eligible: minutes <= 60 };
+      const questions = [...Array(Number(s.questionCount) - Number(s.openCount)).fill({ type: "single" }), ...Array(Number(s.openCount)).fill({ type: "text" })];
+      const minutes = surveyDurationMinutes(questions, setting);
+      return { id: s.id, title: s.title, description: s.description, minutes, durationLabel: surveyDurationLabel(questions, setting), eligible: minutes <= 240 };
     }));
   }),
 );
@@ -387,9 +389,9 @@ communityRouter.post(
           400,
           "Выберите свой опубликованный активный опрос.",
         );
-      const [questions] = await c.query<any[]>("SELECT COUNT(*) count FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=?", [config.surveyId]);
-      config.minutes = surveyDurationMinutes(Number(questions[0].count), json(surveys[0].settings ?? {}).estimatedDuration);
-      if (config.minutes > 60) throw new CommunityError(400, "Для размещения выберите опрос длительностью до 60 минут.");
+      const [questions] = await c.query<any[]>("SELECT q.type FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=?", [config.surveyId]);
+      config.minutes = surveyDurationMinutes(questions, json(surveys[0].settings ?? {}).estimatedDuration);
+      if (config.minutes > 240) throw new CommunityError(400, "Для размещения выберите опрос длительностью до 240 минут.");
       const reward = rewardFor(config.minutes);
       if (config.budget < reward) throw new CommunityError(400, "Бюджета должно хватать хотя бы на одно прохождение.");
       const [existing] = await c.query<any[]>(

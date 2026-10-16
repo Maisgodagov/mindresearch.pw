@@ -76,7 +76,7 @@ export function ListingForm({ available, initial, selectedSurvey, onSaved, onCan
   async function next() {
     try {
       await form.validateFields(step === 0 ? ["surveyId", "description", "sensitive"] : ["target"]);
-      if (step === 0 && !initial && (!selected || selected.minutes > 60)) { setError("Выберите опрос длительностью до 60 минут."); return; }
+      if (step === 0 && !initial && (!selected || selected.minutes > 240)) { setError("Выберите опрос длительностью до 240 минут."); return; }
       go(step + 1);
     } catch { /* Errors appear beside fields. */ }
   }

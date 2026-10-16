@@ -53,7 +53,7 @@ export function Community() {
     [listings, setListings] = useState<any[]>([]),
     [listBusy, setListBusy] = useState(false);
   const [search, setSearch] = useState(""),
-    [duration, setDuration] = useState(60),
+    [duration, setDuration] = useState(0),
     [topic, setTopic] = useState<string>(),
     [screen, setScreen] = useState<any>(null),
     [working, setWorking] = useState(false);
@@ -135,7 +135,7 @@ export function Community() {
         `${x.title} ${x.description} ${x.author}`
           .toLocaleLowerCase("ru")
           .includes(search.toLocaleLowerCase("ru"))) &&
-      x.minutes <= duration &&
+      (!duration || x.minutes <= duration) &&
       (!topic || x.topic === topic),
   );
   useEffect(() => {
@@ -341,10 +341,12 @@ export function Community() {
                               value={duration}
                               onChange={setDuration}
                               options={[
-                                { value: 60, label: "Любая длительность" },
+                                { value: 0, label: "Любая длительность" },
                                 { value: 5, label: "До 5 минут" },
                                 { value: 15, label: "До 15 минут" },
                                 { value: 30, label: "До 30 минут" },
+                                { value: 60, label: "До часа" },
+                                { value: 120, label: "До двух часов" },
                               ]}
                             />
                             <Select
@@ -424,22 +426,22 @@ export function Community() {
                             <div className="community-empty">
                               <h3>
                                 {
-                                  search || topic || duration < 60
+                                  search || topic || duration > 0
                                     ? "По вашим фильтрам ничего не найдено"
                                     : "Подходящих опросов пока нет"
                                 }
                               </h3>
                               <p className="muted">
-                                {search || topic || duration < 60
+                                {search || topic || duration > 0
                                   ? "Попробуйте изменить тему, длительность или запрос."
                                   : "Новые исследования появятся здесь, когда авторам понадобятся участники с вашей карточкой."}
                               </p>
-                              {(search || topic || duration < 60) && (
+                              {(search || topic || duration > 0) && (
                                 <Button
                                   onClick={() => {
                                     setSearch("");
                                     setTopic(undefined);
-                                    setDuration(60);
+                                    setDuration(0);
                                   }}
                                 >
                                   Сбросить фильтры

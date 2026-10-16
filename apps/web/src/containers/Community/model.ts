@@ -54,8 +54,7 @@ export const statusLabels: Record<string, string> = {
   expired: "Резерв истёк",
   screened_out: "Другая группа участников",
 };
-export const rewardFor = (n: number) =>
-  n <= 5 ? 1 : n <= 15 ? 2 : n <= 30 ? 4 : 6;
+export { rewardFor } from "../../../../api/src/community/duration";
 export function criteriaText(c: any = {}) {
   const parts = [];
   if (c.ageMin !== undefined || c.ageMax !== undefined)

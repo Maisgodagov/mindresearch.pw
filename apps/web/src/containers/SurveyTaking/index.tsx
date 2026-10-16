@@ -276,7 +276,7 @@ export function SurveyPage() {
               ) : (
                 <>
                   <span>{survey.questions.length} вопросов</span>
-                  <span>≈ {surveyDurationLabel(survey.questions.length, survey.settings?.estimatedDuration)}</span>
+                  <span>≈ {surveyDurationLabel(survey.questions, survey.settings?.estimatedDuration)}</span>
                 </>
               )}
               <span>Можно прерваться</span>
