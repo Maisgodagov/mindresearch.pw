@@ -46,6 +46,7 @@ export function Community() {
     [editingProfile, setEditingProfile] = useState(false),
     [helpOpen, setHelpOpen] = useState(false),
     [walletOpen, setWalletOpen] = useState(false),
+    [historyOpen, setHistoryOpen] = useState(false),
     [questionnaireOpen, setQuestionnaireOpen] = useState(false),
     [editor, setEditor] = useState<any>(null);
   const [feed, setFeed] = useState<any[]>([]),
@@ -220,7 +221,7 @@ export function Community() {
                   <p>Заработано: <strong>{me.wallet.earned}</strong></p>
                   <p>Бонусных: <strong>{me.wallet.bonus}</strong></p>
                   <p>Используйте баллы для продвижения своего опроса.</p>
-                  <Button type="link" onClick={() => { setTab("participation"); setWalletOpen(false); }}>История начислений</Button>
+                  <Button type="link" onClick={() => { setHistoryOpen(true); setWalletOpen(false); }}>История начислений</Button>
                 </div>
               }>
                 <Button className="wallet-button" icon={<Wallet size={16} />} aria-label={`Баланс: ${points(balance)}`}>
@@ -603,9 +604,7 @@ export function Community() {
                       label: "Моё участие",
                       children: (
                         <section>
-                          <div className="section-heading">
-                          <div><h2>Участия и начисления</h2>
-                          <p className="muted">Статусы прохождений и история баллов</p></div>
+                          <div className="section-heading participation-toolbar">
                           <Button
                             type="text"
                             icon={<RefreshCw size={16} />}
@@ -669,27 +668,6 @@ export function Community() {
                               <p className="muted">Выберите подходящий опрос в первой вкладке.</p>
                             </div>
                           )}
-                          <h2>История баллов</h2>
-                          <ul className="history">
-                            {me.history.map((h: any) => (
-                              <li key={h.id}>
-                                <div>
-                                  {h.note}
-                                  <br />
-                                  <small className="muted">
-                                    {dateLabel(h.createdAt)}
-                                  </small>
-                                </div>
-                                <strong>
-                                  {h.amount > 0 ? "+" : ""}
-                                  {h.amount}
-                                </strong>
-                              </li>
-                            ))}
-                          </ul>
-                          {!me.history.length && (
-                            <p className="muted">Операций пока нет.</p>
-                          )}
                         </section>
                       ),
                     },
@@ -700,6 +678,22 @@ export function Community() {
             )}
           </>
         )}
+        <CommunityModal
+          open={historyOpen}
+          title="История баллов"
+          onCancel={() => setHistoryOpen(false)}
+          footer={null}
+          width={520}
+        >
+          <CommunitySurface>
+            {me?.history?.length ? <ul className="history">
+              {me.history.map((h: any) => <li key={h.id}>
+                <div>{h.note}<br /><small className="muted">{dateLabel(h.createdAt)}</small></div>
+                <strong>{h.amount > 0 ? "+" : ""}{h.amount}</strong>
+              </li>)}
+            </ul> : <p className="muted">Операций пока нет.</p>}
+          </CommunitySurface>
+        </CommunityModal>
         <CommunityModal
           open={helpOpen}
           title="Как это работает"

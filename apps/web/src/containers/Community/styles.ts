@@ -31,6 +31,7 @@ export const CommunitySurface = styled.div`
   .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
   .section-heading h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
   .section-heading p { font-size: 13px; margin: 0; }
+  .participation-toolbar { justify-content: flex-end; margin-bottom: 12px; }
   .section-heading > .ant-btn { display: inline-flex; align-items: center; flex-shrink: 0; font-size: 13px; color: var(--color-muted); }
   .community-empty { padding: 56px 24px; text-align: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; }
   .community-empty h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
