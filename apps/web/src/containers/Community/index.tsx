@@ -3,11 +3,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Alert,
   Button,
-  Empty,
+  Dropdown,
   Form,
   Input,
   InputNumber,
   Modal,
+  Popover,
   Radio,
   Select,
   Spin,
@@ -15,15 +16,18 @@ import {
   Tag,
   message,
 } from "antd";
-import { Clock3, Search, Users } from "lucide-react";
+import { ChevronDown, CircleHelp, Clock3, RefreshCw, Search, UserRound, Users, Wallet } from "lucide-react";
 import { api, getCurrentUser } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
 import { PlatformLayout } from "../PlatformLayout";
-import { CommunitySurface } from "./styles";
+import { CommunityModal, CommunitySurface } from "./styles";
 import { ProfileForm } from "./ProfileForm";
 import { CommunityIntro } from "./CommunityIntro";
 import { ListingForm } from "./ListingForm";
 import { criteriaText, dateLabel, statusLabels } from "./model";
+
+const pointWords = { one: "балл", few: "балла", other: "баллов", many: "баллов", zero: "баллов", two: "балла" };
+const points = (amount: number) => `${amount} ${pointWords[new Intl.PluralRules("ru").select(amount)]}`;
 
 export function Community() {
   const navigate = useNavigate(),
@@ -40,11 +44,12 @@ export function Community() {
           : "feed",
     ),
     [editingProfile, setEditingProfile] = useState(false),
+    [helpOpen, setHelpOpen] = useState(false),
+    [walletOpen, setWalletOpen] = useState(false),
     [questionnaireOpen, setQuestionnaireOpen] = useState(false),
     [editor, setEditor] = useState<any>(null);
   const [feed, setFeed] = useState<any[]>([]),
     [listings, setListings] = useState<any[]>([]),
-    [reviews, setReviews] = useState<any[]>([]),
     [listBusy, setListBusy] = useState(false);
   const [search, setSearch] = useState(""),
     [duration, setDuration] = useState(60),
@@ -52,7 +57,6 @@ export function Community() {
     [screen, setScreen] = useState<any>(null),
     [working, setWorking] = useState(false);
   const [appeal, setAppeal] = useState<any>(null),
-    [review, setReview] = useState<any>(null),
     [topup, setTopup] = useState<any>(null),
     [closeTarget, setCloseTarget] = useState<any>(null);
   const [note, setNote] = useState(""),
@@ -68,14 +72,12 @@ export function Community() {
     setListBusy(true);
     setError("");
     try {
-      const [f, l, r] = await Promise.all([
+      const [f, l] = await Promise.all([
         api.get("/community/feed"),
         api.get("/community/listings"),
-        api.get("/community/reviews"),
       ]);
       setFeed(f.data);
       setListings(l.data);
-      setReviews(r.data);
     } catch (e) {
       setError(
         getApiErrorMessage(
@@ -205,19 +207,28 @@ export function Community() {
     <PlatformLayout>
       <CommunitySurface>
         {ready && (
-          <div className="page-head">
+          <header className="community-header">
             <div>
               <h1>Найти респондентов</h1>
             </div>
-            {ready && (
-              <div className="balance">
-                <strong>{balance} балл(а)</strong>
-                <small className="muted">
-                  Заработано: {me.wallet.earned} · Бонусных: {me.wallet.bonus}
-                </small>
-              </div>
-            )}
-          </div>
+            <div className="community-tools">
+              <Button icon={<UserRound size={16} />} onClick={() => setEditingProfile(true)}>
+                Карточка участника
+              </Button>
+              <Popover open={walletOpen} onOpenChange={setWalletOpen} trigger="click" placement="bottomRight" title="Ваш баланс" content={
+                <div className="wallet-details" style={{ maxWidth: 260 }}>
+                  <p>Заработано: <strong>{me.wallet.earned}</strong></p>
+                  <p>Бонусных: <strong>{me.wallet.bonus}</strong></p>
+                  <p>Используйте баллы для продвижения своего опроса.</p>
+                  <Button type="link" onClick={() => { setTab("participation"); setWalletOpen(false); }}>История начислений</Button>
+                </div>
+              }>
+                <Button className="wallet-button" icon={<Wallet size={16} />} aria-label={`Баланс: ${points(balance)}`}>
+                  {points(balance)}
+                </Button>
+              </Popover>
+            </div>
+          </header>
         )}
         {loading ? (
           <Spin tip="Открываем раздел">
@@ -256,7 +267,7 @@ export function Community() {
                 )}
                 onStart={() => setQuestionnaireOpen(true)}
               />
-            ) : !ready || editingProfile ? (
+            ) : !ready ? (
               <ProfileForm
                 profile={me.profile}
                 onCancel={
@@ -282,27 +293,6 @@ export function Community() {
               />
             ) : (
               <>
-                <details>
-                  <summary>Как работает взаимопомощь</summary>
-                  <p>
-                    Выбирайте подходящие исследования, проходите их внимательно
-                    и получайте баллы после проверки. Баллы финансируют
-                    продвижение вашего опроса. Награда и место резервируются
-                    перед началом. Срок резерва — минимум 2 часа, точное время
-                    видно в «Моём участии».
-                  </p>
-                  <p>
-                    Новые исследования могут ещё не иметь индекса качества — это
-                    не мешает начислению. Несколько признаков недобросовестного
-                    прохождения требуют дополнительной проверки. Баллы не
-                    оценивают человека и не меняют психологические результаты.
-                  </p>
-                  <p>
-                    В закрытом пилоте при первом размещении доступно 8 стартовых
-                    бонусных баллов. Баллы нельзя купить или передать другому
-                    пользователю.
-                  </p>
-                </details>
                 {me.profile.confirmedAt &&
                   Date.now() - new Date(me.profile.confirmedAt).getTime() >
                     180 * 86400000 && (
@@ -317,6 +307,7 @@ export function Community() {
                     />
                   )}
                 <Tabs
+                  className="community-tabs"
                   activeKey={tab}
                   onChange={(key) => {
                     setTab(key);
@@ -325,19 +316,22 @@ export function Community() {
                   items={[
                     {
                       key: "feed",
-                      label: "Найти исследование",
+                      label: "Опросы",
                       children: (
                         <section aria-label="Исследования сообщества">
-                          <h2>Исследования сообщества</h2>
-                          <p className="muted">
-                            Подобраны по вашей карточке. Некоторые авторы
-                            зададут дополнительные вопросы перед началом.
-                          </p>
+                          <div className="section-heading">
+                            <div>
+                              <h2>Исследования сообщества</h2>
+                              <p className="muted">Подобраны по вашей карточке</p>
+                            </div>
+                            <Button type="text" icon={<RefreshCw size={16} />} onClick={() => void loadLists()} loading={listBusy}>Обновить</Button>
+                          </div>
+                          {feed.length > 0 && (
                           <div className="filter-bar">
                             <Input
                               aria-label="Поиск исследований"
                               prefix={<Search size={17} />}
-                              placeholder="Название, описание или автор"
+                              placeholder="Найти опрос"
                               value={search}
                               onChange={(e) => setSearch(e.target.value)}
                               allowClear
@@ -364,13 +358,8 @@ export function Community() {
                                 ...new Set(feed.map((x) => x.topic)),
                               ].map((value) => ({ value, label: value }))}
                             />
-                            <Button
-                              onClick={() => void loadLists()}
-                              loading={listBusy}
-                            >
-                              Обновить
-                            </Button>
                           </div>
+                          )}
                           {listBusy ? (
                             <Spin />
                           ) : shown.length ? (
@@ -407,7 +396,7 @@ export function Community() {
                                     </Tag>
                                   </div>
                                   <div className="participate">
-                                    <strong>+{x.reward} балл(а)</strong>
+                                    <strong>+{points(x.reward)}</strong>
                                     <Button
                                       type="primary"
                                       loading={working}
@@ -432,18 +421,18 @@ export function Community() {
                               ))}
                             </div>
                           ) : (
-                            <div className="panel empty">
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description={
+                            <div className="community-empty">
+                              <h3>
+                                {
                                   search || topic || duration < 60
-                                    ? "По этим фильтрам ничего не найдено"
-                                    : "Сейчас нет исследований, подходящих по вашей карточке"
+                                    ? "По вашим фильтрам ничего не найдено"
+                                    : "Подходящих опросов пока нет"
                                 }
-                              />
+                              </h3>
                               <p className="muted">
-                                Новые размещения появятся здесь. Менять
-                                достоверные ответы ради доступа не нужно.
+                                {search || topic || duration < 60
+                                  ? "Попробуйте изменить тему, длительность или запрос."
+                                  : "Новые исследования появятся здесь, когда авторам понадобятся участники с вашей карточкой."}
                               </p>
                               {(search || topic || duration < 60) && (
                                 <Button
@@ -482,9 +471,7 @@ export function Community() {
                             <div>
                               <h2>Ваши исследования в сообществе</h2>
                               <p className="muted">
-                                Распределяем показы между подходящими
-                                исследованиями. Большой баланс не даёт
-                                постоянного первого места.
+                                Разместите свой опрос и собирайте ответы.
                               </p>
                             </div>
                             <Button
@@ -496,9 +483,7 @@ export function Community() {
                           </div>
                           {!me.wallet.bonusGranted && (
                             <p className="notice">
-                              При первом размещении вы получите 8 стартовых
-                              бонусных баллов. Они доступны только внутри
-                              взаимопомощи.
+                              Для первого размещения доступно 8 бонусных баллов.
                             </p>
                           )}
                           {listings.length ? (
@@ -517,6 +502,11 @@ export function Community() {
                                           ? "Бюджет исчерпан"
                                           : "Продвигается"}
                                 </Tag>
+                                <p className="listing-summary">
+                                  Зачтено: <strong>{l.completed}</strong> · В работе: {Number(l.pending) + Number(l.reserved)} · Бюджет: {l.earned_budget + l.bonus_budget}
+                                </p>
+                                <details className="listing-details">
+                                <summary>Статистика и выборка</summary>
                                 <div className="research-meta">
                                   <span>Показы: {l.impressions}</span>
                                   <span>Начали: {l.started}</span>
@@ -546,6 +536,7 @@ export function Community() {
                                     })
                                     .join("; ")}
                                 </p>
+                                </details>
                                 {l.state !== "closed" && (
                                   <div className="actions">
                                     <Button
@@ -568,9 +559,6 @@ export function Community() {
                                         ? "Приостановить"
                                         : "Возобновить"}
                                     </Button>
-                                    <Button onClick={() => setEditor(l)}>
-                                      Настройки выборки
-                                    </Button>
                                     <Button
                                       onClick={() => {
                                         setAmount(1);
@@ -579,28 +567,28 @@ export function Community() {
                                     >
                                       Пополнить бюджет
                                     </Button>
-                                    <Button
-                                      onClick={() =>
-                                        navigate(
-                                          `/app/surveys/${l.survey_id}/results`,
-                                        )
-                                      }
-                                    >
-                                      Результаты
-                                    </Button>
-                                    <Button onClick={() => setCloseTarget(l)}>
-                                      Закрыть размещение
-                                    </Button>
+                                    <Dropdown trigger={["click"]} menu={{
+                                      items: [
+                                        { key: "edit", label: "Настройки выборки" },
+                                        { key: "results", label: "Результаты" },
+                                        { type: "divider" },
+                                        { key: "close", label: "Закрыть размещение", danger: true },
+                                      ],
+                                      onClick: ({ key }) => {
+                                        if (key === "edit") setEditor(l);
+                                        if (key === "results") navigate(`/app/surveys/${l.survey_id}/results`);
+                                        if (key === "close") setCloseTarget(l);
+                                      },
+                                    }}>
+                                      <Button>Ещё <ChevronDown size={14} /></Button>
+                                    </Dropdown>
                                   </div>
                                 )}
                               </article>
                             ))
                           ) : (
-                            <div className="panel empty">
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description="Вы пока не разместили исследование"
-                              />
+                            <div className="community-empty">
+                              <h3>Ваш опрос может быть здесь</h3>
                               <p className="muted">
                                 Выберите опубликованный опрос, задайте выборку и
                                 бюджет.
@@ -615,18 +603,18 @@ export function Community() {
                       label: "Моё участие",
                       children: (
                         <section>
-                          <h2>Участия и начисления</h2>
-                          <p className="muted">
-                            После завершения проверка обычно запускается в
-                            течение нескольких минут. Спорные случаи
-                            рассматривает другой администратор.
-                          </p>
+                          <div className="section-heading">
+                          <div><h2>Участия и начисления</h2>
+                          <p className="muted">Статусы прохождений и история баллов</p></div>
                           <Button
+                            type="text"
+                            icon={<RefreshCw size={16} />}
                             onClick={() => void action(async () => {})}
                             loading={working}
                           >
                             Обновить статусы
                           </Button>
+                          </div>
                           {me.participations.length ? (
                             me.participations.map((p: any) => (
                               <article className="panel" key={p.id}>
@@ -642,7 +630,7 @@ export function Community() {
                                 >
                                   {statusLabels[p.status]}
                                 </Tag>
-                                <span> {p.reward} балл(а)</span>
+                                <span> {points(p.reward)}</span>
                                 {p.reason && <p>{p.reason}</p>}
                                 {p.status === "reserved" && (
                                   <>
@@ -676,11 +664,9 @@ export function Community() {
                               </article>
                             ))
                           ) : (
-                            <div className="panel empty">
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description="Здесь появятся ваши участия"
-                              />
+                            <div className="community-empty">
+                              <h3>Вы пока не участвовали в исследованиях</h3>
+                              <p className="muted">Выберите подходящий опрос в первой вкладке.</p>
                             </div>
                           )}
                           <h2>История баллов</h2>
@@ -707,91 +693,54 @@ export function Community() {
                         </section>
                       ),
                     },
-                    {
-                      key: "profile",
-                      label: "Карточка участника",
-                      children: (
-                        <section className="panel">
-                          <h2>Ваши сведения для подбора</h2>
-                          <p>
-                            Карточка используется для отбора и не публикуется.
-                            Проверяйте её, если изменились семейное положение,
-                            работа или другие сведения.
-                          </p>
-                          <p className="muted">
-                            {me.profile.confirmedAt
-                              ? `Подтверждена: ${dateLabel(me.profile.confirmedAt)}`
-                              : ""}
-                          </p>
-                          <Button onClick={() => setEditingProfile(true)}>
-                            Редактировать карточку
-                          </Button>
-                        </section>
-                      ),
-                    },
-                    {
-                      key: "reviews",
-                      label: `Проверка участий${reviews.length ? ` (${reviews.length})` : ""}`,
-                      children: (
-                        <section>
-                          <h2>Спорные начисления</h2>
-                          <p className="muted">
-                            Нельзя проверять своё участие или участников
-                            собственного исследования. Решения сохраняются в
-                            журнале действий.
-                          </p>
-                          <Button
-                            onClick={() => void loadLists()}
-                            loading={listBusy}
-                          >
-                            Обновить очередь
-                          </Button>
-                          {reviews.length ? (
-                            reviews.map((r) => (
-                              <article className="panel" key={r.id}>
-                                <h3>{r.title}</h3>
-                                <p>{r.reason}</p>
-                                {r.appeal && (
-                                  <p className="notice">
-                                    Обращение: {r.appeal}
-                                  </p>
-                                )}
-                                <p className="muted">
-                                  Участие {r.id} · {r.reward} балл(а)
-                                </p>
-                                <Button
-                                  disabled={working}
-                                  onClick={() =>
-                                    void action(async () => {
-                                      const response = await api.get(
-                                        `/community/reviews/${r.id}`,
-                                      );
-                                      setNote("");
-                                      setReview(response.data);
-                                    })
-                                  }
-                                >
-                                  Рассмотреть
-                                </Button>
-                              </article>
-                            ))
-                          ) : (
-                            <div className="panel empty">
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description="Спорных начислений нет"
-                              />
-                            </div>
-                          )}
-                        </section>
-                      ),
-                    },
                   ]}
                 />
+                <Button className="community-help" type="text" icon={<CircleHelp size={16} />} onClick={() => setHelpOpen(true)}>Как это работает</Button>
               </>
             )}
           </>
         )}
+        <CommunityModal
+          open={helpOpen}
+          title="Как это работает"
+          onCancel={() => setHelpOpen(false)}
+          footer={<Button type="primary" onClick={() => setHelpOpen(false)}>Понятно</Button>}
+          width={620}
+        >
+          <div className="help-copy">
+            <p className="help-intro">Вы проходите опросы других участников, а они — ваши.</p>
+            <h3>Участвуйте и получайте баллы</h3>
+            <p>В ленте — исследования, подобранные по вашей карточке. У некоторых есть короткий отбор перед началом. Награда указана заранее и начисляется после проверки прохождения.</p>
+            <h3>Продвигайте свой опрос</h3>
+            <p>Во вкладке «Моё продвижение» выберите опубликованный опрос, задайте выборку и выделите бюджет из баллов. Он расходуется на зачтённые участия. Показы распределяются между подходящими исследованиями — большой баланс не гарантирует первое место.</p>
+            <h3>Следите за результатом</h3>
+            <p>В «Моём участии» видны сроки, статусы и начисления. Перед началом система резервирует место и награду минимум на 2 часа; точный срок указан в участии. Проверка обычно запускается в течение нескольких минут после завершения.</p>
+            <h3>Внимательные ответы важнее скорости</h3>
+            <p>Индекс качества помогает обнаруживать случайное прокликивание. Отсутствие индекса у нового исследования не мешает начислению. Спорные случаи проверяет другой администратор; решение можно попросить пересмотреть. Баллы не оценивают личность и не влияют на психологические результаты.</p>
+            <p className="help-note">В пилоте при первом размещении доступны 8 бонусных баллов. Баллы нельзя купить или передать. Карточка не публикуется и не передаётся автору вместе с ответами.</p>
+          </div>
+        </CommunityModal>
+        <CommunityModal
+          open={ready && editingProfile}
+          title="Карточка участника"
+          onCancel={() => setEditingProfile(false)}
+          footer={null}
+          width={720}
+          destroyOnHidden
+        >
+          <CommunitySurface className="community-dialog-surface">
+            {ready && <ProfileForm
+              embedded
+              profile={me.profile}
+              onSaved={async () => {
+                await loadMe();
+                setEditingProfile(false);
+                await loadLists();
+                message.success("Карточка обновлена");
+              }}
+            />}
+          </CommunitySurface>
+        </CommunityModal>
         <Modal
           open={!!screen}
           title="Короткий отбор перед участием"
@@ -855,104 +804,6 @@ export function Community() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={1500}
-          />
-        </Modal>
-        <Modal
-          open={!!review}
-          title="Решение по начислению"
-          onCancel={() => setReview(null)}
-          footer={
-            <div className="actions">
-              <Button
-                disabled={working || note.trim().length < 10}
-                onClick={() =>
-                  void action(async () => {
-                    await api.post(`/community/reviews/${review.id}`, {
-                      approve: false,
-                      reason: note,
-                    });
-                    setReview(null);
-                  })
-                }
-              >
-                Не начислять
-              </Button>
-              <Button
-                type="primary"
-                disabled={working || note.trim().length < 10}
-                onClick={() =>
-                  void action(async () => {
-                    await api.post(`/community/reviews/${review.id}`, {
-                      approve: true,
-                      reason: note,
-                    });
-                    setReview(null);
-                  })
-                }
-              >
-                Начислить баллы
-              </Button>
-            </div>
-          }
-        >
-          <p>{review?.reason}</p>
-          {review && (
-            <>
-              <p>
-                Фактическое время: {Math.round((review.seconds ?? 0) / 6) / 10}{" "}
-                мин · Ожидалось: {review.minutes} мин
-              </p>
-              <p>
-                Подтверждённый дубликат: {review.duplicate ? "Да" : "Нет"} ·
-                Группа: {review.cohort ?? "Не размечена"} · Соответствие:{" "}
-                {review.eligibility ?? "Не отмечено"}
-              </p>
-              {review.quality ? (
-                <>
-                  <p>
-                    Общий индекс:{" "}
-                    {review.quality.overall?.score ?? "Недостаточно данных"} ·
-                    Независимых групп признаков:{" "}
-                    {review.quality.independent_concerning_domains}
-                  </p>
-                  <ul>
-                    {(review.quality.overall?.flags ?? []).map(
-                      (flag: any, i: number) => (
-                        <li key={i}>{flag.explanation}</li>
-                      ),
-                    )}
-                  </ul>
-                </>
-              ) : (
-                <p>Статистический индекс пока недоступен.</p>
-              )}
-              {review.screening?.map((q: any, i: number) => (
-                <p key={i}>
-                  {q.question}: {q.answer}
-                </p>
-              ))}
-              <a
-                href={`/app/admin/users/${review.ownerId}/surveys/${review.surveyId}/results`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Открыть результаты исследования
-              </a>
-            </>
-          )}
-          <p>
-            Рассмотрите доступные результаты и обстоятельства участия. Необычные
-            ответы сами по себе не доказывают недобросовестность.
-          </p>
-          <label htmlFor="review-reason">
-            Обоснование решения, минимум 10 символов
-          </label>
-          <Input.TextArea
-            id="review-reason"
-            rows={4}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            maxLength={500}
           />
         </Modal>
         <Modal

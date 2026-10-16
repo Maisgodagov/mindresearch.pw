@@ -21,10 +21,12 @@ export function ProfileForm({
   profile,
   onSaved,
   onCancel,
+  embedded = false,
 }: {
   profile: any;
   onSaved: () => Promise<void>;
   onCancel?: () => void;
+  embedded?: boolean;
 }) {
   const [form] = Form.useForm(),
     [step, setStep] = useState(0),
@@ -104,10 +106,10 @@ export function ProfileForm({
   }
   return (
     <section className="panel questionnaire" aria-label="Анкета участника">
-      <div className="questionnaire-heading">
+      {!embedded && <div className="questionnaire-heading">
         <h2>Карточка участника</h2>
         <span className="questionnaire-progress">{step + 1} / 3</span>
-      </div>
+      </div>}
       <p className="questionnaire-caption">Анонимные сведения для подбора опросов</p>
       <div className="step-line" aria-label={`Шаг ${step + 1} из 3`}>
         {["Основное", "Учёба и работа", "Семья"].map((s, i) => (
