@@ -604,7 +604,9 @@ export function Community() {
                       label: "Моё участие",
                       children: (
                         <section>
-                          <div className="section-heading participation-toolbar">
+                          <div className="section-heading">
+                          <div><h2>Участия и начисления</h2>
+                          <p className="muted">Статусы прохождений и история баллов</p></div>
                           <Button
                             type="text"
                             icon={<RefreshCw size={16} />}
