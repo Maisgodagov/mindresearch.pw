@@ -1,3 +1,4 @@
+import { settleCommunity } from "../community/router.js";
 import { eligibleReferenceCount, shouldGrowBaseline } from "./baseline-growth.js";
 import { createQualityWorker } from './worker-runtime.js';
 import { randomUUID } from 'node:crypto';
@@ -80,6 +81,7 @@ export async function runJobs() {
         }
         await updates;
         await db.execute("UPDATE quality_jobs SET status='completed',progress=?,total=?,output=? WHERE id=?", [output.count,output.count,JSON.stringify(output),job.id]);
+        if(job.kind === "recompute") await settleCommunity(typeof options.sessionId === "string" ? options.sessionId : undefined).catch(error => console.error("Community settlement after quality failed", error));
       } catch (error) {
         await updates.catch(() => {});
         await db.execute("UPDATE quality_jobs SET status='failed',error=? WHERE id=?", [error instanceof Error ? error.message : String(error),job.id]);

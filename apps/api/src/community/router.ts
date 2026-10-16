@@ -155,7 +155,7 @@ communityRouter.get(
           [user],
         ),
         db.query<any[]>(
-          `SELECT p.id,p.status,p.reason,p.appeal,p.reward,p.expires_at expiresAt,p.created_at createdAt,s.title,s.slug,rs.public_token token FROM community_participations p JOIN community_listings l ON l.id=p.listing_id JOIN surveys s ON s.id=l.survey_id LEFT JOIN response_sessions rs ON rs.id=p.session_id WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 100`,
+          `SELECT p.id,p.status,p.reason,p.appeal,p.reward,p.expires_at expiresAt,p.created_at createdAt,s.title,s.slug,rs.public_token token,rs.status sessionStatus FROM community_participations p JOIN community_listings l ON l.id=p.listing_id JOIN surveys s ON s.id=l.survey_id LEFT JOIN response_sessions rs ON rs.id=p.session_id WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 100`,
           [user],
         ),
       ]);
@@ -732,9 +732,10 @@ async function resolve(
   }
 }
 
-export async function settleCommunity() {
+export async function settleCommunity(sessionId?: string) {
   const [pending] = await db.query<any[]>(
-    `SELECT p.id,p.listing_id FROM community_participations p LEFT JOIN response_sessions rs ON rs.id=p.session_id WHERE p.status IN ('reserved','pending') AND (p.expires_at<NOW() OR rs.status='completed' AND rs.completed_at<DATE_SUB(NOW(),INTERVAL 2 MINUTE)) ORDER BY p.created_at LIMIT 100`,
+    `SELECT p.id,p.listing_id FROM community_participations p LEFT JOIN response_sessions rs ON rs.id=p.session_id WHERE p.status IN ('reserved','pending') AND (? IS NULL OR p.session_id=?) AND (p.expires_at<NOW() OR rs.status='completed' AND (? IS NOT NULL OR rs.completed_at<=DATE_SUB(NOW(),INTERVAL 5 SECOND))) ORDER BY p.created_at LIMIT 100`,
+    [sessionId ?? null, sessionId ?? null, sessionId ?? null],
   );
   for (const row of pending)
     await tx(async (c) => {

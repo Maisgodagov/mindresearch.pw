@@ -135,6 +135,19 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     const me=(await request(a,'/me')).data;expect(me.wallet.earned).toBe(before+1);expect(me.history.filter((x:any)=>x.kind==='participation'&&x.amount===1).length).toBeGreaterThan(0);
     const [rows]=await db.query<any[]>('SELECT status FROM community_participations WHERE listing_id=? AND user_id=?',[l.id,a]);expect(rows[0].status).toBe('credited');
   });
+  it('settles immediately after completion and exposes actual session status',async()=>{
+    const l=await create(),joined=await request(b,`/listings/${l.id}/join`,'POST',{});
+    const before=(await request(b,'/me')).data.wallet.earned;
+    const [sessions]=await db.query<any[]>('SELECT id FROM response_sessions WHERE public_token=?',[joined.data.token]);
+    const sessionId=sessions[0].id;
+    await db.execute("UPDATE response_sessions SET status='completed',started_at=DATE_SUB(NOW(),INTERVAL 5 MINUTE),completed_at=NOW() WHERE id=?",[sessionId]);
+    expect((await request(b,'/me')).data.participations.find((p:any)=>p.token===joined.data.token).sessionStatus).toBe('completed');
+    await Promise.all([settle(sessionId),settle(sessionId)]);
+    const me=(await request(b,'/me')).data;
+    expect(me.wallet.earned).toBe(before+1);
+    expect(me.participations.find((p:any)=>p.token===joined.data.token).status).toBe('credited');
+    await settle(sessionId);expect((await request(b,'/me')).data.wallet.earned).toBe(before+1);
+  });
   it('returns unused reserves after closing and does not pay after the deadline',async()=>{
     const l=await create(),joined=await request(a,`/listings/${l.id}/join`,'POST',{});expect(joined.status).toBe(200);
     const before=(await request(author,'/me')).data.wallet.earned;

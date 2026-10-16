@@ -12,7 +12,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { db, migrate } from './db.js';
 import { migrateCommunity } from './community/schema.js';
-import { communityRouter, startCommunityWorker } from './community/router.js';
+import { communityRouter, startCommunityWorker, settleCommunity } from './community/router.js';
 import { clearRefreshCookie, createAuthSession, requireAuth, revokeAllUserSessions, revokeAuthSession, rotateAuthSession, type AuthRequest } from './auth.js';
 import { calculateAmsForSession, calculateBfi2ForSession, calculateBfi2ShortForSession, calculateBriefCopeRuForSession, calculateConfiguredAssessmentsForSession, calculateCsesForSession, calculateDebqForSession, calculateGpsForSession, calculateGsesForSession, calculateIpipNeo120ForSession, calculateMiniIpipForSession, calculateMspssForSession, calculateNspsForSession, calculatePpsForSession, calculateRsesForSession, calculateSccsForSession, calculateShamForSession, calculateShoppForSession, calculateSspm2011ForSession, calculateStudyAlienationForSession, calculateTipiRuForSession } from './scoring/index.js';
 import { methodologies } from './scoring/methodologies.js';
@@ -85,7 +85,7 @@ app.post('/api/public/sessions/:token/complete',async(req,res,next)=>{try{
   const[sessions]=await db.query<any[]>('SELECT id,status FROM response_sessions WHERE public_token=?',[req.params.token]);if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'});
   const[missing]=await db.query<any[]>(`SELECT COUNT(*) count FROM questions q JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.survey_id=s.survey_id LEFT JOIN answers a ON a.question_id=q.id AND a.session_id=rs.id WHERE rs.id=? AND q.required=TRUE AND a.id IS NULL`,[sessions[0].id]);
   if(Number(missing[0].count)>0)return res.status(409).json({message:'Сначала ответьте на все обязательные вопросы',missing:Number(missing[0].count)});
-  const[r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE id=? AND status='in_progress'`,[sessions[0].id]);if(!r.affectedRows)return res.status(409).json({message:'Опрос уже завершён'});void db.query<any[]>('SELECT survey_id surveyId FROM response_sessions WHERE id=?',[sessions[0].id]).then(([rows])=>enqueueQuality(rows[0].surveyId,'recompute',{sessionId:sessions[0].id})).catch(error=>console.error('Quality V2 scheduling failed',error instanceof Error?error.message:String(error)));res.status(204).end();
+  const[r]=await db.execute<any>(`UPDATE response_sessions SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE id=? AND status='in_progress'`,[sessions[0].id]);if(!r.affectedRows)return res.status(409).json({message:'Опрос уже завершён'});void db.query<any[]>('SELECT survey_id surveyId FROM response_sessions WHERE id=?',[sessions[0].id]).then(async ([rows])=>{await enqueueQuality(rows[0].surveyId,'recompute',{sessionId:sessions[0].id});await settleCommunity(sessions[0].id);}).catch(error=>console.error('Quality V2 scheduling failed',error instanceof Error?error.message:String(error)));res.status(204).end();
 }catch(e){next(e)}});
 app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
   const[sessions]=await db.query<any[]>('SELECT rs.id,rs.status,s.settings FROM response_sessions rs JOIN surveys s ON s.id=rs.survey_id WHERE rs.public_token=?',[req.params.token]);
