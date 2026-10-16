@@ -482,11 +482,6 @@ export function Community() {
                               Разместить исследование
                             </Button>
                           </div>
-                          {!me.wallet.bonusGranted && (
-                            <p className="notice">
-                              Для первого размещения доступно 8 бонусных баллов.
-                            </p>
-                          )}
                           {listings.length ? (
                             listings.map((l) => (
                               <article className="panel" key={l.id}>
