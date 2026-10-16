@@ -389,8 +389,8 @@ export function Community() {
                                   </div>
                                   <div className="participate">
                                     <span className="research-time"><Clock3 size={16} />{x.minutes} мин</span>
-                                    <strong>+{points(x.reward)}</strong>
-                                    <small className="muted">За зачтённое прохождение</small>
+                                    <strong>{x.participation?.rewardAvailable === false ? "Резерв истёк" : `+${points(x.reward)}`}</strong>
+                                    <small className="muted">{x.participation?.rewardAvailable === false ? "Можно завершить без начисления баллов" : "За зачтённое прохождение"}</small>
                                     <Button
                                       type="primary"
                                       loading={working}

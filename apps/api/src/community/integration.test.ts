@@ -105,6 +105,19 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     const [rows]=await db.query<any[]>('SELECT COUNT(*) count FROM community_participations WHERE listing_id=?',[l.id]);expect(rows[0].count).toBe(1);
     expect((await request(author,`/listings/${l.id}/join`,'POST',{})).status).toBe(403);
   });
+  it('keeps expired unfinished surveys in the feed with their original session',async()=>{
+    const l=await create(),joined=await request(a,`/listings/${l.id}/join`,'POST',{});
+    expect(joined.status).toBe(200);
+    await db.execute('UPDATE community_participations SET expires_at=DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE listing_id=?',[l.id]);
+    const before=(await request(a,'/feed')).data.find((x:any)=>x.id===l.id);
+    expect(before.participation).toMatchObject({token:joined.data.token,rewardAvailable:false});
+    await settle();
+    const expired=(await request(a,'/feed')).data.filter((x:any)=>x.id===l.id);
+    expect(expired).toHaveLength(1);
+    expect(expired[0].participation).toMatchObject({token:joined.data.token,rewardAvailable:false});
+    await finish(joined.data.token);
+    expect((await request(a,'/feed')).data.some((x:any)=>x.id===l.id)).toBe(false);
+  });
   it('derives listing duration from the owned survey instead of client input',async()=>{
     const surveyId=randomUUID();
     await db.execute("INSERT INTO surveys(id,owner_id,slug,title,welcome_title,welcome_text,status,settings) VALUES (?,?,?,?,?,?,'active',?)",[surveyId,author,`fixture-${surveyId}`,'Время из опроса','Начало','Тест',JSON.stringify({estimatedDuration:{mode:'custom',text:'10–15 минут'}})]);
