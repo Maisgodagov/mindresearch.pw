@@ -475,8 +475,9 @@ export function Community() {
                           </div>
                           {listings.length ? (
                             listings.map((l) => (
-                              <article className="panel" key={l.id}>
-                                <h3>{l.title}</h3>
+                              <article className="research-row promotion-card" key={l.id}>
+                                <div className="research-content">
+                                <h2>{l.title}</h2>
                                 <Tag>
                                   {l.state === "closed"
                                     ? "Закрыто"
@@ -490,7 +491,7 @@ export function Community() {
                                           : "Продвигается"}
                                 </Tag>
                                 <p className="listing-summary">
-                                  Зачтено: <strong>{l.completed}</strong> · В работе: {Number(l.pending) + Number(l.reserved)} · Бюджет: {l.earned_budget + l.bonus_budget}
+                                  Зачтено: <strong>{l.completed}</strong> · В работе: {Number(l.pending) + Number(l.reserved)}
                                 </p>
                                 <details className="listing-details">
                                 <summary>Статистика и выборка</summary>
@@ -524,8 +525,12 @@ export function Community() {
                                     .join("; ")}
                                 </p>
                                 </details>
+                                </div>
+                                <div className="participate">
+                                  <span className="research-time">Бюджет продвижения</span>
+                                  <strong>{points(l.earned_budget + l.bonus_budget)}</strong>
                                 {l.state !== "closed" && (
-                                  <div className="actions">
+                                  <>
                                     <Button
                                       disabled={working}
                                       onClick={() =>
@@ -547,6 +552,7 @@ export function Community() {
                                         : "Возобновить"}
                                     </Button>
                                     <Button
+                                      type="primary"
                                       onClick={() => {
                                         setAmount(1);
                                         setTopup(l);
@@ -569,8 +575,9 @@ export function Community() {
                                     }}>
                                       <Button>Ещё <ChevronDown size={14} /></Button>
                                     </Dropdown>
-                                  </div>
+                                  </>
                                 )}
+                                </div>
                               </article>
                             ))
                           ) : (
@@ -604,8 +611,9 @@ export function Community() {
                           </div>
                           {me.participations.length ? (
                             me.participations.map((p: any) => (
-                              <article className="panel" key={p.id}>
-                                <h3>{p.title}</h3>
+                              <article className="research-row participation-card" key={p.id}>
+                                <div className="research-content">
+                                <h2>{p.title}</h2>
                                 <Tag
                                   color={
                                     p.status === "credited"
@@ -617,7 +625,6 @@ export function Community() {
                                 >
                                   {p.status === "reserved" && p.sessionStatus === "completed" ? "Опрос завершён" : statusLabels[p.status]}
                                 </Tag>
-                                <span> {points(p.reward)}</span>
                                 {p.reason && <p>{p.reason}</p>}
                                 {(["reserved", "pending"].includes(p.status) && p.sessionStatus === "completed") && (
                                   <p className="muted">Опрос завершён. Проверяем прохождение — баллы будут начислены в ближайшее время.</p>
@@ -628,13 +635,20 @@ export function Community() {
                                       Завершите до {dateLabel(p.expiresAt)}.
                                       После срока награда и место освобождаются.
                                     </p>
+                                  </>
+                                )}
+                                </div>
+                                <div className="participate">
+                                  <span className="research-time">Награда за участие</span>
+                                  <strong>{p.status === "credited" ? "+" : ""}{points(p.reward)}</strong>
+                                  <small className="muted">{p.status === "credited" ? "Начислено на баланс" : "За зачтённое прохождение"}</small>
+                                {p.status === "reserved" && p.sessionStatus !== "completed" && (
                                     <Button
                                       type="primary"
                                       onClick={() => openParticipation(p)}
                                     >
                                       Продолжить опрос
                                     </Button>
-                                  </>
                                 )}
                                 {["review", "rejected"].includes(p.status) && (
                                   <div className="actions">
@@ -650,6 +664,7 @@ export function Community() {
                                     </Button>
                                   </div>
                                 )}
+                                </div>
                               </article>
                             ))
                           ) : (

@@ -450,6 +450,14 @@ export const CommunitySurface = styled.div`
     width: min(100%, 340px);
   }
   .research-list { display: grid; gap: 16px; }
+  .promotion-card, .participation-card { margin-bottom: 16px; }
+  .research-content { min-width: 0; }
+  .research-content > .ant-tag { margin: 2px 0 10px; padding: 4px 10px; border: 0; border-radius: 7px; background: #f0f5ec; color: #405b3c; font-size: 12px; }
+  .research-content > .ant-tag.ant-tag-warning { background: #faf5e9; color: #6e5938; }
+  .research-content > p { max-width: 65ch; }
+  .research-content .listing-details { margin: 8px 0 0; }
+  .participate > .actions { margin: 0; width: 100%; }
+  .participate > .actions .ant-btn { width: 100%; white-space: normal; height: auto; min-height: 42px; }
   .research-row {
     padding: 20px;
     background: #fff;
@@ -603,6 +611,8 @@ export const CommunitySurface = styled.div`
     .participate > strong { text-align: right; }
     .participate > small { grid-column: 1 / -1; text-align: right; }
     .participate > .ant-btn { grid-column: 1 / -1; }
+    .participate > .actions { grid-column: 1 / -1; }
+    .promotion-card .participate > .ant-btn { margin-top: 0; }
     .questionnaire {
       margin: 20px auto;
     }
