@@ -47,6 +47,16 @@ export const CommunitySurface = styled.div`
   .listing-review > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 16px; padding: 9px 0; }
   .listing-review dt { font-size: 13px; color: var(--color-muted); }
   .listing-review dd { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+  .listing-final-survey { margin-bottom: 20px; }
+  .listing-final-survey > span { font-size: 12px; color: var(--color-muted); }
+  .listing-final-survey h3 { font-size: 20px; font-weight: 650; margin: 6px 0 0; }
+  .listing-audience-review { padding: 14px 18px; background: #f4f7f1; border-radius: 12px; }
+  .listing-review-options { display: flex; gap: 6px; flex-wrap: wrap; }
+  .listing-review-options span { padding: 3px 8px; background: #fff; border-radius: 6px; font-size: 12px; }
+  .listing-final-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .listing-final-facts > div { display: flex; flex-direction: column; gap: 5px; }
+  .listing-final-facts span, .listing-final-facts small { color: var(--color-muted); font-size: 12px; }
+  .listing-final-facts strong { font-size: 20px; font-weight: 650; color: var(--color-ink); }
   .listing-editor .listing-budget-note { font-size: 13px; line-height: 1.65; color: var(--color-muted); }
   .listing-budget-note strong { color: var(--color-ink); font-weight: 650; }
   .listing-editor .listing-error { font-size: 13px; color: #9b322d; margin: 18px 0 0; }

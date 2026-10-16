@@ -6,7 +6,7 @@ import { FieldInput } from "../../components/FieldInput";
 import { TextAreaField } from "../../components/TextAreaField";
 import { api } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
-import { criteriaText, options, profileFields, rewardFor } from "./model";
+import { labels, options, profileFields, rewardFor } from "./model";
 
 // Form.Item supplies value/onChange to the shared application control.
 function SelectField(props: Omit<SelectFieldProps, "onChange"> & { onChange?: SelectFieldProps["onChange"] }) {
@@ -112,7 +112,7 @@ export function ListingForm({ available, initial, selectedSurvey, onSaved, onCan
     }}>
       <div hidden={step !== 0}>
         <Form.Item name="surveyId" label="Опубликованный опрос" rules={[{ required: true, message: "Выберите опрос" }]}>
-          <SelectField size="middle" aria-label="Опубликованный опрос" disabled={!!initial || loading} showSearch placeholder={loading ? "Загружаем опросы…" : "Выберите свой опрос"}
+          <SelectField size="middle" aria-label="Опубликованный опрос" disabled={!!initial || loading} showSearch={surveys.length > 8} placeholder={loading ? "Загружаем опросы…" : "Выберите свой опрос"}
             options={surveys.map(s => ({ value: s.id, label: s.title, disabled: !s.eligible }))} />
         </Form.Item>
         {selected && <p className="listing-hint">Время из опроса: {initial ? `${minutes} мин` : selected.durationLabel}</p>}
@@ -144,12 +144,19 @@ export function ListingForm({ available, initial, selectedSurvey, onSaved, onCan
         {initial?.config.quotas.length > 1 && <p className="listing-hint">Количество ответов в ранее созданных группах сохранено.</p>}
       </div>
       <div hidden={step !== 2}>
-        <dl className="listing-review">
-          <div><dt>Опрос</dt><dd>{selected?.title ?? initial?.title ?? "—"}</dd></div>
-          <div><dt>Участники</dt><dd>{criteriaText(audience())}</dd></div>
-          <div><dt>Цель</dt><dd>{values.target} ответов</dd></div>
-          <div><dt>За участие</dt><dd>{reward} {reward === 1 ? "балл" : reward < 5 ? "балла" : "баллов"} · {initial ? `${minutes} мин` : selected?.durationLabel}</dd></div>
+        <div className="listing-final-survey"><span>Вы размещаете</span><h3>{selected?.title ?? initial?.title ?? "—"}</h3></div>
+        <dl className="listing-review listing-audience-review">
+          <div><dt>Возраст</dt><dd>{values.ageRange?.[0] ?? 18}–{values.ageRange?.[1] ?? 100} лет</dd></div>
+          <div><dt>Пол</dt><dd>{values.sex === "any" ? "Любой" : labels[values.sex]}</dd></div>
+          <div><dt>Дети</dt><dd>{values.hasChildren === "no" ? "Нет детей" : values.hasChildren === "yes" ? `${values.childrenRange?.[0] ?? 1}–${values.childrenRange?.[1] ?? 30}` : "Неважно"}</dd></div>
+          {([['education', 'Образование'], ['employment', 'Занятость'], ['marital', 'Семья']] as const).map(([key, title]) => {
+            const chosen = values[key] ?? [];
+            if (!chosen.length || chosen.length === profileFields[key].length) return null;
+            return <div key={key}><dt>{title}</dt><dd className="listing-review-options">{chosen.map((v: string) => <span key={v}>{labels[v]}</span>)}</dd></div>;
+          })}
+          {values.studying && values.studying !== "any" && <div><dt>Учится сейчас</dt><dd>{labels[values.studying]}</dd></div>}
         </dl>
+        <div className="listing-final-facts"><div><span>Нужно ответов</span><strong>{values.target}</strong></div><div><span>Награда участнику</span><strong>{reward} {reward === 1 ? "балл" : reward < 5 ? "балла" : "баллов"}</strong><small>{initial ? `${minutes} мин` : selected?.durationLabel}</small></div></div>
         {!initial ? <><Form.Item name="budget" label="Бюджет, баллов" extra={`На балансе: ${available}`} rules={[{ required: true, validator: (_, v) => Number.isInteger(Number(v)) && Number(v) >= reward && Number(v) <= available ? Promise.resolve() : Promise.reject(new Error(`От ${reward} до ${available} баллов`)) }]}>
           <FieldInput type="number" aria-label="Бюджет, баллов" min={reward} max={available} />
         </Form.Item><p className="listing-budget-note">Бюджета хватит максимум на <strong>{Math.min(Number(values.target ?? 0), Math.floor(Number(values.budget ?? 0) / reward))} прохождений</strong>. Позже его можно пополнить.</p></>
