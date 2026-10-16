@@ -64,7 +64,7 @@ function route(fn: (req: AuthRequest, res: any) => Promise<unknown>) {
   };
 }
 async function wallet(c: PoolConnection, id: string) {
-  await c.execute("INSERT IGNORE INTO community_wallets(user_id) VALUES (?)", [
+  await c.execute("INSERT INTO community_wallets(user_id) VALUES (?) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)", [
     id,
   ]);
   const [rows] = await c.query<any[]>(
@@ -85,6 +85,20 @@ async function ledger(
     "INSERT INTO community_ledger(id,user_id,event_key,amount,kind,note) VALUES (?,?,?,?,?,?)",
     [randomUUID(), user, key, amount, kind, note],
   );
+}
+async function starterWallet(c: PoolConnection, user: string) {
+  const w = await wallet(c, user);
+  // Wallet row is locked, so first visits and placements share one grant.
+  if (!w.bonus_granted) {
+    await c.execute(
+      "UPDATE community_wallets SET bonus=bonus+8,bonus_granted=TRUE WHERE user_id=?",
+      [user],
+    );
+    w.bonus += 8;
+    w.bonus_granted = true;
+    await ledger(c, user, `starter:${user}`, 8, "bonus", "Стартовый бюджет закрытого пилота");
+  }
+  return w;
 }
 async function completeProfile(
   c: PoolConnection,
@@ -124,6 +138,7 @@ communityRouter.get(
   "/community/me",
   route(async (req, res) => {
     const user = req.user!.id;
+    await tx((c) => starterWallet(c, user));
     const [[profiles], [wallets], [history], [participations]] =
       await Promise.all([
         db.query<any[]>(
@@ -369,23 +384,7 @@ communityRouter.post(
       );
       if (existing.length)
         throw new CommunityError(409, "Это исследование уже размещено.");
-      const w = await wallet(c, user);
-      // Closed pilot: trusted owner/admin accounts receive one non-transferable starter grant.
-      if (!w.bonus_granted) {
-        await c.execute(
-          "UPDATE community_wallets SET bonus=bonus+8,bonus_granted=TRUE WHERE user_id=?",
-          [user],
-        );
-        w.bonus += 8;
-        await ledger(
-          c,
-          user,
-          `starter:${user}`,
-          8,
-          "bonus",
-          "Стартовый бюджет закрытого пилота",
-        );
-      }
+      const w = await starterWallet(c, user);
       if (w.earned + w.bonus < config.budget)
         throw new CommunityError(
           409,

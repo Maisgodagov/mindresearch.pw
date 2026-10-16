@@ -79,11 +79,15 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     expect((await request(noProfile,'/feed')).status).toBe(200);
   });
   it('grants the closed-pilot starter bonus exactly once, with separate bonus accounting',async()=>{
+    const firstVisits=await Promise.all(Array.from({length:6},()=>request(reviewer,'/me')));
+    for(const visit of firstVisits){expect(visit.status).toBe(200);expect(visit.data.wallet.bonus).toBe(8);expect(visit.data.wallet.bonusGranted).toBeTruthy();expect(visit.data.history.filter((x:any)=>x.kind==='bonus')).toHaveLength(1);}
     const surveyId=randomUUID();await db.execute('INSERT INTO surveys(id,owner_id,slug,title,welcome_title,welcome_text,status) VALUES (?,?,?,?,?,?,\'active\')',[surveyId,reviewer,`fixture-${surveyId}`,'Пилот','Начало','Тест']);
     const body={surveyId,description:'Проверяем разовое начисление стартового бюджета.',topic:'Тест',minutes:5,criteria:{},quotas:[{id:'all',label:'Все',target:10}],budget:2};
     const result=await request(reviewer,'/listings','POST',body);expect(result.status).toBe(201);
     expect((await request(reviewer,'/listings','POST',body)).status).toBe(409);
     const w=await request(reviewer,'/me');expect(w.data.wallet.bonus).toBe(6);expect(w.data.history.filter((x:any)=>x.kind==='bonus')).toHaveLength(1);
+    await db.execute('UPDATE community_wallets SET bonus=0 WHERE user_id=?',[reviewer]);
+    const spent=await request(reviewer,'/me');expect(spent.data.wallet.bonus).toBe(0);expect(spent.data.history.filter((x:any)=>x.kind==='bonus')).toHaveLength(1);
   });
   it('reserves the last quota atomically under concurrent starts',async()=>{
     const l=await create(1);

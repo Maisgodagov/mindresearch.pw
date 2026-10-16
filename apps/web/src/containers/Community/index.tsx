@@ -202,7 +202,6 @@ export function Community() {
     navigate(`/s/${p.slug}?community=1`);
   }
   const balance = (me?.wallet?.earned ?? 0) + (me?.wallet?.bonus ?? 0);
-  const available = balance + (me?.wallet?.bonusGranted ? 0 : 8);
   const ready = Boolean(me?.profile?.complete);
   return (
     <PlatformLayout>
@@ -456,7 +455,7 @@ export function Community() {
                       label: "Моё продвижение",
                       children: editor ? (
                         <ListingForm
-                          available={available}
+                          available={balance}
                           initial={editor.new ? undefined : editor}
                           selectedSurvey={params.get("survey") ?? undefined}
                           onCancel={() => setEditor(null)}
@@ -468,7 +467,7 @@ export function Community() {
                         />
                       ) : (
                         <section aria-label="Моё продвижение">
-                          <div className="page-head">
+                          <div className="section-heading">
                             <div>
                               <h2>Ваши исследования в сообществе</h2>
                               <p className="muted">
@@ -708,7 +707,7 @@ export function Community() {
             <p>В «Моём участии» видны сроки, статусы и начисления. Перед началом система резервирует место и награду минимум на 2 часа; точный срок указан в участии. Проверка обычно запускается в течение нескольких минут после завершения.</p>
             <h3>Внимательные ответы важнее скорости</h3>
             <p>Индекс качества помогает обнаруживать случайное прокликивание. Отсутствие индекса у нового исследования не мешает начислению. Спорные случаи проверяет другой администратор; решение можно попросить пересмотреть. Баллы не оценивают личность и не влияют на психологические результаты.</p>
-            <p className="help-note">В пилоте при первом размещении доступны 8 бонусных баллов. Баллы нельзя купить или передать. Карточка не публикуется и не передаётся автору вместе с ответами.</p>
+            <p className="help-note">При первом входе в раздел начисляются 8 бонусных баллов. Они уже включены в баланс. Баллы нельзя купить или передать. Карточка не публикуется и не передаётся автору вместе с ответами.</p>
           </div>
         </CommunityModal>
         <CommunityModal
