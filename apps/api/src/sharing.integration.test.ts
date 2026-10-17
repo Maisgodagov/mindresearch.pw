@@ -23,11 +23,13 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     sessionId=randomUUID();await db.execute("INSERT INTO response_sessions(id,survey_id,public_token,status) VALUES (?,?,?,'completed')",[sessionId,surveyId,randomUUID()]);
   },30000);
   afterAll(async()=>{child?.kill();if(db)await db.end();});
-  it('restricts invitation management to pilot authors, never collaborators or unrelated admins',async()=>{
+  it('allows every author to manage sharing, never collaborators or unrelated admins',async()=>{
     expect((await request(null,`/sharing/surveys/${surveyId}`)).status).toBe(401);
     expect((await request(outsider,`/sharing/surveys/${surveyId}/invitations`,'POST',{permission:'edit'})).status).toBe(403);
     const own=await request(regularAuthor,'/account/surveys','POST',payload);expect(own.status).toBe(201);
-    expect((await request(regularAuthor,`/sharing/surveys/${own.data.id}/invitations`,'POST',{permission:'view'})).status).toBe(403);
+    expect((await request(regularAuthor,`/sharing/surveys/${own.data.id}/invitations`,'POST',{permission:'view'})).status).toBe(201);
+    expect((await request(regularAuthor,`/sharing/surveys/${own.data.id}/access`)).data.canManage).toBe(true);
+    expect((await request(owner,`/sharing/surveys/${own.data.id}/invitations`,'POST',{permission:'view'})).status).toBe(403);
   });
   it('binds email/username invitations to the intended account and requires login',async()=>{
     const i=await invite('view',viewer+'@example.test');

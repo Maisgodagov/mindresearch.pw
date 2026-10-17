@@ -5,6 +5,26 @@ import styled from 'styled-components';
 import { api, getCurrentUser } from '../api';
 import { getApiErrorMessage } from '../utils/apiErrors';
 import { BuilderPreview } from './BuilderPreview';
+import { Leaf, MailOpen } from 'lucide-react';
+import { BrandWordmark } from './BrandWordmark';
+
+const InvitationPage=styled.div`
+  min-height:100vh; padding:32px 24px 64px; background:var(--color-page); color:var(--color-ink);
+  .invitation-brand { display:flex; align-items:center; gap:10px; width:fit-content; margin:0 auto; text-decoration:none; color:var(--color-brand-ink); font-size:22px; font-weight:650; }
+  .invitation-card { max-width:600px; margin:64px auto 0; background:var(--color-surface); border:1px solid var(--color-border); border-radius:16px; overflow:hidden; }
+  .invitation-heading { padding:32px; background:var(--color-brand-soft); }
+  .invitation-symbol { display:grid; place-items:center; width:52px; height:52px; margin-bottom:22px; color:#fff; background:var(--color-brand-strong); border-radius:14px; }
+  h1 { margin:0; font-size:clamp(27px,4vw,36px); font-weight:600; line-height:1.2; letter-spacing:-.025em; color:var(--color-brand-ink); text-wrap:balance; }
+  .invitation-body { padding:28px 32px 32px; }
+  p { margin:0; font-size:16px; line-height:1.75; }
+  .invitation-actions { display:flex; gap:12px; margin-top:26px; }
+  .invitation-actions > a { flex:1; text-decoration:none; }
+  .invitation-actions .ant-btn { width:100%; height:48px; font-size:15px; }
+  .invitation-back { display:inline-block; margin-top:20px; color:var(--color-brand-ink); text-underline-offset:4px; }
+  .invitation-status { display:flex; align-items:center; gap:12px; }
+  .invitation-brand:focus-visible { outline:2px solid var(--color-brand-strong); outline-offset:6px; border-radius:4px; }
+  @media(max-width:480px){padding:28px 16px 40px;.invitation-card{margin-top:40px;}.invitation-heading{padding:26px 24px;}.invitation-body{padding:24px;}.invitation-actions{flex-direction:column;gap:10px;}p{font-size:15px;}}
+`;
 
 const Surface=styled.div`
   color:var(--color-ink); line-height:1.6;
@@ -47,5 +67,5 @@ export const invitationReturn=()=>{const next=new URLSearchParams(location.searc
 export function SharedSurveyPreview(){const {surveyId}=useParams(),nav=useNavigate();const [data,setData]=useState<any>(null),[error,setError]=useState('');useEffect(()=>{let active=true;api.get(`/sharing/surveys/${surveyId}/preview`).then(r=>{if(active)setData(r.data);}).catch(e=>{if(active)setError(getApiErrorMessage(e,'Не удалось открыть опрос'));});return()=>{active=false;};},[surveyId]);if(data)return <BuilderPreview meta={data.meta} questions={data.questions} closeLabel="Вернуться к результатам" onClose={()=>nav(`/app/surveys/${surveyId}/results`)}/>;return <Surface style={{padding:24}}>{error?<p role="alert">{error}</p>:<Spin/>}</Surface>;}
 export function SurveyInvitation(){const {token}=useParams(),nav=useNavigate();const [needsLogin,setNeedsLogin]=useState(false),[error,setError]=useState('');
   useEffect(()=>{let active=true;async function accept(){try{await getCurrentUser();}catch{if(active)setNeedsLogin(true);return;}try{const r=await api.post(`/sharing/invitations/${token}/accept`);if(active)nav(`/app/surveys/${r.data.surveyId}/results`,{replace:true});}catch(e:any){if(active){if(e.response?.status===401)setNeedsLogin(true);else setError(getApiErrorMessage(e,'Не удалось принять приглашение'));}}}void accept();return()=>{active=false;};},[token,nav]);
-  const next=encodeURIComponent(`/invite/${token}`);return <Surface style={{maxWidth:520,margin:'80px auto',padding:24}}><h1>Приглашение к опросу</h1>{error?<><p role="alert">{error}</p><Link to="/app">Мои опросы</Link></>:needsLogin?<><p>Войдите или зарегистрируйтесь, чтобы получить доступ к опросу и его результатам. После входа мы откроем результаты.</p><div className="sharing-controls"><Link to={`/login?next=${next}`}><Button type="primary">Войти</Button></Link><Link to={`/register?next=${next}`}><Button>Зарегистрироваться</Button></Link></div></>:<p><Spin/> Открываем результаты…</p>}</Surface>;
+  const next=encodeURIComponent(`/invite/${token}`);return <InvitationPage><Link to="/" className="invitation-brand" aria-label="mindresearch — главная"><Leaf size={28} aria-hidden="true"/><BrandWordmark showAuthor={false}/></Link><main className="invitation-card"><header className="invitation-heading"><div className="invitation-symbol" aria-hidden="true"><MailOpen size={27}/></div><h1>Приглашение к опросу</h1></header><div className="invitation-body">{error?<><p role="alert">{error}</p><Link className="invitation-back" to="/app">Мои опросы</Link></>:needsLogin?<><p>Войдите или зарегистрируйтесь, чтобы получить доступ к опросу и его результатам. После входа мы откроем результаты.</p><div className="invitation-actions"><Link to={`/login?next=${next}`}><Button type="primary">Войти</Button></Link><Link to={`/register?next=${next}`}><Button>Зарегистрироваться</Button></Link></div></>:<p className="invitation-status" role="status"><Spin/> Открываем результаты…</p>}</div></main></InvitationPage>;
 }

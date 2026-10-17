@@ -26,6 +26,6 @@ const Wordmark = styled.span<{ $inline: boolean }>`
   `}
 `;
 
-export function BrandWordmark({ inline = false }: { inline?: boolean }) {
-  return <Wordmark $inline={inline} className="brand-wordmark"><b>mindresearch</b><small>by <span className="brand-author" style={{ display: "inline" }}>Евгения Годагова</span></small></Wordmark>;
+export function BrandWordmark({ inline = false, showAuthor = true }: { inline?: boolean; showAuthor?: boolean }) {
+  return <Wordmark $inline={inline} className="brand-wordmark"><b>mindresearch</b>{showAuthor&&<small>by <span className="brand-author" style={{ display: "inline" }}>Евгения Годагова</span></small>}</Wordmark>;
 }

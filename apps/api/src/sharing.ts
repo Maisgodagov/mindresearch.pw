@@ -5,7 +5,6 @@ import { db } from './db.js';
 import { requireAuth, type AuthRequest } from './auth.js';
 
 const hash = (token: string) => createHash('sha256').update(token).digest('hex');
-export const sharingPilot = (role?: string) => ['owner', 'admin'].includes(role ?? '');
 export async function migrateSharing() {
   await db.query(`CREATE TABLE IF NOT EXISTS survey_members (survey_id CHAR(36) NOT NULL,user_id CHAR(36) NOT NULL,permission ENUM('view','edit') NOT NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(survey_id,user_id),FOREIGN KEY(survey_id) REFERENCES surveys(id) ON DELETE CASCADE,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)`);
   await db.query(`CREATE TABLE IF NOT EXISTS survey_invitations (id CHAR(36) PRIMARY KEY,survey_id CHAR(36) NOT NULL,token_hash CHAR(64) NOT NULL UNIQUE,permission ENUM('view','edit') NOT NULL,target_user_id CHAR(36) NULL,created_by CHAR(36) NOT NULL,expires_at DATETIME NOT NULL,revoked_at DATETIME NULL,accepted_by CHAR(36) NULL,accepted_at DATETIME NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(survey_id) REFERENCES surveys(id) ON DELETE CASCADE,FOREIGN KEY(target_user_id) REFERENCES users(id) ON DELETE CASCADE,FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE,FOREIGN KEY(accepted_by) REFERENCES users(id) ON DELETE CASCADE)`);
@@ -29,11 +28,11 @@ export async function bumpSurveyVersion(connection:any,id:string){await connecti
 export const sharingRouter=Router();
 sharingRouter.use('/sharing',requireAuth,(_req,res,next)=>{res.setHeader('Cache-Control','no-store');res.setHeader('Referrer-Policy','no-referrer');next();});
 const wrap=(fn:any)=>async(req:any,res:any,next:any)=>{try{await fn(req,res);}catch(e:any){if(e.status)return res.status(e.status).json({message:e.message});next(e)}};
-async function manage(req:AuthRequest,id:string,connection:any=db){const access=await surveyAccess(req.user!.id,id,connection);if(!sharingPilot(req.user!.role)||access?.permission!=='owner')throw Object.assign(new Error('Управлять доступом может только автор в закрытом запуске'),{status:403});}
+async function manage(req:AuthRequest,id:string,connection:any=db){const access=await surveyAccess(req.user!.id,id,connection);if(access?.permission!=='owner')throw Object.assign(new Error('Управлять доступом может только автор опроса'),{status:403});}
 sharingRouter.get('/sharing/shared',wrap(async(req:AuthRequest,res:any)=>{
   const [rows]=await db.query<any[]>(`SELECT s.id,s.slug,s.title,s.description,s.status,s.builder_state IS NOT NULL hasBuilderState,s.created_at createdAt,u.name authorName,u.public_slug authorUsername,m.permission,(SELECT COUNT(*) FROM response_sessions r WHERE r.survey_id=s.id AND r.deleted_at IS NULL) responses,(SELECT COUNT(*) FROM response_sessions r WHERE r.survey_id=s.id AND r.deleted_at IS NULL AND r.status='completed') completed FROM survey_members m JOIN surveys s ON s.id=m.survey_id JOIN users u ON u.id=s.owner_id WHERE m.user_id=? AND s.deleted_at IS NULL ORDER BY m.created_at DESC`,[req.user!.id]);res.json(rows);
 }));
-sharingRouter.get('/sharing/surveys/:id/access',wrap(async(req:AuthRequest,res:any)=>{const access=await surveyAccess(req.user!.id,String(req.params.id));if(!access?.permission)throw Object.assign(new Error('Доступ к опросу закрыт'),{status:403});res.json({...access,canManage:access.permission==='owner'&&sharingPilot(req.user!.role)});}));
+sharingRouter.get('/sharing/surveys/:id/access',wrap(async(req:AuthRequest,res:any)=>{const access=await surveyAccess(req.user!.id,String(req.params.id));if(!access?.permission)throw Object.assign(new Error('Доступ к опросу закрыт'),{status:403});res.json({...access,canManage:access.permission==='owner'});}));
 sharingRouter.get('/sharing/surveys/:id/preview',wrap(async(req:AuthRequest,res:any)=>{
   const access=await surveyAccess(req.user!.id,String(req.params.id));if(!access?.permission)throw Object.assign(new Error('Доступ закрыт'),{status:403});
   const [rows]=await db.query<any[]>('SELECT owner_id,welcome_title,welcome_text,settings,builder_state FROM surveys WHERE id=? AND deleted_at IS NULL',[req.params.id]);

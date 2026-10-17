@@ -38,7 +38,7 @@ import {
 import { SurveyConfirmModal } from "../../components/SurveyConfirmModal";
 
 export function PlatformHome() {
-  const [shared,setShared]=useState<any[]>([]),[canShare,setCanShare]=useState(false),[sharing,setSharing]=useState<string|null>(null);
+  const [shared,setShared]=useState<any[]>([]),[sharing,setSharing]=useState<string|null>(null);
   const [surveys, setSurveys] = useState<Survey[]>([]),
     [trash, setTrash] = useState<Survey[]>([]),
     [loading, setLoading] = useState(true),
@@ -58,7 +58,7 @@ export function PlatformHome() {
       api.get('/sharing/shared'),
     ])
       .then(([s, t, u, sharedResponse]) => {
-        setShared(sharedResponse.data);setCanShare(['owner','admin'].includes(u.role));
+        setShared(sharedResponse.data);
         setSurveys(s.data);
         setTrash(t.data);
         setName(u.name);
@@ -223,7 +223,7 @@ export function PlatformHome() {
               </SectionTitle>
             )}
             <SurveyTile survey={s} tools={<>
-                  {canShare&&<button type="button" className="tool-button" title="Совместный доступ" aria-label={`Совместный доступ: ${s.title}`} onClick={()=>setSharing(s.id)}><Users size={16}/></button>}
+                  {<button type="button" className="tool-button" title="Совместный доступ" aria-label={`Совместный доступ: ${s.title}`} onClick={()=>setSharing(s.id)}><Users size={16}/></button>}
                   <Link
                     className="tool-button edit"
                    
