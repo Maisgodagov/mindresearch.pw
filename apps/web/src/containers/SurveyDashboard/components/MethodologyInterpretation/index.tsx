@@ -1,3 +1,5 @@
+import { Popover } from 'antd';
+import { CircleHelp } from 'lucide-react';
 import { ConfiguredMethodologyResult } from "../../../../components/ConfiguredMethodologyResult";
 import { SavedMethodResult } from "../MethodScoreSummary/SavedMethodResult";
 import {
@@ -13,7 +15,7 @@ import type {
   SspmValues,
 } from "../../types";
 import { METHOD_INTERPRETATION_COPY as copy } from "./const";
-import { Metrics, ScoreProfile, SupportProfile } from "./styles";
+import { SccsSummary, ScoreProfile, SupportProfile } from "./styles";
 import type { MethodologyInterpretationProps } from "./types";
 
 type ScaleSummary = { label: string; average?: number };
@@ -33,9 +35,10 @@ const renderScales = (
           />
         </div>
         <span className="value">{scale.average?.toFixed(2)}</span>
-        <div className="caption">{caption}</div>
+
       </div>
     ))}
+    <div className="chart-note">{caption}</div>
   </SupportProfile>
 );
 
@@ -59,23 +62,16 @@ export function MethodologyInterpretation({
           {result.overall.label}: {result.overall.score.toFixed(2)} из 7 —{" "}
           {result.overall.levelLabel.toLowerCase()}
         </b>
-        <SupportProfile>
+        <SupportProfile className="support-bands" role="group" aria-label="Профиль социальной поддержки по шкале от 0 до 7">
+          <div className="chart-axis" aria-hidden="true"><span>0</span><span style={{left:'42.857%'}}>3</span><span style={{left:'71.429%'}}>5</span><span>7</span></div>
           {Object.values(result.scales).map((scale) => (
             <div className="scale" key={scale.label}>
-              <span className="name">{scale.label}</span>
-              <div className="track">
-                <div
-                  className="fill"
-                  style={{ width: `${(scale.score / scale.max) * 100}%` }}
-                />
-              </div>
+              <span className="name">{scale.label}<small>{scale.levelLabel}</small></span>
+              <div className="track"><div className="fill" style={{width:`${Math.max(0,Math.min(100,scale.score / scale.max * 100))}%`}}/></div>
               <span className="value">{scale.score.toFixed(2)}</span>
-              <div className="caption">
-                {scale.levelLabel} · ориентиры: &lt;3 низкая, 3–5 умеренная,
-                &gt;5 высокая
-              </div>
             </div>
           ))}
+          <div className="chart-note">Ниже 3 — низкая поддержка · 3–5 — умеренная · выше 5 — высокая</div>
         </SupportProfile>
       </>
     );
@@ -130,28 +126,25 @@ export function MethodologyInterpretation({
           ? `на ${result.reference.zScore.toFixed(2)} SD выше среднего`
           : `на ${Math.abs(result.reference.zScore).toFixed(2)} SD ниже среднего`;
     return (
-      <>
-        <b>Ясность Я-концепции: {result.average.toFixed(2)} из 5</b>
-        <Metrics>
-          <div className="metric">
-            <b>{result.average.toFixed(2)}</b>
-            <span>средний балл, основной показатель</span>
+      <SccsSummary>
+        <div className="sccs-main">
+          <div className="sccs-primary"><span>Средний балл</span><strong>{result.average.toFixed(2)}<small> / 5</small></strong></div>
+          <div className="sccs-range">
+            <div className="sccs-axis" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+            <div className="sccs-track" role="meter" aria-label="Ясность Я-концепции: средний балл" aria-valuemin={1} aria-valuemax={5} aria-valuenow={result.average}>
+              <span className="sccs-fill" style={{width:`${Math.max(0,Math.min(100,(result.average-1)/4*100))}%`}}/>
+              <span className="sccs-reference" style={{left:`${Math.max(0,Math.min(100,(result.reference.mean-1)/4*100))}%`}}/>
+              <span className="sccs-point" style={{left:`${Math.max(0,Math.min(100,(result.average-1)/4*100))}%`}}/>
+            </div>
+            <span className="sccs-range-caption">Среднее в эталоне — {result.reference.mean.toFixed(2)}</span>
           </div>
-          <div className="metric">
-            <b>{result.sum} / 60</b>
-            <span>суммарный балл</span>
-          </div>
-          <div className="metric">
-            <b>{result.reference.zScore.toFixed(2)} SD</b>
-            <span>
-              {direction}; M={result.reference.mean}, N=
-              {result.reference.sampleSize}
-            </span>
-          </div>
-        </Metrics>
-      </>
+          <div className="sccs-total"><span>Суммарный балл</span><strong>{result.sum}<small> / 60</small></strong></div>
+        </div>
+        <div className="sccs-comparison"><span>{direction}</span><Popover trigger="click" title="Сравнение со средним" content={<div style={{maxWidth:'min(330px, calc(100vw - 48px))',fontSize:12,lineHeight:1.6}}><p>SD — стандартное отклонение. Оно показывает, насколько результат отличается от среднего в эталонной выборке.</p><p>Среднее: M={result.reference.mean}. Размер выборки: N={result.reference.sampleSize}.</p><p>Вертикальная отметка на шкале — среднее в эталоне, круглая — результат респондента. Это сравнение, а не диагноз.</p></div>}><button type="button" aria-label="О сравнении со средним"><CircleHelp size={14}/></button></Popover></div>
+      </SccsSummary>
     );
   }
+
   if (group.code === "test_4") {
     const result = group.result.values as unknown as NspsValues;
     return (

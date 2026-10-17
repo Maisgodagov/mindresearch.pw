@@ -1,3 +1,4 @@
+import { RespondentQuality } from './RespondentQuality';
 import { Select as MultiSelect } from 'antd';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle2, ChevronDown, Clock3, Download, Info, ListFilter, Plus, RotateCcw, Settings2, ShieldCheck, Users, X } from 'lucide-react';
@@ -160,21 +161,11 @@ export function QualityAdministration({surveyId,selectedIds,onUpdated,surveyVers
   </Surface>;
 }
 
-export function QualityDetails({value}:{value:Quality|undefined}) {
+export function QualityDetails({value, inline=false}:{value:Quality|undefined; inline?:boolean}) {
+  if(inline) return <QualityDetailsContent value={value}/>;
   return <Surface><details className="disclosure"><summary><ShieldCheck size={17} aria-hidden="true"/>Качество прохождения<ChevronDown className="chevron" size={16} aria-hidden="true"/></summary><div style={{marginTop:14}}><QualityDetailsContent value={value}/></div></details></Surface>;
 }
-function QualityDetailsContent({value}:{value:Quality|undefined}) {
-  if(!value)return <Surface><p>V2 ещё не рассчитана. Запустите пересчёт; старый индекс не используется.</p></Surface>;
-  const patterns=value.response.metrics.patterns as Record<string,{title:string;run:number;entropy:number}>|undefined;
-  return <Surface><div className="indices">{([['overall','Общий индекс качества'],['behavioral','Поведенческий индекс'],['response','Качество ответов']] as const).map(([key,label])=><div className="index" key={key}><h3>{label}<MetricExplanation metric={key}/></h3><b>{percent(value[key].score)}</b><small>{STATUS[value[key].status]} · уверенность {percent(value[key].confidence*100)}{value[key].partial?' · частичный расчёт':''}</small></div>)}</div>
-    <p>Это индекс, а не вероятность честности. Версия эталона: {value.baseline_version??'не сформирована'} · алгоритм {value.algorithm_version} · рассчитано {new Date(value.calculated_at).toLocaleString('ru')}.</p>
-    <dl className="metrics">{METRICS.slice(6).map(m=><div key={m.key}><dt>{m.label}<MetricExplanation metric={m.key}/></dt><dd>{display(metricValue(value,m.key))} {m.unit}</dd></div>)}</dl>
-    <h3>Полнота обязательных ответов</h3><p>Заполнено {value.hard_checks.completeness.answered} из {value.hard_checks.completeness.required}. Учитываются корректные ответы: непустой текст, число или допустимый выбранный вариант. Это отдельная проверка полноты, а не штраф индекса качества.</p>{value.hard_checks.duplicate&&<p>Исследователем подтверждено повторное прохождение.</p>}
-    <details><summary>Компоненты и причины отсутствия данных</summary>{(['behavioral','response'] as const).map(domain=><div key={domain}><h3>{domain==='behavioral'?'Поведение':'Ответы'}</h3><ul>{Object.entries(value[domain].components).map(([key,c])=><li className="component-explanation" key={key}><b>{COMPONENT_EXPLANATIONS[key]?.label??key}</b>: {percent(c.score)} · уверенность {percent(c.confidence*100)}{c.reason?' — '+c.reason:''}{COMPONENT_EXPLANATIONS[key]&&<ExplanationText explanation={COMPONENT_EXPLANATIONS[key]}/>}<details><summary>Метрики компонента</summary><dl className="metrics">{Object.entries(c.metrics).filter(([,v])=>typeof v!=='object'||v===null).map(([k,v])=><div key={k}><dt>{COMPONENT_METRIC_LABELS[k]??k}</dt><dd>{display(v)}</dd></div>)}</dl></details></li>)}</ul></div>)}</details>
-    {patterns&&<details><summary>Серии и разнообразие по блокам</summary><ul>{Object.entries(patterns).map(([id,p])=><li key={id}>{p.title}: одинаковая серия {p.run}, разнообразие ответов {display(p.entropy)} (0 — один вариант, 1 — равномерное использование вариантов)</li>)}</ul></details>}
-    <h3>Признаки для ручной проверки</h3>{value.overall.flags.length?<ul className="flags">{value.overall.flags.map((f,i)=><li key={f.code+i}><b>{f.severity==='strong'?'Сильный':f.severity==='warning'?'Предупреждение':'Информация'} · {({speeding:"Скорость",fatigue:"Ускорение к концу",response_consistency:"Согласованность ответов",patterning:"Серии ответов",attention:"Проверки внимания",data:"Достаточность данных"})[f.domain]}</b>: {f.explanation} (значение {display(f.value)}, порог {display(f.threshold)})</li>)}</ul>:<p>Признаки не выявлены в доступных данных.</p>}
-  </Surface>;
-}
+function QualityDetailsContent({value}:{value:Quality|undefined}) {return <RespondentQuality value={value}/>;}
 function GroupReport({report}:{report:any}) {
   const [cohort,setCohort]=useState('all'),[expanded,setExpanded]=useState(false);
   return <section className="report"><h3>Показатели по группам</h3><p>{report.note}</p><QualitySelect label="Выборка отчёта" value={cohort} onChange={setCohort} options={choices({all:"Все участники",trusted:"Подтверждённая группа сравнения",public:"Публичный набор",unassigned:"Без разметки"})}/>

@@ -1,7 +1,8 @@
+import { Profile } from '../../../../components/ConfiguredMethodologyResult/styles';
 import type { AnswerGroup } from "../../types";
 import { Summary } from "./styles";
 
-type Metric = { label: string; value: number; note?: string; range?: string };
+type Metric = { label: string; value: number; note?: string; range?: string; min?: number; max?: number };
 const numeric = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const format = (value: number) => value.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 
@@ -15,10 +16,10 @@ function metrics(values: Record<string, unknown>): Metric[] {
     const value = numeric(data.score) ? data.score : numeric(data.average) ? data.average : numeric(data.sum) ? data.sum : null;
     if (value === null) return;
     const note = [data.levelLabel, data.category, data.interpretation].filter((item): item is string => typeof item === "string" && Boolean(item)).join(". ");
-    const minimum = numeric(data.minScore) ? data.minScore : data.aggregation ? data.min : undefined;
-    const maximum = numeric(data.maxScore) ? data.maxScore : data.aggregation ? data.max : undefined;
+    const minimum = numeric(data.minScore) ? data.minScore : data.min;
+    const maximum = numeric(data.maxScore) ? data.maxScore : data.max;
     const range = numeric(minimum) && numeric(maximum) ? `${format(minimum)}–${format(maximum)}` : undefined;
-    rows.push({ label: typeof data.label === "string" ? data.label : label, value, note, range });
+    rows.push({ label: typeof data.label === "string" ? data.label : label, value, note, range, min:numeric(minimum)?minimum:undefined, max:numeric(maximum)?maximum:undefined });
   };
   add(values.overall, "Общий результат");
   for (const key of ["scales", "domains", "facets"]) {
@@ -44,10 +45,17 @@ export function SavedMethodResult({ group, compact = false }: { group: AnswerGro
   </Summary>;
   return <section>
     <b>{group.title}</b>
-    {rows.map((row, index) => <div key={`${row.label}-${index}`}>
-      <p>{row.label}: <b>{format(row.value)}</b>{row.note ? ` — ${row.note}` : ""}</p>
-      {row.range && <small>Диапазон: {row.range}</small>}
-    </div>)}
+    <Profile aria-label={`Диаграмма результатов: ${group.title}`}>
+      {rows.map((row,index)=>{
+        const hasRange=row.min!==undefined&&row.max!==undefined&&row.max>row.min;
+        const width=hasRange?Math.max(0,Math.min(100,(row.value-row.min!)/(row.max!-row.min!)*100)):0;
+        return <div className="scale" key={`${row.label}-${index}`}>
+          <span className="label">{row.label}{row.note&&<small>{row.note}</small>}</span>
+          {hasRange?<div className="scale-plot"><div className="track" role="img" aria-label={`${row.label}: ${format(row.value)}, диапазон ${row.range}`}><div className="fill" style={{width:`${width}%`}}/></div><span className="range-limits"><span>{format(row.min!)}</span><span>{format(row.max!)}</span></span></div>:<span className="no-range">Диапазон не указан</span>}
+          <span className="value">{format(row.value)}</span>
+        </div>;
+      })}
+    </Profile>
     {typeof values.screeningNote === "string" && <p>{values.screeningNote}</p>}
     {!rows.length && <p>Результат рассчитан. Числовые показатели не предоставлены методикой.</p>}
   </section>;

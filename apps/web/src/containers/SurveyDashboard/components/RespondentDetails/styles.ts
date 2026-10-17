@@ -2,15 +2,14 @@ import styled from "styled-components";
 import { Button } from "../../../../ui";
 
 export const Details = styled.div`
-  padding: 18px 8px 8px;
+  padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 0;
 `;
 export const Group = styled.div`
-  border: 1px solid #e0e7df;
-  border-radius: 15px;
-  overflow: hidden;
-  background: #fbfcfa;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 `;
 export const GroupButton = styled(Button)`
   width: 100%;
@@ -52,33 +51,34 @@ export const GroupButton = styled(Button)`
   }
 `;
 export const Answers = styled.div`
-  padding: 0 16px 12px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 24px;
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-  }
-`;
-export const AnswerRow = styled.div`
-  .timing { margin-top: 6px; font-size: 11px; color: #526557; font-variant-numeric: tabular-nums; }
-  padding: 11px 0;
-  border-top: 1px solid #edf1ec;
-  .q {
-    color: #77847b;
-    font-size: 12px;
-    line-height: 1.35;
-  }
-  .a {
-    color: #2f4235;
-    font-size: 14px;
-    margin-top: 4px;
-  }
+  overflow:visible;
+  margin:0;
+  width:100%;
+  scrollbar-color:#a8b9a3 #f5f8f3;
+  &:focus-visible { outline:2px solid #52764b; outline-offset:-2px; }
+  &&& table { width:100%; max-width:100%; min-width:0; border-collapse:separate; border-spacing:0; table-layout:fixed; }
+  &&& thead { position:static; z-index:auto; }
+  &&& table th, &&& table td { position:static; padding:12px 14px; text-align:left; vertical-align:top; border-bottom:1px solid #e0e7df; font-size:12px; line-height:1.5; color:#354b3c; background:#fff; overflow-wrap:anywhere; }
+  &&& table th { background:#f0f5ed; font-weight:700; white-space:normal; padding-top:6px; padding-bottom:6px; border-top:1px solid #d4dfce; vertical-align:middle; line-height:1.35; }
+  &&& table th.visits-heading { white-space:nowrap; overflow-wrap:normal; word-break:normal; }
+  &&& table th:not(.answer-spacer):not(.number) { border-left:1px solid #dce6d6; }
+  &&& table tbody tr:hover td { background:#f5f8f3; }
+  &&& .answer-indent { width:64px; }
+  &&& table .answer-spacer { padding:0; }
+  &&& table .number { width:52px; white-space:nowrap; overflow-wrap:normal; word-break:normal; color:#526557; font-variant-numeric:tabular-nums; }
+  &&& table .question {  }
+  &&& table .answer { font-weight:600; }
+  &&& table .timing { font-variant-numeric:tabular-nums; }
+  &&& table .reference {  }
+  @media(max-width:560px) { &&& .answer-indent { width:36px; } &&& table th, &&& table td { padding:10px 8px; } &&& table th { padding-top:6px; padding-bottom:6px; } }
+  small { display:block; margin-top:4px; font-size:11px; color:#526557; }
 `;
 export const ResultBox = styled.div`
-  margin: 0 16px 12px;
-  padding: 12px;
-  border-radius: 12px;
+  margin: 0;
+  padding: 12px 0;
+  .result-content { margin-left:64px; padding:0 14px; width:min(1100px, calc(100cqw - 80px)); box-sizing:border-box; }
+  @media(max-width:560px) { .result-content { margin-left:36px; padding:0 8px; width:calc(100cqw - 48px); } }
+  border-radius: 0;
   background: #edf3eb;
   color: #45604d;
   font-size: 13px;

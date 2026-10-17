@@ -186,6 +186,7 @@ export const Panel = styled(Card)`
     min-width: 0;
     margin-bottom: 13px;
   }
+  .respondent-selected-count { min-height:18px; line-height:18px; margin-top:5px; font-size:12px; color:#526557; font-variant-numeric:tabular-nums; }
   .respondent-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px; min-width: 0; }
   .respondent-count { color: #77857a; font-size: 11px; font-variant-numeric: tabular-nums; }
   .toolbar-actions { display: flex; align-items: center; flex: 0 1 auto; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
@@ -195,6 +196,13 @@ export const Panel = styled(Card)`
     border-radius: 8px;
     font-size: 11px;
   }
+  && .toolbar-actions button { border:0 !important; box-shadow:none !important; background:transparent; color:#496044; gap:7px; min-height:34px; border-radius:6px; font-weight:550; }
+  && .toolbar-actions button:hover:not(:disabled) { border:0 !important; background:#edf3e9; color:#365531; }
+  && .toolbar-actions button:active:not(:disabled) { background:#e1ebdb; border:0 !important; }
+  && .toolbar-actions button:focus-visible { outline:2px solid #52764b; outline-offset:2px; }
+  && .toolbar-actions .delete-action:not(:disabled) { color:#965644; }
+  && .toolbar-actions .delete-action:hover:not(:disabled) { color:#884430; background:#f8ede8; }
+  && .toolbar-actions button:disabled { color:#9aa398; background:transparent; cursor:not-allowed; }
   .distribution-toolbar h2 { display: flex; align-items: center; gap: 8px; }
   .distribution-toolbar h2 svg { color: #52764b; }
   @media (max-width: 700px) {

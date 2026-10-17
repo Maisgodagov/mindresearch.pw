@@ -56,7 +56,7 @@ export function metricValue(q: Quality | undefined, key: MetricKey): number | nu
   }
 }
 export type QualityFilter = { metric: MetricKey; operator: 'gte' | 'lte' | 'missing'; value: string };
-export type QualityView = { sort: 'newest' | 'oldest' | 'insufficient' | 'age' | `method:${string}` | MetricKey; direction: 'asc' | 'desc'; status: string; source?: string; cohort: string; eligibility: string; available: string; telemetry: string; qualityStatus: string | string[]; filters: QualityFilter[] };
+export type QualityView = { sort: 'alias' | 'status' | 'answered' | 'duration' | 'started' | 'newest' | 'oldest' | 'insufficient' | 'age' | `method:${string}` | MetricKey; direction: 'asc' | 'desc'; status: string; source?: string; cohort: string; eligibility: string; available: string; telemetry: string; qualityStatus: string | string[]; filters: QualityFilter[] };
 export const DEFAULT_QUALITY_VIEW: QualityView = { sort: 'newest', direction: 'desc', status: 'all', cohort: 'all', eligibility: 'all', available: 'all', telemetry: 'all', qualityStatus: 'all', filters: [] };
 export function applyQualityView(people: Respondent[], qualities: Record<string, Quality>, view: QualityView) {
   const visible = people.filter(p => {
@@ -80,7 +80,7 @@ export function applyQualityView(people: Respondent[], qualities: Record<string,
   if (view.sort === 'insufficient') return visible.sort((a,b)=>Number(qualities[a.id]?.overall.score!=null)-Number(qualities[b.id]?.overall.score!=null));
   const key = view.sort;
   return visible.sort((a, b) => {
-    const value = (p: Respondent) => key === 'age' ? p.age ?? null : key.startsWith('method:') ? methodSortValue(p,key) : metricValue(qualities[p.id],key as MetricKey);
+    const value = (p: Respondent) => ['alias','status','answered','duration','started'].includes(key) ? null : key === 'age' ? p.age ?? null : key.startsWith('method:') ? methodSortValue(p,key) : metricValue(qualities[p.id],key as MetricKey);
     const av = value(a), bv = value(b);
     if (av === null) return bv === null ? 0 : 1;
     if (bv === null) return -1;

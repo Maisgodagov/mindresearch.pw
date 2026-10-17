@@ -1,3 +1,5 @@
+import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
+import { methodSortValue } from './selection';
 import { distributionOptions, methodSortOptions } from "./selection";
 import { distributionQuestionKey } from "./components/AnswerDistribution/questionKey";
 import { SurveySharing } from '../../components/SurveySharing';
@@ -8,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  CircleHelp,
   CheckCircle2,
   Clock3,
   Copy,
@@ -22,7 +25,7 @@ import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
 import { QualityOverview, QualityControls, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
-import { applyQualityView, DEFAULT_QUALITY_VIEW, type QualityView } from "./quality";
+import { applyQualityView, DEFAULT_QUALITY_VIEW, metricValue, type MetricKey, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
 import {
   MethodologyModal,
@@ -75,8 +78,23 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
   const [chartBusy,setChartBusy]=useState(false);
   const chartRequest=useRef(0);
   const chartIds = useMemo(()=>chartFilter ? new Set(chartFilter.sessionIds) : null,[result.distribution,chartFilter]);
-  const visibleRespondents = useMemo(() => applyQualityView(result.respondents.filter(p=>!chartIds || chartIds.has(p.id)), qualities, qualityView), [result.respondents, qualities, qualityView,chartIds]);
-  const sortOptions = useMemo(()=>[...((result.hasAge || result.distribution.some(q=>q.code==='age'||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст'))) ? [{value:'age',label:'Возраст респондента'}] : []),...methodSortOptions(result.respondents,result.sections)],[result]);
+  const filteredRespondents = useMemo(() => applyQualityView(result.respondents.filter(p=>!chartIds || chartIds.has(p.id)), qualities, qualityView), [result.respondents, qualities, qualityView,chartIds]);
+  const sortOptions = useMemo(()=>[{value:'alias',label:'Респондент'},{value:'status',label:'Статус'},{value:'answered',label:'Количество ответов'},{value:'duration',label:'Время прохождения'},...((result.hasAge || result.distribution.some(q=>q.code==='age'||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст'))) ? [{value:'age',label:'Возраст респондента'}] : []),...methodSortOptions(result.respondents,result.sections)],[result]);
+  const sortValue = (person:Respondent): string | number | undefined => {
+    const key=qualityView.sort;
+    if(key==='alias') return person.alias;
+    if(key==='status') return person.status==='completed'?'Завершена':'В процессе';
+    if(key==='answered') return person.answered;
+    if(key==='duration') {const value=person.completedAt?Date.parse(person.completedAt)-Date.parse(person.startedAt):NaN;return Number.isFinite(value)&&value>=0?value:undefined;}
+    if(['started','newest','oldest'].includes(key)) {const value=Date.parse(person.startedAt);return Number.isFinite(value)?value:undefined;}
+    if(key==='insufficient') return qualities[person.id]?.overall.score==null?0:1;
+    if(key==='age') return person.age??undefined;
+    if(key.startsWith('method:')) return methodSortValue(person,key)??undefined;
+    return metricValue(qualities[person.id],key as MetricKey)??undefined;
+  };
+  const sortColumns = useMemo(()=>[{id:'value',accessorFn:sortValue,sortUndefined:'last' as const,sortingFn:'auto' as const}], [qualityView.sort,qualities]);
+  const sortedTable = useReactTable({data:filteredRespondents,columns:sortColumns,getCoreRowModel:getCoreRowModel(),getSortedRowModel:getSortedRowModel(),autoResetPageIndex:false,state:{sorting:[{id:'value',desc:qualityView.sort==='newest'||(!['oldest','insufficient'].includes(qualityView.sort)&&qualityView.direction==='desc')}]}});
+  const visibleRespondents = sortedTable.getRowModel().rows.map(row=>row.original);
   const currentPage = Math.min(page, Math.max(1, Math.ceil(visibleRespondents.length / pageSize)));
   const pageRespondents = useMemo(() => visibleRespondents.slice((currentPage - 1) * pageSize, currentPage * pageSize), [visibleRespondents, currentPage, pageSize]);
   useEffect(() => { setPage(currentPage); }, [currentPage]);
@@ -366,11 +384,14 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         <Panel className="respondents-panel" data-quality-respondents>
           <QualityControls onReset={()=>{chartRequest.current++;setChartBusy(false);setChartFilter(null);}} sortOptions={sortOptions} view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} />
           {chartFilter && <div className="chart-filter-notice" role="status"><span>Выборка из графика: <strong>{result.distribution.find(q=>distributionQuestionKey(q)===chartFilter.question)?.text}</strong> · {chartFilter.labels.join(', ')}</span><Button onClick={()=>{setChartFilter(null);setPage(1);setSelected({});}}>Сбросить выборку</Button></div>}
-          {selectedRespondents.length>0&&<p style={{fontSize:12,color:'#526557'}}>Выбрано {selectedRespondents.length}. Выбор сохраняется при переходе между страницами.</p>}
           <RespondentResults
             key={survey?.id}
             readOnly={readOnly}
             showAge={sortOptions.some(o=>o.value==='age')}
+            sortKey={qualityView.sort}
+            sortDirection={qualityView.sort==='newest'?'desc':qualityView.sort==='oldest'?'asc':qualityView.direction}
+            methodSortOptions={sortOptions}
+            onColumnSort={(sort,direction)=>{setQualityView(v=>({...v,sort:sort as QualityView['sort'],direction}));setPage(1);}}
             ageSortDirection={qualityView.sort==='age'?qualityView.direction:undefined}
             onSortAge={()=>{setQualityView(v=>({...v,sort:'age',direction:v.sort==='age'&&v.direction==='asc'?'desc':'asc'}));setPage(1);}}
             respondents={pageRespondents}
@@ -403,15 +424,18 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             onDeleteSelected={() => setConfirmTrash(true)}
             onExport={download}
             onRestore={restore}
+            renderMethodHelp={group => methodologies[group.code] ? <Button className="method-help" onClick={()=>setActiveMethodology(methodologies[group.code])}><CircleHelp size={13}/>Как считается</Button> : null}
             renderMethodResult={(group) => <MethodScoreSummary group={group} />}
-            renderRespondentDetails={(summary) => {
+            getRespondentGroups={summary => (details[summary.id] ?? summary).groups}
+            renderRespondentDetails={(summary, groupCode) => {
               const person=details[summary.id]??summary;
               if(person.detailsLoaded===false) return <div style={{padding:18}}>{detailErrors[person.id]?<><p role="alert">Не удалось загрузить ответы.</p><Button onClick={()=>void loadDetails(person).catch(()=>{})}>Повторить</Button></>:<SkeletonScreen variant="details" heading={false} label="Загрузка подробных ответов" />}</div>;
               const quality=person.qualityV2??qualities[person.id];
               return (
               <>
-              <QualityDetails value={quality} />
-              <RespondentAnswerDetails
+              {(!groupCode || groupCode === '__quality') && <QualityDetails value={quality} inline={groupCode === '__quality'} />}
+              {groupCode && groupCode !== '__quality' && <RespondentAnswerDetails
+                groupCode={groupCode}
                 respondent={person}
                 quality={quality}
                 methodologies={methodologies}
@@ -419,7 +443,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
                 renderResult={(group) => (
                   <MethodologyInterpretation group={group} />
                 )}
-              />
+              />}
               </>
             );}}
           />

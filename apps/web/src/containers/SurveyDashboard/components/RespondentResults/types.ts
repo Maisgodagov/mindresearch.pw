@@ -9,6 +9,10 @@ export type ResultSection = {
 };
 
 export type RespondentResultsProps = {
+  sortKey: string;
+  sortDirection: 'asc' | 'desc';
+  methodSortOptions: {value:string;label:string}[];
+  onColumnSort: (key:string,direction:'asc'|'desc')=>void;
   readOnly?:boolean;
   showAge?:boolean;
   onSortAge?:()=>void;
@@ -35,6 +39,8 @@ export type RespondentResultsProps = {
   onDeleteSelected: () => void;
   onExport: () => void;
   onRestore: () => void;
+  renderMethodHelp: (group: AnswerGroup) => ReactNode;
   renderMethodResult: (group?: AnswerGroup) => ReactNode;
-  renderRespondentDetails: (respondent: Respondent) => ReactNode;
+  getRespondentGroups: (respondent: Respondent) => AnswerGroup[];
+  renderRespondentDetails: (respondent: Respondent, groupCode?: string) => ReactNode;
 };

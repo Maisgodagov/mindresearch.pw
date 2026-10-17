@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
 import { RESPONDENT_DETAILS_COPY as copy } from "./const";
 import {
-  AnswerRow,
   Answers,
   Details,
   Group,
@@ -13,11 +12,10 @@ import {
 import type { RespondentDetailsProps } from "./types";
 import { formatQuestionTime } from "../QuestionTiming";
 
-import { fasterText } from "../ResponseQuality";
 
 export function RespondentDetails({
   respondent,
-  quality,
+  groupCode,
   methodologies,
   onShowMethodology,
   renderResult,
@@ -25,9 +23,9 @@ export function RespondentDetails({
   const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
     <Details>
-      {respondent.groups.map((group) => (
+      {respondent.groups.filter(group => !groupCode || group.code === groupCode).map((group) => (
         <Group key={group.code}>
-          <GroupButton
+          {!groupCode && <GroupButton
             onClick={() =>
               setOpen((current) => ({
                 ...current,
@@ -44,13 +42,14 @@ export function RespondentDetails({
             ) : (
               <ChevronRight size={18} />
             )}
-          </GroupButton>
-          {open[group.code] && (
+          </GroupButton>}
+          {(groupCode || open[group.code]) && (
             <>
-              {group.code !== "respondent" && (
+              {group.code !== "respondent" && (group.result || methodologies[group.code]) && (
                 <ResultBox>
+                  <div className="result-content">
                   {renderResult(group)}
-                  {methodologies[group.code] && (
+                  {!groupCode && methodologies[group.code] && (
                     <MethodButton
                       onClick={() =>
                         onShowMethodology(methodologies[group.code])
@@ -59,24 +58,33 @@ export function RespondentDetails({
                       <Info size={14} /> {copy.scoring}
                     </MethodButton>
                   )}
+                  </div>
                 </ResultBox>
               )}
-              <Answers>
-                {group.answers.map((answer) => (
-                  <AnswerRow key={answer.code}>
-                    <div className="q">{answer.question}</div>
-                    <div className="a">{answer.displayValue}</div>
-                    {answer.activeMs != null && <div className="timing">
-                      Время на вопросе: {formatQuestionTime(answer.activeMs)}
-                      {answer.visits != null && answer.visits > 1 ? ` · посещений: ${answer.visits}` : ""}
-                    </div>}
-                    {answer.questionId && (()=>{
-                      const refs=quality?.behavioral.metrics.question_ratios as Record<string,{ratio:number;median:number;n:number;source:string}>|undefined;
-                      const ref=refs?.[answer.questionId];
-                      return ref?<div className="timing">{fasterText((1-ref.ratio)*100)} относительно эталона ({formatQuestionTime(ref.median*1000)}; наблюдений: {ref.n}; {({question:"этот вопрос",block:"психологический блок",type:"вопросы того же типа"} as Record<string,string>)[ref.source]??ref.source})</div>:null;
-                    })()}
-                  </AnswerRow>
-                ))}
+              <Answers role="region" aria-label={`Ответы: ${group.title}`}>
+                <table aria-label={`Ответы: ${group.title}`}>
+                  <colgroup><col className="answer-indent"/><col style={{width:52}}/><col style={{width:'clamp(260px, 36cqw, 500px)'}}/><col style={{width:'clamp(180px, 24cqw, 320px)'}}/>
+                    {group.answers.some(answer=>answer.activeMs!=null)&&<col style={{width:140}}/>}
+                    {group.answers.some(answer=>answer.visits!=null)&&<col style={{width:120}}/>}
+                    <col/>
+                  </colgroup>
+                  <thead><tr><th className="answer-spacer" aria-hidden="true"/><th scope="col" className="number">№</th><th scope="col">Вопрос</th><th scope="col">Ответ</th>
+                    {group.answers.some(answer=>answer.activeMs!=null)&&<th scope="col">Время на вопросе</th>}
+                    {group.answers.some(answer=>answer.visits!=null)&&<th scope="col" className="visits-heading">Посещения</th>}
+                    <th className="answer-spacer" aria-hidden="true"/>
+                  </tr></thead>
+                  <tbody>{group.answers.map((answer,index)=>{
+                    return <tr key={answer.questionId??answer.code}>
+                      <td className="answer-spacer" aria-hidden="true"/>
+                      <td className="number">{index+1}</td><td className="question">{answer.question}</td><td className="answer">{answer.displayValue||'—'}</td>
+                      {group.answers.some(item=>item.activeMs!=null)&&<td className="timing">{answer.activeMs!=null?formatQuestionTime(answer.activeMs):'—'}</td>}
+                      {group.answers.some(item=>item.visits!=null)&&<td className="timing">{answer.visits??'—'}</td>}
+                      <td className="answer-spacer" aria-hidden="true"/>
+                    </tr>;
+                  })}
+                  {!group.answers.length&&<tr><td colSpan={5}>Ответов пока нет</td></tr>}
+                  </tbody>
+                </table>
               </Answers>
             </>
           )}

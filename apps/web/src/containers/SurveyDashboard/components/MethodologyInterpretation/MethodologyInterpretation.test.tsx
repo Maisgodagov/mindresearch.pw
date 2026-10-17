@@ -62,6 +62,8 @@ describe("methodology result presentation", () => {
     );
 
     expect(markup).toContain("на 1.25 SD выше среднего");
-    expect(markup).toContain("N=280");
+    expect(markup).toContain('aria-valuenow="3.8"');
+    expect(markup).toContain("45.6");
+    expect(markup).toContain("О сравнении со средним");
   });
 });
