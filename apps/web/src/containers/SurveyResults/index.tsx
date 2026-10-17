@@ -348,7 +348,7 @@ export function ResultsPage({ token }: { token: string }) {
       <Page>
         <Shell>
           <Header><Leaf /> mindresearch</Header>
-          <SkeletonScreen variant="public" />
+          <SkeletonScreen variant="results" heading={false} />
         </Shell>
       </Page>
     );

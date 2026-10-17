@@ -400,6 +400,7 @@ export function SurveyPage() {
                 <Button
                   type="primary"
                   disabled={!valid || saving}
+                  loading={saving}
                   onClick={() => next()}
                 >
                   {index === survey.questions.length - 1

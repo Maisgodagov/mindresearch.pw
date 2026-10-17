@@ -1,3 +1,4 @@
+import { Skeleton } from "../../components/LoadingSkeleton";
 import { useEffect, useRef, useState } from "react";
 import { Button, Form, Popover, Slider } from "antd";
 import { ChevronDown } from "lucide-react";
@@ -111,7 +112,8 @@ export function ListingForm({ available, initial, selectedSurvey, onSaved, onCan
       target: initial?.config.quotas.reduce((s: number, q: any) => s + q.target, 0) ?? 100, budget: Math.min(8, available),
     }}>
       <div hidden={step !== 0}>
-        <Form.Item name="surveyId" label="Опубликованный опрос" rules={[{ required: true, message: "Выберите опрос" }]}>
+        {loading && <Form.Item label="Опубликованный опрос"><div role="status" aria-label="Загрузка опубликованных опросов" aria-busy="true"><Skeleton $height="42px" /></div></Form.Item>}
+        <Form.Item hidden={loading} name="surveyId" label="Опубликованный опрос" rules={[{ required: true, message: "Выберите опрос" }]}>
           <SelectField size="middle" aria-label="Опубликованный опрос" disabled={!!initial || loading} showSearch={surveys.length > 8} placeholder={loading ? "Загружаем опросы…" : "Выберите свой опрос"}
             options={surveys.map(s => ({ value: s.id, label: s.title, disabled: !s.eligible }))} />
         </Form.Item>

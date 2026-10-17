@@ -129,7 +129,7 @@ export function AdminUserPage() {
           <ArrowLeft size={16} /> Все пользователи
         </Link>
         {loading ? (
-          <SkeletonScreen variant="cards" />
+          <SkeletonScreen variant="profile" heading={false} />
         ) : error && !profile ? (
           <p role="alert" className="error">
             {error}

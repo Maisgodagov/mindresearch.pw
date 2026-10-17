@@ -55,7 +55,7 @@ export function AdminSurveyPage() {
             {error}
           </p>
         ) : !detail ? (
-          <SkeletonScreen variant="form" />
+          <SkeletonScreen variant="cards" />
         ) : (
           <>
             <div className="top">

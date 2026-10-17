@@ -102,7 +102,7 @@ export function PublicProfile() {
       )}
       {loading ? (
         <div className="profile-loading">
-          <SkeletonScreen variant="public" />
+          <SkeletonScreen variant="profile" heading={false} />
         </div>
       ) : error ? (
         <div className="profile-state">

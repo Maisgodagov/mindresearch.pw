@@ -411,7 +411,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             renderMethodResult={(group) => <MethodScoreSummary group={group} />}
             renderRespondentDetails={(summary) => {
               const person=details[summary.id]??summary;
-              if(person.detailsLoaded===false) return <div style={{padding:18}}>{detailErrors[person.id]?<><p role="alert">Не удалось загрузить ответы.</p><Button onClick={()=>void loadDetails(person).catch(()=>{})}>Повторить</Button></>:<p role="status">Загружаем подробные ответы…</p>}</div>;
+              if(person.detailsLoaded===false) return <div style={{padding:18}}>{detailErrors[person.id]?<><p role="alert">Не удалось загрузить ответы.</p><Button onClick={()=>void loadDetails(person).catch(()=>{})}>Повторить</Button></>:<SkeletonScreen variant="details" heading={false} label="Загрузка подробных ответов" />}</div>;
               const quality=person.qualityV2??qualities[person.id];
               return (
               <>

@@ -1,3 +1,4 @@
+import { SkeletonScreen } from "../../components/LoadingSkeleton";
 import { useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -39,6 +40,7 @@ export function MethodologyStudio() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [state, setState] = useState<State>(makeState);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
@@ -114,7 +116,7 @@ export function MethodologyStudio() {
         error?.response?.data?.message ??
           "Не удалось загрузить конструктор методик.",
       ),
-    );
+    ).finally(() => setLoading(false));
   }, []);
 
   const changeMeta = (key: string, value: unknown) =>
@@ -404,6 +406,8 @@ export function MethodologyStudio() {
         : "Список вопросов добавлен.",
     );
   };
+
+  if (loading) return <SkeletonScreen variant="builder" heading={false} />;
 
   return (
     <Panel>

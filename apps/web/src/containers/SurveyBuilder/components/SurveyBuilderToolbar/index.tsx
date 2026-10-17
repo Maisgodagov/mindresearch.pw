@@ -125,16 +125,18 @@ export function SurveyBuilderToolbar({
             className="preview-button" data-analytics="survey.preview"
             title="Посмотреть, как опрос увидит респондент"
             disabled={previewLoading}
+            loading={previewLoading}
             onClick={onPreview}
           >
             <Eye size={15} />
-            {previewLoading ? "Загружаем…" : "Предпросмотр"}
+            Предпросмотр
           </Button>
           <Button
             className="save-button" data-analytics="survey.save"
            
             type="primary"
             disabled={saving}
+            loading={saving}
             onClick={onSave}
             aria-label={saveLabel}
           >

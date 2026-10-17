@@ -11,7 +11,6 @@ import {
   Popover,
   Radio,
   Select,
-  Spin,
   Tabs,
   Tag,
   message,
@@ -19,6 +18,7 @@ import {
 import { ChevronDown, CircleHelp, Clock3, RefreshCw, Search, UserRound, Wallet } from "lucide-react";
 import { api, getCurrentUser } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
+import { SkeletonScreen } from "../../components/LoadingSkeleton";
 import { PlatformLayout } from "../PlatformLayout";
 import { CommunityModal, CommunitySurface } from "./styles";
 import { ProfileForm } from "./ProfileForm";
@@ -231,9 +231,7 @@ export function Community() {
           </header>
         )}
         {loading ? (
-          <Spin tip="Открываем раздел">
-            <div style={{ minHeight: 180 }} />
-          </Spin>
+          <SkeletonScreen variant="community" />
         ) : forbidden ? (
           <Alert
             type="info"
@@ -363,7 +361,7 @@ export function Community() {
                           </div>
                           )}
                           {listBusy ? (
-                            <Spin />
+                            <SkeletonScreen variant="community" heading={false} />
                           ) : shown.length ? (
                             <div className="research-list">
                               {shown.map((x) => (
@@ -473,7 +471,7 @@ export function Community() {
                               Разместить исследование
                             </Button>
                           </div>
-                          {listings.length ? (
+                          {listBusy ? <SkeletonScreen variant="community" heading={false} /> : listings.length ? (
                             listings.map((l) => (
                               <article className="research-row promotion-card" key={l.id}>
                                 <div className="research-content">

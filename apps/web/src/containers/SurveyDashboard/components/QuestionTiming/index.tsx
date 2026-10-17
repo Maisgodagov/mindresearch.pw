@@ -1,3 +1,4 @@
+import { SkeletonScreen } from "../../../../components/LoadingSkeleton";
 import { useMemo } from "react";
 import styled from "styled-components";
 import { Button } from '../../../../ui';
@@ -51,7 +52,7 @@ export function QuestionTiming({ respondents, summary, loading=false, error=fals
     <h2>Время ответа на вопросы</h2>
     <p>Время в видимой вкладке, включая повторные посещения вопроса. В сводке учитываются только завершённые прохождения с измерениями. У части старых прохождений измерений нет.</p>
     <details><summary>Как рассчитываются значения в этой таблице</summary><p><b>Время на вопросе</b> — сумма времени его просмотра в активной видимой вкладке, включая повторные посещения. Время при скрытой вкладке не учитывается. Открытая видимая вкладка может включать паузы без действий.</p><p><b>Среднее</b> — сумма измеренного времени всех завершивших этот вопрос респондентов, делённая на их число. Длинные паузы в видимой вкладке могут его увеличить.</p><p><b>Медиана</b> — середина упорядоченного ряда измерений. При чётном числе берётся среднее двух центральных значений; половина измерений не больше медианы, половина — не меньше.</p><p><b>Респондентов</b> — число завершённых прохождений с измерением именно этого вопроса. Отсутствующие измерения не заменяются нулём. Эта сводка показывает текущие данные всего опроса и может отличаться от сохранённого эталона качества.</p></details>
-    {loading ? <p role="status">Загружаем сводку времени ответов…</p> : error ? <p role="alert">Не удалось загрузить время ответов. <Button type="text" size="small" onClick={onRetry}>Повторить</Button></p> : rows.length ? <div className="scroll"><table>
+    {loading ? <SkeletonScreen variant="table" heading={false} label="Загрузка времени ответов" /> : error ? <p role="alert">Не удалось загрузить время ответов. <Button type="text" size="small" onClick={onRetry}>Повторить</Button></p> : rows.length ? <div className="scroll"><table>
       <thead><tr><th>Вопрос</th><th>Среднее</th><th>Медиана</th><th>Респондентов</th></tr></thead>
       <tbody>{rows.map(row => <tr key={row.key}>
         <td><span className="section">{row.section}</span>{row.question}</td>

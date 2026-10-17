@@ -276,7 +276,7 @@ export function SurveyBuilder() {
   if (!builderReady || catalogLoading)
     return (
       <PlatformLayout>
-        <SkeletonScreen variant="form" />
+        <SkeletonScreen variant="builder" />
       </PlatformLayout>
     );
   const addInstrument = (i: Instrument) => {
@@ -778,9 +778,7 @@ export function SurveyBuilder() {
                                 для просмотра и не редактируются.
                               </p>
                               {libraryQuestionsLoading[section.id] ? (
-                                <p className="library-note">
-                                  Загружаем вопросы…
-                                </p>
+                                <SkeletonScreen variant="details" heading={false} label="Загрузка вопросов методики" />
                               ) : (
                                 section.questions?.map((question, qi) => (
                                   <div

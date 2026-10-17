@@ -218,7 +218,7 @@ export function ProfilePage() {
           <p>Ваши данные и страница автора исследований.</p>
         </header>
         {loading ? (
-          <SkeletonScreen variant="form" />
+          <SkeletonScreen variant="profile" heading={false} />
         ) : loadError ? (
           <div className="load-error" role="alert">
             <p>{loadError}</p>

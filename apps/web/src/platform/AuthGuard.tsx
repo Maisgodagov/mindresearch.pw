@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { initializeAuth } from "../api";
-import { Button, Page, Shell, SkeletonScreen } from "../ui";
+import { RouteSkeleton } from "../components/RouteSkeleton";
+import { Button, Page, Shell } from "../ui";
 
 type AuthState = "loading" | "allowed" | "denied" | "unavailable";
 
@@ -39,11 +40,7 @@ export function AuthGuard({
 
   if (state === "loading")
     return (
-      <Page>
-        <Shell style={{ padding: "8vh 0" }}>
-          <SkeletonScreen variant="public" />
-        </Shell>
-      </Page>
+      <RouteSkeleton />
     );
 
   if (state === "unavailable")

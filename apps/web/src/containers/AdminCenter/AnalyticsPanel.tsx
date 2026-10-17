@@ -269,7 +269,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
         </p>
       )}
       {loading ? (
-        <SkeletonScreen variant="cards" />
+        <SkeletonScreen variant="dashboard" heading={false} />
       ) : summary && Number(summary.events) > 0 ? (
         <>
           <div className="summary-metrics">
@@ -422,7 +422,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
       >
         <AdminWorkspace>
           {detailLoading ? (
-            <p>Загружаем сессию…</p>
+            <SkeletonScreen variant="details" heading={false} label="Загрузка сессии" />
           ) : detailError ? (
             <p role="alert" className="error">
               {detailError}

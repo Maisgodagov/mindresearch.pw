@@ -11,7 +11,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GlobalStyle } from "./styles";
 import { AuthGuard } from "./platform/AuthGuard";
 import { PlatformLayout } from "./containers/PlatformLayout";
-import { SkeletonScreen } from "./ui";
+import { RouteSkeleton } from "./components/RouteSkeleton";
+import { ActionSkeleton } from "./components/LoadingSkeleton";
 const SurveyInvitation = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SurveyInvitation})));
 const SharedSurveyPreview = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SharedSurveyPreview})));
 
@@ -88,6 +89,8 @@ function App() {
   return (
     <ConfigProvider
       locale={ruRU}
+      select={{ loadingIcon: <ActionSkeleton /> }}
+      button={{ loadingIcon: <ActionSkeleton /> }}
       theme={{
         token: {
           colorPrimary: "#52764b",
@@ -130,7 +133,7 @@ function App() {
       }}
     >
       <GlobalStyle />
-      <Suspense fallback={<SkeletonScreen variant="form" />}>
+      <Suspense fallback={<RouteSkeleton />}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/s/:slug" element={<SurveyPage />} />

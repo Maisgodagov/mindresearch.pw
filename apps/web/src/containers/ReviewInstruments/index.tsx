@@ -26,7 +26,7 @@ export function ReviewInstruments() {
     await load();
   }
 
-  if (loading) return <PlatformLayout><SkeletonScreen variant="cards" /></PlatformLayout>;
+  if (loading) return <PlatformLayout><SkeletonScreen variant="review" /></PlatformLayout>;
 
   return (
     <PlatformLayout>
