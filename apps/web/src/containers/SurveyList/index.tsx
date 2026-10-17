@@ -179,6 +179,13 @@ export function PlatformHome() {
   );
   const draftSurveys = surveys.filter((survey) => survey.status === "draft");
   const orderedSurveys = [...publishedSurveys, ...draftSurveys];
+  const sharedSection = shared.length > 0 && <>
+    <SectionTitle><h2>Доступные мне</h2><span>{shared.length}</span></SectionTitle>
+    {shared.map(s => <SurveyTile key={s.id} survey={s} tools={s.permission === 'edit' ? <Link className="tool-button edit" to={`/app/surveys/${s.id}/edit`} title="Редактировать опрос"><Pencil size={15}/></Link> : undefined}>
+      <div><strong>Автор: {s.authorName}</strong><p>{s.permission === 'edit' ? 'Просмотр и редактирование' : 'Только просмотр'}</p></div>
+      <Link className="results-action" to={`/app/surveys/${s.id}/results`}>Открыть результаты <ArrowRight size={14}/></Link>
+    </SurveyTile>)}
+  </>;
   return (
     <PlatformLayout>
       <Head>
@@ -194,7 +201,7 @@ export function PlatformHome() {
       </Head>
       {error && <p style={{ color: "#a25c55" }}>{error}</p>}
       <Grid>
-        {orderedSurveys.length === 0 ? (
+        {orderedSurveys.length === 0 ? shared.length ? null : (
           <EmptyState>
             <span className="icon"><ClipboardList size={24} /></span>
             <h2>Опросов пока нет</h2>
@@ -202,6 +209,7 @@ export function PlatformHome() {
           </EmptyState>
         ) : orderedSurveys.map((s, index) => (
           <Fragment key={s.id}>
+            {index === publishedSurveys.length && sharedSection}
             {index === 0 && publishedSurveys.length > 0 && (
               <SectionTitle>
                 <h2>Опубликованные опросы</h2>
@@ -311,8 +319,8 @@ export function PlatformHome() {
                 </Link></SurveyTile>
           </Fragment>
         ))}
+        {draftSurveys.length === 0 && sharedSection}
       </Grid>
-      {shared.length>0&&<><SectionTitle><h2>Доступные мне</h2><span>{shared.length}</span></SectionTitle><Grid>{shared.map(s=><SurveyTile key={s.id} survey={s} tools={s.permission==='edit'?<Link className="tool-button edit" to={`/app/surveys/${s.id}/edit`} title="Редактировать опрос"><Pencil size={15}/></Link>:undefined}><div><strong>Автор: {s.authorName}</strong><p>{s.permission==='edit'?'Просмотр и редактирование':'Только просмотр'}</p></div><Link className="results-action" to={`/app/surveys/${s.id}/results`}>Открыть результаты <ArrowRight size={14}/></Link></SurveyTile>)}</Grid></>}
       {sharing&&<SurveySharing surveyId={sharing} onClose={()=>setSharing(null)}/>}
       <TrashBar>
         <Button

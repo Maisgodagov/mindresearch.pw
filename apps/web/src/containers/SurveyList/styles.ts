@@ -40,7 +40,7 @@ export const Head = styled.div`
 `;
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(500px, calc((100% - 16px) / 2))), 1fr));
   gap: 16px;
   @media (max-width: 520px) { gap: 12px; }
 `;
@@ -130,6 +130,7 @@ export const SurveyCard = styled(Card)`
   }
   .card-head {
     grid-area: head;
+    min-height: 36px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -160,8 +161,8 @@ export const SurveyCard = styled(Card)`
       background 0.15s ease,
       color 0.15s ease;
   }
-  .card-tools .edit:hover,
-  .card-tools .archive:hover {
+  .card-tools .tool-button:hover,
+  .card-tools .tool-button:focus-visible {
     background: #edf3eb;
     color: #45624e;
   }
