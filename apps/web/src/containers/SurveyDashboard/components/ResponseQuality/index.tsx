@@ -1,3 +1,4 @@
+import { Select as MultiSelect } from 'antd';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle2, ChevronDown, Clock3, Download, Info, ListFilter, Plus, RotateCcw, Settings2, ShieldCheck, Users, X } from 'lucide-react';
 import { Button } from '../../../../ui';
@@ -58,19 +59,19 @@ const metricHints: Partial<Record<MetricKey,string>> = {
   fastRun:'Максимальная серия быстрых ответов внутри одного блока.',
 };
 
-export function QualityControls({view,onChange,visible,total}:{view:QualityView;onChange:(v:QualityView)=>void;visible:number;total:number}) {
-  const basicCount=[view.status,view.qualityStatus,view.cohort,view.eligibility,view.available,view.telemetry].filter(v=>v!=='all').length;
+export function QualityControls({view,onChange,visible,total,sortOptions=[],onReset}:{onReset?:()=>void;sortOptions?:{value:string;label:string}[];view:QualityView;onChange:(v:QualityView)=>void;visible:number;total:number}) {
+  const basicCount=[view.status,...(Array.isArray(view.qualityStatus)?(view.qualityStatus.length?["selected"]:[]):[view.qualityStatus]),view.cohort,view.eligibility,view.available,view.telemetry].filter(v=>v!=='all').length;
   const activeCount=basicCount+view.filters.filter(f=>f.operator==='missing'||f.value.trim()!=='').length;
   const metricSort=!['newest','oldest','insufficient'].includes(view.sort);
   const patch=(next:Partial<QualityView>)=>onChange({...view,...next});
   const changeRule=(i:number,next:Partial<QualityView['filters'][number]>)=>patch({filters:view.filters.map((f,n)=>n===i?{...f,...next}:f)});
   return <Surface className="compact-filters" aria-label="Фильтры респондентов">
     <div className="sort-row">
-      <div><QualitySelect label="Сортировка" value={view.sort} options={[{value:'newest',label:'По дате · свежие сверху'},{value:'oldest',label:'По дате · старые сверху'},{value:'insufficient',label:'Сначала без оценки'},...METRICS.map(m=>({value:m.key,label:m.label}))]} onChange={sort=>patch({sort:sort as QualityView['sort']})} search/>
+      <div><QualitySelect label="Сортировка" value={view.sort} options={[{value:'newest',label:'По дате · свежие сверху'},{value:'oldest',label:'По дате · старые сверху'},{value:'insufficient',label:'Сначала без оценки'},...sortOptions,...METRICS.map(m=>({value:m.key,label:m.label}))]} onChange={sort=>patch({sort:sort as QualityView['sort']})} search/>
         {metricSort&&<div className="sort-direction" aria-label="Порядок сортировки"><button type="button" aria-pressed={view.direction==='asc'} onClick={()=>patch({direction:'asc'})}>Сначала низкие значения</button><button type="button" aria-pressed={view.direction==='desc'} onClick={()=>patch({direction:'desc'})}>Сначала высокие значения</button></div>}
       </div>
       <QualitySelect label="Прохождение" value={view.status} options={choices({all:'Все прохождения',completed:'Завершённые',in_progress:'В процессе'})} onChange={status=>patch({status})}/>
-      <QualitySelect label="Качество прохождения" value={view.qualityStatus} options={choices({all:'Любое качество',...STATUS})} onChange={qualityStatus=>patch({qualityStatus})}/>
+      <div className="field"><span className="field-label">Качество прохождения</span><MultiSelect<string[]> className="quality-status-select" virtual={false} showSearch={false} style={{width:"100%",minHeight:42}} aria-label="Качество прохождения" mode="multiple" allowClear maxTagCount="responsive" placeholder="Любое качество" value={Array.isArray(view.qualityStatus)?view.qualityStatus:view.qualityStatus==='all'?[]:[view.qualityStatus]} options={choices(STATUS)} onChange={qualityStatus=>patch({qualityStatus:qualityStatus as string[]})}/></div>
     </div>
     <details className="disclosure filter-extra"><summary><ListFilter size={15} aria-hidden="true"/>Дополнительные фильтры{activeCount>0&&<span className="active-count">{activeCount}</span>}<ChevronDown className="chevron" size={16}/></summary>
     <div className="presets" aria-label="Быстрый отбор">
@@ -97,7 +98,7 @@ export function QualityControls({view,onChange,visible,total}:{view:QualityView;
         <p className="hint rule-note">{metricHints[f.metric]??METRIC_EXPLANATIONS[f.metric].calculation}<MetricExplanation metric={f.metric}/></p>
       </div>)}
     </div>}
-    <div className="filter-bottom"><span className="filter-result" role="status">Найдено <strong>{visible}</strong> из {total}</span>{(activeCount>0||view.sort!=='newest'||view.filters.length>0)&&<button className="reset-filters" type="button" onClick={()=>onChange(resetView())}><RotateCcw size={13}/>Сбросить всё</button>}</div>
+    <div className="filter-bottom"><span className="filter-result" role="status">Найдено <strong>{visible}</strong> из {total}</span>{(activeCount>0||view.sort!=='newest'||view.filters.length>0)&&<button className="reset-filters" type="button" onClick={()=>{onChange(resetView());onReset?.();}}><RotateCcw size={13}/>Сбросить всё</button>}</div>
     {visible===0&&total>0&&<div className="empty-filter"><Notice>Нет прохождений с такими условиями. Удалите одно из условий или нажмите «Сбросить всё», чтобы снова показать весь список.</Notice></div>}
   </Surface>;
 }

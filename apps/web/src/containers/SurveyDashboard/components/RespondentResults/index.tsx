@@ -34,6 +34,7 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 
 export function RespondentResults({
   readOnly=false,
+  showAge=false, onSortAge, ageSortDirection,
   respondents,
   totalCount,
   qualities,
@@ -105,6 +106,7 @@ export function RespondentResults({
                 />
               </th>
               <th className="respondent-col">{copy.respondent}</th>
+              {showAge && <th className="age-col" aria-sort={ageSortDirection === "asc" ? "ascending" : ageSortDirection === "desc" ? "descending" : "none"}><button type="button" className="sort-age" onClick={onSortAge}>Возраст {ageSortDirection === "asc" ? "↑" : ageSortDirection === "desc" ? "↓" : "↕"}</button></th>}
               <th>{copy.status}</th>
               <th>{copy.answers}</th>
               <th className="duration-col" title="От начала до завершения опроса, включая перерывы">Время прохождения</th>
@@ -148,6 +150,7 @@ export function RespondentResults({
                       {person.source === "community" && <small title="Источник участия">Взаимопомощь</small>}
                     </div>
                   </td>
+                  {showAge && <td className="age-col">{person.age ?? "—"}</td>}
                   <td>
                     <span className={`pill ${person.status === "completed" ? "completed" : "in-progress"}`}>
                       {person.status === "completed"
@@ -180,7 +183,7 @@ export function RespondentResults({
                 </tr>
                 {expanded[person.id] && (
                   <tr className="details-row">
-                    <td className="details-cell" colSpan={6 + visibleQualityColumns.length + sections.length}>
+                    <td className="details-cell" colSpan={6 + (showAge ? 1 : 0) + visibleQualityColumns.length + sections.length}>
                       {renderRespondentDetails(person)}
                     </td>
                   </tr>
@@ -189,7 +192,7 @@ export function RespondentResults({
             ))}
             {!respondents.length && (
               <tr>
-                <td className="empty-state" colSpan={6 + visibleQualityColumns.length + sections.length}>
+                <td className="empty-state" colSpan={6 + (showAge ? 1 : 0) + visibleQualityColumns.length + sections.length}>
                   Нет респондентов для отображения. Если применены фильтры, нажмите «Сбросить всё».
                 </td>
               </tr>

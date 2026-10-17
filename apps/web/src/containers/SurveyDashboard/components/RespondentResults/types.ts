@@ -10,6 +10,9 @@ export type ResultSection = {
 
 export type RespondentResultsProps = {
   readOnly?:boolean;
+  showAge?:boolean;
+  onSortAge?:()=>void;
+  ageSortDirection?: "asc" | "desc";
   respondents: Respondent[];
   totalCount: number;
   qualities: Record<string, Quality>;

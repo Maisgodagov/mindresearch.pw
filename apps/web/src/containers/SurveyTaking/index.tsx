@@ -150,6 +150,7 @@ export function SurveyPage() {
   function choose(q: Question, value: Value) {
     setAnswers((a) => ({ ...a, [String(index)]: value }));
     window.clearTimeout(timer.current);
+    if(q.type==='number' && (value==='' || (typeof value==='number' && (q.validation?.min!=null&&value<q.validation.min || q.validation?.max!=null&&value>q.validation.max || q.sectionCode==='respondent'&&q.code==='age'&&!Number.isInteger(value)))))return;
     timer.current = window.setTimeout(() => save(q, value), 250);
   }
   async function chooseSingle(q: Question, value: string) {
@@ -203,8 +204,9 @@ export function SurveyPage() {
     () =>
       value !== undefined &&
       value !== "" &&
-      (!Array.isArray(value) || value.length > 0),
-    [value],
+      (!Array.isArray(value) || value.length > 0) &&
+      (q?.type!=='number' || (typeof value==='number' && Number.isFinite(value) && (q.validation?.min==null || value>=q.validation.min) && (q.validation?.max==null || value<=q.validation.max) && (!(q.sectionCode==='respondent'&&q.code==='age') || Number.isInteger(value)))),
+    [value,q],
   );
   if (unavailable)
     return (
@@ -377,7 +379,7 @@ export function SurveyPage() {
                   choose(
                     q,
                     q.type === "number"
-                      ? Number(e.target.value)
+                      ? (e.target.value === "" ? "" : Number(e.target.value))
                       : e.target.value,
                   )
                 }

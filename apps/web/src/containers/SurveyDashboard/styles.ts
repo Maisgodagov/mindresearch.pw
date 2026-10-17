@@ -148,6 +148,20 @@ export const Stat = styled(Card)`
 `;
 
 export const Panel = styled(Card)`
+  .chart-filter-notice { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#edf4e9;padding:12px 14px;border-radius:9px;margin:12px 0;font-size:13px;overflow-wrap:anywhere; }
+  .distribution-selection { display:grid;gap:12px;margin:16px 0;font-size:13px;color:var(--color-muted); }
+  .distribution-selection p { margin:0; }
+  .distribution-multiple { display:flex;align-items:center;gap:8px;width:fit-content;cursor:pointer;color:var(--color-ink); }
+  .distribution-multiple input { accent-color:#52764b; }
+  .distribution-range,.distribution-selection-actions { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+  .distribution-range input { width:100px!important; }
+  .distribution-values { margin-top:20px;font-size:13px; }
+  .distribution-values summary { cursor:pointer;color:var(--color-brand-ink); }
+  .distribution-values > div { display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;max-height:220px;overflow:auto; }
+  .distribution-values button { border:1px solid var(--color-border);border-radius:7px;background:#fff;padding:8px 10px;cursor:pointer;font:inherit;color:var(--color-ink); }
+  .distribution-values button[aria-pressed="true"] { background:#e8f1e3;border-color:#52764b; }
+  .distribution-values button:focus-visible { outline:2px solid #52764b;outline-offset:2px; }
+
   min-width: 0;
   padding: 19px;
   margin: 0;

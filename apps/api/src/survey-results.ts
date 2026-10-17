@@ -66,11 +66,12 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
   await repairAssessments(surveyId, sessionIds);
   const restriction = sessionIds ? ` AND rs.id IN (${inList(sessionIds)})` : '';
   const values = [surveyId, ...(sessionIds ?? [])];
-  const [[sections], [sessions], [scoreRows], qualities] = await Promise.all([
+  const [[sections], [sessions], [scoreRows], qualities, [questionCatalog]] = await Promise.all([
     db.query<any[]>(`SELECT code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`, [surveyId]),
     db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at startedAt,rs.last_activity_at lastActivityAt,
       rs.completed_at completedAt,rs.deleted_at deletedAt,COUNT(a.id) answered,
       MAX(CASE WHEN s.code='respondent' AND q.code='alias' THEN CAST(a.value AS CHAR) END) aliasValue,
+      COALESCE(MAX(CASE WHEN s.code='respondent' AND q.code='age' THEN CAST(a.value AS CHAR) END),MAX(CASE WHEN q.type='number' AND LOWER(TRIM(q.text))='ваш возраст' THEN CAST(a.value AS CHAR) END)) ageValue,
       IF(EXISTS(SELECT 1 FROM community_participations cp WHERE cp.session_id=rs.id),'community','direct') source,
       m.cohort,m.calibration_trusted calibrationTrusted,m.eligibility,m.eligibility_reason eligibilityReason,m.confirmed_duplicate confirmedDuplicate
       FROM response_sessions rs LEFT JOIN answers a ON a.session_id=rs.id
@@ -82,6 +83,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
       FROM assessment_results ar JOIN sections s ON s.id=ar.section_id LEFT JOIN instruments i ON i.id=s.source_instrument_id JOIN response_sessions rs ON rs.id=ar.session_id
       WHERE rs.survey_id=?${restriction} ORDER BY s.position`, values),
     qualityEnabled() ? storedQualities(surveyId, { summary, sessionIds }) : Promise.resolve({} as Record<string, any>),
+    db.query<any[]>(`SELECT q.id questionId,q.code,q.text,q.type,s.code sectionCode,s.position sectionPosition,q.position questionPosition FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position,q.id`,[surveyId]),
   ]);
   const grouped = new Map<string, Map<string, any>>();
   const groupFor = (sessionId: string, row: any) => {
@@ -116,19 +118,31 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
         value, displayValue: displayValue(value, question.options), activeMs: timing ? Number(timing.activeMs) : null, visits: timing ? Number(timing.visits) : null });
     }
   }
-  const respondents = sessions.map(({ aliasValue, ...session }) => ({ ...session,
+  const respondents = sessions.map(({ aliasValue, ageValue, ...session }) => ({ ...session,
     alias: String(parseJson(aliasValue) || 'Без псевдонима'),
+    age: ageValue == null || String(parseJson(ageValue)).trim() === '' || !Number.isFinite(Number(parseJson(ageValue))) ? null : Number(parseJson(ageValue)),
     cohort: session.cohort ?? 'unassigned', calibrationTrusted: Boolean(session.calibrationTrusted),
     eligibility: session.eligibility ?? 'unknown', confirmedDuplicate: Boolean(session.confirmedDuplicate),
     groups: [...(grouped.get(session.id)?.values() ?? [])].sort((a, b) => a.position - b.position).map(group => ({ ...group, answers: group.answers.sort((a: any, b: any) => a.position - b.position) })),
     qualityV2: qualities[session.id] ?? null, detailsLoaded: !summary,
   }));
-  const [distributionRows] = sessionIds ? [[]] : await db.query<any[]>(`SELECT q.id questionId,q.type,q.code,q.text,q.options,a.value,COUNT(*) count
-    FROM answers a JOIN questions q ON q.id=a.question_id JOIN response_sessions rs ON rs.id=a.session_id
-    WHERE rs.survey_id=? AND rs.deleted_at IS NULL GROUP BY q.id,a.value ORDER BY q.position`, [surveyId]);
-  const distribution = distributionRows.map(row => ({ questionId: row.questionId, type: row.type, code: row.code, text: row.text, value: parseJson(row.value),
-    count: Number(row.count), label: displayValue(parseJson(row.value), parseJson(row.options) ?? []) }));
-  return { sections, respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
+  const [distributionRows] = sessionIds ? [[]] : await db.query<any[]>(`SELECT q.id questionId,q.type,q.code,q.text,q.options,a.value,COUNT(*) count,s.position sectionPosition,q.position questionPosition
+    FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.id=a.session_id
+    WHERE rs.survey_id=? AND rs.deleted_at IS NULL GROUP BY q.id,a.value ORDER BY s.position,q.position,q.id`, [surveyId]);
+  const buckets = new Map<string, any>();
+  for (const row of distributionRows) {
+    const value = parseJson(row.value), key = row.questionId + ':' + displayValue(value, parseJson(row.options) ?? []);
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = { questionId: row.questionId, type: row.type, code: row.code, text: row.text, value,
+        sectionPosition: row.sectionPosition, questionPosition: row.questionPosition,
+        count: 0, label: displayValue(value, parseJson(row.options) ?? []) };
+      buckets.set(key, bucket);
+    }
+    bucket.count += Number(row.count);
+  }
+  const distribution = [...buckets.values()];
+  return { sections, questions: questionCatalog, hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
 }
 
 export async function loadQuestionTimingSummary(surveyId: string) {
@@ -153,4 +167,11 @@ export async function loadQuestionTimingSummary(surveyId: string) {
       count: times.length, average: times.reduce((a, b) => a + b, 0) / times.length,
       median: times.length % 2 ? times[middle] : (times[middle - 1] + times[middle]) / 2 }];
   });
+}
+
+// Membership is loaded only for the requested question, keeping the summary payload small.
+export async function loadDistributionMembers(surveyId:string,questionId:string,labels:string[]) {
+  const [rows] = await db.query<any[]>(`SELECT a.session_id sessionId,a.value,q.options FROM answers a JOIN response_sessions rs ON rs.id=a.session_id JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id WHERE rs.survey_id=? AND s.survey_id=? AND q.id=? AND rs.deleted_at IS NULL`,[surveyId,surveyId,questionId]);
+  const allowed=new Set(labels);
+  return [...new Set(rows.filter(row=>allowed.has(displayValue(parseJson(row.value),parseJson(row.options)??[]))).map(row=>String(row.sessionId)))];
 }

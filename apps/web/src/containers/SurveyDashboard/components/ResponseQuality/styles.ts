@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 
 export const Surface = styled.section`
+  &&& .quality-status-select input { border:0!important;box-shadow:none!important;padding:0!important;background:transparent!important;height:24px!important;min-height:0!important;min-width:0!important; }
+  .quality-status-select { min-width:0; }
   min-width: 0;
   color: #26392d;
   white-space: normal;

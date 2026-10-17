@@ -1,3 +1,4 @@
+import { methodSortValue } from './selection';
 import type { Respondent } from './types';
 export type { QualityV2 as Quality, Index, Flag } from '../../../../api/src/quality/types';
 import type { QualityV2 as Quality } from '../../../../api/src/quality/types';
@@ -55,7 +56,7 @@ export function metricValue(q: Quality | undefined, key: MetricKey): number | nu
   }
 }
 export type QualityFilter = { metric: MetricKey; operator: 'gte' | 'lte' | 'missing'; value: string };
-export type QualityView = { sort: 'newest' | 'oldest' | 'insufficient' | MetricKey; direction: 'asc' | 'desc'; status: string; source?: string; cohort: string; eligibility: string; available: string; telemetry: string; qualityStatus: string; filters: QualityFilter[] };
+export type QualityView = { sort: 'newest' | 'oldest' | 'insufficient' | 'age' | `method:${string}` | MetricKey; direction: 'asc' | 'desc'; status: string; source?: string; cohort: string; eligibility: string; available: string; telemetry: string; qualityStatus: string | string[]; filters: QualityFilter[] };
 export const DEFAULT_QUALITY_VIEW: QualityView = { sort: 'newest', direction: 'desc', status: 'all', cohort: 'all', eligibility: 'all', available: 'all', telemetry: 'all', qualityStatus: 'all', filters: [] };
 export function applyQualityView(people: Respondent[], qualities: Record<string, Quality>, view: QualityView) {
   const visible = people.filter(p => {
@@ -66,7 +67,7 @@ export function applyQualityView(people: Respondent[], qualities: Record<string,
       && (view.eligibility === 'all' || (p.eligibility ?? 'unknown') === view.eligibility)
       && (view.available === 'all' || (view.available === 'present' ? q?.overall.score != null : q?.overall.score == null))
       && (view.telemetry === 'all' || (view.telemetry === 'present' ? (metricValue(q,'coverage')??0)>0 : (metricValue(q,'coverage')??0)===0))
-      && (view.qualityStatus === 'all' || (q?.overall.status ?? 'insufficient_data') === view.qualityStatus)
+      && (Array.isArray(view.qualityStatus) ? !view.qualityStatus.length || view.qualityStatus.includes(q?.overall.status ?? 'insufficient_data') : view.qualityStatus === 'all' || (q?.overall.status ?? 'insufficient_data') === view.qualityStatus)
       && view.filters.every(f => {
         const v = metricValue(q, f.metric);
         if (f.operator === 'missing') return v === null;
@@ -79,7 +80,8 @@ export function applyQualityView(people: Respondent[], qualities: Record<string,
   if (view.sort === 'insufficient') return visible.sort((a,b)=>Number(qualities[a.id]?.overall.score!=null)-Number(qualities[b.id]?.overall.score!=null));
   const key = view.sort;
   return visible.sort((a, b) => {
-    const av = metricValue(qualities[a.id], key), bv = metricValue(qualities[b.id], key);
+    const value = (p: Respondent) => key === 'age' ? p.age ?? null : key.startsWith('method:') ? methodSortValue(p,key) : metricValue(qualities[p.id],key as MetricKey);
+    const av = value(a), bv = value(b);
     if (av === null) return bv === null ? 0 : 1;
     if (bv === null) return -1;
     return (av - bv) * (view.direction === 'asc' ? 1 : -1);

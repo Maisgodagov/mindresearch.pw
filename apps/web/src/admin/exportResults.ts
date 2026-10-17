@@ -31,6 +31,7 @@ export type ExportRespondent = {
   eligibility?: string;
   id: string;
   alias: string;
+  age?: number | null;
   status: string;
   startedAt: string;
   lastActivityAt: string;
@@ -80,6 +81,7 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
   const summary = workbook.addWorksheet("Респонденты");
   summary.addRow([
     "Псевдоним",
+    "Возраст",
     "Статус",
     "Ответов",
     "Начато",
@@ -90,6 +92,7 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
   respondents.forEach((person) =>
     summary.addRow([
       person.alias,
+      person.age ?? "",
       person.status === "completed" ? "Завершена" : "В процессе",
       person.answered,
       date(person.startedAt),
@@ -98,7 +101,7 @@ export async function exportRespondents(respondents: ExportRespondent[]) {
       person.source === "community" ? "Взаимопомощь" : "Прямая ссылка",
     ]),
   );
-  styleSheet(summary, [24, 16, 12, 21, 21, 21, 22]);
+  styleSheet(summary, [24, 12, 16, 12, 21, 21, 21, 22]);
 
   const quality = workbook.addWorksheet("Качество V2");
   const rows = respondents.map(qualityExportRow);

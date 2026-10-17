@@ -10,6 +10,8 @@ export const TableWrap = styled.div`
   margin: 0 -19px -19px;
   padding: 0 0 19px 0;
   scrollbar-color: #a8b9a3 #f5f8f3;
+  @media(max-width:700px) { width:calc(100% + 30px);margin:0 -15px -15px;padding-bottom:15px; }
+  @media(max-width:560px) { width:calc(100% + 20px);margin:0 -10px -10px;padding-bottom:10px; }
 `;
 export const QualityToggleBar = styled.div`
   display: flex;
@@ -54,6 +56,9 @@ export const Table = styled.table<{ $qualityExpanded: boolean }>`
   tbody tr.is-selected .respondent-col { background: #f0f6ed; }
   tbody tr.details-row td { padding: 0; background: #f8faf7; }
   .details-cell { min-width: 100%; }
+  .sort-age { font: inherit; color: inherit; background: none; border: 0; padding: 0; min-height: 28px; cursor: pointer; }
+  .sort-age:focus-visible { outline: 2px solid #52764b; outline-offset: 3px; }
+  .age-col { min-width:70px; font-variant-numeric: tabular-nums; }
   .duration-col { white-space: nowrap; font-variant-numeric: tabular-nums; }
   .quality-col { min-width: 100px; max-width: 180px; font-variant-numeric: tabular-nums; }
   .details-row .details-cell > section { padding: 16px 18px; max-width: min(1100px, calc(100vw - 60px)); }
@@ -120,14 +125,14 @@ export const Table = styled.table<{ $qualityExpanded: boolean }>`
   }
   .score small { display: block; margin-top: 4px; color: #718074; font-size: 10px; font-weight: 550; line-height: 1.4; }
   @media (max-width: 700px) {
-    margin: 0 -15px -15px;
-    padding: 0 0 15px 0;
+    margin: 0;
+    padding: 0;
     .respondent-col { width: 150px; min-width: 150px; }
   }
   @media (max-width: 560px) {
     min-width: 920px;
-    margin: 0 -10px -10px;
-    padding: 0 0 10px 0;
+    margin: 0;
+    padding: 0;
     th, td { padding: 7px 6px; font-size: 10px; }
     .select { width: 32px; min-width: 32px; max-width: 32px; }
     .respondent-col { left: 32px; width: 118px; min-width: 118px; }

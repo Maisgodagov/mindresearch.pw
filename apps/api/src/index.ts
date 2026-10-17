@@ -2,7 +2,7 @@ import { adminManagementRouter } from './admin-management.js';
 import { sharingRouter, migrateSharing, lockSurveyWrite, bumpSurveyVersion } from './sharing.js';
 import { analyticsRouter } from './analytics.js';
 import { canReadSurvey, isAdministrator } from './admin-access.js';
-import { loadSurveyResults, loadQuestionTimingSummary } from './survey-results.js';
+import { loadSurveyResults, loadQuestionTimingSummary, loadDistributionMembers } from './survey-results.js';
 import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
 import 'dotenv/config';
 import express from 'express';
@@ -57,7 +57,8 @@ const answerSchema=z.object({questionId:z.string().uuid(),value:z.union([z.strin
 app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   const body=answerSchema.parse(req.body); const [sessions]=await db.query<any[]>('SELECT id,survey_id,status FROM response_sessions WHERE public_token=?',[req.params.token]);
   if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'}); if(sessions[0].status==='completed')return res.status(409).json({message:'Опрос уже завершён'});
-  const [questions]=await db.query<any[]>(`SELECT q.id,s.code sectionCode FROM questions q JOIN sections s ON s.id=q.section_id WHERE q.id=? AND s.survey_id=?`,[body.questionId,sessions[0].survey_id]); if(!questions.length)return res.status(400).json({message:'Некорректный вопрос'});
+  const [questions]=await db.query<any[]>(`SELECT q.id,q.code questionCode,s.code sectionCode FROM questions q JOIN sections s ON s.id=q.section_id WHERE q.id=? AND s.survey_id=?`,[body.questionId,sessions[0].survey_id]); if(!questions.length)return res.status(400).json({message:'Некорректный вопрос'});
+  if(questions[0].sectionCode==='respondent' && questions[0].questionCode==='age' && (typeof body.value!=='number'||!Number.isInteger(body.value)||body.value<1||body.value>120))return res.status(400).json({message:'Укажите возраст целым числом от 1 до 120 лет'});
   await db.execute(`INSERT INTO answers (session_id,question_id,value) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),answered_at=CURRENT_TIMESTAMP`,[sessions[0].id,body.questionId,JSON.stringify(body.value)]);
   if(body.timing){await db.execute(`INSERT INTO question_timings (session_id,question_id,visit_id,active_ms,visit_sequence,recorded_at) VALUES (?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE active_ms=GREATEST(active_ms,VALUES(active_ms)),visit_sequence=COALESCE(visit_sequence,VALUES(visit_sequence))`,[sessions[0].id,body.questionId,body.timing.visitId,body.timing.activeMs,body.timing.visitSequence??null]);await db.execute(`INSERT INTO quality_metadata(session_id,telemetry_version) VALUES (?,?) ON DUPLICATE KEY UPDATE telemetry_version=VALUES(telemetry_version)`,[sessions[0].id,body.timing.visitSequence===undefined?'visible-time-v1':'visible-time-v2-sequence']);}
   await db.execute('UPDATE response_sessions SET current_position=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?',[body.position,sessions[0].id]);
@@ -128,6 +129,11 @@ app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,n
 app.get('/api/admin/surveys/:id/results/timing',requireAuth,async(req:AuthRequest,res,next)=>{try{
   if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});
   res.json(await loadQuestionTimingSummary(String(req.params.id)));
+}catch(e){next(e)}});
+app.post('/api/admin/surveys/:id/results/distribution-members',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});
+  const body=z.object({questionId:z.string().uuid(),labels:z.array(z.string().max(10000)).min(1).max(1000)}).parse(req.body);
+  res.json({sessionIds:await loadDistributionMembers(String(req.params.id),body.questionId,body.labels)});
 }catch(e){next(e)}});
 app.post('/api/admin/surveys/:id/results/details',requireAuth,async(req:AuthRequest,res,next)=>{try{
   if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});

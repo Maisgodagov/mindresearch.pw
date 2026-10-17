@@ -137,6 +137,7 @@ export function SurveyBuilder() {
     status: "active" as "draft" | "active" | "archived",
     showAuthor: true,
     collectAlias: true,
+    collectAge: true,
     estimatedDuration: { ...defaultSurveyDuration },
     resultPresentation: {
       showResults: true,
@@ -187,6 +188,7 @@ export function SurveyBuilder() {
             status: data.status,
             showAuthor: Boolean(data.showAuthor),
             collectAlias: data.collectAlias !== false,
+            collectAge: data.collectAge === true || (Boolean(data.builderState) && data.collectAge !== false),
             estimatedDuration: data.estimatedDuration ?? data.settings?.estimatedDuration ?? { ...defaultSurveyDuration },
             resultPresentation: data.resultPresentation,
           });
@@ -269,9 +271,9 @@ export function SurveyBuilder() {
     () =>
       sections.reduce(
         (sum, s) => sum + (s.questionCount ?? s.questions?.length ?? 0),
-        meta.collectAlias ? 1 : 0,
+        (meta.collectAlias ? 1 : 0) + (meta.collectAge ? 1 : 0),
       ),
-    [sections, meta.collectAlias],
+    [sections, meta.collectAlias, meta.collectAge],
   );
   if (!builderReady || catalogLoading)
     return (
@@ -417,6 +419,7 @@ export function SurveyBuilder() {
               },
             ]
           : []),
+        ...(meta.collectAge ? [{id:"respondent-age",text:"Ваш возраст",type:"number" as const,required:true,options:[],sectionTitle:"О респонденте",validation:{min:1,max:120}}] : []),
         ...blocks.flat(),
       ]);
     } catch {
@@ -592,7 +595,7 @@ export function SurveyBuilder() {
           tabIndex={invalidFields.includes("sections") ? -1 : undefined}
         >
           <h2>Содержание опроса</h2>
-          <p className="hint">{`${sections.length + (meta.collectAlias ? 1 : 0) + 2} блока · ${count} вопросов. Экраны закреплены сверху и снизу; методики и вопросы можно перемещать.`}</p>
+          <p className="hint">{`${sections.length + (meta.collectAlias ? 1 : 0) + (meta.collectAge ? 1 : 0) + 2} блока · ${count} вопросов. Экраны закреплены сверху и снизу; методики и вопросы можно перемещать.`}</p>
           <div
             style={
               structureLocked ? { pointerEvents: "none", opacity: 0.65 } : {}
@@ -626,7 +629,7 @@ export function SurveyBuilder() {
                 <span className="duration-label">Примерное время прохождения</span>
                 <label className="screen-setting">
                   <input type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "auto"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { ...current.estimatedDuration, mode: "auto" } }))} />
-                  <span>Рассчитать автоматически · {surveyDurationLabel([...sections.flatMap(s => s.questions ?? Array.from({ length: s.questionCount ?? 0 }, () => ({ type: "single" }))), ...(meta.collectAlias ? [{ type: "text" }] : [])])}</span>
+                  <span>Рассчитать автоматически · {surveyDurationLabel([...sections.flatMap(s => s.questions ?? Array.from({ length: s.questionCount ?? 0 }, () => ({ type: "single" }))), ...(meta.collectAlias ? [{ type: "text" }] : []), ...(meta.collectAge ? [{type:"number"}] : [])])}</span>
                 </label>
                 <p className="hint">Из расчёта 5–10 секунд на закрытый вопрос и 30–90 секунд на открытый вопрос, с округлением до 5 минут.</p>
                 <label className="screen-setting">
@@ -689,6 +692,7 @@ export function SurveyBuilder() {
                 <UserRound size={16} /> Добавить вопрос о псевдониме
               </Button>
             )}
+            {meta.collectAge && <SectionCard style={{marginTop:15}}><div className="section-head"><UserRound size={18}/><div className="section-name"><b>Возраст респондента</b><span>Системный вопрос · отдельный столбец и сортировка в статистике</span></div></div><div className="body"><div className="readonly-question"><span className="number">{meta.collectAlias ? 2 : 1}</span><div><b>Ваш возраст</b><div className="question-meta">Числовой ответ · от 1 до 120 лет · обязательный</div></div></div></div></SectionCard>}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}

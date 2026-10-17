@@ -118,6 +118,7 @@ export type Respondent = {
   confirmedDuplicate?: boolean;
   id: string;
   alias: string;
+  age?: number | null;
   status: "in_progress" | "completed" | "abandoned";
   startedAt: string;
   lastActivityAt: string;
@@ -128,6 +129,8 @@ export type Respondent = {
 };
 export type QuestionTimingRow = { key: string; section: string; question: string; average: number; median: number; count: number };
 export type Result = {
+  hasAge?: boolean;
+  questions?: {questionId:string;code:string;text:string;type:string;sectionPosition:number;questionPosition:number}[];
   version?: number;
   sections: { code: string; title: string; sectionKind: string }[];
   respondents: Respondent[];
@@ -140,5 +143,8 @@ export type Result = {
     value: string | number;
     label?: string;
     count: number;
+    sessionIds?: string[];
+    sectionPosition?: number;
+    questionPosition?: number;
   }[];
 };

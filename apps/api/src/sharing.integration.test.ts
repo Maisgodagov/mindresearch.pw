@@ -45,6 +45,52 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     }
     await db.execute("UPDATE users SET role='researcher' WHERE id=?",[regularAuthor]);
   });
+  it('creates technical age, validates it, and links legacy ages and chart buckets without rewriting answers',async()=>{
+    const made=await request(owner,'/account/surveys','POST',{...payload,status:'active',collectAlias:true,collectAge:false,sections:[
+      {kind:'custom',title:'First block',questions:[{text:'First',type:'number',required:true}]},
+      {kind:'custom',title:'Second block',questions:[{text:'Second',type:'number',required:true}]},
+    ]});
+    expect(made.status).toBe(201);
+    const id=made.data.id;
+    const publicSurvey=(await request(null,`/public/surveys/${made.data.slug}`)).data;
+    expect(publicSurvey.questions.slice(0,2).map((q:any)=>q.text)).toEqual(['Представьтесь или укажите псевдоним','Ваш возраст']);
+    const age=publicSurvey.questions[1], first=publicSurvey.questions[2], second=publicSurvey.questions[3];
+    const session=(await request(null,`/public/surveys/${made.data.slug}/sessions`,'POST',{})).data;
+    for(const invalid of [0,121,20.5,'37']) expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:age.id,value:invalid,position:1})).status).toBe(400);
+    expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:age.id,value:37,position:1})).status).toBe(204);
+    for(const q of [first,second])expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:q.id,value:1,position:2})).status).toBe(204);
+    const result=(await request(owner,`/admin/surveys/${id}/results?summary=1`)).data;
+    expect(result.hasAge).toBe(true);
+    expect(result.respondents[0].age).toBe(37);
+    expect(result.questions.map((q:any)=>q.text)).toEqual(publicSurvey.questions.map((q:any)=>q.text));
+    expect(result.distribution.map((q:any)=>q.text)).toEqual(['Ваш возраст','First','Second']);
+    const members=await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:age.id,labels:['37']});
+    expect(members.data.sessionIds).toEqual([result.respondents[0].id]);
+    expect((await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:age.id,labels:['20','40']})).data.sessionIds).toEqual([]);
+    expect((await request(outsider,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:age.id,labels:['37']})).status).toBe(404);
+    expect((await request(outsider,`/admin/surveys/${id}/results?summary=1`)).status).toBe(404);
+    const extraIds=[randomUUID(),randomUUID()];
+    for(const [i,sid] of extraIds.entries()) {
+      await db.execute("INSERT INTO response_sessions(id,survey_id,public_token,status) VALUES (?,?,?,'completed')",[sid,id,randomUUID()]);
+      await db.execute('INSERT INTO answers(session_id,question_id,value) VALUES (?,?,?)',[sid,age.id,JSON.stringify(i?37:20)]);
+    }
+    const union=(await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:age.id,labels:['20','37']})).data.sessionIds;
+    expect(new Set(union)).toEqual(new Set([result.respondents[0].id,...extraIds]));
+    await db.execute('UPDATE response_sessions SET deleted_at=CURRENT_TIMESTAMP WHERE id=?',[extraIds[1]]);
+    expect((await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:age.id,labels:['37']})).data.sessionIds).toEqual([result.respondents[0].id]);
+    const withoutAlias=await request(owner,'/account/surveys','POST',{...payload,status:'active',collectAlias:false});
+    const noAliasPublic=(await request(null,`/public/surveys/${withoutAlias.data.slug}`)).data;
+    expect(noAliasPublic.questions[0].text).toBe('Ваш возраст');
+    expect((await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:noAliasPublic.questions[0].id,labels:['37']})).data.sessionIds).toEqual([]);
+    // Simulate the two existing surveys: the same numeric age answer lives in an author block.
+    await db.execute('UPDATE questions SET section_id=?,code=? WHERE id=?',[first.sectionId??(await db.query<any[]>('SELECT section_id FROM questions WHERE id=?',[first.id]))[0][0].section_id,'legacy-age',age.id]);
+    const legacy=(await request(owner,`/admin/surveys/${id}/results?summary=1`)).data;
+    expect(legacy.respondents.find((p:any)=>p.id===result.respondents[0].id).age).toBe(37);
+    const [stored]=await db.query<any[]>('SELECT value FROM answers WHERE question_id=?',[age.id]);
+    expect(JSON.parse(stored[0].value)).toBe(37);
+    await db.execute('UPDATE questions SET text=? WHERE id=?',['Unrelated number',age.id]);
+    expect((await request(owner,`/admin/surveys/${id}/results?summary=1`)).data.respondents[0].age).toBeNull();
+  });
   it('saves an avatar when the optional biography was never filled in',async()=>{
     await db.execute('UPDATE users SET bio=NULL WHERE id=?',[viewer]);
     const me=(await request(viewer,'/account/me')).data;
