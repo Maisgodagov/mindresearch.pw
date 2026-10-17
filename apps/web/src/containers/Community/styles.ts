@@ -1,6 +1,24 @@
 import styled from "styled-components";
 import { Modal } from "antd";
 
+export const WalletDetails = styled.div`
+  width: min(296px, calc(100vw - 48px));
+  color: var(--color-ink);
+  .wallet-summary { padding: 20px 20px 16px; }
+  .wallet-total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .wallet-total h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .wallet-total strong { color: var(--color-brand-ink); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  dl { display: grid; gap: 9px; margin: 18px 0 0; }
+  dl > div { display: flex; justify-content: space-between; gap: 16px; }
+  dt { color: var(--color-muted); font-size: 13px; }
+  dd { margin: 0; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .wallet-note { margin: 16px 0 0; font-size: 12px; line-height: 1.6; color: var(--color-muted); }
+  .wallet-history { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 46px; padding: 12px 20px; border: 0; border-top: 1px solid var(--color-border); border-radius: 0 0 14px 14px; background: var(--color-surface-muted); color: var(--color-brand-ink); font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; transition: background .15s ease; }
+  .wallet-history > svg:last-child { margin-left: auto; }
+  .wallet-history:hover { background: var(--color-brand-soft); }
+  .wallet-history:focus-visible { outline: 2px solid var(--color-brand-strong); outline-offset: -4px; }
+`;
+
 export const CommunityModal = styled(Modal)`
   .ant-modal-content { border-radius: 16px; padding: 28px; background: #fff; }
   .ant-modal-title { font-size: 22px; font-weight: 650; color: var(--color-ink); padding-right: 24px; }

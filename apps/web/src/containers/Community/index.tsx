@@ -15,12 +15,12 @@ import {
   Tag,
   message,
 } from "antd";
-import { ChevronDown, CircleHelp, Clock3, RefreshCw, Search, UserRound, Wallet } from "lucide-react";
+import { ArrowRight, History, ChevronDown, CircleHelp, Clock3, RefreshCw, Search, UserRound, Wallet } from "lucide-react";
 import { api, getCurrentUser } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
 import { SkeletonScreen } from "../../components/LoadingSkeleton";
 import { PlatformLayout } from "../PlatformLayout";
-import { CommunityModal, CommunitySurface } from "./styles";
+import { CommunityModal, CommunitySurface, WalletDetails } from "./styles";
 import { ProfileForm } from "./ProfileForm";
 import { CommunityIntro } from "./CommunityIntro";
 import { ListingForm } from "./ListingForm";
@@ -215,13 +215,18 @@ export function Community() {
               <Button icon={<UserRound size={16} />} onClick={() => setEditingProfile(true)}>
                 Карточка участника
               </Button>
-              <Popover open={walletOpen} onOpenChange={setWalletOpen} trigger="click" placement="bottomRight" title="Ваш баланс" content={
-                <div className="wallet-details" style={{ maxWidth: 260 }}>
-                  <p>Заработано: <strong>{me.wallet.earned}</strong></p>
-                  <p>Бонусных: <strong>{me.wallet.bonus}</strong></p>
-                  <p>Используйте баллы для продвижения своего опроса.</p>
-                  <Button type="link" onClick={() => { setHistoryOpen(true); setWalletOpen(false); }}>История начислений</Button>
-                </div>
+              <Popover open={walletOpen} onOpenChange={setWalletOpen} trigger="click" placement="bottomRight" styles={{ container: { padding: 0, borderRadius: 14, boxShadow: "0 8px 28px rgba(34,52,37,.14)" } }} content={
+                <WalletDetails aria-label="Ваш баланс">
+                  <div className="wallet-summary">
+                    <div className="wallet-total"><h2>Ваш баланс</h2><strong>{points(balance)}</strong></div>
+                    <dl>
+                      <div><dt>Заработано</dt><dd>{me.wallet.earned}</dd></div>
+                      <div><dt>Бонусных</dt><dd>{me.wallet.bonus}</dd></div>
+                    </dl>
+                    <p className="wallet-note">Используйте баллы для продвижения своего опроса.</p>
+                  </div>
+                  <button type="button" className="wallet-history" onClick={() => { setHistoryOpen(true); setWalletOpen(false); }}><History size={15} aria-hidden="true" />История начислений<ArrowRight size={15} aria-hidden="true" /></button>
+                </WalletDetails>
               }>
                 <Button className="wallet-button" icon={<Wallet size={16} />} aria-label={`Баланс: ${points(balance)}`}>
                   {points(balance)}
