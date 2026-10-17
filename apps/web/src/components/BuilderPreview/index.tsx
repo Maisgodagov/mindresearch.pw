@@ -33,8 +33,8 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
   const question = questions[index];
   const value = question ? answers[question.id] : undefined;
   const valid = useMemo(
-    () => value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0),
-    [value],
+    () => value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0) && (typeof value !== "string" || value.trim().length > 0) && (question?.type !== "number" || typeof value === "number" && Number.isFinite(value) && (question.validation?.min == null || value >= question.validation.min) && (question.validation?.max == null || value <= question.validation.max) && (question.id !== "respondent-age" || Number.isInteger(value))),
+    [value, question],
   );
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
     if (!question) return;
     setAnswers((current) => ({
       ...current,
-      [question.id]: question.type === "number" ? Number(rawValue) : rawValue,
+      [question.id]: question.type === "number" && rawValue !== "" ? Number(rawValue) : rawValue,
     }));
   }
 

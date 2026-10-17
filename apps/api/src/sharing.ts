@@ -1,3 +1,4 @@
+import { respondentQuestions } from './respondent.js';
 import { Router } from 'express';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -39,7 +40,7 @@ sharingRouter.get('/sharing/surveys/:id/preview',wrap(async(req:AuthRequest,res:
   const survey=rows[0],parse=(v:any)=>typeof v==='string'?JSON.parse(v):v;const state=parse(survey.builder_state),settings=parse(survey.settings)??{};let questions:any[]=[];
   if(state){for(const section of state.sections){if(section.kind==='library'){
     const [items]=await db.query<any[]>(`SELECT q.id,q.text,q.type,q.required,q.options,q.validation,i.title sectionTitle FROM instrument_questions q JOIN instruments i ON i.id=q.instrument_id WHERE i.id=? AND (i.is_verified=TRUE OR i.owner_id=?) ORDER BY q.position`,[section.instrumentId,survey.owner_id]);questions.push(...items);
-  }else if(section.kind==='custom')questions.push(...(section.questions??[]).map((q:any)=>({...q,options:section.useSharedOptions&&['single','multiple'].includes(q.type)?section.sharedOptions:q.options,sectionTitle:section.title})));}if(state.meta?.collectAge)questions.unshift({id:'respondent-age',text:'Ваш возраст',type:'number',required:true,options:[],validation:{min:1,max:120},sectionTitle:'О респонденте'});if(state.meta?.collectAlias)questions.unshift({id:'respondent-alias',text:'Представьтесь или укажите псевдоним',type:'text',required:true,options:[],sectionTitle:'О респонденте'});}
+  }else if(section.kind==='custom')questions.push(...(section.questions??[]).map((q:any)=>({...q,options:section.useSharedOptions&&['single','multiple'].includes(q.type)?section.sharedOptions:q.options,sectionTitle:section.title})));}questions.unshift(...respondentQuestions());}
   else{const [items]=await db.query<any[]>(`SELECT q.id,q.text,q.type,q.required,q.options,q.validation,s.title sectionTitle FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position`,[req.params.id]);questions=items;}
   res.json({meta:{...(state?.meta??{}),welcomeTitle:state?.meta?.welcomeTitle??survey.welcome_title,welcomeText:state?.meta?.welcomeText??survey.welcome_text,estimatedDuration:state?.meta?.estimatedDuration??settings.estimatedDuration,resultPresentation:state?.meta?.resultPresentation??settings.resultPresentation??{title:'Спасибо за ответы',text:'',showScores:true},showAuthor:false},questions:questions.map(q=>({...q,required:Boolean(q.required),options:parse(q.options)??[],validation:parse(q.validation)??null}))});
 }));

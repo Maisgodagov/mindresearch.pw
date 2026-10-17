@@ -15,6 +15,7 @@ export type RespondentResultsProps = {
   onColumnSort: (key:string,direction:'asc'|'desc')=>void;
   readOnly?:boolean;
   showAge?:boolean;
+  showGender?:boolean;
   onSortAge?:()=>void;
   ageSortDirection?: "asc" | "desc";
   respondents: Respondent[];

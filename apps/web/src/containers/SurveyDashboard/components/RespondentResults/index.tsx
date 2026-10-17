@@ -43,6 +43,7 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 export function RespondentResults({
   sortKey, sortDirection, methodSortOptions, onColumnSort,
   readOnly=false,
+  showGender=false,
   showAge=false, onSortAge, ageSortDirection,
   respondents,
   totalCount,
@@ -94,6 +95,7 @@ export function RespondentResults({
     {id:'select',size:44,minSize:44,maxSize:44,enableResizing:false,enableHiding:false,header:()=> <Checkbox aria-label="Выбрать респондентов на этой странице" checked={allSelected} indeterminate={!allSelected && respondents.some(person => selected[person.id])} onChange={event=>onSelectAll(event.target.checked)}/>,cell:({row})=><Checkbox aria-label={`Выбрать ${row.original.alias}`} checked={!!selected[row.original.id]} onChange={event=>onSelectRespondent(row.original.id,event.target.checked)}/>},
     {id:'respondent',meta:copy.respondent,size:220,header:copy.respondent,cell:({row})=><div className="person"><Button className="expand" aria-label={copy.showAnswers} aria-expanded={!!expanded[row.original.id]} onClick={()=>onToggleExpanded(row.original.id)}>{expanded[row.original.id]?<ChevronDown size={17}/>:<ChevronRight size={17}/>}</Button><span>{row.original.alias}{row.original.source==='community'&&<small>Взаимопомощь</small>}</span></div>},
     ...(showAge ? [{id:'age',meta:'Возраст',size:100,header:()=> <button type="button" className="sort-age" onClick={onSortAge}>Возраст {ageSortDirection==='asc'?'↑':ageSortDirection==='desc'?'↓':'↕'}</button>,cell:({row}: {row:{original:Respondent}})=>row.original.age??'—'}] : []),
+    ...(showGender?[{id:'gender',meta:'Пол',size:145,header:'Пол',cell:({row}:{row:{original:Respondent}})=>row.original.gender??'—'}]:[]),
     {id:'status',meta:copy.status,size:145,header:copy.status,cell:({row})=><span className={`pill ${row.original.status==='completed'?'completed':'in-progress'}`}>{row.original.status==='completed'?copy.completed:copy.inProgress}</span>},
     {id:'answers',meta:copy.answers,size:95,header:copy.answers,cell:({row})=>row.original.answered+(adminView?' / 208':'')},
     {id:'duration',meta:'Время прохождения',size:165,header:'Время прохождения',cell:({row})=>row.original.status==='completed'?formatDuration(row.original.startedAt,row.original.completedAt)??'—':'—'},

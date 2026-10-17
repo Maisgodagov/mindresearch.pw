@@ -119,6 +119,7 @@ export type Respondent = {
   id: string;
   alias: string;
   age?: number | null;
+  gender?: string | null;
   status: "in_progress" | "completed" | "abandoned";
   startedAt: string;
   lastActivityAt: string;
@@ -130,6 +131,7 @@ export type Respondent = {
 export type QuestionTimingRow = { key: string; section: string; question: string; average: number; median: number; count: number };
 export type Result = {
   hasAge?: boolean;
+  hasGender?: boolean;
   questions?: {questionId:string;code:string;text:string;type:string;sectionPosition:number;questionPosition:number}[];
   version?: number;
   sections: { code: string; title: string; sectionKind: string }[];

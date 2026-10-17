@@ -1,3 +1,4 @@
+import { respondentQuestions } from '../../../../api/src/respondent';
 import { usePageTitle } from "../../pageTitle";
 import { defaultSurveyDuration, surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -138,6 +139,7 @@ export function SurveyBuilder() {
     showAuthor: true,
     collectAlias: true,
     collectAge: true,
+    collectGender: true,
     estimatedDuration: { ...defaultSurveyDuration },
     resultPresentation: {
       showResults: true,
@@ -187,8 +189,9 @@ export function SurveyBuilder() {
             welcomeText: data.welcomeText,
             status: data.status,
             showAuthor: Boolean(data.showAuthor),
-            collectAlias: data.collectAlias !== false,
-            collectAge: data.collectAge === true || (Boolean(data.builderState) && data.collectAge !== false),
+            collectAlias: Number(data.responseCount)>0 ? data.collectAlias !== false : true,
+            collectAge: Number(data.responseCount)>0 ? data.collectAge === true : true,
+            collectGender: Number(data.responseCount)>0 ? data.collectGender === true : true,
             estimatedDuration: data.estimatedDuration ?? data.settings?.estimatedDuration ?? { ...defaultSurveyDuration },
             resultPresentation: data.resultPresentation,
           });
@@ -271,9 +274,9 @@ export function SurveyBuilder() {
     () =>
       sections.reduce(
         (sum, s) => sum + (s.questionCount ?? s.questions?.length ?? 0),
-        (meta.collectAlias ? 1 : 0) + (meta.collectAge ? 1 : 0),
+        (meta.collectAlias ? 1 : 0) + (meta.collectAge ? 1 : 0) + (meta.collectGender ? 1 : 0),
       ),
-    [sections, meta.collectAlias, meta.collectAge],
+    [sections, meta.collectAlias, meta.collectAge, meta.collectGender],
   );
   if (!builderReady || catalogLoading)
     return (
@@ -407,19 +410,7 @@ export function SurveyBuilder() {
         }),
       );
       setPreviewQuestions([
-        ...(meta.collectAlias
-          ? [
-              {
-                id: "respondent-alias",
-                text: "Представьтесь или укажите псевдоним",
-                type: "text" as const,
-                required: true,
-                options: [],
-                sectionTitle: "О респонденте",
-              },
-            ]
-          : []),
-        ...(meta.collectAge ? [{id:"respondent-age",text:"Ваш возраст",type:"number" as const,required:true,options:[],sectionTitle:"О респонденте",validation:{min:1,max:120}}] : []),
+        ...respondentQuestions(meta),
         ...blocks.flat(),
       ]);
     } catch {
@@ -595,7 +586,7 @@ export function SurveyBuilder() {
           tabIndex={invalidFields.includes("sections") ? -1 : undefined}
         >
           <h2>Содержание опроса</h2>
-          <p className="hint">{`${sections.length + (meta.collectAlias ? 1 : 0) + (meta.collectAge ? 1 : 0) + 2} блока · ${count} вопросов. Экраны закреплены сверху и снизу; методики и вопросы можно перемещать.`}</p>
+          <p className="hint">{`${sections.length + 3} блока · ${count} вопросов. Экраны закреплены сверху и снизу; методики и вопросы можно перемещать.`}</p>
           <div
             style={
               structureLocked ? { pointerEvents: "none", opacity: 0.65 } : {}
@@ -629,7 +620,7 @@ export function SurveyBuilder() {
                 <span className="duration-label">Примерное время прохождения</span>
                 <label className="screen-setting">
                   <input type="radio" name="estimated-duration" checked={meta.estimatedDuration.mode === "auto"} onChange={() => setMeta(current => ({ ...current, estimatedDuration: { ...current.estimatedDuration, mode: "auto" } }))} />
-                  <span>Рассчитать автоматически · {surveyDurationLabel([...sections.flatMap(s => s.questions ?? Array.from({ length: s.questionCount ?? 0 }, () => ({ type: "single" }))), ...(meta.collectAlias ? [{ type: "text" }] : []), ...(meta.collectAge ? [{type:"number"}] : [])])}</span>
+                  <span>Рассчитать автоматически · {surveyDurationLabel([...sections.flatMap(s => s.questions ?? Array.from({ length: s.questionCount ?? 0 }, () => ({ type: "single" }))), ...(meta.collectAlias ? [{ type: "text" }] : []), ...(meta.collectAge ? [{type:"number"}] : []), ...(meta.collectGender ? [{type:"single"}] : [])])}</span>
                 </label>
                 <p className="hint">Из расчёта 5–10 секунд на закрытый вопрос и 30–90 секунд на открытый вопрос, с округлением до 5 минут.</p>
                 <label className="screen-setting">
@@ -643,56 +634,12 @@ export function SurveyBuilder() {
                 </label>}
               </div>
             </SurveyScreenSection>
-            {meta.collectAlias ? (
-              <SectionCard style={{ marginTop: 15 }}>
-                <div className="section-head">
-                  <span className="section-drag" style={{ cursor: "default" }}>
-                    <UserRound size={18} />
-                  </span>
-                  <div className="section-name">
-                    <b>О респонденте</b>
-                    <span>
-                      Системный вопрос · используется как имя в статистике
-                    </span>
-                  </div>
-                  <Button
-                    className="icon delete-action"
-                    aria-label="Убрать вопрос о псевдониме"
-                    title="Убрать вопрос о псевдониме"
-                    onClick={() =>
-                      setMeta((current) => ({
-                        ...current,
-                        collectAlias: false,
-                      }))
-                    }
-                  >
-                    <Trash2 size={15} />
-                  </Button>
-                </div>
-                <div className="body" style={{ paddingTop: 13 }}>
-                  <div className="readonly-question">
-                    <span className="number">1</span>
-                    <div>
-                      <b>Представьтесь или укажите псевдоним</b>
-                      <div className="question-meta">
-                        Текстовый ответ · обязательный
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </SectionCard>
-            ) : (
-              <Button
-                className="add-alias"
-                type="button"
-                onClick={() =>
-                  setMeta((current) => ({ ...current, collectAlias: true }))
-                }
-              >
-                <UserRound size={16} /> Добавить вопрос о псевдониме
-              </Button>
-            )}
-            {meta.collectAge && <SectionCard style={{marginTop:15}}><div className="section-head"><UserRound size={18}/><div className="section-name"><b>Возраст респондента</b><span>Системный вопрос · отдельный столбец и сортировка в статистике</span></div></div><div className="body"><div className="readonly-question"><span className="number">{meta.collectAlias ? 2 : 1}</span><div><b>Ваш возраст</b><div className="question-meta">Числовой ответ · от 1 до 120 лет · обязательный</div></div></div></div></SectionCard>}
+            <SectionCard style={{marginTop:15}} data-respondent-block>
+              <div className="section-head"><span className="section-drag" style={{cursor:'default'}}><UserRound size={18}/></span><div className="section-name"><b>О респонденте</b><span>{respondentQuestions(meta).length} обязательных вопроса · закреплённый блок</span></div><span title="Системный блок нельзя удалить"><ShieldCheck size={16}/></span></div>
+              <div className="body" style={{paddingTop:13}}>{respondentQuestions(meta).map((question,index)=><div className="readonly-question" key={question.id}>
+                <span className="number">{index+1}</span><div><b>{question.text}</b><div className="question-meta">{question.type==='text'?'Текстовый ответ':question.type==='number'?'Числовой ответ · от 1 до 120 лет':'Один вариант · Женский / Мужской / Предпочитаю не указывать'} · обязательный</div></div>
+              </div>)}</div>
+            </SectionCard>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}

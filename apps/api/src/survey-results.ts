@@ -1,3 +1,4 @@
+import { RESPONDENT_GENDER_OPTIONS } from './respondent.js';
 import { db } from './db.js';
 import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
 import { assessmentCalculators, calculateConfiguredAssessmentsForSession } from './scoring/index.js';
@@ -71,6 +72,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at startedAt,rs.last_activity_at lastActivityAt,
       rs.completed_at completedAt,rs.deleted_at deletedAt,COUNT(a.id) answered,
       MAX(CASE WHEN s.code='respondent' AND q.code='alias' THEN CAST(a.value AS CHAR) END) aliasValue,
+      MAX(CASE WHEN s.code='respondent' AND q.code='gender' THEN CAST(a.value AS CHAR) END) genderValue,
       COALESCE(MAX(CASE WHEN s.code='respondent' AND q.code='age' THEN CAST(a.value AS CHAR) END),MAX(CASE WHEN q.type='number' AND LOWER(TRIM(q.text))='ваш возраст' THEN CAST(a.value AS CHAR) END)) ageValue,
       IF(EXISTS(SELECT 1 FROM community_participations cp WHERE cp.session_id=rs.id),'community','direct') source,
       m.cohort,m.calibration_trusted calibrationTrusted,m.eligibility,m.eligibility_reason eligibilityReason,m.confirmed_duplicate confirmedDuplicate
@@ -118,8 +120,9 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
         value, displayValue: displayValue(value, question.options), activeMs: timing ? Number(timing.activeMs) : null, visits: timing ? Number(timing.visits) : null });
     }
   }
-  const respondents = sessions.map(({ aliasValue, ageValue, ...session }) => ({ ...session,
+  const respondents = sessions.map(({ aliasValue, ageValue, genderValue, ...session }) => ({ ...session,
     alias: String(parseJson(aliasValue) || 'Без псевдонима'),
+    gender: RESPONDENT_GENDER_OPTIONS.find(option=>option.value===parseJson(genderValue))?.label ?? null,
     age: ageValue == null || String(parseJson(ageValue)).trim() === '' || !Number.isFinite(Number(parseJson(ageValue))) ? null : Number(parseJson(ageValue)),
     cohort: session.cohort ?? 'unassigned', calibrationTrusted: Boolean(session.calibrationTrusted),
     eligibility: session.eligibility ?? 'unknown', confirmedDuplicate: Boolean(session.confirmedDuplicate),
@@ -142,7 +145,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     bucket.count += Number(row.count);
   }
   const distribution = [...buckets.values()];
-  return { sections, questions: questionCatalog, hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
+  return { sections, questions: questionCatalog, hasGender:questionCatalog.some(q=>q.sectionCode==='respondent'&&q.code==='gender'), hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
 }
 
 export async function loadQuestionTimingSummary(surveyId: string) {

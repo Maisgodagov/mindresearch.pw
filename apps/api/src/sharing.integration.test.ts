@@ -53,8 +53,8 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     expect(made.status).toBe(201);
     const id=made.data.id;
     const publicSurvey=(await request(null,`/public/surveys/${made.data.slug}`)).data;
-    expect(publicSurvey.questions.slice(0,2).map((q:any)=>q.text)).toEqual(['Представьтесь или укажите псевдоним','Ваш возраст']);
-    const age=publicSurvey.questions[1], first=publicSurvey.questions[2], second=publicSurvey.questions[3];
+    expect(publicSurvey.questions.slice(0,3).map((q:any)=>q.text)).toEqual(['Представьтесь или укажите псевдоним','Ваш возраст','Ваш пол']);
+    const age=publicSurvey.questions[1], first=publicSurvey.questions[3], second=publicSurvey.questions[4];
     const session=(await request(null,`/public/surveys/${made.data.slug}/sessions`,'POST',{})).data;
     for(const invalid of [0,121,20.5,'37']) expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:age.id,value:invalid,position:1})).status).toBe(400);
     expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:age.id,value:37,position:1})).status).toBe(204);
@@ -80,7 +80,7 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     expect((await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:age.id,labels:['37']})).data.sessionIds).toEqual([result.respondents[0].id]);
     const withoutAlias=await request(owner,'/account/surveys','POST',{...payload,status:'active',collectAlias:false});
     const noAliasPublic=(await request(null,`/public/surveys/${withoutAlias.data.slug}`)).data;
-    expect(noAliasPublic.questions[0].text).toBe('Ваш возраст');
+    expect(noAliasPublic.questions.slice(0,3).map((q:any)=>q.code)).toEqual(['alias','age','gender']);
     expect((await request(owner,`/admin/surveys/${id}/results/distribution-members`,'POST',{questionId:noAliasPublic.questions[0].id,labels:['37']})).data.sessionIds).toEqual([]);
     // Simulate the two existing surveys: the same numeric age answer lives in an author block.
     await db.execute('UPDATE questions SET section_id=?,code=? WHERE id=?',[first.sectionId??(await db.query<any[]>('SELECT section_id FROM questions WHERE id=?',[first.id]))[0][0].section_id,'legacy-age',age.id]);
@@ -90,6 +90,33 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     expect(JSON.parse(stored[0].value)).toBe(37);
     await db.execute('UPDATE questions SET text=? WHERE id=?',['Unrelated number',age.id]);
     expect((await request(owner,`/admin/surveys/${id}/results?summary=1`)).data.respondents[0].age).toBeNull();
+  });
+  it('keeps three mandatory respondent questions and validates gender before completion',async()=>{
+    const created=await request(owner,'/account/surveys','POST',{...payload,status:'active',collectAlias:false,collectAge:false,collectGender:false});expect(created.status).toBe(201);
+    const survey=(await request(null,`/public/surveys/${created.data.slug}`)).data;
+    const [alias,age,gender,custom]=survey.questions;
+    expect([alias,age,gender].map((q:any)=>[q.code,q.sectionTitle,Boolean(q.required)])).toEqual([['alias','О респонденте',true],['age','О респонденте',true],['gender','О респонденте',true]]);
+    expect(gender.options.map((o:any)=>o.value)).toEqual(['female','male','not_specified']);
+    const editable=(await request(owner,`/account/surveys/${created.data.id}`)).data;expect(editable.collectAlias).toBe(true);expect(editable.collectAge).toBe(true);expect(editable.collectGender).toBe(true);
+    const session=(await request(null,`/public/surveys/${created.data.slug}/sessions`,'POST',{})).data;
+    for(const [question,value] of [[alias,'Участник'],[age,30],[custom,2]] as const)expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:question.id,value,position:1})).status).toBe(204);
+    expect((await request(null,`/public/sessions/${session.token}/complete`,'POST',{})).status).toBe(409);
+    for(const invalid of ['', 'other',0,['female']])expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:gender.id,value:invalid,position:2})).status).toBe(400);
+    expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:alias.id,value:'  ',position:0})).status).toBe(400);
+    expect((await request(null,`/public/sessions/${session.token}/answers`,'PUT',{questionId:gender.id,value:'not_specified',position:2})).status).toBe(204);
+    expect((await request(null,`/public/sessions/${session.token}/complete`,'POST',{})).status).toBe(200);
+    const [stored]=await db.query<any[]>('SELECT value FROM answers WHERE question_id=?',[gender.id]);expect(stored[0].value).toBe('not_specified');
+  });
+  it('restores mandatory questions on editable surveys but preserves a started legacy survey',async()=>{
+    const created=await request(owner,'/account/surveys','POST',{...payload,status:'active'});const id=created.data.id;
+    const before=(await request(owner,`/account/surveys/${id}`)).data;
+    expect((await request(owner,`/account/surveys/${id}`,'PUT',{...payload,status:'active',collectAlias:false,collectAge:false,collectGender:false},before.version)).status).toBe(200);
+    const survey=(await request(null,`/public/surveys/${created.data.slug}`)).data;expect(survey.questions.slice(0,3).map((q:any)=>q.code)).toEqual(['alias','age','gender']);
+    await db.execute("DELETE q FROM questions q JOIN sections sec ON sec.id=q.section_id WHERE sec.survey_id=? AND sec.code='respondent' AND q.code='gender'",[id]);
+    await request(null,`/public/surveys/${created.data.slug}/sessions`,'POST',{});
+    const editing=(await request(owner,`/account/surveys/${id}`)).data;
+    expect((await request(owner,`/account/surveys/${id}`,'PUT',{...payload,status:'active'},editing.version)).data.structureLocked).toBe(true);
+    const after=(await request(null,`/public/surveys/${created.data.slug}`)).data;expect(after.questions.some((q:any)=>q.code==='gender')).toBe(false);expect(after.questions.map((q:any)=>q.id)).toEqual(survey.questions.filter((q:any)=>q.code!=='gender').map((q:any)=>q.id));
   });
   it('saves an avatar when the optional biography was never filled in',async()=>{
     await db.execute('UPDATE users SET bio=NULL WHERE id=?',[viewer]);
@@ -138,7 +165,7 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     await db.execute('UPDATE instruments SET owner_id=? WHERE id=?',[outsider,unrelated]);
     await db.execute('UPDATE surveys SET builder_state=? WHERE id=?',[JSON.stringify({meta:payload,sections:[{kind:'library',instrumentId:unrelated}]}),surveyId]);
     expect((await request(editor,`/account/instruments/${unrelated}/questions`)).status).toBe(404);
-    expect((await request(viewer,`/sharing/surveys/${surveyId}/preview`)).data.questions).toEqual([]);
+    expect((await request(viewer,`/sharing/surveys/${surveyId}/preview`)).data.questions.map((q:any)=>q.code)).toEqual(['alias','age','gender']);
   });
   it('atomically rejects a stale second result mutation and permits explicit refresh',async()=>{
     const version=(await request(editor,`/admin/surveys/${surveyId}/results`)).data.version;

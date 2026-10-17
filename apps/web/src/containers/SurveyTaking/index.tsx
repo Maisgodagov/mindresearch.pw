@@ -150,6 +150,7 @@ export function SurveyPage() {
   function choose(q: Question, value: Value) {
     setAnswers((a) => ({ ...a, [String(index)]: value }));
     window.clearTimeout(timer.current);
+    if(q.sectionCode==='respondent'&&q.code==='alias'&&(typeof value!=='string'||!value.trim()))return;
     if(q.type==='number' && (value==='' || (typeof value==='number' && (q.validation?.min!=null&&value<q.validation.min || q.validation?.max!=null&&value>q.validation.max || q.sectionCode==='respondent'&&q.code==='age'&&!Number.isInteger(value)))))return;
     timer.current = window.setTimeout(() => save(q, value), 250);
   }
@@ -204,6 +205,7 @@ export function SurveyPage() {
     () =>
       value !== undefined &&
       value !== "" &&
+      (!(q?.sectionCode==='respondent'&&q.code==='alias') || typeof value==='string'&&value.trim().length>0) &&
       (!Array.isArray(value) || value.length > 0) &&
       (q?.type!=='number' || (typeof value==='number' && Number.isFinite(value) && (q.validation?.min==null || value>=q.validation.min) && (q.validation?.max==null || value<=q.validation.max) && (!(q.sectionCode==='respondent'&&q.code==='age') || Number.isInteger(value)))),
     [value,q],

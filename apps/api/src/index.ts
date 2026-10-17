@@ -1,3 +1,4 @@
+import { RESPONDENT_GENDER_OPTIONS } from './respondent.js';
 import { adminManagementRouter } from './admin-management.js';
 import { sharingRouter, migrateSharing, lockSurveyWrite, bumpSurveyVersion } from './sharing.js';
 import { analyticsRouter } from './analytics.js';
@@ -59,6 +60,8 @@ app.put('/api/public/sessions/:token/answers',async(req,res,next)=>{try{
   if(!sessions.length)return res.status(404).json({message:'Сессия не найдена'}); if(sessions[0].status==='completed')return res.status(409).json({message:'Опрос уже завершён'});
   const [questions]=await db.query<any[]>(`SELECT q.id,q.code questionCode,s.code sectionCode FROM questions q JOIN sections s ON s.id=q.section_id WHERE q.id=? AND s.survey_id=?`,[body.questionId,sessions[0].survey_id]); if(!questions.length)return res.status(400).json({message:'Некорректный вопрос'});
   if(questions[0].sectionCode==='respondent' && questions[0].questionCode==='age' && (typeof body.value!=='number'||!Number.isInteger(body.value)||body.value<1||body.value>120))return res.status(400).json({message:'Укажите возраст целым числом от 1 до 120 лет'});
+  if(questions[0].sectionCode==='respondent' && questions[0].questionCode==='gender' && (typeof body.value!=='string'||!RESPONDENT_GENDER_OPTIONS.some(option=>option.value===body.value)))return res.status(400).json({message:'Выберите один из вариантов пола'});
+  if(questions[0].sectionCode==='respondent' && questions[0].questionCode==='alias' && (typeof body.value!=='string'||!body.value.trim()))return res.status(400).json({message:'Представьтесь или укажите псевдоним'});
   await db.execute(`INSERT INTO answers (session_id,question_id,value) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),answered_at=CURRENT_TIMESTAMP`,[sessions[0].id,body.questionId,JSON.stringify(body.value)]);
   if(body.timing){await db.execute(`INSERT INTO question_timings (session_id,question_id,visit_id,active_ms,visit_sequence,recorded_at) VALUES (?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE active_ms=GREATEST(active_ms,VALUES(active_ms)),visit_sequence=COALESCE(visit_sequence,VALUES(visit_sequence))`,[sessions[0].id,body.questionId,body.timing.visitId,body.timing.activeMs,body.timing.visitSequence??null]);await db.execute(`INSERT INTO quality_metadata(session_id,telemetry_version) VALUES (?,?) ON DUPLICATE KEY UPDATE telemetry_version=VALUES(telemetry_version)`,[sessions[0].id,body.timing.visitSequence===undefined?'visible-time-v1':'visible-time-v2-sequence']);}
   await db.execute('UPDATE response_sessions SET current_position=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?',[body.position,sessions[0].id]);

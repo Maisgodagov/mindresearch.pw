@@ -79,10 +79,11 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
   const chartRequest=useRef(0);
   const chartIds = useMemo(()=>chartFilter ? new Set(chartFilter.sessionIds) : null,[result.distribution,chartFilter]);
   const filteredRespondents = useMemo(() => applyQualityView(result.respondents.filter(p=>!chartIds || chartIds.has(p.id)), qualities, qualityView), [result.respondents, qualities, qualityView,chartIds]);
-  const sortOptions = useMemo(()=>[{value:'alias',label:'Респондент'},{value:'status',label:'Статус'},{value:'answered',label:'Количество ответов'},{value:'duration',label:'Время прохождения'},...((result.hasAge || result.distribution.some(q=>q.code==='age'||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст'))) ? [{value:'age',label:'Возраст респондента'}] : []),...methodSortOptions(result.respondents,result.sections)],[result]);
+  const sortOptions = useMemo(()=>[{value:'alias',label:'Респондент'},...(result.hasGender?[{value:'gender',label:'Пол респондента'}]:[]),{value:'status',label:'Статус'},{value:'answered',label:'Количество ответов'},{value:'duration',label:'Время прохождения'},...((result.hasAge || result.distribution.some(q=>q.code==='age'||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст'))) ? [{value:'age',label:'Возраст респондента'}] : []),...methodSortOptions(result.respondents,result.sections)],[result]);
   const sortValue = (person:Respondent): string | number | undefined => {
     const key=qualityView.sort;
     if(key==='alias') return person.alias;
+    if(key==='gender') return person.gender??undefined;
     if(key==='status') return person.status==='completed'?'Завершена':'В процессе';
     if(key==='answered') return person.answered;
     if(key==='duration') {const value=person.completedAt?Date.parse(person.completedAt)-Date.parse(person.startedAt):NaN;return Number.isFinite(value)&&value>=0?value:undefined;}
@@ -387,6 +388,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           <RespondentResults
             key={survey?.id}
             readOnly={readOnly}
+            showGender={result.hasGender===true}
             showAge={sortOptions.some(o=>o.value==='age')}
             sortKey={qualityView.sort}
             sortDirection={qualityView.sort==='newest'?'desc':qualityView.sort==='oldest'?'asc':qualityView.direction}
