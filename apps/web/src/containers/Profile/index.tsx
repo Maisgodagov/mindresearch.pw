@@ -75,6 +75,7 @@ export function ProfilePage() {
       const data = await getCurrentUser();
       setProfile({
         ...data,
+        bio: data.bio ?? "",
         profileLinks: data.profileLinks ?? emptyProfileLinks(),
         avatarSeed: data.avatarSeed || "willow",
         isProfilePublic: Boolean(data.isProfilePublic),

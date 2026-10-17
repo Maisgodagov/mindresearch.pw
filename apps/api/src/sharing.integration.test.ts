@@ -23,6 +23,13 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     sessionId=randomUUID();await db.execute("INSERT INTO response_sessions(id,survey_id,public_token,status) VALUES (?,?,?,'completed')",[sessionId,surveyId,randomUUID()]);
   },30000);
   afterAll(async()=>{child?.kill();if(db)await db.end();});
+  it('saves an avatar when the optional biography was never filled in',async()=>{
+    await db.execute('UPDATE users SET bio=NULL WHERE id=?',[viewer]);
+    const me=(await request(viewer,'/account/me')).data;
+    expect(me.bio).toBe('');
+    expect((await request(viewer,'/account/me','PATCH',{...me,bio:null,avatarSeed:'willow'})).status).toBe(200);
+    expect((await request(viewer,'/account/me')).data.avatarSeed).toBe('willow');
+  });
   it('allows every author to manage sharing, never collaborators or unrelated admins',async()=>{
     expect((await request(null,`/sharing/surveys/${surveyId}`)).status).toBe(401);
     expect((await request(outsider,`/sharing/surveys/${surveyId}/invitations`,'POST',{permission:'edit'})).status).toBe(403);
