@@ -13,6 +13,8 @@ import {
   Clock3,
   Copy,
   ExternalLink,
+  Eye,
+  UserRound,
   Pencil,
   Plus,
   RotateCcw,
@@ -182,7 +184,10 @@ export function PlatformHome() {
   const sharedSection = shared.length > 0 && <>
     <SectionTitle><h2>Доступные мне</h2><span>{shared.length}</span></SectionTitle>
     {shared.map(s => <SurveyTile key={s.id} survey={s} tools={s.permission === 'edit' ? <Link className="tool-button edit" to={`/app/surveys/${s.id}/edit`} title="Редактировать опрос"><Pencil size={15}/></Link> : undefined}>
-      <div><strong>Автор: {s.authorName}</strong><p>{s.permission === 'edit' ? 'Просмотр и редактирование' : 'Только просмотр'}</p></div>
+      <div className="shared-attribution">
+        <div className="shared-author"><UserRound size={17} aria-hidden="true"/><span><small>Автор опроса</small><strong>{s.authorName}</strong></span></div>
+        <span className="shared-permission">{s.permission === 'edit' ? <Pencil size={13} aria-hidden="true"/> : <Eye size={14} aria-hidden="true"/>}{s.permission === 'edit' ? 'Просмотр и редактирование' : 'Только просмотр'}</span>
+      </div>
       <Link className="results-action" to={`/app/surveys/${s.id}/results`}>Открыть результаты <ArrowRight size={14}/></Link>
     </SurveyTile>)}
   </>;

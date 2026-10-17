@@ -261,6 +261,14 @@ export const SurveyCard = styled(Card)`
     color: inherit;
     font-size: 12px;
   }
+  .shared-attribution { display:flex; flex-direction:column; align-items:flex-start; gap:9px; min-width:0; flex:1 1 180px; }
+  .shared-author { display:flex; align-items:center; gap:9px; min-width:0; }
+  .shared-author > svg { color:#647268; flex:none; }
+  .shared-author > span { min-width:0; }
+  .shared-author small { display:block; font-size:11px; line-height:1.4; color:#647268; }
+  .shared-author strong { display:block; font-size:14px; line-height:1.5; font-weight:600; color:#344e3c; overflow-wrap:anywhere; }
+  .shared-permission { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; background:#edf3eb; color:#45624e; font-size:11px; line-height:1.5; }
+  .shared-permission > svg { flex:none; }
   .actions {
     grid-area: actions;
     display: flex;
