@@ -1,4 +1,5 @@
 import { BrandWordmark } from "../BrandWordmark";
+import { invitationReturn } from '../SurveySharing';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Leaf } from 'lucide-react';
 import { Button } from '../Button';
@@ -27,7 +28,7 @@ export function LoginForm({ email, password, error, onEmailChange, onPasswordCha
         {error && <p className="error" role="alert">{error}</p>}
         <Button type="primary" htmlType="submit">{copy.submit}</Button>
       </form>
-      <p className="bottom">{copy.registerPrompt} <Link to="/register">{copy.register}</Link></p>
+      <p className="bottom">{copy.registerPrompt} <Link to={invitationReturn()?`/register?next=${encodeURIComponent(invitationReturn()!)}`:'/register'}>{copy.register}</Link></p>
     </LoginCard>
   </LoginPage>;
 }

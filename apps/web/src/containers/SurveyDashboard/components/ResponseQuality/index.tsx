@@ -107,7 +107,7 @@ type Settings = { enabled:boolean; baseline:{version:string;source:string;n:numb
 const jobStatuses: Record<string,string> = {queued:'В очереди',running:'Выполняется',completed:'Завершён',failed:'Нужен повтор'};
 const sourceNames: Record<string,string> = {trusted:'Подтверждённые участники',high_quality_v2:'Прохождения с высоким качеством',completed:'Завершённые прохождения'};
 
-export function QualityAdministration({surveyId,selectedIds,onUpdated}:{surveyId:string;selectedIds:string[];onUpdated:()=>Promise<void>}) {
+export function QualityAdministration({surveyId,selectedIds,onUpdated,surveyVersion}:{surveyId:string;selectedIds:string[];onUpdated:()=>Promise<void>;surveyVersion?:number}) {
   const [settings,setSettings]=useState<Settings|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[report,setReport]=useState<any>(null);
   const [tab,setTab]=useState('recompute'),[cohort,setCohort]=useState('public'),[trusted,setTrusted]=useState(false),[eligibility,setEligibility]=useState('unknown'),[reason,setReason]=useState(''),[duplicate,setDuplicate]=useState(false),[reference,setReference]=useState(''),[version,setVersion]=useState('');
   const updateRef=useRef(onUpdated); updateRef.current=onUpdated;
@@ -116,7 +116,7 @@ export function QualityAdministration({surveyId,selectedIds,onUpdated}:{surveyId
     const load=async()=>{if(inFlight)return;inFlight=true;try{const r=await api.get('/admin/surveys/'+surveyId+'/quality-v2');if(!live)return;setSettings(r.data);const stamp=r.data.jobs?.filter((j:Job)=>j.status==='completed').map((j:Job)=>j.id).join(',');if(previous!==null&&stamp!==previous)await updateRef.current();previous=stamp;}catch{if(live)setError('Не удалось загрузить настройки. Обновите страницу или повторите действие.');}finally{inFlight=false;}};
     void load();const timer=setInterval(()=>void load(),4000);return()=>{live=false;clearInterval(timer);};
   },[surveyId]);
-  const action=async(path:string,body:unknown,success:string)=>{setBusy(true);setError('');setMessage('');try{await api.post('/admin/surveys/'+surveyId+'/quality-v2/'+path,body);const r=await api.get('/admin/surveys/'+surveyId+'/quality-v2');setSettings(r.data);await updateRef.current();setMessage(success);}catch(e:any){setError(e.response?.data?.message??'Не удалось выполнить действие. Попробуйте ещё раз.');}finally{setBusy(false);}};
+  const action=async(path:string,body:unknown,success:string)=>{setBusy(true);setError('');setMessage('');try{await api.post('/admin/surveys/'+surveyId+'/quality-v2/'+path,body,{headers:{'X-Survey-Version':surveyVersion}});const r=await api.get('/admin/surveys/'+surveyId+'/quality-v2');setSettings(r.data);await updateRef.current();setMessage(success);}catch(e:any){setError(e.response?.data?.message??'Не удалось выполнить действие. Попробуйте ещё раз.');}finally{setBusy(false);}};
   const loadReport=async()=>{setBusy(true);setError('');try{const r=await api.get('/admin/surveys/'+surveyId+'/quality-v2/diagnostics');setReport(r.data);if(!r.data)setError('Отчёт ещё не готов. Запустите «Пересчитать всех» и дождитесь завершения в истории расчётов.');}catch{setError('Не удалось загрузить отчёт. Нажмите «Обновить отчёт», чтобы повторить.');}finally{setBusy(false);}};
   const disabled=busy||!settings||settings.enabled===false;
   const current= settings?.baseline;

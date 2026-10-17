@@ -1,4 +1,5 @@
 import { adminManagementRouter } from './admin-management.js';
+import { sharingRouter, migrateSharing, lockSurveyWrite, bumpSurveyVersion } from './sharing.js';
 import { analyticsRouter } from './analytics.js';
 import { canReadSurvey, isAdministrator } from './admin-access.js';
 import { loadSurveyResults, loadQuestionTimingSummary } from './survey-results.js';
@@ -31,6 +32,7 @@ app.use('/api',analyticsRouter);
 app.use('/api',platformRouter);
 app.use('/api',qualityRouter);
 app.use('/api',communityRouter);
+app.use('/api',sharingRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/public/surveys/:slug',async(req,res,next)=>{try{
@@ -120,7 +122,8 @@ const restriction=codes?` AND code IN (${codes.map(()=>'?').join(',')})`:'';
 const[rows]=await db.query<any[]>(`SELECT code,title,description,methodology FROM instruments WHERE is_verified=TRUE AND status='active' AND methodology IS NOT NULL${restriction}`,codes??[]);const configured:Record<string,any>={};for(const row of rows){const metadata=typeof row.methodology==='string'?JSON.parse(row.methodology):row.methodology;configured[row.code]={...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title,summary:row.description??metadata?.summary??methodologies[row.code]?.summary}}res.json({...Object.fromEntries(Object.entries(methodologies).filter(([code])=>!codes||codes.includes(code))),...configured})}catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,next)=>{try{
   if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Опрос не найден'});
-  res.json(await loadSurveyResults(String(req.params.id),{summary:req.query.summary==='1'}));
+  const [versions]=await db.query<any[]>('SELECT edit_version version FROM surveys WHERE id=?',[req.params.id]);
+  res.json({...await loadSurveyResults(String(req.params.id),{summary:req.query.summary==='1'}),version:versions[0].version});
 }catch(e){next(e)}});
 app.get('/api/admin/surveys/:id/results/timing',requireAuth,async(req:AuthRequest,res,next)=>{try{
   if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});
@@ -133,16 +136,9 @@ app.post('/api/admin/surveys/:id/results/details',requireAuth,async(req:AuthRequ
   res.json([...results.respondents,...results.deletedRespondents]);
 }catch(e){next(e)}});
 const sessionIdsSchema=z.object({sessionIds:z.array(z.string().uuid()).min(1).max(1000)});
-app.post('/api/admin/surveys/:id/results/trash',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const {sessionIds}=sessionIdsSchema.parse(req.body),placeholders=sessionIds.map(()=>'?').join(',');
-  const[result]=await db.execute<any>(`UPDATE response_sessions rs JOIN surveys s ON s.id=rs.survey_id SET rs.deleted_at=CURRENT_TIMESTAMP WHERE rs.survey_id=? AND s.owner_id=? AND rs.id IN (${placeholders}) AND rs.deleted_at IS NULL`,[req.params.id,req.user!.id,...sessionIds]);
-  res.json({updated:result.affectedRows});
-}catch(e){next(e)}});
-app.post('/api/admin/surveys/:id/results/restore',requireAuth,async(req:AuthRequest,res,next)=>{try{
-  const {sessionIds}=sessionIdsSchema.parse(req.body),placeholders=sessionIds.map(()=>'?').join(',');
-  const[result]=await db.execute<any>(`UPDATE response_sessions rs JOIN surveys s ON s.id=rs.survey_id SET rs.deleted_at=NULL WHERE rs.survey_id=? AND s.owner_id=? AND rs.id IN (${placeholders}) AND rs.deleted_at IS NOT NULL`,[req.params.id,req.user!.id,...sessionIds]);
-  res.json({updated:result.affectedRows});
-}catch(e){next(e)}});
+for(const operation of ['trash','restore'])app.post(`/api/admin/surveys/:id/results/${operation}`,requireAuth,async(req:AuthRequest,res,next)=>{
+  const c=await db.getConnection();try{const {sessionIds}=sessionIdsSchema.parse(req.body);await c.beginTransaction();const version=await lockSurveyWrite(c,req,String(req.params.id));const [result]=await c.execute<any>(`UPDATE response_sessions SET deleted_at=${operation==='trash'?'CURRENT_TIMESTAMP':'NULL'} WHERE survey_id=? AND id IN (${sessionIds.map(()=>'?').join(',')}) AND deleted_at IS ${operation==='trash'?'NULL':'NOT NULL'}`,[req.params.id,...sessionIds]);await bumpSurveyVersion(c,String(req.params.id));await c.commit();res.json({updated:result.affectedRows,version:version+1});}catch(e:any){await c.rollback();if(e.status)return res.status(e.status).json({message:e.message});next(e);}finally{c.release();}
+});
 app.get('/api/admin/sessions/:id',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT q.code,q.text,q.options,a.value,a.answered_at AS answeredAt,s.title sectionTitle FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN surveys sv ON sv.id=s.survey_id WHERE a.session_id=? AND sv.owner_id=? ORDER BY s.position,q.position`,[req.params.id,req.user!.id]);res.json(rows)}catch(e){next(e)}});
-app.use((err:any,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{console.error(err);if(err instanceof z.ZodError)return res.status(400).json({message:'Некорректные данные',issues:err.issues});res.status(500).json({message:'Внутренняя ошибка сервера'})});
-const port=Number(process.env.PORT??4000); migrate().then(migrateCommunity).then(()=>{startCommunityWorker();void resumeQualityJobs();return app.listen(port,()=>console.log(`API http://localhost:${port}`))}).catch(e=>{console.error(e);process.exit(1)});
+app.use((err:any,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{console.error(err);if(err instanceof z.ZodError)return res.status(400).json({message:'Некорректные данные',issues:err.issues});if([400,403,404,409].includes(err.status))return res.status(err.status).json({message:err.message});res.status(500).json({message:'Внутренняя ошибка сервера'})});
+const port=Number(process.env.PORT??4000); migrate().then(migrateCommunity).then(migrateSharing).then(()=>{startCommunityWorker();void resumeQualityJobs();return app.listen(port,()=>console.log(`API http://localhost:${port}`))}).catch(e=>{console.error(e);process.exit(1)});

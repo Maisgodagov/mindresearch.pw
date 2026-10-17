@@ -23,6 +23,7 @@ type Props = {
   previewError: string;
   saving: boolean;
   publishImmediately: boolean;
+  canChangeStatus?: boolean;
   onQueryChange: (value: string) => void;
   onCreateCustom: () => void;
   onShowMethodology: (methodology: Methodology) => void;
@@ -47,6 +48,7 @@ export function SurveyBuilderToolbar({
   previewError,
   saving,
   publishImmediately,
+  canChangeStatus=true,
   onQueryChange,
   onCreateCustom,
   onShowMethodology,
@@ -84,7 +86,7 @@ export function SurveyBuilderToolbar({
           </button>
           <div className={`description-content${descriptionExpanded ? " is-expanded" : ""}`} id="survey-description-content">
             <TextAreaField id="survey-description" rows={2} value={description} onChange={(event) => onDescriptionChange(event.target.value)} placeholder="Краткая заметка о цели или аудитории опроса" />
-            <span className="field-note">Видно только вам</span>
+            <span className="field-note">Не показывается респондентам</span>
           </div>
         </div>
       </section>
@@ -109,14 +111,14 @@ export function SurveyBuilderToolbar({
       </section>
 
       <section className="control-actions" aria-label="Сохранение и просмотр">
-        <label className="publish-toggle">
+        {canChangeStatus&&<label className="publish-toggle">
           <input
             type="checkbox"
             checked={publishImmediately}
             onChange={(event) => onPublishChange(event.currentTarget.checked)}
           />
           <span>Опубликовать сразу</span>
-        </label>
+        </label>}
         <div className="action-buttons">
           <Button
             type="default"

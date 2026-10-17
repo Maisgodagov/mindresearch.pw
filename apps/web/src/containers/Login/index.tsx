@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { invitationReturn } from '../../components/SurveySharing';
 import { useNavigate } from 'react-router-dom';
 import { api, setAccessToken } from '../../api';
 import { LoginForm } from '../../components/LoginForm';
@@ -17,7 +18,7 @@ export function Login() {
     try {
       const response = await api.post<LoginResponse>("/auth/login", { email, password });
       setAccessToken(response.data.token);
-      nav("/app");
+      nav(invitationReturn() ?? "/app");
     } catch {
       setError(loginContainerCopy.error);
     }

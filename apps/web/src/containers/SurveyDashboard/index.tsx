@@ -1,4 +1,6 @@
 import { distributionQuestionKey } from "./components/AnswerDistribution/questionKey";
+import { SurveySharing } from '../../components/SurveySharing';
+import { getApiErrorMessage } from '../../utils/apiErrors';
 import { usePageTitle } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -45,6 +47,8 @@ import {
 } from "./styles";
 import { methodCodes, shortNames } from "./const";
 export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: boolean; inspectionOwnerId?: string }) {
+  const [access,setAccess]=useState<any>(null),[sharing,setSharing]=useState(false);
+  const readOnly=!!inspectionOwnerId||!['owner','edit'].includes(access?.permission);
   const [loadError,setLoadError]=useState("");
   const nav = useNavigate();
   const { surveyId } = useParams();
@@ -95,17 +99,20 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
       .get("/admin/surveys", {signal: controller.signal,params:inspectionOwnerId?{ownerId:inspectionOwnerId}:undefined})
       .then(async (r) => {
         if(cancelled) return;
+        if(!inspectionOwnerId){const shared=await api.get('/sharing/shared',{signal:controller.signal});r.data=[...r.data,...shared.data];}
         setSurveys(r.data);
         const target =
-          r.data.find((s: SurveyRow) => s.id === surveyId) ?? (inspectionOwnerId ? undefined : r.data[0]);
+          r.data.find((s: SurveyRow) => s.id === surveyId) ?? (surveyId || inspectionOwnerId ? undefined : r.data[0]);
         if(inspectionOwnerId&&!target)throw new Error("Опрос не найден у этого пользователя");
         if (target) {
+          if(!inspectionOwnerId){const a=await api.get(`/sharing/surveys/${target.id}/access`,{signal:controller.signal});if(!cancelled)setAccess(a.data);}
           const x = await api.get(`/admin/surveys/${target.id}/results`, {params:{summary:1}, signal:controller.signal});
           if(!cancelled) setResult(x.data);
-        }
+        }else if(surveyId)throw new Error('Опрос недоступен');
       })
       .catch(() => {
         if(cancelled) return;
+        if(surveyId&&!useDemoFallbacks){setLoadError('Опрос недоступен. Возможно, автор отозвал доступ.');return;}
         if(inspectionOwnerId){setLoadError("Не удалось открыть статистику. Опрос отсутствует или доступ запрещён.");return;}
         if (useDemoFallbacks) {
           setSurveys(demoSurveys);
@@ -261,11 +268,11 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     try {
       await api.post(`/admin/surveys/${survey.id}/results/trash`, {
         sessionIds: selectedRespondents.map((x) => x.id),
-      });
+      },{headers:{'X-Survey-Version':result.version}});
       setSelected({});
       setConfirmTrash(false);
       await refreshResults();
-    } finally {
+    } catch(e) {message.error(getApiErrorMessage(e,'Не удалось изменить результаты'));} finally {
       setUpdatingTrash(false);
     }
   };
@@ -279,10 +286,10 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     try {
       await api.post(`/admin/surveys/${survey.id}/results/restore`, {
         sessionIds,
-      });
+      },{headers:{'X-Survey-Version':result.version}});
       setDeletedSelected({});
       await refreshResults();
-    } finally {
+    } catch(e) {message.error(getApiErrorMessage(e,'Не удалось восстановить ответы'));} finally {
       setUpdatingTrash(false);
     }
   };
@@ -317,6 +324,8 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
           <div className="title-actions">
+            {survey&&!inspectionOwnerId&&<Button onClick={()=>nav(`/app/surveys/${survey.id}/preview`)}>Посмотреть опрос</Button>}
+            {survey&&<Button onClick={()=>void refreshResults().catch(()=>message.error('Не удалось обновить результаты'))}>Обновить результаты</Button>}
             {survey && <div className="participant-share" role="group" aria-label="Ссылка для участников">
               <div className="participant-address"><span className="share-label">Ссылка для участников</span><span className="participant-url" title={`${location.origin}/s/${survey.slug}`}>{location.origin}/s/{survey.slug}</span></div>
               <Button className="copy-participant-link" aria-label="Скопировать ссылку для участников" title="Скопировать ссылку для участников" onClick={async () => {
@@ -324,7 +333,8 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
                 catch { message.error("Не удалось скопировать ссылку. Её можно выделить вручную."); }
               }}><Copy size={16} /></Button>
             </div>}
-          {survey && !inspectionOwnerId && !location.pathname.startsWith("/admin") && (
+          {survey && access?.canManage&&<Button onClick={()=>setSharing(true)}><Users size={14}/>Совместный доступ</Button>}
+          {survey && !readOnly && !location.pathname.startsWith("/admin") && (
             <Button
               className="edit-survey"
               onClick={() => nav(`/app/surveys/${survey.id}/edit`)}
@@ -368,7 +378,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           <div style={{marginBottom:16}}><label htmlFor="response-source" style={{marginRight:12}}>Источник участников</label><Select id="response-source" value={qualityView.source ?? "all"} style={{minWidth:190}} options={[{value:"all",label:"Все источники"},{value:"community",label:"Взаимопомощь"},{value:"direct",label:"Прямая ссылка"}]} onChange={source=>{setQualityView(v=>({...v,source}));setPage(1);setSelected({});}} /></div>
           <RespondentResults
             key={survey?.id}
-            readOnly={!!inspectionOwnerId}
+            readOnly={readOnly}
             respondents={pageRespondents}
             totalCount={visibleRespondents.length}
             qualities={qualities}
@@ -421,7 +431,8 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           />
           {pagination}
         </Panel>
-        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && !inspectionOwnerId && <QualityAdministration surveyId={survey.id} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
+        <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && !readOnly && <QualityAdministration surveyId={survey.id} surveyVersion={result.version} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
+        {sharing&&survey&&<SurveySharing surveyId={survey.id} onClose={()=>setSharing(false)}/>}
         <AnswerDistribution
           data={chart}
           options={questionOptions}

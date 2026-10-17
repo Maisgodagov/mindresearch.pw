@@ -128,6 +128,7 @@ export type Respondent = {
 };
 export type QuestionTimingRow = { key: string; section: string; question: string; average: number; median: number; count: number };
 export type Result = {
+  version?: number;
   sections: { code: string; title: string; sectionKind: string }[];
   respondents: Respondent[];
   deletedRespondents: Respondent[];

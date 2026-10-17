@@ -113,8 +113,14 @@ export function SurveyBuilder() {
     [error, setError] = useState(""),
     [structureLocked, setStructureLocked] = useState(false);
   const draftSurveyId = useRef("");
-  const draftCreation = useRef<Promise<string> | null>(null);
   const autosaveStarted = useRef(false);
+  const surveyVersion=useRef(0);
+  const autosaveQueue=useRef<Promise<unknown>>(Promise.resolve());
+  const conflicted=useRef(false);
+  const [hasConflict,setHasConflict]=useState(false);
+  const [loadFailed,setLoadFailed]=useState(false);
+  const [canChangeStatus,setCanChangeStatus]=useState(true);
+  const savingFull=useRef(false);
   const autosaveDraft = useRef(!surveyId);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -164,13 +170,15 @@ export function SurveyBuilder() {
     autosaveStarted.current = false;
     autosaveDraft.current = !surveyId;
     draftSurveyId.current = surveyId ?? "";
-    draftCreation.current = null;
     setDraftRestored(false);
+    setLoadFailed(false);setHasConflict(false);
     setLastSaved(null);
     if (surveyId)
       api
         .get(`/account/surveys/${surveyId}`)
         .then(({ data }) => {
+          surveyVersion.current=data.version??0;conflicted.current=false;
+          setCanChangeStatus(data.canChangeStatus!==false);
           setMeta({
             title: data.title,
             description: data.description ?? "",
@@ -213,6 +221,7 @@ export function SurveyBuilder() {
           setBuilderReady(true);
         })
         .catch(() => {
+          setLoadFailed(true);
           setError("Не удалось загрузить опрос.");
           setBuilderReady(true);
         });
@@ -232,28 +241,25 @@ export function SurveyBuilder() {
     }
     const state = { meta, sections, open };
     const timer = window.setTimeout(async () => {
+      if(savingFull.current||conflicted.current)return;
       try {
-        const id = surveyId || draftSurveyId.current;
-        if (id) await api.put(`/account/surveys/${id}/draft-state`, state);
-        else {
-          if (!draftCreation.current)
-            draftCreation.current = api
-              .post("/account/surveys/draft", state)
-              .then(({ data }) => {
-                draftSurveyId.current = data.id;
-                window.history.replaceState(
-                  window.history.state,
-                  "",
-                  `/app/surveys/${data.id}/edit`,
-                );
-                return data.id as string;
-              });
-          const createdId = await draftCreation.current;
-          await api.put(`/account/surveys/${createdId}/draft-state`, state);
-        }
+        const pending=autosaveQueue.current.then(async()=>{
+          if(conflicted.current)return;
+          let id=surveyId||draftSurveyId.current;
+          if(!id){
+            const {data}=await api.post('/account/surveys/draft',state);
+            id=data.id;draftSurveyId.current=id;surveyVersion.current=0;
+            window.history.replaceState(window.history.state,'',`/app/surveys/${id}/edit`);
+          }else{
+            const {data}=await api.put(`/account/surveys/${id}/draft-state`,state,{headers:{'X-Survey-Version':surveyVersion.current}});
+            surveyVersion.current=data.version;
+          }
+        });
+        autosaveQueue.current=pending.catch((err)=>{if(err.response?.status===409)conflicted.current=true;});
+        await pending;
         setLastSaved(new Date());
-      } catch {
-        if (!draftSurveyId.current) draftCreation.current = null;
+      } catch (err:any) {
+        if(err.response?.status===409){conflicted.current=true;setHasConflict(true);autosaveDraft.current=false;setError(getApiErrorMessage(err,'Конфликт версий'));return;}
         setError("Не удалось сохранить черновик на сервере.");
       }
     }, 650);
@@ -509,6 +515,7 @@ export function SurveyBuilder() {
       return;
     }
     setSaving(true);
+    savingFull.current=true;
     setInvalidFields([]);
     setError("");
     const payload = {
@@ -536,18 +543,23 @@ export function SurveyBuilder() {
       ),
     };
     try {
+      await autosaveQueue.current;
+      if(conflicted.current)throw new Error('Опрос изменён другим пользователем. Обновите страницу перед сохранением.');
       const targetId = surveyId || draftSurveyId.current;
       targetId
-        ? await api.put(`/account/surveys/${targetId}`, payload)
+        ? await api.put(`/account/surveys/${targetId}`, payload,{headers:{'X-Survey-Version':surveyVersion.current}})
         : await api.post("/account/surveys", payload);
       autosaveDraft.current = false;
       nav("/app");
     } catch (err: unknown) {
+      if((err as any).response?.status===409){conflicted.current=true;setHasConflict(true);autosaveDraft.current=false;}
       setError(getApiErrorMessage(err, "Не удалось создать опрос"));
     } finally {
+      savingFull.current=false;
       setSaving(false);
     }
   }
+  if(loadFailed)return <PlatformLayout><h1>Опрос недоступен для редактирования</h1><p>Проверьте права доступа или откройте результаты опроса.</p><Button onClick={()=>nav(`/app/surveys/${surveyId}/results`)}>Открыть результаты</Button></PlatformLayout>;
   return (
     <PlatformLayout>
       <Header>
@@ -569,6 +581,7 @@ export function SurveyBuilder() {
           )}
         </HeaderSaveStatus>
       </Header>
+      {hasConflict&&<div role="alert" style={{padding:20,marginBottom:20,border:'1px solid var(--color-border)',borderRadius:12}}><p>Опрос изменён другим пользователем. Ваши правки остаются здесь, но не перезаписывают сохранённую версию.</p><Button onClick={()=>{const blob=new Blob([JSON.stringify({meta,sections,open},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='survey-local-changes.json';a.click();URL.revokeObjectURL(url);}}>Скачать мои изменения</Button></div>}
       <Columns>
         <div className="editor-column">
         <Panel
@@ -1436,6 +1449,7 @@ export function SurveyBuilder() {
           previewError={previewError}
           saving={saving}
           publishImmediately={meta.status === "active"}
+          canChangeStatus={canChangeStatus}
           onQueryChange={setLibraryQuery}
           onCreateCustom={addCustom}
           onShowMethodology={setActiveMethodology}

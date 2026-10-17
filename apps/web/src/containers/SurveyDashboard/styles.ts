@@ -81,8 +81,9 @@ export const SurveyTitleRow = styled.div`
     align-items: flex-start;
     min-height: 0;
     h1 { font-size: 23px; }
-    .title-actions { width: 100%; flex-wrap: nowrap; justify-content: flex-start; gap: 8px; }
-    .participant-share { flex: 1; }
+    .title-actions { width: 100%; flex-wrap: wrap; justify-content: flex-start; gap: 8px; }
+    .title-actions > button { flex: 1 1 auto; }
+    .participant-share { flex: 1 1 100%; }
     .participant-url { max-width: 100%; font-size: 11px; }
     .edit-survey { min-height: 44px; padding-inline: 10px; font-size: 11px; }
   }

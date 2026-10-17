@@ -179,7 +179,7 @@ describe("administrator inspection and deletion", () => {
     expect(
       await canReadSurvey({ user: { id: "actor", role: "admin" } } as any, "s"),
     ).toBe(true);
-    expect(mocks.query.mock.calls.at(-1)?.[1]).toEqual(["s", "actor", true]);
+    expect(mocks.query.mock.calls.at(-1)?.[1]).toEqual(["s", "actor", true,"actor"]);
     await canReadSurvey(
       { user: { id: "researcher", role: "researcher" } } as any,
       "s",
@@ -188,6 +188,7 @@ describe("administrator inspection and deletion", () => {
       "s",
       "researcher",
       false,
+      "researcher",
     ]);
   });
 });

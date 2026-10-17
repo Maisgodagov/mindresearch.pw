@@ -28,7 +28,7 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     if(!/^\/mindresearch_community_test_[a-z0-9_]+$/.test(url.pathname)||!['127.0.0.1','localhost'].includes(url.hostname))throw new Error('Integration tests require an isolated localhost mindresearch_community_test_* database');
     process.env.DATABASE_URL=enabled;process.env.JWT_SECRET='community-integration-fixture-secret-only';
     const module=await import('../db.js');db=module.db;await module.migrate();
-    const schema=await import('./schema.js');await schema.migrateCommunity();await schema.migrateCommunity();
+    const schema=await import('./schema.js');await schema.migrateCommunity();await schema.migrateCommunity();await (await import('../sharing.js')).migrateSharing();
     const router=await import('./router.js');settle=router.settleCommunity;signToken=(await import('../auth.js')).signToken;
     for(const id of [author,a,b,reviewer,researcher,noProfile])await db.execute('INSERT INTO users(id,email,password_hash,name,role) VALUES (?,?,?,?,?)',[id,`${id}@example.test`,'not-a-real-password','Тестовый участник',id===researcher?'researcher':id===reviewer?'admin':'owner']);
     const app=express();app.use(express.json());app.use('/api',router.communityRouter);app.use((err:any,_req:any,res:any,_next:any)=>res.status(500).json({message:String(err)}));

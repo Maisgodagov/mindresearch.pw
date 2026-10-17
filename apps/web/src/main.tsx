@@ -12,6 +12,8 @@ import { GlobalStyle } from "./styles";
 import { AuthGuard } from "./platform/AuthGuard";
 import { PlatformLayout } from "./containers/PlatformLayout";
 import { SkeletonScreen } from "./ui";
+const SurveyInvitation = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SurveyInvitation})));
+const SharedSurveyPreview = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SharedSurveyPreview})));
 
 const Community = React.lazy(() => import("./containers/Community").then(m => ({ default: m.Community })));
 const SurveyPage = React.lazy(() =>
@@ -137,6 +139,8 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/invite/:token" element={<SurveyInvitation />} />
+          <Route path="/app/surveys/:surveyId/preview" element={protectedPage(<SharedSurveyPreview/>)} />
           <Route path="/app" element={protectedPage(<PlatformHome />)} />
           <Route path="/app/community" element={protectedPage(<Community />)} />
           <Route path="/app/profile" element={protectedPage(<ProfilePage />)} />

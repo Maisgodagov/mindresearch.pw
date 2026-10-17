@@ -1,4 +1,5 @@
 import { BrandWordmark } from "../../components/BrandWordmark";
+import { invitationReturn } from '../../components/SurveySharing';
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BarChart3, ClipboardList, Leaf, ShieldCheck } from "lucide-react";
@@ -30,7 +31,7 @@ export function Register() {
       const values: RegistrationValues = { name, email, password };
       const response = await api.post("/auth/register", values);
       setAccessToken(response.data.token);
-      nav("/");
+      nav(invitationReturn() ?? "/");
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, registrationErrors.submitFailed));
     }
@@ -130,7 +131,7 @@ export function Register() {
             </Button>
           </form>
           <p className="bottom">
-            Уже есть аккаунт? <Link to="/login">Войти</Link>
+            Уже есть аккаунт? <Link to={invitationReturn()?`/login?next=${encodeURIComponent(invitationReturn()!)}`:'/login'}>Войти</Link>
           </p>
         </Box>
       </Shell>

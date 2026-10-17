@@ -1,4 +1,5 @@
 import { SurveyTile } from "../../components/SurveyTile";
+import { SurveySharing } from '../../components/SurveySharing';
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -17,6 +18,7 @@ import {
   RotateCcw,
   Send,
   Trash2,
+  Users,
 } from "lucide-react";
 import { api, getCurrentUser, useDemoFallbacks } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
@@ -36,6 +38,7 @@ import {
 import { SurveyConfirmModal } from "../../components/SurveyConfirmModal";
 
 export function PlatformHome() {
+  const [shared,setShared]=useState<any[]>([]),[canShare,setCanShare]=useState(false),[sharing,setSharing]=useState<string|null>(null);
   const [surveys, setSurveys] = useState<Survey[]>([]),
     [trash, setTrash] = useState<Survey[]>([]),
     [loading, setLoading] = useState(true),
@@ -52,8 +55,10 @@ export function PlatformHome() {
       api.get("/admin/surveys"),
       api.get("/account/surveys/trash"),
       getCurrentUser(),
+      api.get('/sharing/shared'),
     ])
-      .then(([s, t, u]) => {
+      .then(([s, t, u, sharedResponse]) => {
+        setShared(sharedResponse.data);setCanShare(['owner','admin'].includes(u.role));
         setSurveys(s.data);
         setTrash(t.data);
         setName(u.name);
@@ -210,6 +215,7 @@ export function PlatformHome() {
               </SectionTitle>
             )}
             <SurveyTile survey={s} tools={<>
+                  {canShare&&<button type="button" className="tool-button" title="Совместный доступ" aria-label={`Совместный доступ: ${s.title}`} onClick={()=>setSharing(s.id)}><Users size={16}/></button>}
                   <Link
                     className="tool-button edit"
                    
@@ -306,6 +312,8 @@ export function PlatformHome() {
           </Fragment>
         ))}
       </Grid>
+      {shared.length>0&&<><SectionTitle><h2>Доступные мне</h2><span>{shared.length}</span></SectionTitle><Grid>{shared.map(s=><SurveyTile key={s.id} survey={s} tools={s.permission==='edit'?<Link className="tool-button edit" to={`/app/surveys/${s.id}/edit`} title="Редактировать опрос"><Pencil size={15}/></Link>:undefined}><div><strong>Автор: {s.authorName}</strong><p>{s.permission==='edit'?'Просмотр и редактирование':'Только просмотр'}</p></div><Link className="results-action" to={`/app/surveys/${s.id}/results`}>Открыть результаты <ArrowRight size={14}/></Link></SurveyTile>)}</Grid></>}
+      {sharing&&<SurveySharing surveyId={sharing} onClose={()=>setSharing(null)}/>}
       <TrashBar>
         <Button
           className="open-trash"
