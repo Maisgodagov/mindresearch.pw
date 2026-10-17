@@ -3,7 +3,7 @@ import { adminManagementRouter } from './admin-management.js';
 import { sharingRouter, migrateSharing, lockSurveyWrite, bumpSurveyVersion } from './sharing.js';
 import { analyticsRouter } from './analytics.js';
 import { canReadSurvey, isAdministrator } from './admin-access.js';
-import { loadSurveyResults, loadQuestionTimingSummary, loadDistributionMembers } from './survey-results.js';
+import { loadSurveyResults, loadQuestionTimingSummary, loadDistributionMembers, loadAnswerDistribution } from './survey-results.js';
 import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
 import 'dotenv/config';
 import express from 'express';
@@ -25,6 +25,8 @@ import { enqueueQuality, resumeQualityJobs, storedQualities, qualityEnabled } fr
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<24) throw new Error('JWT_SECRET must contain at least 24 characters');
 const app=express();
 app.set('trust proxy',1);
+// Sample distributions accept up to 50,000 response IDs without changing other body limits.
+app.use('/api/admin/surveys/:id/results/distribution',express.json({limit:'2mb'}));
 app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
 app.use('/api/auth',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
 app.use('/api/admin',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
@@ -132,6 +134,11 @@ app.get('/api/admin/surveys/:id/results',requireAuth,async(req:AuthRequest,res,n
 app.get('/api/admin/surveys/:id/results/timing',requireAuth,async(req:AuthRequest,res,next)=>{try{
   if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});
   res.json(await loadQuestionTimingSummary(String(req.params.id)));
+}catch(e){next(e)}});
+app.post('/api/admin/surveys/:id/results/distribution',requireAuth,async(req:AuthRequest,res,next)=>{try{
+  if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Опрос не найден'});
+  const {sessionIds}=z.object({sessionIds:z.array(z.string().uuid()).max(50000)}).parse(req.body);
+  res.json(await loadAnswerDistribution(String(req.params.id),sessionIds));
 }catch(e){next(e)}});
 app.post('/api/admin/surveys/:id/results/distribution-members',requireAuth,async(req:AuthRequest,res,next)=>{try{
   if(!await canReadSurvey(req,String(req.params.id)))return res.status(404).json({message:'Survey not found'});

@@ -38,3 +38,52 @@ export function methodSortValue(person: Respondent, sort: string): number | null
   for(const part of path.split('.')) value=value?.[part];
   return typeof value==='number' && Number.isFinite(value) ? value : null;
 }
+
+export type SampleCondition = {
+  question: string;
+  title: string;
+  labels: string[];
+  sessionIds: string[];
+  range?: {min: string; max: string};
+};
+
+// Each condition stores its full membership, not the previous intersection:
+// removing an earlier condition must correctly widen the sample again.
+export function applySampleConditions(people: Respondent[], conditions: SampleCondition[]) {
+  const memberships = conditions.map(condition=>new Set(condition.sessionIds));
+  return people.filter(person=>memberships.every(ids=>ids.has(person.id)));
+}
+
+export function upsertSampleCondition(conditions: SampleCondition[], next: SampleCondition) {
+  return [...conditions.filter(condition=>condition.question!==next.question),next];
+}
+
+type QuestionChoices = {questionId?:string;code:string;text?:string;options?:{value:string|number;label:string}[]};
+export function atomicDistribution(rows:Result['distribution'],questions:QuestionChoices[]) {
+  const buckets=new Map<string,Result['distribution'][number]>();
+  for(const row of rows){
+    const choices=questions.find(q=>distributionQuestionKey({...q,text:q.text??''})===distributionQuestionKey(row))?.options??[];
+    const raw:unknown=row.value;
+    const values=Array.isArray(raw)?[...new Set(raw)]:[raw];
+    for(const value of values){
+      const label=choices.find(option=>String(option.value)===String(value))?.label??(Array.isArray(raw)?String(value):(row.label??String(value)));
+      const key=JSON.stringify([distributionQuestionKey(row),label]);
+      const existing=buckets.get(key);
+      if(existing)existing.count+=row.count;
+      else buckets.set(key,{...row,value:value as string|number,label});
+    }
+  }
+  return [...buckets.values()];
+}
+
+// Older APIs match complete display labels. Translate individual selected choices
+// back into the stored combinations for that request only, never for the UI.
+export function membershipLabels(rows:Result['distribution'],question:QuestionChoices,selected:string[]) {
+  const matching=rows.filter(row=>distributionQuestionKey(row)===distributionQuestionKey({...question,text:question.text??''}));
+  if(!matching.some(row=>Array.isArray(row.value)))return selected;
+  const choices=question.options??[];
+  return [...new Set(matching.filter(row=>{
+    const raw:unknown=row.value;
+    return (Array.isArray(raw)?raw:[raw]).some(value=>selected.includes(choices.find(option=>String(option.value)===String(value))?.label??String(value)));
+  }).map(row=>row.label??String(row.value)))];
+}

@@ -30,7 +30,7 @@ export const GlobalStyle = createGlobalStyle`
   body{margin:0;min-width:320px;min-height:100vh;background:var(--color-page)}
   button,input,textarea,select{font:inherit}
   button{cursor:pointer}
-  #root input:not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not(.ant-select-selection-search-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]),
+  #root input:not(.ant-select-input):not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not(.ant-select-selection-search-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]),
   #root textarea:not(.ant-input),
   #root select:not(.ant-select-selection-search-input){
     border:1px solid var(--color-border);
@@ -44,12 +44,12 @@ export const GlobalStyle = createGlobalStyle`
     outline:none;
     transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
   }
-  #root input:not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]){height:44px;padding:0 13px}
+  #root input:not(.ant-select-input):not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]){height:44px;padding:0 13px}
   #root textarea:not(.ant-input){padding:13px 15px;line-height:1.55}
   #root select:not(.ant-select-selection-search-input){min-height:44px;padding:0 13px}
-  #root input:not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):hover,
+  #root input:not(.ant-select-input):not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):hover,
   #root textarea:not(.ant-input):hover,#root select:not(.ant-select-selection-search-input):hover{border-color:#a7bda2}
-  #root input:not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):focus,
+  #root input:not(.ant-select-input):not(.ant-input):not(.ant-input-number-input):not(.ant-checkbox-input):not(.ant-radio-input):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):focus,
   #root textarea:not(.ant-input):focus,#root select:not(.ant-select-selection-search-input):focus{border-color:var(--color-brand-strong);background:#fff;box-shadow:0 0 0 3px var(--color-focus)}
   #root input.invalid,#root textarea.invalid{border-color:#c96d67;background:#fff8f7;box-shadow:0 0 0 3px rgba(190,83,76,.12)}
   #root input:disabled:not(.ant-input):not(.ant-checkbox-input):not(.ant-radio-input),#root textarea:disabled:not(.ant-input),#root select:disabled{cursor:not-allowed;opacity:.65}

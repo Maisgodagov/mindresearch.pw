@@ -1,4 +1,6 @@
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
+import {atomicDistribution, membershipLabels, applySampleConditions, upsertSampleCondition, type SampleCondition} from "./selection";
+import {ResultsSelection, type SampleDraft} from "./components/ResultsSelection";
 import { methodSortValue } from './selection';
 import { distributionOptions, methodSortOptions } from "./selection";
 import { distributionQuestionKey } from "./components/AnswerDistribution/questionKey";
@@ -24,8 +26,8 @@ import {
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
-import { QualityOverview, QualityControls, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
-import { applyQualityView, DEFAULT_QUALITY_VIEW, metricValue, type MetricKey, type QualityView } from "./quality";
+import { QualityOverview, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
+import { DEFAULT_QUALITY_VIEW, metricValue, type MetricKey, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
 import {
   MethodologyModal,
@@ -74,11 +76,15 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
   const resultGeneration = useRef(0);
   const [qualityView, setQualityView] = useState<QualityView>({ ...DEFAULT_QUALITY_VIEW, filters: [] });
   const qualities = useMemo(() => Object.fromEntries(result.respondents.flatMap(p => p.qualityV2 ? [[p.id, p.qualityV2]] : [])), [result.respondents]);
-  const [chartFilter, setChartFilter] = useState<{question:string;labels:string[];sessionIds:string[]} | null>(null);
+  const [sampleConditions,setSampleConditions]=useState<SampleCondition[]>([]);
   const [chartBusy,setChartBusy]=useState(false);
   const chartRequest=useRef(0);
-  const chartIds = useMemo(()=>chartFilter ? new Set(chartFilter.sessionIds) : null,[result.distribution,chartFilter]);
-  const filteredRespondents = useMemo(() => applyQualityView(result.respondents.filter(p=>!chartIds || chartIds.has(p.id)), qualities, qualityView), [result.respondents, qualities, qualityView,chartIds]);
+  const sampleRespondents=useMemo(()=>applySampleConditions(result.respondents,sampleConditions).filter(person=>qualityView.status!=='completed'||person.status==='completed'),[result.respondents,sampleConditions,qualityView.status]);
+  const sampleScoped=sampleConditions.length>0||qualityView.status==='completed';
+  const filteredRespondents=sampleRespondents;
+  const [sampleDistribution,setSampleDistribution]=useState<Result['distribution']>([]);
+  const [distributionBusy,setDistributionBusy]=useState(false),[distributionError,setDistributionError]=useState('');
+  const [distributionRetry,setDistributionRetry]=useState(0);
   const sortOptions = useMemo(()=>[{value:'alias',label:'Респондент'},...(result.hasGender?[{value:'gender',label:'Пол респондента'}]:[]),{value:'status',label:'Статус'},{value:'answered',label:'Количество ответов'},{value:'duration',label:'Время прохождения'},...((result.hasAge || result.distribution.some(q=>q.code==='age'||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст'))) ? [{value:'age',label:'Возраст респондента'}] : []),...methodSortOptions(result.respondents,result.sections)],[result]);
   const sortValue = (person:Respondent): string | number | undefined => {
     const key=qualityView.sort;
@@ -99,7 +105,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
   const currentPage = Math.min(page, Math.max(1, Math.ceil(visibleRespondents.length / pageSize)));
   const pageRespondents = useMemo(() => visibleRespondents.slice((currentPage - 1) * pageSize, currentPage * pageSize), [visibleRespondents, currentPage, pageSize]);
   useEffect(() => { setPage(currentPage); }, [currentPage]);
-  useEffect(() => { setQualityView({ ...DEFAULT_QUALITY_VIEW, filters: [] }); setSelected({}); chartRequest.current++; setChartBusy(false); setChartFilter(null); setSelectedQuestion(''); setPage(1); setExpanded({}); }, [surveyId]);
+  useEffect(() => { setQualityView({ ...DEFAULT_QUALITY_VIEW, filters: [] }); setSelected({}); chartRequest.current++; setChartBusy(false); setSampleConditions([]); setSelectedQuestion(''); setPage(1); setExpanded({}); }, [surveyId]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [deletedSelected, setDeletedSelected] = useState<
@@ -170,25 +176,87 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
   }, [result.sections]);
   const survey = surveys.find((s) => s.id === surveyId) ?? surveys[0];
   usePageTitle(survey?.title?`${survey.title} — статистика`:undefined);
-  const questionOptions = useMemo(()=>distributionOptions(result.questions ?? result.distribution),[result.questions,result.distribution]);
+  const [questionChoices,setQuestionChoices]=useState<Record<string,{value:string|number;label:string}[]>>({});
+  useEffect(()=>{
+    setQuestionChoices({});
+    const catalog=result.questions??result.distribution;
+    if(!survey?.slug||!catalog.some(q=>['single','multiple'].includes(q.type??'')&&!('options' in q && Array.isArray(q.options)&&q.options.length)))return;
+    const controller=new AbortController();let cancelled=false;
+    api.get(`/public/surveys/${survey.slug}`,{signal:controller.signal}).then(response=>{
+      if(cancelled)return;
+      const entries=(response.data.questions??[]).map((q:any)=>{
+        let options=q.options;
+        if(typeof options==='string'){try{options=JSON.parse(options);}catch{options=[];}}
+        return [q.questionId??q.id,Array.isArray(options)?options:[]];
+      });
+      setQuestionChoices(Object.fromEntries(entries));
+    }).catch(()=>{});
+    return ()=>{cancelled=true;controller.abort();};
+  },[survey?.id,survey?.slug,result.questions,result.distribution]);
+  const sampleQuestions=useMemo(()=>[...new Map((result.questions??result.distribution).map(q=>{
+    const questionId=distributionQuestionKey(q);
+    return [questionId,{...q,questionId,type:q.type??'',sectionPosition:q.sectionPosition??0,questionPosition:q.questionPosition??0,options:questionChoices[questionId]??('options' in q?q.options:undefined)}];
+  })).values()],[result.questions,result.distribution,questionChoices]);
+  const allAnswerOptions=useMemo(()=>atomicDistribution(result.distribution,sampleQuestions),[result.distribution,sampleQuestions]);
+  const questionOptions = useMemo(()=>distributionOptions(sampleQuestions),[sampleQuestions]);
   useEffect(() => {
     if (!questionOptions.some(q=>q.value===selectedQuestion)) setSelectedQuestion(questionOptions[0]?.value ?? '');
   }, [questionOptions, selectedQuestion]);
-  const chart = useMemo(() => result.distribution
+  useEffect(()=>{
+    if(!survey || !sampleScoped){setSampleDistribution(result.distribution);setDistributionBusy(false);setDistributionError('');return;}
+    const controller=new AbortController();let cancelled=false;
+    setDistributionBusy(true);setDistributionError('');setSampleDistribution([]);
+    const loadDistribution=async()=>{
+      const sessionIds=sampleRespondents.map(person=>person.id);
+      try {return (await api.post(`/admin/surveys/${survey.id}/results/distribution`,{sessionIds},{signal:controller.signal})).data;}
+      catch(error:any){
+        if(error?.response?.status!==404)throw error;
+        // Older APIs have no scoped aggregate endpoint; use their existing
+        // authorized details endpoint to count only this sample's answers.
+        const rows:Result['distribution']=[];
+        for(let start=0;start<sessionIds.length;start+=100){
+          const response=await api.post(`/admin/surveys/${survey.id}/results/details`,{sessionIds:sessionIds.slice(start,start+100)},{signal:controller.signal});
+          for(const person of response.data as Respondent[])for(const group of person.groups)for(const answer of group.answers){
+            const question=sampleQuestions.find(q=>q.questionId===answer.questionId);
+            rows.push({questionId:answer.questionId,code:answer.code,text:answer.question,type:answer.type??question?.type,value:answer.value as string|number,label:answer.displayValue,count:1});
+          }
+        }
+        return atomicDistribution(rows,sampleQuestions);
+      }
+    };
+    loadDistribution()
+      .then(distribution=>{if(!cancelled)setSampleDistribution(distribution);})
+      .catch(()=>{if(!cancelled)setDistributionError('Не удалось обновить распределение текущей выборки.');})
+      .finally(()=>{if(!cancelled)setDistributionBusy(false);});
+    return ()=>{cancelled=true;controller.abort();};
+  },[survey?.id,result.distribution,sampleConditions,sampleRespondents,distributionRetry,sampleQuestions,sampleScoped]);
+  const chart = useMemo(() => atomicDistribution(sampleScoped?sampleDistribution:result.distribution,sampleQuestions)
     .filter(item=>distributionQuestionKey(item)===selectedQuestion)
-    .map(item=>({answer:item.label ?? String(item.value),count:item.count})), [result.distribution,selectedQuestion]);
-  const applyChartFilter = async (labels: string[]) => {
-    if(!survey)return;
-    const request=++chartRequest.current, generation=resultGeneration.current;
+    .map(item=>({answer:item.label ?? String(item.value),count:item.count})), [result.distribution,sampleDistribution,sampleScoped,selectedQuestion,sampleQuestions]);
+  const removeSampleCondition=(question:string)=>{
+    chartRequest.current++;setChartBusy(false);
+    setSampleConditions(current=>current.filter(condition=>condition.question!==question));setPage(1);setSelected({});
+  };
+  const clearSample=()=>{chartRequest.current++;setChartBusy(false);setSampleConditions([]);setPage(1);setSelected({});};
+  const applySample = async (draft:SampleDraft):Promise<boolean> => {
+    if(!survey)return false;
+    const request=++chartRequest.current,generation=resultGeneration.current;
     setChartBusy(true);
     try {
-      const sessionIds=labels.length ? (await api.post(`/admin/surveys/${survey.id}/results/distribution-members`,{questionId:selectedQuestion,labels})).data.sessionIds : [];
-      if(request!==chartRequest.current || generation!==resultGeneration.current)return;
-      setChartFilter(labels.length ? {question:selectedQuestion,labels,sessionIds} : null);
-      setPage(1);setSelected({});
-      requestAnimationFrame(()=>document.querySelector('[data-quality-respondents]')?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
-    } catch { message.error('Не удалось загрузить выборку. Повторите выбор столбцов.'); }
+      const question=sampleQuestions.find(q=>q.questionId===draft.question);
+      const allLabels=[...new Set(result.distribution.filter(q=>distributionQuestionKey(q)===draft.question).map(q=>q.label??String(q.value)))];
+      const labels=draft.range?allLabels.filter(value=>value.trim()!==''&&Number.isFinite(Number(value))&&(!draft.range!.min.trim()||Number(value)>=Number(draft.range!.min))&&(!draft.range!.max.trim()||Number(value)<=Number(draft.range!.max))):draft.labels;
+      const sessionIds=draft.question==='__age'?result.respondents.filter(person=>person.age!=null&&(!draft.range?.min.trim()||person.age>=Number(draft.range.min))&&(!draft.range?.max.trim()||person.age<=Number(draft.range.max))).map(person=>person.id)
+        :labels.length?(await api.post(`/admin/surveys/${survey.id}/results/distribution-members`,{questionId:draft.question,labels:question?membershipLabels(result.distribution,question,labels):labels})).data.sessionIds:[];
+      if(request!==chartRequest.current||generation!==resultGeneration.current)return false;
+      setSampleConditions(current=>upsertSampleCondition(current,{question:draft.question,title:draft.question==='__age'?'Возраст':question?.text??'Вопрос',labels,sessionIds,range:draft.range}));
+      setPage(1);setSelected({});return true;
+    } catch {message.error('Не удалось применить условие. Попробуйте ещё раз.');return false;}
     finally {if(request===chartRequest.current)setChartBusy(false);}
+  };
+  const applyChartFilter=async(labels:string[],range?:{min:string;max:string})=>{
+    if(!labels.length&&!range){removeSampleCondition(selectedQuestion);return;}
+    await applySample({question:selectedQuestion,labels,range});
   };
   const completed = result.respondents.filter(
     (x) => x.status === "completed",
@@ -270,7 +338,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     if (!survey) return;
     const response = await api.get(`/admin/surveys/${survey.id}/results`, {params:{summary:1}});
     resultGeneration.current++; setDetails({}); setDetailErrors({}); pendingDetails.current.clear();
-    chartRequest.current++;setChartBusy(false);setChartFilter(null);setSelected({});setResult(response.data);
+    chartRequest.current++;setChartBusy(false);setSampleConditions([]);setSelected({});setResult(response.data);
   };
   const moveToTrash = async () => {
     if (!survey || !selectedRespondents.length) return;
@@ -383,8 +451,9 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           </Stat>
         </Grid>
         <Panel className="respondents-panel" data-quality-respondents>
-          <QualityControls onReset={()=>{chartRequest.current++;setChartBusy(false);setChartFilter(null);}} sortOptions={sortOptions} view={qualityView} onChange={view => { setQualityView(view); setSelected({}); setPage(1); }} visible={visibleRespondents.length} total={result.respondents.length} />
-          {chartFilter && <div className="chart-filter-notice" role="status"><span>Выборка из графика: <strong>{result.distribution.find(q=>distributionQuestionKey(q)===chartFilter.question)?.text}</strong> · {chartFilter.labels.join(', ')}</span><Button onClick={()=>{setChartFilter(null);setPage(1);setSelected({});}}>Сбросить выборку</Button></div>}
+          <ResultsSelection view={qualityView} onSort={view=>{setQualityView(view);setPage(1);setSelected({});}} sortOptions={sortOptions} conditions={sampleConditions} onApply={applySample} onRemove={removeSampleCondition} onClear={clearSample} questions={sampleQuestions} distribution={allAnswerOptions} hasAge={sortOptions.some(option=>option.value==='age')} visible={visibleRespondents.length} total={result.respondents.length} busy={chartBusy}/>
+
+
           <RespondentResults
             key={survey?.id}
             readOnly={readOnly}
@@ -458,8 +527,15 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           options={questionOptions}
           selectedQuestion={selectedQuestion}
           onQuestionChange={setSelectedQuestion}
-          appliedLabels={chartFilter?.question===selectedQuestion?chartFilter.labels:[]}
-          onApply={labels=>void applyChartFilter(labels)}
+          appliedLabels={sampleConditions.find(condition=>condition.question===selectedQuestion)?.labels??[]}
+          onApply={(labels,range)=>void applyChartFilter(labels,range)}
+          conditions={sampleConditions}
+          onRemoveCondition={removeSampleCondition}
+          sampleCount={sampleRespondents.length}
+          completedOnly={qualityView.status==='completed'}
+          loading={distributionBusy}
+          error={distributionError}
+          onRetry={()=>setDistributionRetry(value=>value+1)}
           busy={chartBusy}
           numeric={(result.questions ?? result.distribution).find(q=>distributionQuestionKey(q)===selectedQuestion)?.type==='number'}
         />

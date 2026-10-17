@@ -141,31 +141,5 @@ export const Surface = styled.section`
     .actions > button { flex: 1 1 150px; }
     .filter-top .heading > button { width: 100%; }
   }
-  &.compact-filters {
-    border-bottom: 1px solid #e4ebe1;
-    padding-bottom: 14px;
-    margin-bottom: 16px;
-    .sort-row { gap: 12px; grid-template-columns: minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr); }
-    .field { gap: 5px; }
-    .field-label { font-size: 11px; }
-    .field [role='combobox'] { height: 38px; min-height: 38px; font-size: 12px; }
-    .filter-extra { border: 0; padding-top: 0; margin-top: 12px; }
-    .filter-extra > summary { justify-content: flex-start; width: fit-content; font-size: 12px; min-height: 32px; gap: 7px; }
-    .filter-extra > summary > .chevron { margin-left: 2px; }
-    .active-count { font-size: 11px; min-width: 19px; text-align: center; background: #e5efdf; color: #35543b; padding: 1px 5px; border-radius: 6px; }
-    .presets { gap: 6px; margin: 10px 0 12px; }
-    .presets button { min-height: 32px !important; font-size: 11px; padding-inline: 10px; }
-    .filter-extra .fields { margin-top: 12px; }
-    .filter-bottom { border: 0; margin: -32px 0 0 auto; padding: 0; min-height: 32px; justify-content: flex-end; gap: 14px; width: fit-content; max-width: 100%; }
-    .filter-extra[open] ~ .filter-bottom, .rules ~ .filter-bottom { margin-top: 12px; }
-    .filter-result { display: inline; font-size: 12px; color: #526557; font-variant-numeric: tabular-nums; }
-    .filter-result strong { color: #304d3a; }
-    .reset-filters { display: inline-flex; align-items: center; gap: 6px; border: 0; padding: 6px 0; background: transparent; color: #44634b; font: inherit; font-size: 12px; cursor: pointer; min-height: 32px; }
-    .reset-filters:hover { text-decoration: underline; text-underline-offset: 3px; }
-    .reset-filters:focus-visible { outline: 2px solid #52764b; outline-offset: 3px; border-radius: 4px; }
-    .empty-filter { margin: 10px 0 0; }
-    @media(max-width:700px) { .sort-row { grid-template-columns: 1fr 1fr; } .sort-row > div:first-child { grid-column: 1/-1; } .filter-bottom { margin-top: 8px; width: 100%; justify-content: space-between; } }
-    @media(max-width:380px) { .sort-row { grid-template-columns: 1fr; } }
-  }
   @media (prefers-reduced-motion: reduce) { .chevron { transition: none !important; } }
 `;

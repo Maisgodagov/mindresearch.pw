@@ -1,21 +1,19 @@
 import { RespondentQuality } from './RespondentQuality';
-import { Select as MultiSelect } from 'antd';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { CheckCircle2, ChevronDown, Clock3, Download, Info, ListFilter, Plus, RotateCcw, Settings2, ShieldCheck, Users, X } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Clock3, Download, Info, RotateCcw, Settings2, ShieldCheck, Users, X } from 'lucide-react';
 import { Button } from '../../../../ui';
 import { SelectField } from '../../../../components/SelectField';
 import { FieldInput } from '../../../../components/FieldInput';
 import { api } from '../../../../api';
-import { DEFAULT_QUALITY_VIEW, METRICS, metricValue, COHORTS, STATUS, type Quality, type QualityView, type MetricKey } from '../../quality';
+import { COHORTS, type Quality } from '../../quality';
 import type { Respondent } from '../../types';
 import { Surface } from './styles';
-import { COMPONENT_EXPLANATIONS, COMPONENT_METRIC_LABELS, METRIC_EXPLANATIONS, MetricExplanation, ExplanationText, QualityCalculationGuide } from './explanations';
+import { QualityCalculationGuide } from './explanations';
 
 export const percent = (v: number | null | undefined) => v == null ? '—' : Math.round(v) + '%';
 export const fasterText = (v: number | null) => v === null ? 'Нет данных для сравнения' : Math.abs(v)<.5 ? 'Сопоставимый темп' : v>0 ? 'На '+Math.round(v)+'% быстрее' : 'На '+Math.round(-v)+'% медленнее';
 const display = (v: unknown) => typeof v==='number' ? Number(v.toFixed(3)).toString() : v==null ? '—' : String(v);
 const choices = (values: Record<string,string>) => Object.entries(values).map(([value,label])=>({value,label}));
-const resetView = (): QualityView => ({...DEFAULT_QUALITY_VIEW,filters:[]});
 const dateLabel = (value?: string) => value ? new Date(value).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
 
 function QualitySelect({label,value,options,onChange,hint,disabled=false,search=false}:{label:string;value:string;options:{value:string;label:string}[];onChange:(value:string)=>void;hint?:string;disabled?:boolean;search?:boolean}) {
@@ -40,67 +38,6 @@ export function QualityOverview({people,qualities}:{people:Respondent[];qualitie
       <p className="hint">Частичный расчёт означает, что доступно только одно направление оценки. Недостающие данные не считаются нулём. Уверенность показывает полноту основания расчёта. Индексы не являются вероятностью честности, а результаты не удаляются автоматически.</p>
     </details>
     <QualityCalculationGuide/>
-  </Surface>;
-}
-
-const metricHints: Partial<Record<MetricKey,string>> = {
-  overall:'Индекс от 0 до 100. Низкое значение — повод для ручной проверки.',
-  behavioral:'Оценка скорости и темпа от 0 до 100; выбранные ответы не учитываются.',
-  response:'Оценка согласованности ответов от 0 до 100.',
-  fastShare:'Доля вопросов с ответом быстрее эталонного темпа и менее чем за 4 секунды.',
-  extremeShare:'Доля вопросов с ответом значительно быстрее эталонного темпа и менее чем за 2 секунды.',
-  speedRatio:'1 — эталонный темп; 0,5 — примерно вдвое меньше времени на вопрос.',
-  durationRatio:'1 — активное время сопоставимо с эталоном; меньше 1 — прохождение быстрее.',
-  acceleration:'Меньше 1 — последняя треть проходится быстрее первой с учётом сложности вопросов.',
-  rpr:'Согласованность психологического профиля при повторном разделении вопросов на части.',
-  pairs:'Согласованность связанных вопросов: от 0 до 1.',
-  confidence:'Полнота основания общего индекса: от 0 до 100%. Это не вероятность честности.',
-  coverage:'Доля вопросов, для которых доступно измерение активного времени.',
-  sameRun:'Максимальная серия одинаковых ответов внутри одного блока.',
-  fastRun:'Максимальная серия быстрых ответов внутри одного блока.',
-};
-
-export function QualityControls({view,onChange,visible,total,sortOptions=[],onReset}:{onReset?:()=>void;sortOptions?:{value:string;label:string}[];view:QualityView;onChange:(v:QualityView)=>void;visible:number;total:number}) {
-  const basicCount=[view.status,...(Array.isArray(view.qualityStatus)?(view.qualityStatus.length?["selected"]:[]):[view.qualityStatus]),view.cohort,view.eligibility,view.available,view.telemetry].filter(v=>v!=='all').length;
-  const activeCount=basicCount+view.filters.filter(f=>f.operator==='missing'||f.value.trim()!=='').length;
-  const metricSort=!['newest','oldest','insufficient'].includes(view.sort);
-  const patch=(next:Partial<QualityView>)=>onChange({...view,...next});
-  const changeRule=(i:number,next:Partial<QualityView['filters'][number]>)=>patch({filters:view.filters.map((f,n)=>n===i?{...f,...next}:f)});
-  return <Surface className="compact-filters" aria-label="Фильтры респондентов">
-    <div className="sort-row">
-      <div><QualitySelect label="Сортировка" value={view.sort} options={[{value:'newest',label:'По дате · свежие сверху'},{value:'oldest',label:'По дате · старые сверху'},{value:'insufficient',label:'Сначала без оценки'},...sortOptions,...METRICS.map(m=>({value:m.key,label:m.label}))]} onChange={sort=>patch({sort:sort as QualityView['sort']})} search/>
-        {metricSort&&<div className="sort-direction" aria-label="Порядок сортировки"><button type="button" aria-pressed={view.direction==='asc'} onClick={()=>patch({direction:'asc'})}>Сначала низкие значения</button><button type="button" aria-pressed={view.direction==='desc'} onClick={()=>patch({direction:'desc'})}>Сначала высокие значения</button></div>}
-      </div>
-      <QualitySelect label="Прохождение" value={view.status} options={choices({all:'Все прохождения',completed:'Завершённые',in_progress:'В процессе'})} onChange={status=>patch({status})}/>
-      <div className="field"><span className="field-label">Качество прохождения</span><MultiSelect<string[]> className="quality-status-select" virtual={false} showSearch={false} style={{width:"100%",minHeight:42}} aria-label="Качество прохождения" mode="multiple" allowClear maxTagCount="responsive" placeholder="Любое качество" value={Array.isArray(view.qualityStatus)?view.qualityStatus:view.qualityStatus==='all'?[]:[view.qualityStatus]} options={choices(STATUS)} onChange={qualityStatus=>patch({qualityStatus:qualityStatus as string[]})}/></div>
-    </div>
-    <details className="disclosure filter-extra"><summary><ListFilter size={15} aria-hidden="true"/>Дополнительные фильтры{activeCount>0&&<span className="active-count">{activeCount}</span>}<ChevronDown className="chevron" size={16}/></summary>
-    <div className="presets" aria-label="Быстрый отбор">
-      <Button onClick={()=>onChange({...resetView(),status:'completed',filters:[{metric:'overall',operator:'lte',value:'55'}]})}>Индекс ≤ 55</Button>
-      <Button onClick={()=>onChange({...resetView(),status:'completed',filters:[{metric:'fastShare',operator:'gte',value:'20'}]})}>Быстрые ответы ≥ 20%</Button>
-      <Button onClick={()=>onChange({...resetView(),available:'missing'})}>Без оценки</Button>
-      <Button onClick={()=>patch({filters:[...view.filters,{metric:'overall',operator:'lte',value:''}]})}><Plus size={14}/>Своё условие</Button>
-    </div>
-      <div className="fields">
-        <QualitySelect label="Группа участников" value={view.cohort} options={choices({all:'Все группы',...COHORTS})} onChange={cohort=>patch({cohort})} hint="Группу назначает исследователь в настройках качества."/>
-        <QualitySelect label="Критерии участия" value={view.eligibility} options={choices({all:'Любой статус',unknown:'Не проверены',pass:'Соответствует',fail:'Не соответствует'})} onChange={eligibility=>patch({eligibility})} hint="Например, возраст или другие условия включения в исследование."/>
-        <QualitySelect label="Наличие оценки" value={view.available} options={choices({all:'Все результаты',present:'Индекс рассчитан',missing:'Нет оценки'})} onChange={available=>patch({available})}/>
-        <QualitySelect label="Измерения времени" value={view.telemetry} options={choices({all:'Все результаты',present:'Есть измерения',missing:'Нет измерений'})} onChange={telemetry=>patch({telemetry})} hint="Время активного просмотра вопросов; у старых прохождений может отсутствовать."/>
-      </div>
-    </details>
-    {view.filters.length>0&&<div className="rules"><h3>Условия по показателям</h3><p>Результат должен соответствовать всем условиям. Пока значение не введено, условие не применяется.</p>
-      {view.filters.map((f,i)=><div key={i}>
-        <div className={`rule ${f.operator==='missing'?'missing':''}`}>
-          <QualitySelect label={`Показатель ${i+1}`} value={f.metric} options={METRICS.map(m=>({value:m.key,label:m.label}))} onChange={metric=>changeRule(i,{metric:metric as MetricKey})} search/>
-          <QualitySelect label={`Условие ${i+1}`} value={f.operator} options={choices({lte:'Не больше (≤)',gte:'Не меньше (≥)',missing:'Нет данных'})} onChange={operator=>changeRule(i,{operator:operator as typeof f.operator})}/>
-          {f.operator!=='missing'&&<label className="field"><span className="field-label">Значение · {METRICS.find(m=>m.key===f.metric)?.unit}</span><FieldInput type="number" step="any" aria-label={`Значение условия ${i+1}`} value={f.value} placeholder="Введите число" onChange={e=>changeRule(i,{value:e.target.value})}/></label>}
-          <Button className="remove-rule" aria-label={`Удалить условие ${i+1}`} onClick={()=>patch({filters:view.filters.filter((_,n)=>n!==i)})}><X size={16}/></Button>
-        </div>
-        <p className="hint rule-note">{metricHints[f.metric]??METRIC_EXPLANATIONS[f.metric].calculation}<MetricExplanation metric={f.metric}/></p>
-      </div>)}
-    </div>}
-    <div className="filter-bottom"><span className="filter-result" role="status">Найдено <strong>{visible}</strong> из {total}</span>{(activeCount>0||view.sort!=='newest'||view.filters.length>0)&&<button className="reset-filters" type="button" onClick={()=>{onChange(resetView());onReset?.();}}><RotateCcw size={13}/>Сбросить всё</button>}</div>
-    {visible===0&&total>0&&<div className="empty-filter"><Notice>Нет прохождений с такими условиями. Удалите одно из условий или нажмите «Сбросить всё», чтобы снова показать весь список.</Notice></div>}
   </Surface>;
 }
 

@@ -132,7 +132,7 @@ export type QuestionTimingRow = { key: string; section: string; question: string
 export type Result = {
   hasAge?: boolean;
   hasGender?: boolean;
-  questions?: {questionId:string;code:string;text:string;type:string;sectionPosition:number;questionPosition:number}[];
+  questions?: {questionId:string;code:string;text:string;type:string;options?:{value:string|number;label:string}[];sectionPosition:number;questionPosition:number}[];
   version?: number;
   sections: { code: string; title: string; sectionKind: string }[];
   respondents: Respondent[];

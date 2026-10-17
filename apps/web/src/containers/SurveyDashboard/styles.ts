@@ -148,9 +148,13 @@ export const Stat = styled(Card)`
 `;
 
 export const Panel = styled(Card)`
-  .chart-filter-notice { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#edf4e9;padding:12px 14px;border-radius:9px;margin:12px 0;font-size:13px;overflow-wrap:anywhere; }
   .distribution-selection { display:grid;gap:12px;margin:16px 0;font-size:13px;color:var(--color-muted); }
-  .distribution-selection p { margin:0; }
+  .distribution-selection p { margin:0; line-height:1.6; }
+  .distribution-conditions { display:flex; flex-wrap:wrap; gap:7px; }
+  .distribution-conditions button { display:inline-flex; align-items:center; gap:8px; max-width:100%; padding:7px 9px; border:0; border-radius:6px; background:#eaf2e5; color:#365332; font:inherit; font-size:12px; text-align:left; overflow-wrap:anywhere; cursor:pointer; }
+  .distribution-conditions button svg { flex:none; }
+  .distribution-conditions button:hover { background:#dcebd4; }
+  .distribution-conditions button:focus-visible { outline:2px solid #52764b; outline-offset:3px; }
   .distribution-multiple { display:flex;align-items:center;gap:8px;width:fit-content;cursor:pointer;color:var(--color-ink); }
   .distribution-multiple input { accent-color:#52764b; }
   .distribution-range,.distribution-selection-actions { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }

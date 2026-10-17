@@ -85,7 +85,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
       FROM assessment_results ar JOIN sections s ON s.id=ar.section_id LEFT JOIN instruments i ON i.id=s.source_instrument_id JOIN response_sessions rs ON rs.id=ar.session_id
       WHERE rs.survey_id=?${restriction} ORDER BY s.position`, values),
     qualityEnabled() ? storedQualities(surveyId, { summary, sessionIds }) : Promise.resolve({} as Record<string, any>),
-    db.query<any[]>(`SELECT q.id questionId,q.code,q.text,q.type,s.code sectionCode,s.position sectionPosition,q.position questionPosition FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position,q.id`,[surveyId]),
+    db.query<any[]>(`SELECT q.id questionId,q.code,q.text,q.type,q.options,s.code sectionCode,s.position sectionPosition,q.position questionPosition FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position,q.id`,[surveyId]),
   ]);
   const grouped = new Map<string, Map<string, any>>();
   const groupFor = (sessionId: string, row: any) => {
@@ -129,23 +129,8 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     groups: [...(grouped.get(session.id)?.values() ?? [])].sort((a, b) => a.position - b.position).map(group => ({ ...group, answers: group.answers.sort((a: any, b: any) => a.position - b.position) })),
     qualityV2: qualities[session.id] ?? null, detailsLoaded: !summary,
   }));
-  const [distributionRows] = sessionIds ? [[]] : await db.query<any[]>(`SELECT q.id questionId,q.type,q.code,q.text,q.options,a.value,COUNT(*) count,s.position sectionPosition,q.position questionPosition
-    FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.id=a.session_id
-    WHERE rs.survey_id=? AND rs.deleted_at IS NULL GROUP BY q.id,a.value ORDER BY s.position,q.position,q.id`, [surveyId]);
-  const buckets = new Map<string, any>();
-  for (const row of distributionRows) {
-    const value = parseJson(row.value), key = row.questionId + ':' + displayValue(value, parseJson(row.options) ?? []);
-    let bucket = buckets.get(key);
-    if (!bucket) {
-      bucket = { questionId: row.questionId, type: row.type, code: row.code, text: row.text, value,
-        sectionPosition: row.sectionPosition, questionPosition: row.questionPosition,
-        count: 0, label: displayValue(value, parseJson(row.options) ?? []) };
-      buckets.set(key, bucket);
-    }
-    bucket.count += Number(row.count);
-  }
-  const distribution = [...buckets.values()];
-  return { sections, questions: questionCatalog, hasGender:questionCatalog.some(q=>q.sectionCode==='respondent'&&q.code==='gender'), hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
+  const distribution = sessionIds ? [] : await loadAnswerDistribution(surveyId);
+  return { sections, questions: questionCatalog.map(q=>({...q,options:parseJson(q.options)??[]})), hasGender:questionCatalog.some(q=>q.sectionCode==='respondent'&&q.code==='gender'), hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
 }
 
 export async function loadQuestionTimingSummary(surveyId: string) {
@@ -176,5 +161,36 @@ export async function loadQuestionTimingSummary(surveyId: string) {
 export async function loadDistributionMembers(surveyId:string,questionId:string,labels:string[]) {
   const [rows] = await db.query<any[]>(`SELECT a.session_id sessionId,a.value,q.options FROM answers a JOIN response_sessions rs ON rs.id=a.session_id JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id WHERE rs.survey_id=? AND s.survey_id=? AND q.id=? AND rs.deleted_at IS NULL`,[surveyId,surveyId,questionId]);
   const allowed=new Set(labels);
-  return [...new Set(rows.filter(row=>allowed.has(displayValue(parseJson(row.value),parseJson(row.options)??[]))).map(row=>String(row.sessionId)))];
+  return [...new Set(rows.filter(row=>{
+    const value=parseJson(row.value),options=parseJson(row.options)??[];
+    return (Array.isArray(value)?value:[value]).some(answer=>allowed.has(displayValue(answer,options)));
+  }).map(row=>String(row.sessionId)))];
+}
+
+// Aggregate only responses belonging to this survey and the requested sample.
+export async function loadAnswerDistribution(surveyId: string, sessionIds?: string[]) {
+  if (sessionIds?.length === 0) return [];
+  const restriction = sessionIds ? ` AND rs.id IN (${inList(sessionIds)})` : '';
+  const [distributionRows] = await db.query<any[]>(`SELECT q.id questionId,q.type,q.code,q.text,q.options,a.value,COUNT(*) count,s.position sectionPosition,q.position questionPosition
+    FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN response_sessions rs ON rs.id=a.session_id
+    WHERE rs.survey_id=? AND s.survey_id=? AND rs.deleted_at IS NULL${restriction} GROUP BY q.id,a.value ORDER BY s.position,q.position,q.id`, [surveyId,surveyId,...(sessionIds ?? [])]);
+  const buckets = new Map<string, any>();
+  for (const row of distributionRows) {
+    const stored = parseJson(row.value), options=parseJson(row.options)??[];
+    // A multiple-choice response contributes once to each selected option.
+    // Never split display labels: an option label may itself contain commas.
+    for (const value of new Map((Array.isArray(stored)?stored:[stored]).map(value=>[String(value),value])).values()) {
+      const label=displayValue(value,options),key=JSON.stringify([row.questionId,label]);
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = { questionId: row.questionId, type: row.type, code: row.code, text: row.text, value,
+          sectionPosition: row.sectionPosition, questionPosition: row.questionPosition,
+          count: 0, label };
+        buckets.set(key, bucket);
+      }
+      bucket.count += Number(row.count);
+    }
+  }
+
+  return [...buckets.values()];
 }
