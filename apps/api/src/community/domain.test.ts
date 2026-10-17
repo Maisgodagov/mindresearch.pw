@@ -213,14 +213,16 @@ describe("Community reward policy", () => {
         quality: { independent_concerning_domains: 1, strong_flag_count: 3 },
       }).status,
     ).toBe("credited"));
-  it("sends multiple independent signs and implausibly short sessions to review", () => {
-    expect(
-      rewardDecision({
-        ...input,
-        quality: { independent_concerning_domains: 2, strong_flag_count: 2 },
-      }).status,
-    ).toBe("review");
-    expect(rewardDecision({ ...input, seconds: 5 }).status).toBe("review");
+  it('ignores statistical quality and declared duration',()=>{
+    expect(rewardDecision({...input,seconds:5,quality:{independent_concerning_domains:2,strong_flag_count:2}}).status).toBe('credited');
+  });
+  it('rejects mass subsecond answers, not isolated quick answers',()=>{
+    expect(rewardDecision({...input,answerTimes:[999,999,999,2000,2000,2000,2000,2000,2000,2000]}).status).toBe('rejected');
+    expect(rewardDecision({...input,answerTimes:[999,999,2000]}).status).toBe('credited');
+    expect(rewardDecision({...input,answerTimes:Array(10).fill(1000)}).status).toBe('credited');
+    expect(rewardDecision({...input,answerTimes:[999,999,999,...Array(8).fill(2000)]}).status).toBe('credited');
+    expect(rewardDecision({...input,answerTimes:[null,null,null]}).status).toBe('credited');
+    expect(rewardDecision({...input,seconds:2,answerTimes:[null,null,null]}).status).toBe('rejected');
   });
   it.each([
     { duplicate: true },

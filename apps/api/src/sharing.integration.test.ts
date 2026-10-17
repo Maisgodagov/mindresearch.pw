@@ -23,6 +23,28 @@ describe.skipIf(!enabled)('Survey sharing and concurrent edits',()=>{
     sessionId=randomUUID();await db.execute("INSERT INTO response_sessions(id,survey_id,public_token,status) VALUES (?,?,?,'completed')",[sessionId,surveyId,randomUUID()]);
   },30000);
   afterAll(async()=>{child?.kill();if(db)await db.end();});
+  it('credits or rejects community participation in the completion request without waiting for quality jobs',async()=>{
+    await db.execute("UPDATE users SET role='admin' WHERE id=?",[regularAuthor]);
+    const profile={adultConfirmed:true,age:30,sex:'female',education:'higher',studying:'no',employment:'employed',marital:'married',children:0,childAges:[]};
+    for(const u of [owner,regularAuthor])expect((await request(u,'/community/profile','PUT',{data:profile,complete:true})).status).toBe(200);
+    await request(owner,'/community/me');
+    for(const fast of [false,true]){
+      const made=await request(owner,'/account/surveys','POST',{...payload,status:'active',sections:[{kind:'custom',title:'Questions',questions:Array.from({length:4},()=>({text:'Question?',type:'number',required:true}))}]});expect(made.status).toBe(201);
+      const listing=await request(owner,'/community/listings','POST',{surveyId:made.data.id,description:'Behavioral test survey',topic:'Test',minutes:5,criteria:{},quotas:[{id:'all',label:'All',target:10}],budget:1});expect(listing.status).toBe(201);
+      const joined=await request(regularAuthor,`/community/listings/${listing.data.id}/join`,'POST',{});expect(joined.status).toBe(200);
+      const [sessions]=await db.query<any[]>('SELECT id FROM response_sessions WHERE public_token=?',[joined.data.token]);const sid=sessions[0].id;
+      await db.execute('UPDATE response_sessions SET started_at=DATE_SUB(NOW(),INTERVAL 60 SECOND) WHERE id=?',[sid]);
+      const [questions]=await db.query<any[]>('SELECT q.id FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=?',[made.data.id]);
+      for(const q of questions){await db.execute('INSERT INTO answers(session_id,question_id,value) VALUES (?,?,?)',[sid,q.id,'1']);await db.execute('INSERT INTO question_timings(session_id,question_id,visit_id,active_ms) VALUES (?,?,?,?)',[sid,q.id,randomUUID(),fast?500:1500]);}
+      await db.execute("INSERT INTO quality_jobs(id,survey_id,kind,options,status) VALUES (?,?,'recompute',?,'running')",[randomUUID(),made.data.id,JSON.stringify({sessionId:sid})]);
+      const before=(await request(regularAuthor,'/community/me')).data.wallet.earned;
+      const done=await request(null,`/public/sessions/${joined.data.token}/complete`,'POST',{});expect(done.status).toBe(200);expect(done.data.community.status).toBe(fast?'rejected':'credited');
+      expect((await request(regularAuthor,'/community/me')).data.wallet.earned).toBe(before+(fast?0:1));
+      expect((await request(null,`/public/sessions/${joined.data.token}/complete`,'POST',{})).data.community.status).toBe(fast?'rejected':'credited');
+      expect((await request(regularAuthor,'/community/me')).data.wallet.earned).toBe(before+(fast?0:1));
+    }
+    await db.execute("UPDATE users SET role='researcher' WHERE id=?",[regularAuthor]);
+  });
   it('saves an avatar when the optional biography was never filled in',async()=>{
     await db.execute('UPDATE users SET bio=NULL WHERE id=?',[viewer]);
     const me=(await request(viewer,'/account/me')).data;

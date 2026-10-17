@@ -735,7 +735,7 @@ async function resolve(
 
 export async function settleCommunity(sessionId?: string) {
   const [pending] = await db.query<any[]>(
-    `SELECT p.id,p.listing_id FROM community_participations p LEFT JOIN response_sessions rs ON rs.id=p.session_id WHERE p.status IN ('reserved','pending') AND (? IS NULL OR p.session_id=?) AND (p.expires_at<NOW() OR rs.status='completed' AND (? IS NOT NULL OR rs.completed_at<=DATE_SUB(NOW(),INTERVAL 5 SECOND))) ORDER BY p.created_at LIMIT 100`,
+    `SELECT p.id,p.listing_id FROM community_participations p LEFT JOIN response_sessions rs ON rs.id=p.session_id WHERE (p.status IN ('reserved','pending') OR p.status='review' AND p.appeal IS NULL AND (p.reason LIKE 'Автоматическая проверка качества задержалась.%' OR p.reason LIKE 'Необычно короткое прохождение.%' OR p.reason LIKE 'Несколько независимых признаков%')) AND (? IS NULL OR p.session_id=?) AND (p.expires_at<NOW() OR rs.status='completed' AND (? IS NOT NULL OR rs.completed_at<=DATE_SUB(NOW(),INTERVAL 5 SECOND))) ORDER BY p.created_at LIMIT 100`,
     [sessionId ?? null, sessionId ?? null, sessionId ?? null],
   );
   for (const row of pending)
@@ -746,36 +746,12 @@ export async function settleCommunity(sessionId?: string) {
         [row.id],
       );
       const p = rows[0];
-      if (!p || !["reserved", "pending"].includes(p.status)) return;
+      if (!p || !["reserved", "pending", "review"].includes(p.status)) return;
       if (
         p.session_status === "completed" &&
         new Date(p.completed_at).getTime() <= new Date(p.expires_at).getTime()
       ) {
-        const [jobs] = await c.query<any[]>(
-          `SELECT status FROM quality_jobs WHERE survey_id=? AND kind='recompute' AND created_at>=? AND (JSON_EXTRACT(options,'$.sessionId') IS NULL OR JSON_UNQUOTE(JSON_EXTRACT(options,'$.sessionId'))=?) AND status IN ('queued','running','failed') ORDER BY created_at DESC LIMIT 1`,
-          [l.survey_id, p.created_at, p.session_id],
-        );
-        if (
-          jobs[0] &&
-          Date.now() - new Date(p.completed_at).getTime() < 15 * 60_000
-        ) {
-          await c.execute(
-            "UPDATE community_participations SET status='pending',reason='Ожидаем расчёт показателей качества.' WHERE id=?",
-            [p.id],
-          );
-          return;
-        }
-        if (jobs[0]) {
-          await c.execute(
-            "UPDATE community_participations SET status='review',reason='Автоматическая проверка качества задержалась. Требуется проверка администратора.' WHERE id=?",
-            [p.id],
-          );
-          return;
-        }
-        const [qualities] = await c.query<any[]>(
-          `SELECT r.result FROM quality_results r JOIN quality_result_heads h ON h.session_id=r.session_id AND h.algorithm_version=r.algorithm_version AND h.baseline_version=r.baseline_version AND h.input_hash=r.input_hash WHERE r.session_id=? ORDER BY r.calculated_at DESC LIMIT 1`,
-          [p.session_id],
-        );
+        const [answerTimes] = await c.query<any[]>(`SELECT a.question_id,SUM(t.active_ms) activeMs FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections sec ON sec.id=q.section_id LEFT JOIN question_timings t ON t.session_id=a.session_id AND t.question_id=a.question_id WHERE a.session_id=? AND sec.survey_id=? AND sec.code<>'respondent' GROUP BY a.question_id`,[p.session_id,l.survey_id]);
         const decision = rewardDecision({
           seconds: Number(p.seconds),
           minutes: json(p.snapshot).config.minutes,
@@ -783,14 +759,9 @@ export async function settleCommunity(sessionId?: string) {
           eligibility: p.eligibility,
           cohort: p.cohort,
           deleted: Boolean(p.deleted_at),
-          quality: qualities[0] ? json(qualities[0].result) : null,
+          answerTimes: answerTimes.map(row=>row.activeMs===null?null:Number(row.activeMs)),
         });
-        if (decision.status === "review")
-          await c.execute(
-            "UPDATE community_participations SET status='review',reason=? WHERE id=?",
-            [decision.reason, p.id],
-          );
-        else await resolve(c, l, p, decision.status, decision.reason);
+        await resolve(c, l, p, decision.status, decision.reason);
       } else if (new Date(p.expires_at).getTime() < Date.now())
         await resolve(
           c,

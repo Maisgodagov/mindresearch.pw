@@ -23,6 +23,11 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
   async function finish(token:string,seconds=300) {
     await db.execute("UPDATE response_sessions SET status='completed',started_at=DATE_SUB(NOW(),INTERVAL ? SECOND),completed_at=DATE_SUB(NOW(),INTERVAL 3 MINUTE) WHERE public_token=?",[seconds+180,token]);
   }
+  async function timingFixture(surveyId:string,token:string,times:number[]){
+    const section=randomUUID();await db.execute("INSERT INTO sections(id,survey_id,code,title,position) VALUES (?,?,?,'Timing',0)",[section,surveyId,section]);
+    const [sessions]=await db.query<any[]>('SELECT id FROM response_sessions WHERE public_token=?',[token]);
+    for(const [index,ms] of times.entries()){const q=randomUUID();await db.execute("INSERT INTO questions(id,section_id,code,text,type,position) VALUES (?,?,?,'Question','number',?)",[q,section,'q'+index,index]);await db.execute('INSERT INTO answers(session_id,question_id,value) VALUES (?,?,?)',[sessions[0].id,q,'1']);await db.execute('INSERT INTO question_timings(session_id,question_id,visit_id,active_ms) VALUES (?,?,?,?)',[sessions[0].id,q,randomUUID(),ms]);}
+  }
   beforeAll(async()=>{
     const url=new URL(enabled!);
     if(!/^\/mindresearch_community_test_[a-z0-9_]+$/.test(url.pathname)||!['127.0.0.1','localhost'].includes(url.hostname))throw new Error('Integration tests require an isolated localhost mindresearch_community_test_* database');
@@ -183,12 +188,11 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     const snapshot=typeof rows[0].snapshot==='string'?JSON.parse(rows[0].snapshot):rows[0].snapshot;expect(snapshot.profile.children).toBe(2);
   });
   it('requires independent review, records evidence and supports an appeal',async()=>{
-    const l=await create(),joined=await request(a,`/listings/${l.id}/join`,'POST',{});await finish(joined.data.token,5);await settle();
-    const [rows]=await db.query<any[]>('SELECT id,status FROM community_participations WHERE listing_id=?',[l.id]);const id=rows[0].id;expect(rows[0].status).toBe('review');
+    const l=await create(),joined=await request(a,`/listings/${l.id}/join`,'POST',{});await timingFixture(l.surveyId,joined.data.token,[100,200,300]);await finish(joined.data.token,5);await settle();
+    const [rows]=await db.query<any[]>('SELECT id,status FROM community_participations WHERE listing_id=?',[l.id]);const id=rows[0].id;expect(rows[0].status).toBe('rejected');
     expect((await request(author,`/reviews/${id}`)).status).toBe(403);
     expect((await request(a,`/reviews/${id}`,'POST',{approve:true,reason:'Не могу проверять собственное участие.'})).status).toBe(403);
     expect((await request(reviewer,`/reviews/${id}`)).data.seconds).toBe(5);
-    expect((await request(reviewer,`/reviews/${id}`,'POST',{approve:false,reason:'Время прохождения требует уточнения участника.'})).status).toBe(200);
     expect((await request(a,`/participations/${id}/appeal`,'POST',{text:'Прошу пересмотреть начисление за моё прохождение.'})).status).toBe(200);
     const before=(await request(a,'/me')).data.wallet.earned;
     expect((await request(reviewer,`/reviews/${id}`,'POST',{approve:true,reason:'Проверены обстоятельства, оснований для отказа нет.'})).status).toBe(200);
@@ -204,15 +208,27 @@ describe.skipIf(!enabled)('Community SQL integration', () => {
     expect((await request(author,`/listings/${l.id}`,'PATCH',{topup:10000})).status).toBe(409);
     expect((await request(author,'/me')).data.wallet.earned).toBe(before);
   });
-  it('waits for quality jobs and routes a stalled check to review instead of paying blindly',async()=>{
+  it('settles immediately despite running statistical quality jobs',async()=>{
     const l=await create(),joined=await request(a,`/listings/${l.id}/join`,'POST',{});await finish(joined.data.token);
     const [rows]=await db.query<any[]>('SELECT id,session_id FROM community_participations WHERE listing_id=?',[l.id]);const p=rows[0];
     await db.execute('INSERT INTO quality_jobs(id,survey_id,kind,options,status) VALUES (?,?,\'recompute\',?,\'running\')',[randomUUID(),l.surveyId,JSON.stringify({sessionId:p.session_id})]);
     await settle();
-    const [pending]=await db.query<any[]>('SELECT status FROM community_participations WHERE id=?',[p.id]);expect(pending[0].status).toBe('pending');
+    const [pending]=await db.query<any[]>('SELECT status FROM community_participations WHERE id=?',[p.id]);expect(pending[0].status).toBe('credited');
     await db.execute('UPDATE response_sessions SET completed_at=DATE_SUB(NOW(),INTERVAL 16 MINUTE),started_at=DATE_SUB(NOW(),INTERVAL 21 MINUTE) WHERE id=?',[p.session_id]);
     await settle();
-    const [review]=await db.query<any[]>('SELECT status FROM community_participations WHERE id=?',[p.id]);expect(review[0].status).toBe('review');
+    const [review]=await db.query<any[]>('SELECT status FROM community_participations WHERE id=?',[p.id]);expect(review[0].status).toBe('credited');
+  });
+  it('recovers previous automatic review delays and sums repeat question visits',async()=>{
+    const l=await create(),joined=await request(a,`/listings/${l.id}/join`,'POST',{});
+    await timingFixture(l.surveyId,joined.data.token,[500,500,500]);
+    const [rows]=await db.query<any[]>('SELECT id,session_id FROM community_participations WHERE listing_id=?',[l.id]);const p=rows[0];
+    const [timings]=await db.query<any[]>('SELECT question_id FROM question_timings WHERE session_id=?',[p.session_id]);
+    for(const t of timings)await db.execute('INSERT INTO question_timings(session_id,question_id,visit_id,active_ms) VALUES (?,?,?,600)',[p.session_id,t.question_id,randomUUID()]);
+    await finish(joined.data.token);
+    await db.execute("UPDATE community_participations SET status='review',reason='Автоматическая проверка качества задержалась. Требуется проверка администратора.' WHERE id=?",[p.id]);
+    await settle();await settle();
+    const [settled]=await db.query<any[]>('SELECT status FROM community_participations WHERE id=?',[p.id]);expect(settled[0].status).toBe('credited');
+    const [ledger]=await db.query<any[]>("SELECT COUNT(*) count FROM community_ledger WHERE user_id=? AND event_key=?",[a,`participation:${p.id}`]);expect(ledger[0].count).toBe(1);
   });
   it('marks community source in real result queries without disclosing the participant profile',async()=>{
     const {loadSurveyResults}=await import('../survey-results.js');

@@ -269,6 +269,7 @@ export function rewardDecision(input: {
   seconds: number;
   minutes: number;
   quality?: any;
+  answerTimes?: (number|null)[];
 }) {
   if (
     input.deleted ||
@@ -281,25 +282,11 @@ export function rewardDecision(input: {
       reason:
         "Прохождение исключено: тестовая группа, подтверждённый повтор или несоответствие условиям.",
     };
-  if (input.seconds < Math.max(10, input.minutes * 60 * 0.15))
-    return {
-      status: "review",
-      reason:
-        "Необычно короткое прохождение. Требуется дополнительная проверка.",
-    };
-  if (
-    input.quality?.independent_concerning_domains >= 2 &&
-    input.quality?.strong_flag_count >= 2
-  )
-    return {
-      status: "review",
-      reason:
-        "Несколько независимых признаков требуют дополнительной проверки качества.",
-    };
-  return {
-    status: "credited",
-    reason: input.quality
-      ? "Участие проверено."
-      : "Участие проверено. Статистический индекс пока недоступен; это не препятствует начислению.",
-  };
+  const times=input.answerTimes??[];
+  const fast=times.filter(ms=>ms!==null&&ms<1000).length;
+  if(fast>=3 && fast/Math.max(1,times.length)>=0.3)
+    return {status:'rejected',reason:`Прохождение не зачтено: ${fast} из ${times.length} ответов даны быстрее секунды.`};
+  if(times.length>=3 && Number.isFinite(input.seconds) && input.seconds>=0 && input.seconds<times.length)
+    return {status:'rejected',reason:'Прохождение не зачтено: в среднем на ответ затрачено меньше секунды.'};
+  return {status:'credited',reason:'Прохождение зачтено. Баллы начислены.'};
 }

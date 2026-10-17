@@ -46,6 +46,7 @@ export function SurveyPage() {
   const [saving, setSaving] = useState(false);
   const [offline, setOffline] = useState(false);
   const [done, setDone] = useState(false);
+  const [communityResult,setCommunityResult]=useState<{status:string;reward:number;reason:string}|null>(null);
   usePageTitle(survey?.title ? `${survey.title} — ${done?"результаты":"опрос"}` : undefined);
   const [transitioning, setTransitioning] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -178,7 +179,7 @@ export function SurveyPage() {
       }
     }
     if (index === survey.questions.length - 1) {
-      try { await api.post(`/public/sessions/${token}/complete`); }
+      try { const response=await api.post(`/public/sessions/${token}/complete`);setCommunityResult(response.data?.community??null); }
       catch { setOffline(true); questionTiming.resume(); return; }
       localStorage.removeItem(`survey_session_${slug}`);
       sessionStorage.setItem(`survey_result_${slug}`, token);
@@ -241,7 +242,7 @@ export function SurveyPage() {
         </Shell>
       </Page>
     );
-  if (done) return <>{new URLSearchParams(window.location.search).has("community") && <div style={{padding:"20px",textAlign:"center"}}><p>Спасибо за участие! Статус начисления появится после проверки.</p><a href="/app/community?tab=participation">Вернуться во взаимопомощь</a></div>}<ResultsPage token={token} /></>;
+  if (done) return <>{new URLSearchParams(window.location.search).has("community") && <div style={{padding:"20px",textAlign:"center"}}><p>{communityResult?.status==='credited'?'Баллы начислены: +'+communityResult.reward:communityResult?.reason??'Спасибо за участие! Результат начисления доступен в разделе «Моё участие». Участие проверяется автоматически.'}</p><a href="/app/community?tab=participation">Вернуться во взаимопомощь</a></div>}<ResultsPage token={token} /></>;
   if (!started)
     return (
       <Page>
