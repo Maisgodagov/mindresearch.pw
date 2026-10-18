@@ -8,7 +8,7 @@ import { SurveySharing } from '../../components/SurveySharing';
 import { getApiErrorMessage } from '../../utils/apiErrors';
 import { usePageTitle } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -23,7 +23,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { api, logout, useDemoFallbacks } from "../../api";
+import { api, getCurrentUser, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
 import { sectionKey, type ExportSelection } from "../../admin/resultsWorkbook";
@@ -54,7 +54,10 @@ import {
   ConfirmModal,
 } from "./styles";
 import { methodCodes, shortNames } from "./const";
+const StatisticsWorkspace = lazy(() => import('./components/StatisticsWorkspace'));
 export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: boolean; inspectionOwnerId?: string }) {
+  const [statisticsAllowed,setStatisticsAllowed]=useState(false),[statisticsOpen,setStatisticsOpen]=useState(false),[saveSampleOnOpen,setSaveSampleOnOpen]=useState(false);
+  useEffect(()=>{let active=true;void getCurrentUser().then(user=>{if(active)setStatisticsAllowed(['admin','owner'].includes(user.role))}).catch(()=>{});return()=>{active=false}},[]);
   const [access,setAccess]=useState<any>(null),[sharing,setSharing]=useState(false);
   const readOnly=!!inspectionOwnerId||!['owner','edit'].includes(access?.permission);
   const [loadError,setLoadError]=useState("");
@@ -419,6 +422,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
           <div className="title-actions">
+            {statisticsAllowed&&<Button type={statisticsOpen?'primary':'default'} onClick={()=>{setSaveSampleOnOpen(false);setStatisticsOpen(value=>!value)}}>Статистический анализ</Button>}
             {survey&&!inspectionOwnerId&&<Button onClick={()=>nav(`/app/surveys/${survey.id}/preview`)}>Посмотреть опрос</Button>}
             {survey&&<Button onClick={()=>void refreshResults().catch(()=>message.error('Не удалось обновить результаты'))}>Обновить результаты</Button>}
             {survey && <div className="participant-share" role="group" aria-label="Ссылка для участников">
@@ -439,7 +443,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           )}
           </div>
         </SurveyTitleRow>
-        <Grid>
+        {!statisticsOpen&&<Grid>
           <Stat>
             <Users />
             <div>
@@ -466,9 +470,12 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
               <span title="Число завершённых прохождений / число всех участников × 100%, с округлением до целого.">завершаемость</span>
             </div>
           </Stat>
-        </Grid>
+        </Grid>}
+        {statisticsOpen&&statisticsAllowed&&survey&&<Suspense fallback={<p role="status">Загружаем статистический анализ…</p>}><StatisticsWorkspace key={survey.id} surveyId={survey.id} conditions={sampleConditions} completedOnly={qualityView.status==='completed'} selectedIds={selectedRespondents.map(p=>p.id)} saveOnOpen={saveSampleOnOpen} onClose={()=>setStatisticsOpen(false)}/></Suspense>}
+        {!statisticsOpen&&<>
         <Panel className="respondents-panel" data-quality-respondents>
           <ResultsSelection view={qualityView} onSort={view=>{setQualityView(view);setPage(1);setSelected({});}} sortOptions={sortOptions} conditions={sampleConditions} onApply={applySample} onRemove={removeSampleCondition} onClear={clearSample} questions={sampleQuestions} distribution={allAnswerOptions} hasAge={sortOptions.some(option=>option.value==='age')} visible={visibleRespondents.length} total={result.respondents.length} busy={chartBusy}/>
+          {statisticsAllowed&&!readOnly&&<div style={{display:'flex',justifyContent:'flex-end',padding:'0 20px 16px'}}><Button onClick={()=>{setSaveSampleOnOpen(true);setStatisticsOpen(true)}}>Сохранить выборку · {visibleRespondents.length}</Button></div>}
 
 
           <RespondentResults
@@ -538,7 +545,6 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
           {pagination}
         </Panel>
         <Panel><QualityOverview people={result.respondents} qualities={qualities} />{survey && !readOnly && <QualityAdministration surveyId={survey.id} surveyVersion={result.version} selectedIds={selectedRespondents.map(p => p.id)} onUpdated={refreshResults} />}</Panel>
-        {sharing&&survey&&<SurveySharing surveyId={survey.id} onClose={()=>setSharing(false)}/>}
         <AnswerDistribution
           data={chart}
           options={questionOptions}
@@ -616,6 +622,8 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             </ConfirmModal>
           </ConfirmOverlay>
         )}
+        </>}
+        {sharing&&survey&&<SurveySharing surveyId={survey.id} onClose={()=>setSharing(false)}/>}
       </Wrap>
     </Page>
   );

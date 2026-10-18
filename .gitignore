@@ -5,3 +5,6 @@ dist/
 .DS_Store
 coverage/
 *.tsbuildinfo
+
+# Local statistical-engine bytecode
+__pycache__/

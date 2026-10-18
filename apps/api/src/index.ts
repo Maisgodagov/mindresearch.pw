@@ -1,4 +1,7 @@
 import { RESPONDENT_GENDER_OPTIONS } from './respondent.js';
+import { statisticsRouter } from './statistics/router.js';
+import { migrateStatistics } from './statistics/schema.js';
+import { resumeStatisticsJobs } from './statistics/service.js';
 import { adminManagementRouter } from './admin-management.js';
 import { sharingRouter, migrateSharing, lockSurveyWrite, bumpSurveyVersion } from './sharing.js';
 import { analyticsRouter } from './analytics.js';
@@ -27,6 +30,7 @@ const app=express();
 app.set('trust proxy',1);
 // Sample distributions accept up to 50,000 response IDs without changing other body limits.
 app.use('/api/admin/surveys/:id/results/distribution',express.json({limit:'2mb'}));
+app.use('/api/admin/surveys/:id/statistics',express.json({limit:'2mb'}));
 app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
 app.use('/api/auth',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
 app.use('/api/admin',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
@@ -36,6 +40,7 @@ app.use('/api',platformRouter);
 app.use('/api',qualityRouter);
 app.use('/api',communityRouter);
 app.use('/api',sharingRouter);
+app.use('/api',statisticsRouter);
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/public/surveys/:slug',async(req,res,next)=>{try{
@@ -157,4 +162,4 @@ for(const operation of ['trash','restore'])app.post(`/api/admin/surveys/:id/resu
 });
 app.get('/api/admin/sessions/:id',requireAuth,async(req:AuthRequest,res,next)=>{try{const [rows]=await db.query<any[]>(`SELECT q.code,q.text,q.options,a.value,a.answered_at AS answeredAt,s.title sectionTitle FROM answers a JOIN questions q ON q.id=a.question_id JOIN sections s ON s.id=q.section_id JOIN surveys sv ON sv.id=s.survey_id WHERE a.session_id=? AND sv.owner_id=? ORDER BY s.position,q.position`,[req.params.id,req.user!.id]);res.json(rows)}catch(e){next(e)}});
 app.use((err:any,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{console.error(err);if(err instanceof z.ZodError)return res.status(400).json({message:'Некорректные данные',issues:err.issues});if([400,403,404,409].includes(err.status))return res.status(err.status).json({message:err.message});res.status(500).json({message:'Внутренняя ошибка сервера'})});
-const port=Number(process.env.PORT??4000); migrate().then(migrateCommunity).then(migrateSharing).then(()=>{startCommunityWorker();void resumeQualityJobs();return app.listen(port,()=>console.log(`API http://localhost:${port}`))}).catch(e=>{console.error(e);process.exit(1)});
+const port=Number(process.env.PORT??4000); migrate().then(migrateCommunity).then(migrateSharing).then(migrateStatistics).then(()=>{startCommunityWorker();void resumeQualityJobs();void resumeStatisticsJobs();return app.listen(port,()=>console.log(`API http://localhost:${port}`))}).catch(e=>{console.error(e);process.exit(1)});

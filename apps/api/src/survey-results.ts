@@ -61,11 +61,11 @@ async function repairAssessments(surveyId: string, sessionIds?: string[]) {
   try { await repair; } finally { pendingRepairs.delete(key); }
 }
 
-export async function loadSurveyResults(surveyId: string, options: { summary?: boolean; sessionIds?: string[] } = {}) {
-  const { summary = false, sessionIds } = options;
+export async function loadSurveyResults(surveyId: string, options: { summary?: boolean; sessionIds?: string[]; statistics?: boolean } = {}) {
+  const { summary = false, sessionIds, statistics = false } = options;
   if (sessionIds?.length === 0) return { respondents: [], deletedRespondents: [], sections: [], distribution: [] };
   await repairAssessments(surveyId, sessionIds);
-  const restriction = sessionIds ? ` AND rs.id IN (${inList(sessionIds)})` : '';
+  const restriction = sessionIds ? ` AND rs.id IN (${inList(sessionIds)})` : statistics ? ' AND rs.deleted_at IS NULL' : '';
   const values = [surveyId, ...(sessionIds ?? [])];
   const [[sections], [sessions], [scoreRows], qualities, [questionCatalog]] = await Promise.all([
     db.query<any[]>(`SELECT id,code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`, [surveyId]),
@@ -84,7 +84,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
       i.code instrumentCode,ar.formula_version formulaVersion,ar.result${summary ? '' : ',ar.interpretation'}
       FROM assessment_results ar JOIN sections s ON s.id=ar.section_id LEFT JOIN instruments i ON i.id=s.source_instrument_id JOIN response_sessions rs ON rs.id=ar.session_id
       WHERE rs.survey_id=?${restriction} ORDER BY s.position`, values),
-    qualityEnabled() ? storedQualities(surveyId, { summary, sessionIds }) : Promise.resolve({} as Record<string, any>),
+    !statistics && qualityEnabled() ? storedQualities(surveyId, { summary, sessionIds }) : Promise.resolve({} as Record<string, any>),
     db.query<any[]>(`SELECT q.id questionId,q.code,q.text,q.type,q.options,s.code sectionCode,s.position sectionPosition,q.position questionPosition FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position,q.id`,[surveyId]),
   ]);
   const grouped = new Map<string, Map<string, any>>();
@@ -107,7 +107,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
       db.query<any[]>(`SELECT q.id questionId,q.code questionCode,q.text questionText,q.type,q.options,q.position questionPosition,
         s.id sectionId,s.code,s.title,s.position FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position`, [surveyId]),
       db.query<any[]>(`SELECT a.session_id sessionId,a.question_id questionId,a.value FROM answers a JOIN response_sessions rs ON rs.id=a.session_id WHERE rs.survey_id=? AND rs.id IN (${inList(ids)})`, [surveyId, ...ids]),
-      db.query<any[]>(`SELECT t.session_id sessionId,t.question_id questionId,SUM(t.active_ms) activeMs,COUNT(*) visits FROM question_timings t JOIN response_sessions rs ON rs.id=t.session_id WHERE rs.survey_id=? AND rs.id IN (${inList(ids)}) GROUP BY t.session_id,t.question_id`, [surveyId, ...ids]),
+      statistics ? Promise.resolve([[]] as [any[]]) : db.query<any[]>(`SELECT t.session_id sessionId,t.question_id questionId,SUM(t.active_ms) activeMs,COUNT(*) visits FROM question_timings t JOIN response_sessions rs ON rs.id=t.session_id WHERE rs.survey_id=? AND rs.id IN (${inList(ids)}) GROUP BY t.session_id,t.question_id`, [surveyId, ...ids]),
     ]);
     const questions = new Map(questionRows.map(row => [row.questionId, { ...row, options: parseJson(row.options) ?? [] }]));
     const timingByAnswer = new Map(timings.map(row => [`${row.sessionId}:${row.questionId}`, row]));
@@ -129,7 +129,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     groups: [...(grouped.get(session.id)?.values() ?? [])].sort((a, b) => a.position - b.position).map(group => ({ ...group, answers: group.answers.sort((a: any, b: any) => a.position - b.position) })),
     qualityV2: qualities[session.id] ?? null, detailsLoaded: !summary,
   }));
-  const distribution = sessionIds ? [] : await loadAnswerDistribution(surveyId);
+  const distribution = sessionIds || statistics ? [] : await loadAnswerDistribution(surveyId);
   return { sections, questions: questionCatalog.map(q=>({...q,options:parseJson(q.options)??[]})), hasGender:questionCatalog.some(q=>q.sectionCode==='respondent'&&q.code==='gender'), hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
 }
 
