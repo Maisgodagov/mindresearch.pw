@@ -93,7 +93,7 @@ describe('Wide survey results workbook', () => {
   });
 
   it('reads only finite score fields, never score limits or processing metadata', () => {
-    expect(resultMetrics({ answered: 12, min: 0, max: 50, score: 0, average: 2.5, reference: { mean: 10, sampleSize: 349 }, scales: { bad: { score: NaN } } })).toEqual([{ key: 'score', label: 'Суммарный балл', value: 0 }, { key: 'average', label: 'Средний балл', value: 2.5 }]);
+    expect(resultMetrics({ answered: 12, min: 0, max: 50, score: 0, average: 2.5, reference: { mean: 10, sampleSize: 349 }, scales: { bad: { score: NaN } } })).toEqual([{ key: 'score', label: 'Суммарный балл', value: 0 }, { key: 'average', label: 'Средний балл', value: 2.5, highlight: { color: RESULT_COLORS.low, explanation: 'Ниже среднего ориентира методики: 10.' } }]);
     expect(resultMetrics({ complete: false, score: 18 })).toEqual([]);
   });
 
@@ -102,7 +102,7 @@ describe('Wide survey results workbook', () => {
     const workbook = await createResultsWorkbook(sample, [section('test_1', 'MSPSS')]);
     const sheet = workbook.worksheets[0];
     const color = (address: string) => { const fill = sheet.getCell(address).fill; return fill?.type === 'pattern' ? fill.fgColor?.argb : undefined; };
-    expect(color('E3')).toBeUndefined();
+    expect(color('E3')).toBe(RESULT_COLORS.low);
     expect(color('E4')).toBe(RESULT_COLORS.medium);
     expect(color('E5')).toBe(RESULT_COLORS.medium);
     expect(color('E6')).toBe(RESULT_COLORS.high);
@@ -126,7 +126,7 @@ describe('Wide survey results workbook', () => {
     expect(sheet.getCell('E3').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.medium } });
     expect(sheet.getCell('F3').value).toBe(2);
     expect(sheet.getCell('F3').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.high } });
-    expect(sheet.getCell('G3').fill).not.toMatchObject({ type: 'pattern', pattern: 'solid' });
+    expect(sheet.getCell('G3').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.low } });
     expect(sheet.getCell('F3').note).toContain('1.8');
   });
 
@@ -136,6 +136,23 @@ describe('Wide survey results workbook', () => {
     const sccs = resultMetrics({ instrument: 'SCCS', average: 3.5, sum: 42, reference: { mean: 3.09 } });
     expect(sccs.every(metric => metric.highlight?.color === RESULT_COLORS.high)).toBe(true);
     expect(sccs.find(metric => metric.key === 'sum')?.highlight?.explanation).toContain('среднему баллу (3.5)');
+  });
+
+  it('distinguishes explicit normal classifications from average and preserves blue and green in XLSX', async () => {
+    const labels = ['low', 'below_average', 'Ниже среднего', 'Низкий уровень', 'normal', 'Норма', 'В пределах нормы', 'Нормальный уровень', 'average'];
+    const sample = labels.map((level, index) => ({ id: String(index), alias: 'Участник', groups: [group('test_1', { score: 2, level })] }));
+    const workbook = await createResultsWorkbook(sample, [section('test_1', 'Методика')]);
+    const { default: ExcelJS } = await import('exceljs');
+    const reopened = new ExcelJS.Workbook();
+    await reopened.xlsx.load(await workbook.xlsx.writeBuffer());
+    labels.forEach((label, index) => {
+      const cell = reopened.worksheets[0].getCell(index + 3, 5);
+      expect(cell.value).toBe(2);
+      expect(cell.fill).toMatchObject({ type: 'pattern', fgColor: { argb: index < 4 ? RESULT_COLORS.low : index < 8 ? RESULT_COLORS.normal : RESULT_COLORS.medium } });
+      expect(JSON.stringify(cell.note)).toContain(label);
+    });
+    expect(resultMetrics({ score: 2, elevated: false })[0].highlight).toBeUndefined();
+    expect(resultMetrics({ instrument: 'SCCS', average: 2, sum: 24, reference: { mean: 3.09 } }).every(metric => metric.highlight?.color === RESULT_COLORS.low)).toBe(true);
   });
 
   it('never invents norms from maxima, score names, averages or unrelated categories', async () => {

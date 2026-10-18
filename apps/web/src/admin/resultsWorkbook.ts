@@ -33,7 +33,7 @@ type Column = { key: string; label: string };
 const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
 const numeric = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
-export const RESULT_COLORS = { medium: 'FFFCE8CE', high: 'FFF8D9D7' } as const;
+export const RESULT_COLORS = { low: 'FFDCEAF7', normal: 'FFE2EFDA', medium: 'FFFCE8CE', high: 'FFF8D9D7' } as const;
 
 // Use saved interpretation, not a fraction of the scale maximum or this sample's mean.
 function metricHighlight(data: Record<string, unknown>, value: number, referenceMean: unknown = data.referenceMean): Highlight | undefined {
@@ -41,7 +41,8 @@ function metricHighlight(data: Record<string, unknown>, value: number, reference
     if (typeof classification !== 'string') continue;
     const level = classification.trim().toLowerCase();
     const label = typeof data.levelLabel === 'string' ? data.levelLabel : classification;
-    if (['low', 'below_average', 'below-average'].includes(level) || /^(низк|ниже среднего)/u.test(level)) return;
+    if (['low', 'very_low', 'below_average', 'below-average'].includes(level) || /^(низк|очень низк|ниже среднего)/u.test(level)) return { color: RESULT_COLORS.low, explanation: `Интерпретация методики: ${label}.` };
+    if (['normal', 'norm', 'within_norm', 'within_normal_range'].includes(level) || /^(норма$|нормальн|в пределах нормы|в норме$)/u.test(level)) return { color: RESULT_COLORS.normal, explanation: `Интерпретация методики: ${label}.` };
     if (['high', 'very_high', 'above_average', 'above-average', 'elevated'].includes(level) || /^(высок|повышенн|выше среднего)/u.test(level)) return { color: RESULT_COLORS.high, explanation: `Интерпретация методики: ${label}.` };
     if (['medium', 'moderate', 'average'].includes(level) || /^(средн|умеренн)/u.test(level)) return { color: RESULT_COLORS.medium, explanation: `Интерпретация методики: ${label}.` };
   }
@@ -49,6 +50,7 @@ function metricHighlight(data: Record<string, unknown>, value: number, reference
   if (numeric(referenceMean)) {
     if (value > referenceMean) return { color: RESULT_COLORS.high, explanation: `Выше среднего ориентира методики: ${referenceMean}.` };
     if (value === referenceMean) return { color: RESULT_COLORS.medium, explanation: `На уровне среднего ориентира методики: ${referenceMean}.` };
+    return { color: RESULT_COLORS.low, explanation: `Ниже среднего ориентира методики: ${referenceMean}.` };
   }
 }
 
@@ -116,7 +118,7 @@ export async function createResultsWorkbook(
   sheet.addRow(['№', 'Имя / псевдоним', 'Возраст', 'Пол']);
   sheet.addRow([]);
   for (let column = 1; column <= 4; column++) sheet.mergeCells(1, column, 2, column);
-  sheet.getCell('A1').note = 'Светло-оранжевый — средний уровень; светло-красный — высокий уровень или значение выше ориентира методики. Подсветка применяется только при наличии такой интерпретации. Высокое значение не обязательно означает неблагоприятный результат. Основание подсветки указано в примечании к выделенной ячейке.';
+  sheet.getCell('A1').note = 'Светло-синий — низкий уровень или ниже среднего; светло-зелёный — норма; светло-оранжевый — средний уровень; светло-красный — высокий уровень или значение выше ориентира методики. Подсветка применяется только при наличии такой интерпретации. Высокое значение не обязательно означает неблагоприятный результат. Основание подсветки указано в примечании к выделенной ячейке.';
   const boundaries: number[] = [];
   let column = 5;
   blocks.forEach((block, index) => {
