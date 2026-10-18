@@ -27,10 +27,30 @@ export type ExportSection = {
 export const sectionKey = (section: ExportSection) => section.id ?? section.code;
 export type ExportScope = 'selected' | 'filtered' | 'all';
 export type ExportSelection = { sectionKeys: string[]; scope: ExportScope };
-type Metric = { key: string; label: string; value: number };
+type Highlight = { color: string; explanation: string };
+type Metric = { key: string; label: string; value: number; highlight?: Highlight };
 type Column = { key: string; label: string };
 const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
 const numeric = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+
+export const RESULT_COLORS = { medium: 'FFFCE8CE', high: 'FFF8D9D7' } as const;
+
+// Use saved interpretation, not a fraction of the scale maximum or this sample's mean.
+function metricHighlight(data: Record<string, unknown>, value: number, referenceMean: unknown = data.referenceMean): Highlight | undefined {
+  for (const classification of [data.level, data.category, data.levelLabel]) {
+    if (typeof classification !== 'string') continue;
+    const level = classification.trim().toLowerCase();
+    const label = typeof data.levelLabel === 'string' ? data.levelLabel : classification;
+    if (['low', 'below_average', 'below-average'].includes(level) || /^(низк|ниже среднего)/u.test(level)) return;
+    if (['high', 'very_high', 'above_average', 'above-average', 'elevated'].includes(level) || /^(высок|повышенн|выше среднего)/u.test(level)) return { color: RESULT_COLORS.high, explanation: `Интерпретация методики: ${label}.` };
+    if (['medium', 'moderate', 'average'].includes(level) || /^(средн|умеренн)/u.test(level)) return { color: RESULT_COLORS.medium, explanation: `Интерпретация методики: ${label}.` };
+  }
+  if (data.elevated === true) return { color: RESULT_COLORS.high, explanation: numeric(referenceMean) ? `Выше нормативного ориентира методики: ${referenceMean}.` : 'Методика отмечает повышенное значение.' };
+  if (numeric(referenceMean)) {
+    if (value > referenceMean) return { color: RESULT_COLORS.high, explanation: `Выше среднего ориентира методики: ${referenceMean}.` };
+    if (value === referenceMean) return { color: RESULT_COLORS.medium, explanation: `На уровне среднего ориентира методики: ${referenceMean}.` };
+  }
+}
 
 /** Read saved scores, never question answers, thresholds or quality metadata. */
 export function resultMetrics(values: Record<string, unknown>): Metric[] {
@@ -41,7 +61,10 @@ export function resultMetrics(values: Record<string, unknown>): Metric[] {
     const data = record(raw);
     if (!data) return;
     const value = [data.score, data.average, data.sum, data.value].find(numeric);
-    if (value !== undefined) rows.push({ key, label: typeof data.label === 'string' ? data.label : fallback, value });
+    if (value !== undefined) {
+      const highlight = metricHighlight(data, value);
+      rows.push({ key, label: typeof data.label === 'string' ? data.label : fallback, value, ...(highlight ? { highlight } : {}) });
+    }
   };
   add(values.overall, 'overall', 'Общий показатель');
   for (const container of ['scales', 'domains', 'facets']) {
@@ -49,7 +72,14 @@ export function resultMetrics(values: Record<string, unknown>): Metric[] {
     if (collection) for (const [key, value] of Object.entries(collection)) add(value, `${container}.${key}`, key);
   }
   for (const [key, label] of [['score', 'Суммарный балл'], ['sum', 'Суммарный балл'], ['average', 'Средний балл']] as const) {
-    if (numeric(values[key])) rows.push({ key, label, value: values[key] });
+    if (numeric(values[key])) {
+      const reference = record(values.reference);
+      let highlight = values.instrument === 'SCCS' && numeric(values.average)
+        ? metricHighlight(values, values.average, reference?.mean)
+        : metricHighlight(values, values[key], key === 'average' ? reference?.mean ?? values.referenceMean : values.referenceMean);
+      if (highlight && values.instrument === 'SCCS' && key !== 'average') highlight = { ...highlight, explanation: `Сравнение по среднему баллу (${values.average}). ${highlight.explanation}` };
+      rows.push({ key, label, value: values[key], ...(highlight ? { highlight } : {}) });
+    }
   }
   return rows;
 }
@@ -86,6 +116,7 @@ export async function createResultsWorkbook(
   sheet.addRow(['№', 'Имя / псевдоним', 'Возраст', 'Пол']);
   sheet.addRow([]);
   for (let column = 1; column <= 4; column++) sheet.mergeCells(1, column, 2, column);
+  sheet.getCell('A1').note = 'Светло-оранжевый — средний уровень; светло-красный — высокий уровень или значение выше ориентира методики. Подсветка применяется только при наличии такой интерпретации. Высокое значение не обязательно означает неблагоприятный результат. Основание подсветки указано в примечании к выделенной ячейке.';
   const boundaries: number[] = [];
   let column = 5;
   blocks.forEach((block, index) => {
@@ -102,6 +133,7 @@ export async function createResultsWorkbook(
     boundaries.push(start);
   });
   people.forEach((person, index) => {
+    const highlights = new Map<number, Highlight>();
     const identity = person.groups.find(group => group.code === 'respondent');
     const demographic = (code: string) => identity?.answers.find(answer => answer.code === code);
     const rawAge = person.age ?? demographic('age')?.value ?? demographic('age')?.displayValue;
@@ -110,16 +142,28 @@ export async function createResultsWorkbook(
     for (const block of blocks) {
       const group = findGroup(person, block.section);
       const values = new Map<string, string | number>();
+      const metricHighlights = new Map<string, Highlight>();
       if (group) {
-        if (block.scored) for (const metric of resultMetrics(group.result?.values ?? {})) values.set(metric.key, metric.value);
+        if (block.scored) for (const metric of resultMetrics(group.result?.values ?? {})) {
+          values.set(metric.key, metric.value);
+          if (metric.highlight) metricHighlights.set(metric.key, metric.highlight);
+        }
         else for (const answer of group.answers) {
           const number = answer.type === 'number' && answer.value != null && String(answer.value).trim() !== '' ? Number(answer.value) : NaN;
           values.set(answerKey(answer), Number.isFinite(number) ? number : answer.displayValue);
         }
       }
-      for (const metric of block.columns) row.push(values.get(metric.key) ?? '');
+      for (const metric of block.columns) {
+        row.push(values.get(metric.key) ?? '');
+        const highlight = metricHighlights.get(metric.key);
+        if (highlight) highlights.set(row.length, highlight);
+      }
     }
-    sheet.addRow(row);
+    const added = sheet.addRow(row);
+    for (const [column, highlight] of highlights) {
+      added.getCell(column).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: highlight.color } };
+      added.getCell(column).note = highlight.explanation;
+    }
   });
   sheet.views = [{ state: 'frozen', xSplit: 4, ySplit: 2 }];
   sheet.autoFilter = { from: { row: 2, column: 1 }, to: { row: people.length + 2, column: columnCount } };

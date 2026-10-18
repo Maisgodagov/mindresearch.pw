@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createResultsWorkbook, resultMetrics, type ExportSection, type ResultsRespondent } from './resultsWorkbook';
+import { createResultsWorkbook, resultMetrics, RESULT_COLORS, type ExportSection, type ResultsRespondent } from './resultsWorkbook';
+import { scoreMspss } from '../../../api/src/scoring/mspss';
+import { scoreDebq } from '../../../api/src/scoring/debq';
 
 const section = (code: string, title: string, sectionKind = 'verified'): ExportSection => ({ id: code, code, title, sectionKind });
 const group = (code: string, values: Record<string, unknown> | null, answers: ResultsRespondent['groups'][number]['answers'] = []) => ({ id: code, code, title: code, result: values ? { values } : null, answers });
@@ -93,5 +95,55 @@ describe('Wide survey results workbook', () => {
   it('reads only finite score fields, never score limits or processing metadata', () => {
     expect(resultMetrics({ answered: 12, min: 0, max: 50, score: 0, average: 2.5, reference: { mean: 10, sampleSize: 349 }, scales: { bad: { score: NaN } } })).toEqual([{ key: 'score', label: 'Суммарный балл', value: 0 }, { key: 'average', label: 'Средний балл', value: 2.5 }]);
     expect(resultMetrics({ complete: false, score: 18 })).toEqual([]);
+  });
+
+  it('colors real MSPSS levels, including the inclusive medium boundaries, and preserves them in XLSX', async () => {
+    const sample = [2, 3, 5, 6].map((answer, index) => ({ id: String(index), alias: 'Участник', age: 28, groups: [group('test_1', scoreMspss(new Map(Array.from({ length: 12 }, (_, i) => [i + 1, answer]))) as unknown as Record<string, unknown>)] }));
+    const workbook = await createResultsWorkbook(sample, [section('test_1', 'MSPSS')]);
+    const sheet = workbook.worksheets[0];
+    const color = (address: string) => { const fill = sheet.getCell(address).fill; return fill?.type === 'pattern' ? fill.fgColor?.argb : undefined; };
+    expect(color('E3')).toBeUndefined();
+    expect(color('E4')).toBe(RESULT_COLORS.medium);
+    expect(color('E5')).toBe(RESULT_COLORS.medium);
+    expect(color('E6')).toBe(RESULT_COLORS.high);
+    expect(color('F6')).toBe(RESULT_COLORS.high);
+    expect(color('C6')).toBeUndefined(); // Age is never classified by methodology thresholds.
+    expect(sheet.getCell('E6').value).toBe(6);
+    const { default: ExcelJS } = await import('exceljs');
+    const reopened = new ExcelJS.Workbook();
+    await reopened.xlsx.load(await workbook.xlsx.writeBuffer());
+    expect(reopened.worksheets[0].getCell('E4').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.medium } });
+    expect(reopened.worksheets[0].getCell('E6').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.high } });
+    expect(JSON.stringify(reopened.worksheets[0].getCell('E6').note)).toContain('Высокая');
+  });
+
+  it('compares DEBQ with its own scale references, not a shared cutoff', async () => {
+    const answers = new Map(Array.from({ length: 33 }, (_, i) => [i + 1, i < 4 ? 3 : 2]));
+    const result = scoreDebq(answers)!;
+    const workbook = await createResultsWorkbook([{ id: 'a', alias: 'Участник', groups: [group('test_6', result as unknown as Record<string, unknown>)] }], [section('test_6', 'DEBQ')]);
+    const sheet = workbook.worksheets[0];
+    expect(sheet.getCell('E3').value).toBe(2.4);
+    expect(sheet.getCell('E3').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.medium } });
+    expect(sheet.getCell('F3').value).toBe(2);
+    expect(sheet.getCell('F3').fill).toMatchObject({ type: 'pattern', fgColor: { argb: RESULT_COLORS.high } });
+    expect(sheet.getCell('G3').fill).not.toMatchObject({ type: 'pattern', pattern: 'solid' });
+    expect(sheet.getCell('F3').note).toContain('1.8');
+  });
+
+  it('uses top-level average levels and compares SCCS totals through the correct mean-score scale', () => {
+    expect(resultMetrics({ score: 20, level: 'average', levelLabel: 'Средняя самооценка' })[0].highlight?.color).toBe(RESULT_COLORS.medium);
+    expect(resultMetrics({ score: 27, level: 'high' })[0].highlight?.color).toBe(RESULT_COLORS.high);
+    const sccs = resultMetrics({ instrument: 'SCCS', average: 3.5, sum: 42, reference: { mean: 3.09 } });
+    expect(sccs.every(metric => metric.highlight?.color === RESULT_COLORS.high)).toBe(true);
+    expect(sccs.find(metric => metric.key === 'sum')?.highlight?.explanation).toContain('среднему баллу (3.5)');
+  });
+
+  it('never invents norms from maxima, score names, averages or unrelated categories', async () => {
+    expect(resultMetrics({ score: 99, max: 100, average: 4.9 }).every(metric => !metric.highlight)).toBe(true);
+    expect(resultMetrics({ overall: { score: 20, category: 'Мотивация на успех' } })[0].highlight).toBeUndefined();
+    expect(resultMetrics({ scales: { a: { label: 'Средний балл', average: 4.9, max: 5 } } })[0].highlight).toBeUndefined();
+    const workbook = await createResultsWorkbook(people, [section('custom', 'Мой тест', 'custom'), section('missing', 'Нет результата')]);
+    expect(workbook.worksheets[0].getCell('F3').fill).not.toMatchObject({ type: 'pattern', pattern: 'solid' });
+    expect(workbook.worksheets[0].getCell('G3').fill).not.toMatchObject({ type: 'pattern', pattern: 'solid' });
   });
 });
