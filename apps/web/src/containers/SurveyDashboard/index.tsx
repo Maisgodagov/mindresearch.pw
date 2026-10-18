@@ -101,8 +101,9 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     if(key.startsWith('method:')) return methodSortValue(person,key)??undefined;
     return metricValue(qualities[person.id],key as MetricKey)??undefined;
   };
-  const sortColumns = useMemo(()=>[{id:'value',accessorFn:sortValue,sortUndefined:'last' as const,sortingFn:'auto' as const}], [qualityView.sort,qualities]);
-  const sortedTable = useReactTable({data:filteredRespondents,columns:sortColumns,getCoreRowModel:getCoreRowModel(),getSortedRowModel:getSortedRowModel(),autoResetPageIndex:false,state:{sorting:[{id:'value',desc:qualityView.sort==='newest'||(!['oldest','insufficient'].includes(qualityView.sort)&&qualityView.direction==='desc')}]}});
+  // TanStack caches accessor values by column ID; each sort field needs its own ID.
+  const sortColumns = useMemo(()=>[{id:qualityView.sort,accessorFn:sortValue,sortUndefined:'last' as const,sortingFn:'auto' as const}], [qualityView.sort,qualities]);
+  const sortedTable = useReactTable({data:filteredRespondents,columns:sortColumns,getCoreRowModel:getCoreRowModel(),getSortedRowModel:getSortedRowModel(),autoResetPageIndex:false,state:{sorting:[{id:qualityView.sort,desc:qualityView.sort==='newest'||(!['oldest','insufficient'].includes(qualityView.sort)&&qualityView.direction==='desc')}]}});
   const visibleRespondents = sortedTable.getRowModel().rows.map(row=>row.original);
   const currentPage = Math.min(page, Math.max(1, Math.ceil(visibleRespondents.length / pageSize)));
   const pageRespondents = useMemo(() => visibleRespondents.slice((currentPage - 1) * pageSize, currentPage * pageSize), [visibleRespondents, currentPage, pageSize]);
