@@ -1,217 +1,26 @@
-import type { Worksheet } from "exceljs";
 import { QUALITY_VERSION, type Quality } from "../containers/SurveyDashboard/quality";
+import { createResultsWorkbook, type ResultsRespondent, type ExportSection } from "./resultsWorkbook";
 
-type Answer = { code: string; question: string; displayValue: string; activeMs?: number | null; visits?: number | null };
-type Group = {
-  code: string;
-  title: string;
-  result: { values: Record<string, unknown> } | null;
-  answers: Answer[];
-};
-type ScoreRow = {
-  label?: string;
-  score?: unknown;
-  average?: unknown;
-  maxScore?: unknown;
-  max?: unknown;
-  levelLabel?: string;
-  interpretation?: string;
-  referenceMean?: unknown;
-  difference?: unknown;
-};
-type ExportScores = Record<string, unknown> & {
-  overall?: ScoreRow;
-  scales?: Record<string, ScoreRow>;
-  reference?: { zScore?: unknown };
-};
-export type ExportRespondent = {
+export type ExportRespondent = ResultsRespondent & {
   source?: "community" | "direct";
   qualityMetrics?: Quality;
   cohort?: string;
   eligibility?: string;
-  id: string;
-  alias: string;
-  age?: number | null;
-  status: string;
-  startedAt: string;
-  lastActivityAt: string;
-  completedAt: string | null;
-  answered: number;
-  groups: Group[];
 };
 
-const date = (input: string | null) =>
-  input ? new Date(input).toLocaleString("ru-RU") : "";
-const cellValue = (input: unknown) =>
-  typeof input === "number" ? input : typeof input === "string" ? input : "";
-
-function styleSheet(sheet: Worksheet, widths: number[]) {
-  sheet.views = [{ state: "frozen", ySplit: 1 }];
-  sheet.autoFilter = {
-    from: { row: 1, column: 1 },
-    to: { row: 1, column: sheet.columnCount },
-  };
-  sheet.getRow(1).eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF587462" },
-    };
-    cell.alignment = { vertical: "middle", wrapText: true };
-  });
-  sheet.getRow(1).height = 30;
-  widths.forEach((width, index) => {
-    sheet.getColumn(index + 1).width = width;
-  });
-  sheet.eachRow((row, rowNumber) => {
-    if (rowNumber > 1)
-      row.eachCell((cell) => {
-        cell.alignment = { vertical: "top", wrapText: true };
-      });
-  });
-}
-
-export async function exportRespondents(respondents: ExportRespondent[]) {
-  const { default: ExcelJS } = await import("exceljs");
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "mindresearch by Евгения Годагова";
-  workbook.created = new Date();
-
-  const summary = workbook.addWorksheet("Респонденты");
-  summary.addRow([
-    "Псевдоним",
-    "Возраст",
-    "Статус",
-    "Ответов",
-    "Начато",
-    "Последняя активность",
-    "Завершено",
-    "Источник",
-  ]);
-  respondents.forEach((person) =>
-    summary.addRow([
-      person.alias,
-      person.age ?? "",
-      person.status === "completed" ? "Завершена" : "В процессе",
-      person.answered,
-      date(person.startedAt),
-      date(person.lastActivityAt),
-      date(person.completedAt),
-      person.source === "community" ? "Взаимопомощь" : "Прямая ссылка",
-    ]),
-  );
-  styleSheet(summary, [24, 12, 16, 12, 21, 21, 21, 22]);
-
-  const quality = workbook.addWorksheet("Качество V2");
-  const rows = respondents.map(qualityExportRow);
-  quality.addRow(QUALITY_FIELDS);
-  rows.forEach(row=>quality.addRow(QUALITY_FIELDS.map(key=>row[key]??"")));
-  styleSheet(quality, QUALITY_FIELDS.map(key=>key==='quality_flags'?70:25));
-
-  const scores = workbook.addWorksheet("Результаты методик");
-  scores.addRow([
-    "Псевдоним",
-    "Методика",
-    "Показатель",
-    "Значение",
-    "Максимум",
-    "Уровень / интерпретация",
-    "Ориентир",
-    "Отклонение",
-  ]);
-  respondents.forEach((person) =>
-    person.groups
-      .filter((group) => group.result)
-      .forEach((group) => {
-        const values = group.result!.values as ExportScores;
-        if (values.overall)
-          scores.addRow([
-            person.alias,
-            group.title,
-            values.overall.label ?? "Общий показатель",
-            cellValue(values.overall.score ?? values.overall.average),
-            cellValue(values.overall.maxScore ?? values.overall.max),
-            values.overall.levelLabel ?? values.overall.interpretation ?? "",
-            cellValue(values.overall.referenceMean),
-            cellValue(values.overall.difference),
-          ]);
-        if (values.scales)
-          Object.values(values.scales).forEach((scale) =>
-            scores.addRow([
-              person.alias,
-              group.title,
-              scale.label,
-              cellValue(scale.score ?? scale.average),
-              cellValue(scale.maxScore ?? scale.max),
-              scale.levelLabel ?? scale.interpretation ?? "",
-              cellValue(scale.referenceMean),
-              cellValue(scale.difference),
-            ]),
-          );
-        if (group.code === "test_3") {
-          scores.addRow([
-            person.alias,
-            group.title,
-            "Средний балл",
-            cellValue(values.average),
-            cellValue(values.max),
-            "",
-            "",
-            cellValue(values.reference?.zScore),
-          ]);
-          scores.addRow([
-            person.alias,
-            group.title,
-            "Суммарный балл",
-            cellValue(values.sum),
-            60,
-            "",
-            "",
-            "",
-          ]);
-        }
-      }),
-  );
-  styleSheet(scores, [24, 30, 34, 14, 14, 28, 14, 14]);
-
-  const answers = workbook.addWorksheet("Все ответы");
-  answers.addRow([
-    "Псевдоним",
-    "Раздел / методика",
-    "Код вопроса",
-    "Вопрос",
-    "Ответ",
-    "Время на вопросе (сек)",
-    "Посещений вопроса",
-  ]);
-  respondents.forEach((person) =>
-    person.groups.forEach((group) =>
-      group.answers.forEach((answer) =>
-        answers.addRow([
-          person.alias,
-          group.title,
-          answer.code,
-          answer.question,
-          answer.displayValue,
-          answer.activeMs == null ? "" : answer.activeMs / 1000,
-          answer.visits ?? "",
-        ]),
-      ),
-    ),
-  );
-  styleSheet(answers, [24, 30, 18, 70, 35, 24, 22]);
-
+export async function exportRespondents(
+  respondents: ExportRespondent[],
+  sections: ExportSection[],
+  options: Parameters<typeof createResultsWorkbook>[2] = {},
+) {
+  const workbook = await createResultsWorkbook(respondents, sections, options);
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = `mindresearch-results-${new Date().toISOString().slice(0, 10)}.xlsx`;
   link.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export const QUALITY_FIELDS = ['session_id','alias','cohort','eligibility','confirmed_duplicate','required_answers_complete',

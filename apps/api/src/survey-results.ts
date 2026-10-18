@@ -68,7 +68,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
   const restriction = sessionIds ? ` AND rs.id IN (${inList(sessionIds)})` : '';
   const values = [surveyId, ...(sessionIds ?? [])];
   const [[sections], [sessions], [scoreRows], qualities, [questionCatalog]] = await Promise.all([
-    db.query<any[]>(`SELECT code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`, [surveyId]),
+    db.query<any[]>(`SELECT id,code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`, [surveyId]),
     db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at startedAt,rs.last_activity_at lastActivityAt,
       rs.completed_at completedAt,rs.deleted_at deletedAt,COUNT(a.id) answered,
       MAX(CASE WHEN s.code='respondent' AND q.code='alias' THEN CAST(a.value AS CHAR) END) aliasValue,

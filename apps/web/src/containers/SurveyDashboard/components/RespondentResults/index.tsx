@@ -137,7 +137,7 @@ export function RespondentResults({
             <Trash2 size={16} /> {copy.delete}
             {selectedCount ? ` (${selectedCount})` : ""}
           </Button>}
-          <Button className="bulk-action" disabled={!selectedCount || exporting} onClick={onExport}>
+          <Button className="bulk-action" disabled={!totalCount || exporting} onClick={onExport}>
             <Download size={16} />{" "}
             {exporting
               ? copy.preparing

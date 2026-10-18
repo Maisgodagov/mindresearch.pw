@@ -26,6 +26,8 @@ import {
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
+import { sectionKey, type ExportSelection } from "../../admin/resultsWorkbook";
+import { ResultsExportModal } from "./components/ResultsExportModal";
 import { QualityOverview, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
 import { DEFAULT_QUALITY_VIEW, metricValue, type MetricKey, type QualityView } from "./quality";
 import { demoSurveys } from "../../platform/demo";
@@ -112,6 +114,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     Record<string, boolean>
   >({});
   const [exporting, setExporting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [trashOpen, setTrashOpen] = useState(false);
   const [updatingTrash, setUpdatingTrash] = useState(false);
@@ -315,20 +318,32 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         </Wrap>
       </Page>
     );
-  const download = async () => {
+  const download = async (selection: ExportSelection) => {
+    const exportPeople = selection.scope === 'all' ? result.respondents : selection.scope === 'filtered' ? visibleRespondents : selectedRespondents;
+    const exportSections = resultSections.filter(section => selection.sectionKeys.includes(sectionKey(section))).map(section => ({
+      ...section,
+      questions: (result.questions ?? []).filter(question => question.sectionCode === section.code).map(question => ({ questionId: question.questionId, code: question.code, question: question.text })),
+    }));
+    if (!exportPeople.length || !exportSections.length) return;
+    const generation = resultGeneration.current;
     setExporting(true);
     try {
       const fullById = new Map<string,Respondent>();
-      const missing = selectedRespondents.filter(person=>person.detailsLoaded===false && !details[person.id]);
+      const missing = exportPeople.filter(person=>person.detailsLoaded===false && !details[person.id]);
       for(let start=0;start<missing.length;start+=100) {
         const response = await api.post(`/admin/surveys/${survey!.id}/results/details`, {sessionIds:missing.slice(start,start+100).map(person=>person.id)});
         for(const person of response.data as Respondent[]) fullById.set(person.id,person);
       }
-      await exportRespondents(selectedRespondents.map(person => {
+      if (generation !== resultGeneration.current) throw new Error("Survey changed during export");
+      await exportRespondents(exportPeople.map(person => {
         const full = fullById.get(person.id) ?? details[person.id] ?? person;
         if(full.detailsLoaded===false) throw new Error('Часть результатов недоступна');
-        return {...full,qualityMetrics:full.qualityV2??qualities[person.id]};
-      }));
+        return full;
+      }), exportSections, {
+        schemaPeople: result.respondents,
+        respondentNumbers: Object.fromEntries(result.respondents.map((person, index) => [person.id, index + 1])),
+      });
+      setExportOpen(false);
     } catch { message.error('Не удалось подготовить экспорт. Попробуйте ещё раз.');
     } finally {
       setExporting(false);
@@ -378,6 +393,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         embedded ? { minHeight: "auto", background: "transparent" } : undefined
       }
     >
+      {exportOpen && <ResultsExportModal sections={resultSections} selectedCount={selectedRespondents.length} filteredCount={visibleRespondents.length} totalCount={result.respondents.length} busy={exporting} onCancel={() => setExportOpen(false)} onExport={selection => void download(selection)} />}
       <Wrap $embedded={embedded}>
         {!embedded && (
           <Header>
@@ -493,7 +509,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             }}
             onToggleTrash={() => setTrashOpen((current) => !current)}
             onDeleteSelected={() => setConfirmTrash(true)}
-            onExport={download}
+            onExport={() => setExportOpen(true)}
             onRestore={restore}
             renderMethodHelp={group => methodologies[group.code] ? <Button className="method-help" onClick={()=>setActiveMethodology(methodologies[group.code])}><CircleHelp size={13}/>Как считается</Button> : null}
             renderMethodResult={(group) => <MethodScoreSummary group={group} />}
