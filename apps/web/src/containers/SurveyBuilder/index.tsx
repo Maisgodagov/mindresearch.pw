@@ -292,6 +292,8 @@ export function SurveyBuilder() {
         id: crypto.randomUUID(),
         kind: "library",
         instrumentId: i.id,
+        formGenders: i.formGenders,
+        formGender: "male",
         title: i.title,
         questionCount: i.questionCount,
         isVerified: i.isVerified,
@@ -351,10 +353,11 @@ export function SurveyBuilder() {
     try {
       const { data } = await api.get(
         `/account/instruments/${section.instrumentId}/questions`,
+        { params: { formGender: section.formGender ?? "male" } },
       );
       updateSection(section.id, (current) => ({
         ...current,
-        questions: data.questions,
+        questions: (current.formGender ?? "male") === (section.formGender ?? "male") ? data.questions : current.questions,
       }));
     } catch {
       setError("Не удалось загрузить вопросы методики.");
@@ -400,6 +403,7 @@ export function SurveyBuilder() {
             }));
           const { data } = await api.get(
             `/account/instruments/${section.instrumentId}/questions`,
+        { params: { formGender: section.formGender ?? "male" } },
           );
           return data.questions.map(
             (question: Omit<PreviewQuestion, "sectionTitle">) => ({
@@ -516,7 +520,7 @@ export function SurveyBuilder() {
       ...meta,
       sections: sections.map((s) =>
         s.kind === "library"
-          ? { kind: "library", instrumentId: s.instrumentId }
+          ? { kind: "library", instrumentId: s.instrumentId, formGender: s.formGender ?? "male" }
           : {
               kind: "custom",
               title: s.title,
@@ -722,6 +726,21 @@ export function SurveyBuilder() {
                               <Trash2 size={15} />
                             </Button>
                           </div>
+                          {section.kind === "library" && section.formGenders?.length && (
+                            <label className="form-gender-control">
+                              <span>Бланк методики</span>
+                              <Select
+                                aria-label={`Бланк методики «${section.title}»`}
+                                value={section.formGender ?? "male"}
+                                disabled={structureLocked}
+                                options={[{ value: "male", label: "Мужской бланк" }, { value: "female", label: "Женский бланк" }]}
+                                onChange={(value) => {
+                                  updateSection(section.id, current => ({ ...current, formGender: value as "male" | "female", questions: undefined }));
+                                  setOpen(current => ({ ...current, [section.id]: false }));
+                                }}
+                              />
+                            </label>
+                          )}
                           {section.kind === "library" && open[section.id] && (
                             <div className="library-questions">
                               <p className="library-note">

@@ -1,4 +1,5 @@
 export type Instrument = {
+  formGenders?: ('male' | 'female')[];
   id: string;
   code?: string;
   title: string;
@@ -32,6 +33,8 @@ export type Section = {
   id: string;
   kind: 'library' | 'custom';
   instrumentId?: string;
+  formGenders?: ('male' | 'female')[];
+  formGender?: 'male' | 'female';
   title: string;
   questionCount?: number;
   questions?: Question[];

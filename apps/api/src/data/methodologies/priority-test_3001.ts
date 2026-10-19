@@ -1,0 +1,174 @@
+import type { MethodologyRegistration } from '../methodologyRegistry.js';
+import { priorityQuestions } from '../instrumentForms.js';
+
+export const methodology: MethodologyRegistration = {
+  "instrument": {
+    "code": "test_3001",
+    "title": "Шкала аутентичности (A. Wood, S. Joseph), перевод А. Самариной (2016)",
+    "description": "Шкала из 12 пунктов оценивает верность собственным ценностям, самоотчуждение и принятие внешнего влияния. Русский перевод А. Самариной (2016); подходит для исследовательских опросов взрослых.",
+    "questions": priorityQuestions("test_3001")
+  },
+  "categoryIds": [
+    "self-awareness"
+  ],
+  "scoringConfig": {
+    "min": 1,
+    "max": 7,
+    "scales": [
+      {
+        "key": "authentic_living",
+        "label": "Аутентичная жизнь",
+        "items": [
+          1,
+          8,
+          9,
+          11
+        ],
+        "reverseItems": [],
+        "aggregation": "sum"
+      },
+      {
+        "key": "self_alienation",
+        "label": "Самоотчуждение",
+        "items": [
+          2,
+          7,
+          10,
+          12
+        ],
+        "reverseItems": [],
+        "aggregation": "sum"
+      },
+      {
+        "key": "external_influence",
+        "label": "Принятие внешнего влияния",
+        "items": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "reverseItems": [],
+        "aggregation": "sum"
+      },
+      {
+        "key": "total_authenticity",
+        "label": "Общая аутентичность",
+        "items": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "reverseItems": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          10,
+          12
+        ],
+        "aggregation": "sum"
+      }
+    ]
+  },
+  "validationCases": [
+    {
+      "title": "Ручной расчёт: все ответы 1",
+      "answers": {
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1
+      },
+      "expected": {
+        "authentic_living": 4,
+        "self_alienation": 4,
+        "external_influence": 4,
+        "total_authenticity": 60
+      }
+    },
+    {
+      "title": "Ручной расчёт: все ответы 7",
+      "answers": {
+        "1": 7,
+        "2": 7,
+        "3": 7,
+        "4": 7,
+        "5": 7,
+        "6": 7,
+        "7": 7,
+        "8": 7,
+        "9": 7,
+        "10": 7,
+        "11": 7,
+        "12": 7
+      },
+      "expected": {
+        "authentic_living": 28,
+        "self_alienation": 28,
+        "external_influence": 28,
+        "total_authenticity": 36
+      }
+    }
+  ],
+  "formulaVersion": "test_3001-reviewed-2026-10-19-v1",
+  "details": {
+    "author": "A. M. Wood, P. A. Linley, J. Maltby, M. Baliousis, S. Joseph",
+    "version": "test_3001-reviewed-2026-10-19-v1",
+    "summary": "Шкала из 12 пунктов оценивает верность собственным ценностям, самоотчуждение и принятие внешнего влияния. Русский перевод А. Самариной (2016); подходит для исследовательских опросов взрослых.",
+    "steps": [
+      "Суммируются баллы соответствующих пунктов с учётом обратного кодирования.",
+      "Чем выше аутентичная жизнь и общий балл, тем выше аутентичность. Высокие самоотчуждение и принятие внешнего влияния отражают большую выраженность этих затруднений."
+    ],
+    "keys": [
+      {
+        "label": "Аутентичная жизнь",
+        "value": "Пункты: 1, 8, 9, 11. Обратные: нет."
+      },
+      {
+        "label": "Самоотчуждение",
+        "value": "Пункты: 2, 7, 10, 12. Обратные: нет."
+      },
+      {
+        "label": "Принятие внешнего влияния",
+        "value": "Пункты: 3, 4, 5, 6. Обратные: нет."
+      },
+      {
+        "label": "Общая аутентичность",
+        "value": "Пункты: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12. Обратные: 2, 3, 4, 5, 6, 7, 10, 12."
+      }
+    ],
+    "notes": [
+      "Чем выше аутентичная жизнь и общий балл, тем выше аутентичность. Высокие самоотчуждение и принятие внешнего влияния отражают большую выраженность этих затруднений."
+    ],
+    "sources": [
+      {
+        "title": "Описание русской версии и библиография",
+        "url": "https://psytests.org/ident/aswood.html"
+      },
+      {
+        "title": "Источник структуры и ключа",
+        "url": "https://doi.org/10.1037/0022-0167.55.3.385"
+      }
+    ]
+  }
+};

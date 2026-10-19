@@ -557,6 +557,14 @@ export const Stack = styled.div`
   min-width: 0;
 `;
 export const SectionCard = styled.div<{ $dragging?: boolean }>`
+  .form-gender-control {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+    max-width: 320px;
+    font-size: 14px;
+  }
+
   width: 100%;
   min-width: 0;
   border: 1px solid #dce4da;
