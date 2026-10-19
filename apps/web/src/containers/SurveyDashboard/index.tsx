@@ -31,6 +31,7 @@ import { api, getCurrentUser, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
 import { sectionKey, type ExportSelection } from "../../admin/resultsWorkbook";
+import { ResultsAction } from './components/ResultsAction';
 import { ResultsExportModal } from "./components/ResultsExportModal";
 import { QualityOverview, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
 import { DEFAULT_QUALITY_VIEW, metricValue, type MetricKey, type QualityView } from "./quality";
@@ -426,9 +427,9 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
           <div className="title-actions">
-            {statisticsAllowed&&<Button type="text" aria-pressed={statisticsOpen} onClick={()=>{setSaveSampleOnOpen(false);setStatisticsOpen(value=>!value)}}><Calculator size={16}/>Статистический анализ</Button>}
-            {survey&&!inspectionOwnerId&&<Button type="text" onClick={()=>nav(`/app/surveys/${survey.id}/preview`)}><Eye size={16}/>Посмотреть опрос</Button>}
-            {survey&&<Button type="text" onClick={()=>void refreshResults().catch(()=>message.error('Не удалось обновить результаты'))}><RefreshCw size={16}/>Обновить результаты</Button>}
+            {statisticsAllowed&&<ResultsAction $emphasized aria-pressed={statisticsOpen} onClick={()=>{setSaveSampleOnOpen(false);setStatisticsOpen(value=>!value)}}><Calculator size={16}/>Статистический анализ</ResultsAction>}
+            {survey&&!inspectionOwnerId&&<ResultsAction onClick={()=>nav(`/app/surveys/${survey.id}/preview`)}><Eye size={16}/>Посмотреть опрос</ResultsAction>}
+            {survey&&<ResultsAction onClick={()=>void refreshResults().catch(()=>message.error('Не удалось обновить результаты'))}><RefreshCw size={16}/>Обновить результаты</ResultsAction>}
             {survey && <div className="participant-share" role="group" aria-label="Ссылка для участников">
               <div className="participant-address"><span className="share-label">Ссылка для участников</span><span className="participant-url" title={`${location.origin}/s/${survey.slug}`}>{location.origin}/s/{survey.slug}</span></div>
               <Button className="copy-participant-link" aria-label="Скопировать ссылку для участников" title="Скопировать ссылку для участников" onClick={async () => {
@@ -436,7 +437,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
                 catch { message.error("Не удалось скопировать ссылку. Её можно выделить вручную."); }
               }}><Copy size={16} /></Button>
             </div>}
-          {survey && access?.canManage&&<Button type="text" onClick={()=>setSharing(true)}><Users size={16}/>Совместный доступ</Button>}
+          {survey && access?.canManage&&<ResultsAction onClick={()=>setSharing(true)}><Users size={16}/>Совместный доступ</ResultsAction>}
           {survey && !readOnly && !location.pathname.startsWith("/admin") && (
             <Button
               className="edit-survey"
@@ -479,7 +480,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         {!statisticsOpen&&<>
         <Panel className="respondents-panel" data-quality-respondents>
           <ResultsSelection view={qualityView} onSort={view=>{setQualityView(view);setPage(1);setSelected({});}} sortOptions={sortOptions} conditions={sampleConditions} onApply={applySample} onRemove={removeSampleCondition} onClear={clearSample} questions={sampleQuestions} distribution={allAnswerOptions} hasAge={sortOptions.some(option=>option.value==='age')} visible={visibleRespondents.length} total={result.respondents.length} busy={chartBusy}/>
-          {statisticsAllowed&&!readOnly&&<div style={{display:'flex',justifyContent:'flex-end',padding:'0 20px 16px'}}><Button type="text" onClick={()=>{setSaveSampleOnOpen(true);setStatisticsOpen(true)}}><Save size={16}/>Сохранить выборку · {visibleRespondents.length}</Button></div>}
+          {statisticsAllowed&&!readOnly&&<div style={{display:'flex',justifyContent:'flex-end',padding:'0 20px 16px'}}><ResultsAction onClick={()=>{setSaveSampleOnOpen(true);setStatisticsOpen(true)}}><Save size={16}/>Сохранить выборку · {visibleRespondents.length}</ResultsAction></div>}
 
 
           <RespondentResults
