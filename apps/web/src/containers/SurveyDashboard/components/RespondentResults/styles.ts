@@ -4,7 +4,6 @@ import { Button } from "../../../../ui";
 export const TableWrap = styled.div`
   container-type:inline-size;
   overflow: auto;
-  max-height: 70vh;
   width: calc(100% + 38px);
   max-width: none;
   overscroll-behavior-x: contain;

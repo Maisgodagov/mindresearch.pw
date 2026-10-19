@@ -7,5 +7,6 @@ export const StyledButton = styled(AntButton)`
   padding-inline: 16px;
   font-weight: 650;
   box-shadow: none;
+  &&.ant-btn-text { border: 0 !important; }
   transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
 `;
