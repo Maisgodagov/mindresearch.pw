@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
+  Clock3,
+  FileText,
+  Pencil,
+  CheckCircle2,
+  Columns2,
   Calculator,
   Download,
   Plus,
@@ -9,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { api } from "../../../../api";
-import { Button } from "../../../../ui";
+import { ResultsAction as Button } from "../ResultsAction";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
 import type { SampleCondition } from "../../selection";
 import type { Analysis, Input, Model, Sample } from "./types";
@@ -343,23 +349,56 @@ export default function StatisticsWorkspace({
       ),
     ].join(" · ");
   return (
-    <Workspace aria-label="Статистический анализ">
+    <Workspace aria-label="Статистический анализ" data-view={tab}>
       <div className="workspace-head">
         <div>
-          <h2 ref={heading} tabIndex={-1}>
-            Статистический анализ
-          </h2>
+          <div className="workspace-title">
+            <h2 ref={heading} tabIndex={-1}>
+              Статистический анализ
+            </h2>
+            <span
+              className="pilot-status"
+              title="Доступен только admin и owner"
+            >
+              Закрытый пилот
+            </span>
+          </div>
           <p className="muted">
             Сохраните выборки, выберите показатели и проверьте расчёт до
             исходных значений.
           </p>
-          <span className="badge">Пилот · только admin и owner</span>
         </div>
         <Button onClick={onClose}>
           <ArrowLeft size={15} />К респондентам
         </Button>
       </div>
-      <nav className="tabs" aria-label="Разделы статистики" role="tablist">
+      <nav
+        className="tabs workspace-tabs"
+        aria-label="Разделы статистики"
+        role="tablist"
+        onKeyDown={(event) => {
+          const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+          if (!keys.includes(event.key)) return;
+          const buttons = Array.from(
+            event.currentTarget.querySelectorAll<HTMLButtonElement>(
+              "[role=tab]",
+            ),
+          );
+          const current = buttons.indexOf(event.target as HTMLButtonElement);
+          const next =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? buttons.length - 1
+                : (current +
+                    (event.key === "ArrowRight" ? 1 : -1) +
+                    buttons.length) %
+                  buttons.length;
+          event.preventDefault();
+          buttons[next]?.focus();
+          buttons[next]?.click();
+        }}
+      >
         {(
           [
             ["samples", "Выборки"],
@@ -376,6 +415,13 @@ export default function StatisticsWorkspace({
               setError("");
             }}
           >
+            {key === "samples" ? (
+              <Users size={16} aria-hidden="true" />
+            ) : key === "new" ? (
+              <Calculator size={16} aria-hidden="true" />
+            ) : (
+              <Clock3 size={16} aria-hidden="true" />
+            )}
             {label}
             {key === "samples" && model ? ` · ${model.samples.length}` : ""}
           </button>
@@ -511,7 +557,7 @@ export default function StatisticsWorkspace({
                     Для расчёта будут проверены пропуски каждого показателя.
                   </p>
                   <div className="actions">
-                    <Button type="primary" htmlType="submit" loading={busy}>
+                    <Button $emphasized htmlType="submit" loading={busy}>
                       <Save size={15} />
                       Сохранить выборку
                     </Button>
@@ -531,38 +577,48 @@ export default function StatisticsWorkspace({
                     условий.
                   </p>
                   {model.canWrite && (
-                    <Button
-                      type="primary"
-                      onClick={() => setSavingSample(true)}
-                    >
+                    <Button $emphasized onClick={() => setSavingSample(true)}>
                       Сохранить выборку
                     </Button>
                   )}
                 </div>
               )}
+              {model.samples.length > 0 && (
+                <div className="list-caption" aria-hidden="true">
+                  <span>Выборка и условия</span>
+                  <span>Состав</span>
+                  <span>Действия</span>
+                </div>
+              )}
               {model.samples.map((sample) => (
                 <div key={sample.id} className="sample-row">
-                  <div>
-                    <h3>
-                      {sample.name}{" "}
-                      <span className="muted">· v{sample.revision}</span>
-                    </h3>
-                    <p>
-                      {sample.members.length} участников ·{" "}
-                      {conditionDescription(sample)}
-                    </p>
-                    {sample.candidates.length > 0 && (
-                      <small>
-                        {sample.candidates.length} подходящих участников ещё не
-                        добавлены
-                      </small>
-                    )}
-                    {sample.unavailable.length > 0 && (
-                      <small>
-                        {sample.unavailable.length} участников недоступны для
-                        нового расчёта
-                      </small>
-                    )}
+                  <div className="sample-details">
+                    <span className="sample-symbol">
+                      <Users size={19} aria-hidden="true" />
+                    </span>
+                    <div>
+                      <h3>
+                        {sample.name}{" "}
+                        <span className="version">· v{sample.revision}</span>
+                      </h3>
+                      <p>{conditionDescription(sample)}</p>
+                      {sample.candidates.length > 0 && (
+                        <small>
+                          {sample.candidates.length} подходящих участников ещё
+                          не добавлены
+                        </small>
+                      )}
+                      {sample.unavailable.length > 0 && (
+                        <small>
+                          {sample.unavailable.length} участников недоступны для
+                          нового расчёта
+                        </small>
+                      )}
+                    </div>
+                  </div>
+                  <div className="sample-size">
+                    <strong>{sample.members.length}</strong>
+                    <span>участников</span>
                   </div>
                   <div className="actions">
                     <Button
@@ -579,10 +635,11 @@ export default function StatisticsWorkspace({
                         setSavingSample(false);
                       }}
                     >
+                      <Pencil size={14} />
                       Состав и название
                     </Button>
                     {model.canWrite && (
-                      <Button type="primary" onClick={() => start(sample)}>
+                      <Button $emphasized onClick={() => start(sample)}>
                         <Calculator size={15} />
                         Рассчитать
                       </Button>
@@ -689,7 +746,7 @@ export default function StatisticsWorkspace({
                   </div>
                   {model.canWrite && (
                     <Button
-                      type="primary"
+                      $emphasized
                       loading={busy}
                       disabled={!members.length || !sampleName.trim()}
                       onClick={() =>
@@ -749,7 +806,9 @@ export default function StatisticsWorkspace({
                         ))}
                       </select>
                     </label>
-                    <p className="notice">{selectedMethod?.description}</p>
+                    <p className="method-description">
+                      {selectedMethod?.description}
+                    </p>
                     {choices.map((choice, index) => (
                       <div className="input-group" key={index}>
                         <h3>
@@ -938,7 +997,7 @@ export default function StatisticsWorkspace({
                     </details>
                     <div className="actions" style={{ marginTop: 20 }}>
                       <Button
-                        type="primary"
+                        $emphasized
                         loading={busy}
                         disabled={
                           !model.canWrite ||
@@ -1002,7 +1061,7 @@ export default function StatisticsWorkspace({
                           </span>
                         </label>
                         <Button
-                          type="primary"
+                          $emphasized
                           loading={busy}
                           onClick={() =>
                             void perform(async () => {
@@ -1026,6 +1085,27 @@ export default function StatisticsWorkspace({
                 )}
               </div>
               <aside>
+                <div className="run-summary">
+                  <h3>Ваш расчёт</h3>
+                  <p>{selectedMethod?.label}</p>
+                  <dl>
+                    <div>
+                      <dt>Показатели</dt>
+                      <dd>
+                        {choices.filter((c) => c.variableId).length} из{" "}
+                        {choices.length}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Уровень значимости</dt>
+                      <dd>α = {alpha.replace(".", ",")}</dd>
+                    </div>
+                    <div>
+                      <dt>Гипотеза</dt>
+                      <dd>Двусторонняя</dd>
+                    </div>
+                  </dl>
+                </div>
                 <h3>Что будет сохранено</h3>
                 <p>
                   Состав выборок, точные значения, настройки, формулы и версия
@@ -1043,11 +1123,14 @@ export default function StatisticsWorkspace({
                     поправка.
                   </li>
                 </ul>
-                <p>
-                  Пилот: 13 методов, до 5000 участников опроса. Многомерные
-                  модели и статистическое сравнение эффектов добавим следующими
-                  этапами.
-                </p>
+                <details className="pilot-details">
+                  <summary>Возможности пилота</summary>
+                  <p>
+                    13 методов, до 5000 участников опроса. Многомерные модели и
+                    статистическое сравнение эффектов добавим следующими
+                    этапами.
+                  </p>
+                </details>
               </aside>
             </div>
           )}
@@ -1093,6 +1176,7 @@ export default function StatisticsWorkspace({
                       })
                     }
                   >
+                    <Columns2 size={15} />
                     Сопоставить ({compareIds.length})
                   </Button>
                 </div>
@@ -1434,7 +1518,7 @@ export default function StatisticsWorkspace({
                     выборки.
                   </p>
                   {model.canWrite && (
-                    <Button type="primary" onClick={() => start()}>
+                    <Button $emphasized onClick={() => start()}>
                       Новый расчёт
                     </Button>
                   )}
@@ -1458,7 +1542,10 @@ export default function StatisticsWorkspace({
                       )
                     }
                   />
-                  <div>
+                  <span className="history-symbol">
+                    <FileText size={19} aria-hidden="true" />
+                  </span>
+                  <div className="history-copy">
                     <button
                       className="text-button"
                       onClick={() => void openReport(a.id)}
@@ -1466,12 +1553,22 @@ export default function StatisticsWorkspace({
                       {a.name}
                     </button>
                     <div className="status">
-                      {statuses[a.status]} ·{" "}
                       {new Date(a.createdAt).toLocaleString("ru-RU")}
                     </div>
                     {a.error && <small>{a.error}</small>}
                   </div>
-                  <Button onClick={() => void openReport(a.id)}>Открыть</Button>
+                  <span className={`history-status ${a.status}`}>
+                    {a.status === "completed" ? (
+                      <CheckCircle2 size={14} aria-hidden="true" />
+                    ) : (
+                      <Clock3 size={14} aria-hidden="true" />
+                    )}
+                    {statuses[a.status]}
+                  </span>
+                  <Button onClick={() => void openReport(a.id)}>
+                    Открыть
+                    <ArrowRight size={14} />
+                  </Button>
                 </div>
               ))}
             </>
