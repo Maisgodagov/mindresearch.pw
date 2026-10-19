@@ -1,3 +1,4 @@
+import {AnchoredRating,isAnchoredRating} from "../AnchoredRating";
 import { BrandWordmark } from "../BrandWordmark";
 import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -131,6 +132,7 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
                 <div className="question">{question.text || "Текст вопроса"}</div>
                 {question.type === "multiple" && <MultipleHint>Можно выбрать несколько вариантов</MultipleHint>}
                 {(question.type === "single" || question.type === "multiple") && (
+              isAnchoredRating(question.type,question.options) ? <AnchoredRating options={question.options!} value={value} disabled={transitioning || answering.current} onChange={chooseSingle} /> : (
                   <TakingOptions>
                     {question.options.map((option) => {
                       const active = question.type === "multiple"
@@ -144,6 +146,7 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
                       );
                     })}
                   </TakingOptions>
+              )
                 )}
                 {(question.type === "text" || question.type === "number") && (
                   <TakingInput

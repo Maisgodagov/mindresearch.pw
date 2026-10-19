@@ -1,3 +1,4 @@
+import {AnchoredRating,isAnchoredRating} from "../../components/AnchoredRating";
 import { usePageTitle } from "../../pageTitle";
 import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -332,6 +333,7 @@ export function SurveyPage() {
               <MultipleHint>Можно выбрать несколько вариантов</MultipleHint>
             )}
             {(q.type === "single" || q.type === "multiple") && (
+              isAnchoredRating(q.type,q.options) ? <AnchoredRating options={q.options!} value={value} disabled={transitioning} onChange={value => chooseSingle(q,value)} /> : (
               <Options>
                 {q.options?.map((o) => {
                   const active =
@@ -368,6 +370,7 @@ export function SurveyPage() {
                   );
                 })}
               </Options>
+              )
             )}
             {(q.type === "text" || q.type === "number") && (
               <Input
