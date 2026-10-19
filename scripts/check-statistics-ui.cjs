@@ -486,11 +486,14 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       await page
         .getByRole("button", { name: "Статистический анализ", exact: true })
         .count(),
-      0,
+      1,
     );
+    await page.getByRole("button", { name: "Статистический анализ", exact: true }).click();
+    await page.getByRole("region", { name: "Статистический анализ" }).waitFor();
+    assert.equal(await page.getByText("Закрытый пилот", { exact: true }).count(), 0);
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: save 8 members, candidate selection, version 2, preview, descriptive/Pearson/PCA/matrix Python calculations, polling, formulas, extended XLSX tables, comparison, mobile, researcher hidden. Downloads:",
+      "PASS: save 8 members, candidate selection, version 2, preview, descriptive/Pearson/PCA/matrix Python calculations, polling, formulas, extended XLSX tables, comparison, mobile, researcher access. Downloads:",
       downloads,
     );
   } finally {

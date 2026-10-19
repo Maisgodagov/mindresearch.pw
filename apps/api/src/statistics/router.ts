@@ -3,7 +3,7 @@ import { z } from "zod";
 import { randomUUID, createHash } from "node:crypto";
 import { db } from "../db.js";
 import { requireAuth, type AuthRequest } from "../auth.js";
-import { canReadSurvey, isAdministrator } from "../admin-access.js";
+import { canReadSurvey } from "../admin-access.js";
 import { surveyAccess } from "../sharing.js";
 import { loadSurveyResults } from "../survey-results.js";
 import {
@@ -25,13 +25,7 @@ const handle =
   (req: AuthRequest, res: Response, next: NextFunction) => {
     void fn(req, res).catch(next);
   };
-statisticsRouter.use(base, requireAuth, (req: AuthRequest, res, next) => {
-  if (!isAdministrator(req))
-    return res.status(403).json({
-      message: "Статистический анализ пока доступен только admin и owner.",
-    });
-  next();
-});
+statisticsRouter.use(base, requireAuth);
 async function authorize(req: AuthRequest, write = false) {
   const id = String(req.params.id);
   if (!(await canReadSurvey(req, id))) fail("Опрос не найден.", 404);
@@ -51,7 +45,7 @@ async function data(surveyId: string) {
   );
   if (Number(counts[0].n) > 5000)
     fail(
-      "В пилоте статистика доступна для опросов до 5000 участников. Экспорт результатов доступен без этого ограничения.",
+      "Статистика доступна для опросов до 5000 участников. Экспорт результатов доступен без этого ограничения.",
     );
   const results = await loadSurveyResults(surveyId, { statistics: true });
   const people = results.respondents as Person[];
@@ -353,7 +347,7 @@ async function prepare(surveyId: string, raw: z.infer<typeof configSchema>) {
       fail("Ручное значение не относится к выбранной группе.");
     if (dataset.rows[member]?.[groups[index].variable.id] !== undefined)
       fail(
-        "В пилоте ручной ввод только дополняет пропуски, не заменяет сохранённые ответы.",
+        "Ручной ввод только дополняет пропуски, не заменяет сохранённые ответы.",
       );
   }
   const prepared = prepareInput(

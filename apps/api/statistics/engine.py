@@ -1,4 +1,4 @@
-"""Versioned JSON-in/JSON-out pilot engine. No user-supplied code is evaluated."""
+"""Versioned JSON-in/JSON-out engine. No user-supplied code is evaluated."""
 import json
 import math
 import sys
@@ -29,7 +29,7 @@ def calculate(request):
     if any(a.ndim != 1 or len(a) < 2 for a in arrays):
         raise ValueError('Нужно не менее двух пригодных наблюдений в каждой группе.')
     if sum(map(len, arrays)) > 20000:
-        raise ValueError('Пилот поддерживает не более 20 000 значений за один расчёт.')
+        raise ValueError('Поддерживается не более 20 000 значений за один расчёт.')
     summary = []
     for group, a in zip(groups, arrays):
         summary.append({'label': group['label'], 'n': len(a), 'mean': float(a.mean()),
@@ -133,7 +133,7 @@ def calculate(request):
                 out['ranks'] = [stats.rankdata(x).tolist(), stats.rankdata(y).tolist()]
                 out['steps'] = ['p рассчитан асимптотически scipy.stats.spearmanr; связанным значениям присвоены средние ранги.']
                 if len(x) < 500:
-                    out['warnings'].append('Для небольших выборок асимптотический p Спирмена может быть неточным. В пилоте перестановочный вариант пока не поддержан.')
+                    out['warnings'].append('Для небольших выборок асимптотический p Спирмена может быть неточным. Этот вариант использует асимптотический p.')
             else:
                 ties = len(set(x)) < len(x) or len(set(y)) < len(y)
                 algorithm = 'exact' if not ties and len(x)<=33 else 'asymptotic'
@@ -183,7 +183,7 @@ def calculate(request):
             r = stats.kruskal(*arrays)
             out.update(statistic=float(r.statistic), statisticLabel='H', p=float(r.pvalue), df=len(arrays)-1)
             out['formula'] = 'H = [12 / (N(N+1)) · Σ(Rⱼ²/nⱼ) − 3(N+1)] / C_ties'
-            out['steps'] = ['Средние ранги по объединённым значениям; поправка на связанные ранги.', 'p — асимптотическое χ² с k−1 степенями свободы; post-hoc в пилоте не выполняется.']
+            out['steps'] = ['Средние ранги по объединённым значениям; поправка на связанные ранги.', 'p — асимптотическое χ² с k−1 степенями свободы; для post-hoc выберите отдельный метод попарных сравнений.']
             if min(map(len,arrays)) < 5:
                 out['warnings'].append('В группе меньше пяти наблюдений: асимптотическое приближение может быть неточным.')
         elif method == 'anova':
@@ -193,7 +193,7 @@ def calculate(request):
             grand=float(np.concatenate(arrays).mean()); ssb=sum(len(a)*(a.mean()-grand)**2 for a in arrays); ssw=sum(((a-a.mean())**2).sum() for a in arrays)
             out.update(effect=float(ssb/(ssb+ssw)), effectLabel='η²')
             out['steps'] = [f'Общее среднее = {grand}; SS_between = {float(ssb)}; SS_within = {float(ssw)}', 'Классический независимый однофакторный ANOVA; предполагаются независимость, подходящая модель остатков и равенство дисперсий.']
-            out['warnings'].append('Проверьте допущения ANOVA. Post-hoc и автоматическая диагностика остатков в пилоте не выполняются.')
+            out['warnings'].append('Проверьте допущения ANOVA. Post-hoc выполняется отдельным методом попарных сравнений; автоматическая диагностика остатков здесь не выполняется.')
         else:
             from extended import calculate_extended
             calculate_extended(request, arrays, out)

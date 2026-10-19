@@ -75,7 +75,7 @@ export const methods: StatisticsMethod[] = [
     id: "spearman",
     label: "Корреляция Спирмена",
     kind: "paired",
-    description: "Монотонная ранговая связь; в пилоте p асимптотический.",
+    description: "Монотонная ранговая связь; p асимптотический.",
   },
   {
     id: "kendall",
@@ -363,7 +363,7 @@ export function prepareInput(
     );
   if (source.reduce((n, g) => n + g.included.length, 0) > 20000)
     fail(
-      "Пилот поддерживает до 20 000 значений за один расчёт. Уменьшите число групп.",
+      "Поддерживается до 20 000 значений за один расчёт. Уменьшите число групп.",
     );
   return source;
 }

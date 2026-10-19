@@ -28,7 +28,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { api, getCurrentUser, logout, useDemoFallbacks } from "../../api";
+import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
 import { sectionKey, type ExportSelection } from "../../admin/resultsWorkbook";
@@ -62,8 +62,7 @@ import {
 import { methodCodes, shortNames } from "./const";
 const StatisticsWorkspace = lazy(() => import('./components/StatisticsWorkspace'));
 export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: boolean; inspectionOwnerId?: string }) {
-  const [statisticsAllowed,setStatisticsAllowed]=useState(false),[statisticsOpen,setStatisticsOpen]=useState(false),[saveSampleOpen,setSaveSampleOpen]=useState(false);
-  useEffect(()=>{let active=true;void getCurrentUser().then(user=>{if(active)setStatisticsAllowed(['admin','owner'].includes(user.role))}).catch(()=>{});return()=>{active=false}},[]);
+  const [statisticsOpen,setStatisticsOpen]=useState(false),[saveSampleOpen,setSaveSampleOpen]=useState(false);
   const [access,setAccess]=useState<any>(null),[sharing,setSharing]=useState(false);
   const readOnly=!!inspectionOwnerId||!['owner','edit'].includes(access?.permission);
   const [loadError,setLoadError]=useState("");
@@ -429,7 +428,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         <SurveyTitleRow>
           <h1>{survey?.title ?? "Исследование"}</h1>
           <div className="title-actions">
-            {statisticsAllowed&&<ResultsAction $emphasized aria-pressed={statisticsOpen} onClick={()=>{setStatisticsOpen(value=>!value)}}><Calculator size={16}/>Статистический анализ</ResultsAction>}
+            <ResultsAction $emphasized aria-pressed={statisticsOpen} onClick={()=>{setStatisticsOpen(value=>!value)}}><Calculator size={16}/>Статистический анализ</ResultsAction>
             {survey&&!inspectionOwnerId&&<ResultsAction onClick={()=>nav(`/app/surveys/${survey.id}/preview`)}><Eye size={16}/>Посмотреть опрос</ResultsAction>}
             {survey&&<ResultsAction onClick={()=>void refreshResults().catch(()=>message.error('Не удалось обновить результаты'))}><RefreshCw size={16}/>Обновить результаты</ResultsAction>}
             {survey && <div className="participant-share" role="group" aria-label="Ссылка для участников">
@@ -478,10 +477,10 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             </div>
           </Stat>
         </Grid>}
-        {statisticsOpen&&statisticsAllowed&&survey&&<Suspense fallback={<SkeletonScreen variant="table" heading={false} label="Загрузка статистического анализа" />}><StatisticsWorkspace key={survey.id} surveyId={survey.id} onClose={()=>setStatisticsOpen(false)}/></Suspense>}
+        {statisticsOpen&&survey&&<Suspense fallback={<SkeletonScreen variant="table" heading={false} label="Загрузка статистического анализа" />}><StatisticsWorkspace key={survey.id} surveyId={survey.id} onClose={()=>setStatisticsOpen(false)}/></Suspense>}
         {!statisticsOpen&&<>
         <Panel className="respondents-panel" data-quality-respondents>
-          <ResultsSelection view={qualityView} onSort={view=>{setQualityView(view);setPage(1);setSelected({});}} sortOptions={sortOptions} conditions={sampleConditions} onApply={applySample} onRemove={removeSampleCondition} onClear={clearSample} questions={sampleQuestions} distribution={allAnswerOptions} hasAge={sortOptions.some(option=>option.value==='age')} visible={visibleRespondents.length} total={result.respondents.length} busy={chartBusy} saveAction={statisticsAllowed&&!readOnly ? <ResultsAction onClick={()=>{setSaveSampleOpen(true)}}><Save size={16}/>Сохранить выборку · {selectedRespondents.length || visibleRespondents.length}</ResultsAction> : undefined}/>
+          <ResultsSelection view={qualityView} onSort={view=>{setQualityView(view);setPage(1);setSelected({});}} sortOptions={sortOptions} conditions={sampleConditions} onApply={applySample} onRemove={removeSampleCondition} onClear={clearSample} questions={sampleQuestions} distribution={allAnswerOptions} hasAge={sortOptions.some(option=>option.value==='age')} visible={visibleRespondents.length} total={result.respondents.length} busy={chartBusy} saveAction={!readOnly ? <ResultsAction onClick={()=>{setSaveSampleOpen(true)}}><Save size={16}/>Сохранить выборку · {selectedRespondents.length || visibleRespondents.length}</ResultsAction> : undefined}/>
 
 
 

@@ -123,21 +123,32 @@ const request = (path = "", method = "GET", body?: unknown, auth = true) =>
     body: body && method !== "GET" ? JSON.stringify(body) : undefined,
   });
 
-it("denies anonymous and researcher roles at every statistics endpoint, using current database role rather than JWT role", async () => {
-  expect((await request("", "GET", undefined, false)).status).toBe(401);
-  role = "researcher";
+it("requires authentication at every statistics endpoint", async () => {
   for (const [path, method] of [
-    ["", "GET"],
-    ["/samples", "POST"],
-    [`/samples/${ids.sample}`, "PUT"],
-    ["/preview", "POST"],
-    ["/analyses", "POST"],
-    ["/analyses", "GET"],
-    [`/analyses/${ids.analysis}`, "GET"],
-    [`/analyses/${ids.analysis}`, "DELETE"],
-  ])
-    expect((await request(path, method, {})).status).toBe(403);
+    ["", "GET"], ["/samples", "POST"], [`/samples/${ids.sample}`, "PUT"], ["/preview", "POST"],
+    ["/analyses", "POST"], ["/analyses", "GET"], [`/analyses/${ids.analysis}`, "GET"], [`/analyses/${ids.analysis}`, "DELETE"],
+  ]) expect((await request(path, method, {}, false)).status).toBe(401);
   expect(mocks.results).not.toHaveBeenCalled();
+});
+it("permits researchers to read and calculate in owned and editable surveys, but enforces survey access", async () => {
+  role = "researcher";
+  expect((await request()).status).toBe(200);
+  permission = "edit";
+  expect((await request("/samples", "POST", { name: "Researcher sample", conditions: [], completedOnly: true, source: "filtered" })).status).toBe(201);
+  expect((await request(`/analyses/${ids.analysis}`, "DELETE")).status).toBe(204);
+  const config = { method: "descriptive", alpha: .05, groups: [{ sampleId: ids.sample, revision: 1, variableId: "age" }] };
+  const previewResponse = await request("/preview", "POST", config);
+  expect(previewResponse.status).toBe(200);
+  const preview = await previewResponse.json() as any;
+  expect((await request("/analyses", "POST", { ...config, requestId: ids.analysis, previewHash: preview.hash })).status).toBe(202);
+  permission = "view";
+  expect((await request()).status).toBe(200);
+  for (const [path, method] of [["/samples", "POST"], [`/samples/${ids.sample}`, "PUT"], ["/preview", "POST"], ["/analyses", "POST"], [`/analyses/${ids.analysis}`, "DELETE"]])
+    expect((await request(path, method, {})).status).toBe(403);
+  const original = mocks.query.getMockImplementation()!;
+  mocks.query.mockImplementation(async (sql: string, args: any[]) => sql.includes("SELECT id FROM surveys WHERE") ? [[]] : original(sql, args));
+  expect((await request()).status).toBe(404);
+  expect((await request("/preview", "POST", config)).status).toBe(404);
 });
 it("permits owner/admin reads and denies inspection-only mutations", async () => {
   expect((await request()).status).toBe(200);

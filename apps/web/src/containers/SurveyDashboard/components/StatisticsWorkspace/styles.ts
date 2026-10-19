@@ -497,21 +497,6 @@ export const Workspace = styled.section`
     font-size: 13px;
     color: var(--muted);
   }
-  .pilot-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--muted);
-  }
-  .pilot-status::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    background: #8ba47e;
-    border-radius: 50%;
-  }
   .workspace-tabs {
     padding: 9px 24px;
     background: #f8faf6;

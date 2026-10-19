@@ -376,12 +376,6 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
             <h2 ref={heading} tabIndex={-1}>
               Статистический анализ
             </h2>
-            <span
-              className="pilot-status"
-              title="Доступен только admin и owner"
-            >
-              Закрытый пилот
-            </span>
           </div>
           <p className="muted">
             Сохраните выборки, выберите показатели и проверьте расчёт до
