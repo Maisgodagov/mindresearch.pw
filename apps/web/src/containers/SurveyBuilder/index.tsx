@@ -292,6 +292,9 @@ export function SurveyBuilder() {
         id: crypto.randomUUID(),
         kind: "library",
         instrumentId: i.id,
+        formGenders: i.formGenders,
+        formGender: i.formGenders?.length ? "auto" : "male",
+        formFallback: "male",
         title: i.title,
         questionCount: i.questionCount,
         isVerified: i.isVerified,
@@ -351,10 +354,11 @@ export function SurveyBuilder() {
     try {
       const { data } = await api.get(
         `/account/instruments/${section.instrumentId}/questions`,
+        { params: { formGender: section.formGender ?? "male", formFallback: section.formFallback ?? "male" } },
       );
       updateSection(section.id, (current) => ({
         ...current,
-        questions: data.questions,
+        questions: (current.formGender ?? "male") === (section.formGender ?? "male") && (current.formFallback ?? "male") === (section.formFallback ?? "male") ? data.questions : current.questions,
       }));
     } catch {
       setError("Не удалось загрузить вопросы методики.");
@@ -400,6 +404,7 @@ export function SurveyBuilder() {
             }));
           const { data } = await api.get(
             `/account/instruments/${section.instrumentId}/questions`,
+        { params: { formGender: section.formGender ?? "male", formFallback: section.formFallback ?? "male" } },
           );
           return data.questions.map(
             (question: Omit<PreviewQuestion, "sectionTitle">) => ({
@@ -516,7 +521,7 @@ export function SurveyBuilder() {
       ...meta,
       sections: sections.map((s) =>
         s.kind === "library"
-          ? { kind: "library", instrumentId: s.instrumentId }
+          ? { kind: "library", instrumentId: s.instrumentId, formGender: s.formGender ?? "male", formFallback: s.formFallback ?? "male" }
           : {
               kind: "custom",
               title: s.title,
@@ -722,6 +727,34 @@ export function SurveyBuilder() {
                               <Trash2 size={15} />
                             </Button>
                           </div>
+                          {section.kind === "library" && section.formGenders?.length && (
+                            <div className="form-gender-control">
+                              <span className="form-gender-label">Бланк методики</span>
+                              <div className="form-gender-options" role="radiogroup" aria-label={`Бланк методики «${section.title}»`}>
+                                {([{ value: "auto", label: "По полу" }, { value: "male", label: "Мужской" }, { value: "female", label: "Женский" }] as const).map(form => (
+                                  <label key={form.value}>
+                                    <input
+                                      type="radio"
+                                      name={`form-gender-${section.id}`}
+                                      aria-label={form.value === "auto" ? "По полу респондента" : `${form.label} бланк`}
+                                      value={form.value}
+                                      checked={(section.formGender ?? "male") === form.value}
+                                      disabled={structureLocked}
+                                      onChange={() => {
+                                        updateSection(section.id, current => ({ ...current, formGender: form.value, questions: undefined }));
+                                        setOpen(current => ({ ...current, [section.id]: false }));
+                                      }}
+                                    />
+                                    <span>{form.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                              {section.formGender === "auto" && <button type="button" className="form-fallback" disabled={structureLocked} onClick={() => {
+                                updateSection(section.id, current => ({ ...current, formFallback: current.formFallback === "female" ? "male" : "female", questions: undefined }));
+                                setOpen(current => ({ ...current, [section.id]: false }));
+                              }}>Если пол не указан: <u>{section.formFallback === "female" ? "женский" : "мужской"}</u></button>}
+                            </div>
+                          )}
                           {section.kind === "library" && open[section.id] && (
                             <div className="library-questions">
                               <p className="library-note">

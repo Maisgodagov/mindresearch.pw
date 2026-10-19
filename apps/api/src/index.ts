@@ -1,3 +1,4 @@
+import {withPriorityNorms} from './scoring/priorityNorms.js';
 import { RESPONDENT_GENDER_OPTIONS } from './respondent.js';
 import { statisticsRouter } from './statistics/router.js';
 import { migrateStatistics } from './statistics/schema.js';
@@ -108,7 +109,7 @@ app.get('/api/public/sessions/:token/results',async(req,res,next)=>{try{
   const[rows]=await db.query<any[]>(`SELECT s.code,s.title,i.code instrumentCode,ar.formula_version formulaVersion,ar.result FROM assessment_results ar JOIN sections s ON s.id=ar.section_id LEFT JOIN instruments i ON i.id=s.source_instrument_id WHERE ar.session_id=? ORDER BY s.position`,[sessions[0].id]);
   const parse=(value:unknown)=>typeof value==='string'?JSON.parse(value):value;
   const settings=parse(sessions[0].settings)??{},presentation=settings.resultPresentation??{showResults:true,title:'Спасибо за ваши ответы',text:'',showScores:true};
-  const results=presentation.showResults!==false&&presentation.showScores!==false?rows.filter(row=>!withdrawnMethodologyCodes.has(String(row.instrumentCode??row.code))).map(row=>({code:row.code,title:row.title,formulaVersion:row.formulaVersion,values:parse(row.result)})):[];
+  const results=presentation.showResults!==false&&presentation.showScores!==false?rows.filter(row=>!withdrawnMethodologyCodes.has(String(row.instrumentCode??row.code))).map(row=>({code:row.code,title:row.title,formulaVersion:row.formulaVersion,values:withPriorityNorms(String(row.instrumentCode??row.code),parse(row.result))})):[];
   const[configuredRows]=await db.query<any[]>(`SELECT DISTINCT s.code,s.title,i.methodology FROM assessment_results ar JOIN sections s ON s.id=ar.section_id JOIN instruments i ON i.id=s.source_instrument_id WHERE ar.session_id=? AND i.methodology IS NOT NULL`,[sessions[0].id]);
   const configuredMethodologies=configuredRows.map(row=>{const metadata=parse(row.methodology)??{};return {...(methodologies[row.code]??{}),...metadata,code:row.code,title:row.title}});
   const sourceEntries:[string,any][]=[...rows.map((row:any):[string,any]=>[row.code,methodologies[row.code]]),...configuredMethodologies.map((item:any):[string,any]=>[item.code,item])];

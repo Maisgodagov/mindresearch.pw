@@ -126,7 +126,7 @@ export const WorkspaceBar = styled.div`
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 36px;
+    min-height: 32px;
     padding: 8px 12px;
     border: 0;
     border-radius: 10px;
@@ -557,6 +557,74 @@ export const Stack = styled.div`
   min-width: 0;
 `;
 export const SectionCard = styled.div<{ $dragging?: boolean }>`
+  .form-gender-control {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 0 14px 8px 50px;
+  }
+  .form-gender-label {
+    color: #526257;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .form-gender-options {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    background: #f0f4ed;
+  }
+  .form-gender-options label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 72px;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 7px;
+    color: #526257;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .form-gender-options label { box-sizing: border-box; }
+  .form-gender-options label > span { display: block; line-height: 20px; }
+  .form-fallback { border: 0; background: transparent; padding: 0; color: #526257; font: inherit; font-size: 11px; cursor: pointer; text-align: left; }
+  .form-fallback:focus-visible { outline: 2px solid #527a50; outline-offset: 3px; }
+  .form-gender-options input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .form-gender-options label:has(input:checked) {
+    background: #fff;
+    color: #2d5135;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgb(35 58 39 / 10%);
+  }
+  .form-gender-options label:has(input:focus-visible) {
+    outline: 2px solid #527a50;
+    outline-offset: 2px;
+  }
+  .form-gender-options label:has(input:hover:not(:disabled):not(:checked)) {
+    background: #e5eddf;
+  }
+  .form-gender-options:has(input:disabled) { opacity: 0.6; }
+  .form-gender-options input:disabled { cursor: not-allowed; }
+  @media (max-width: 600px) {
+    .form-gender-control { padding-left: 14px; }
+    .form-gender-options label { min-height: 40px; }
+  }
+
+
   width: 100%;
   min-width: 0;
   border: 1px solid #dce4da;
@@ -853,7 +921,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 36px;
+    min-height: 32px;
     padding: 7px 10px;
     border: 0 !important;
     border-radius: 8px;
@@ -1086,7 +1154,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     align-items: center;
     gap: 6px;
     justify-self: start;
-    min-height: 36px;
+    min-height: 32px;
     border: 0 !important;
     border-radius: 8px;
     background: #f5f8f3;

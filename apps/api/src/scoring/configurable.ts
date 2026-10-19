@@ -5,6 +5,7 @@ export type ConfigurableScale = {
   reverseItems: number[];
   /** Added after aggregation, independently of item weights. */
   offset?: number;
+  interpretation?: string;
 } & (
   | { aggregation: 'sum' | 'mean'; weights?: Record<number, number>; itemScores?: Record<number, Record<string, number>>; optionValue?: never }
   | { aggregation: 'count-option'; optionValue: string; weights?: never }

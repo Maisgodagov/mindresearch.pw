@@ -1,3 +1,5 @@
+import {respondentForm} from "../../utils/respondentForm";
+import {AnchoredRating,isAnchoredRating} from "../../components/AnchoredRating";
 import { usePageTitle } from "../../pageTitle";
 import { surveyDurationLabel } from "../../surveyDuration";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -199,7 +201,9 @@ export function SurveyPage() {
     }
     setIndex((i) => i - 1);
   }
-  const q = survey?.questions[index],
+  const genderIndex=survey?.questions.findIndex(question=>question.sectionCode==='respondent'&&question.code==='gender')??-1;
+  const sourceQuestion=survey?.questions[index];
+  const q = sourceQuestion?respondentForm(sourceQuestion,answers[String(genderIndex)]):undefined,
     value = q ? answers[String(index)] : undefined;
   const valid = useMemo(
     () =>
@@ -332,6 +336,7 @@ export function SurveyPage() {
               <MultipleHint>Можно выбрать несколько вариантов</MultipleHint>
             )}
             {(q.type === "single" || q.type === "multiple") && (
+              isAnchoredRating(q.type,q.options) ? <AnchoredRating options={q.options!} value={value} disabled={transitioning} onChange={value => chooseSingle(q,value)} /> : (
               <Options>
                 {q.options?.map((o) => {
                   const active =
@@ -368,6 +373,7 @@ export function SurveyPage() {
                   );
                 })}
               </Options>
+              )
             )}
             {(q.type === "text" || q.type === "number") && (
               <Input
