@@ -30,6 +30,7 @@ export function SuggestInstrument() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
     setSaving(true);
     setError("");
     try {
@@ -167,7 +168,7 @@ export function SuggestInstrument() {
               </div>
             </div>
             {error && <p className="error">{error}</p>}
-            <Button disabled={saving}>
+            <Button htmlType="submit" disabled={saving} loading={saving}>
               {saving ? "Отправляем…" : "Отправить запрос"} <Send size={16} />
             </Button>
           </form>
