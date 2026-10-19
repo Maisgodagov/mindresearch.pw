@@ -1,3 +1,4 @@
+import {resolveInstrumentForm} from './data/instrumentForms.js';
 import {withPriorityNorms} from './scoring/priorityNorms.js';
 import { RESPONDENT_GENDER_OPTIONS } from './respondent.js';
 import { db } from './db.js';
@@ -105,20 +106,22 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
   if (!summary && sessions.length) {
     const ids = sessions.map(row => row.id);
     const [[questionRows], [answerRows], [timings]] = await Promise.all([
-      db.query<any[]>(`SELECT q.id questionId,q.code questionCode,q.text questionText,q.type,q.options,q.position questionPosition,
+      db.query<any[]>(`SELECT q.id questionId,q.code questionCode,q.text questionText,q.type,q.options,q.validation,q.position questionPosition,
         s.id sectionId,s.code,s.title,s.position FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position`, [surveyId]),
       db.query<any[]>(`SELECT a.session_id sessionId,a.question_id questionId,a.value FROM answers a JOIN response_sessions rs ON rs.id=a.session_id WHERE rs.survey_id=? AND rs.id IN (${inList(ids)})`, [surveyId, ...ids]),
       statistics ? Promise.resolve([[]] as [any[]]) : db.query<any[]>(`SELECT t.session_id sessionId,t.question_id questionId,SUM(t.active_ms) activeMs,COUNT(*) visits FROM question_timings t JOIN response_sessions rs ON rs.id=t.session_id WHERE rs.survey_id=? AND rs.id IN (${inList(ids)}) GROUP BY t.session_id,t.question_id`, [surveyId, ...ids]),
     ]);
     const questions = new Map(questionRows.map(row => [row.questionId, { ...row, options: parseJson(row.options) ?? [] }]));
     const timingByAnswer = new Map(timings.map(row => [`${row.sessionId}:${row.questionId}`, row]));
+    const genders=new Map(sessions.map(session=>[session.id,parseJson(session.genderValue)]));
     for (const answer of answerRows) {
       const question = questions.get(answer.questionId);
       if (!question) continue;
       const timing = timingByAnswer.get(`${answer.sessionId}:${answer.questionId}`), value = parseJson(answer.value);
+      const form=resolveInstrumentForm({text:question.questionText,options:question.options,validation:parseJson(question.validation)},genders.get(answer.sessionId));
       groupFor(answer.sessionId, question).answers.push({ questionId: question.questionId, code: question.questionCode,
-        question: question.questionText, type: question.type, position: question.questionPosition, options: question.options,
-        value, displayValue: displayValue(value, question.options), activeMs: timing ? Number(timing.activeMs) : null, visits: timing ? Number(timing.visits) : null });
+        question: form.text, type: question.type, position: question.questionPosition, options: form.options,
+        value, displayValue: displayValue(value, form.options), activeMs: timing ? Number(timing.activeMs) : null, visits: timing ? Number(timing.visits) : null });
     }
   }
   const respondents = sessions.map(({ aliasValue, ageValue, genderValue, ...session }) => ({ ...session,

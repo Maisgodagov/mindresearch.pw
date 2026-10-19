@@ -34,7 +34,8 @@ export type Section = {
   kind: 'library' | 'custom';
   instrumentId?: string;
   formGenders?: ('male' | 'female')[];
-  formGender?: 'male' | 'female';
+  formGender?: 'male' | 'female' | 'auto';
+  formFallback?: 'male' | 'female';
   title: string;
   questionCount?: number;
   questions?: Question[];

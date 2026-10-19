@@ -1,3 +1,4 @@
+import {respondentForm} from "../../utils/respondentForm";
 import {AnchoredRating,isAnchoredRating} from "../../components/AnchoredRating";
 import { usePageTitle } from "../../pageTitle";
 import { surveyDurationLabel } from "../../surveyDuration";
@@ -200,7 +201,9 @@ export function SurveyPage() {
     }
     setIndex((i) => i - 1);
   }
-  const q = survey?.questions[index],
+  const genderIndex=survey?.questions.findIndex(question=>question.sectionCode==='respondent'&&question.code==='gender')??-1;
+  const sourceQuestion=survey?.questions[index];
+  const q = sourceQuestion?respondentForm(sourceQuestion,answers[String(genderIndex)]):undefined,
     value = q ? answers[String(index)] : undefined;
   const valid = useMemo(
     () =>

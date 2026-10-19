@@ -126,7 +126,7 @@ export const WorkspaceBar = styled.div`
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 36px;
+    min-height: 32px;
     padding: 8px 12px;
     border: 0;
     border-radius: 10px;
@@ -562,7 +562,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     align-items: center;
     flex-wrap: wrap;
     gap: 8px 16px;
-    padding: 0 14px 14px 50px;
+    padding: 0 14px 8px 50px;
   }
   .form-gender-label {
     color: #526257;
@@ -572,6 +572,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
   }
   .form-gender-options {
     display: inline-flex;
+    align-items: center;
     gap: 4px;
     padding: 4px;
     border-radius: 10px;
@@ -581,8 +582,8 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     position: relative;
     display: grid;
     place-items: center;
-    min-width: 96px;
-    min-height: 36px;
+    min-width: 72px;
+    min-height: 32px;
     padding: 0 12px;
     border-radius: 7px;
     color: #526257;
@@ -590,6 +591,10 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     font-weight: 500;
     line-height: 1.5;
   }
+  .form-gender-options label { box-sizing: border-box; }
+  .form-gender-options label > span { display: block; line-height: 20px; }
+  .form-fallback { border: 0; background: transparent; padding: 0; color: #526257; font: inherit; font-size: 11px; cursor: pointer; text-align: left; }
+  .form-fallback:focus-visible { outline: 2px solid #527a50; outline-offset: 3px; }
   .form-gender-options input {
     position: absolute;
     inset: 0;
@@ -916,7 +921,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 36px;
+    min-height: 32px;
     padding: 7px 10px;
     border: 0 !important;
     border-radius: 8px;
@@ -1149,7 +1154,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     align-items: center;
     gap: 6px;
     justify-self: start;
-    min-height: 36px;
+    min-height: 32px;
     border: 0 !important;
     border-radius: 8px;
     background: #f5f8f3;

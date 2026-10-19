@@ -1,12 +1,19 @@
 import texts from './priorityFormTexts.json' with { type: 'json' };
 import type { SeedQuestion } from '../types.js';
-export type FormGender = 'male' | 'female';
-export const formGenders: FormGender[] = ['male', 'female'];
+export type FormGender = 'male' | 'female' | 'auto';
+export const formGenders: FormGender[] = ['auto', 'male', 'female'];
 export function supportsFormGender(code: string): boolean { return Object.hasOwn(texts, code); }
-export function applyInstrumentForm<T extends {text:string; options?: {value:string;label:string}[]; validation?: Record<string,unknown>|null}>(code:string, questions:T[], gender:FormGender):T[] {
+export function applyInstrumentForm<T extends {text:string; options?: {value:string;label:string}[]; validation?: Record<string,unknown>|null}>(code:string, questions:T[], gender:FormGender, fallback: 'male' | 'female' = 'male'):T[] {
   if (!supportsFormGender(code)) {
-    if (gender === 'female') throw Object.assign(new Error('Для этой методики выбор бланка недоступен'), {status:400});
+    if (gender !== 'male') throw Object.assign(new Error('Для этой методики выбор бланка недоступен'), {status:400});
     return questions;
+  }
+  if(gender==='auto'){
+    const male=applyInstrumentForm(code,questions,'male'),female=applyInstrumentForm(code,questions,'female');
+    const base=fallback==='female'?female:male;
+    return base.map((q,index)=>({...q,validation:{...q.validation,formGender:'auto',formFallback:fallback,
+      formVariants:{male:{text:male[index].text,options:male[index].options},female:{text:female[index].text,options:female[index].options}},
+    }}));
   }
   const form = texts[code as keyof typeof texts][gender];
   if (form.items.length !== questions.length) throw new Error(`Question count does not match form: ${code}`);
@@ -21,4 +28,12 @@ export function priorityQuestions(code:keyof typeof texts):SeedQuestion[] {
   return form.items.map((text,index)=>({code:`${code}_${index+1}`,text,type:'single',required:true,
     options:form.labels.map((label,i)=>({value:code==='test_3002' ? String(1-i) : String(i+1),label})),
   }));
+}
+
+export function resolveInstrumentForm<T extends {text:string;options?:unknown;validation?:unknown}>(question:T,gender:unknown):T {
+ const validation=question.validation as {formGender?:string;formFallback?:string;formVariants?:Record<string,{text:string;options?:unknown}>}|undefined;
+ if(validation?.formGender!=='auto')return question;
+ const selected=gender==='male'||gender==='female'?gender:validation.formFallback??'male';
+ const form=validation.formVariants?.[selected];
+ return form?{...question,text:form.text,options:form.options??question.options}:question;
 }

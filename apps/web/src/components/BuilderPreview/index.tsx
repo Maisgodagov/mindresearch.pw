@@ -1,3 +1,4 @@
+import {respondentForm} from "../../utils/respondentForm";
 import {AnchoredRating,isAnchoredRating} from "../AnchoredRating";
 import { BrandWordmark } from "../BrandWordmark";
 import { surveyDurationLabel } from "../../surveyDuration";
@@ -31,7 +32,8 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
   const [transitioning, setTransitioning] = useState(false);
   const answering = useRef(false);
   const [author, setAuthor] = useState<{ name: string; slug: string; avatarSeed: string } | null>(null);
-  const question = questions[index];
+  const genderQuestion=questions.find(q=>q.id==='respondent-gender');
+  const question = questions[index]?respondentForm(questions[index],genderQuestion?answers[genderQuestion.id]:undefined):undefined;
   const value = question ? answers[question.id] : undefined;
   const valid = useMemo(
     () => value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0) && (typeof value !== "string" || value.trim().length > 0) && (question?.type !== "number" || typeof value === "number" && Number.isFinite(value) && (question.validation?.min == null || value >= question.validation.min) && (question.validation?.max == null || value <= question.validation.max) && (question.id !== "respondent-age" || Number.isInteger(value))),
