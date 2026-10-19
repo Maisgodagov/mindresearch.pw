@@ -260,7 +260,7 @@ async function calculateConfiguredMethodologiesForSession(sessionId:string,secti
       const score=values[scale.key],items=scale.items.map(item=>answers[String(item)] as number);
       const bounds=configurableScaleBounds(scoring,scale)!;
       const [minimum,maximum]=bounds;
-      return[scale.key,{label:scale.label,score,average:scale.aggregation==='mean'?score:score/items.length,min:minimum,max:maximum,minScore:minimum,maxScore:maximum,aggregation:scale.aggregation,itemCount:items.length}]
+      return[scale.key,{label:scale.label,interpretation:scale.interpretation,score,average:scale.aggregation==='mean'?score:score/items.length,min:minimum,max:maximum,minScore:minimum,maxScore:maximum,aggregation:scale.aggregation,itemCount:items.length}]
     }));
     const result={instrument:first.title,complete:true,answered:Object.keys(answers).length,scales};
     await db.execute(`INSERT INTO assessment_results (session_id,section_id,formula_version,result,interpretation) VALUES (?,?,?,?,NULL) ON DUPLICATE KEY UPDATE formula_version=VALUES(formula_version),result=VALUES(result),interpretation=NULL,calculated_at=CURRENT_TIMESTAMP`,[sessionId,first.sectionId,first.formulaVersion,JSON.stringify(result)]);return result;

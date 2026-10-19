@@ -47,7 +47,8 @@ export const methodology: MethodologyRegistration = {
           16,
           17
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший суммарный балл означает более выраженный эмоциональный дискомфорт и меньшее субъективное благополучие; меньший балл — больший эмоциональный комфорт."
       }
     ]
   },

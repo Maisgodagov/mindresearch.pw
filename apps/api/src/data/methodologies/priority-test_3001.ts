@@ -25,7 +25,8 @@ export const methodology: MethodologyRegistration = {
           11
         ],
         "reverseItems": [],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Чем выше аутентичная жизнь и общий балл, тем выше аутентичность. Высокие самоотчуждение и принятие внешнего влияния отражают большую выраженность этих затруднений."
       },
       {
         "key": "self_alienation",
@@ -37,7 +38,8 @@ export const methodology: MethodologyRegistration = {
           12
         ],
         "reverseItems": [],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Чем выше аутентичная жизнь и общий балл, тем выше аутентичность. Высокие самоотчуждение и принятие внешнего влияния отражают большую выраженность этих затруднений."
       },
       {
         "key": "external_influence",
@@ -49,7 +51,8 @@ export const methodology: MethodologyRegistration = {
           6
         ],
         "reverseItems": [],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Чем выше аутентичная жизнь и общий балл, тем выше аутентичность. Высокие самоотчуждение и принятие внешнего влияния отражают большую выраженность этих затруднений."
       },
       {
         "key": "total_authenticity",
@@ -78,7 +81,8 @@ export const methodology: MethodologyRegistration = {
           10,
           12
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Чем выше аутентичная жизнь и общий балл, тем выше аутентичность. Высокие самоотчуждение и принятие внешнего влияния отражают большую выраженность этих затруднений."
       }
     ]
   },

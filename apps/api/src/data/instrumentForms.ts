@@ -11,7 +11,7 @@ export function applyInstrumentForm<T extends {text:string; options?: {value:str
   const form = texts[code as keyof typeof texts][gender];
   if (form.items.length !== questions.length) throw new Error(`Question count does not match form: ${code}`);
   return questions.map((question,index)=>({...question,
-    text: gender === 'female' ? form.items[index] : question.text,
+    text: gender === 'female' && form.items[index] !== texts[code as keyof typeof texts].male.items[index] ? form.items[index] : question.text,
     options: question.options?.map((option,oi)=>({...option,label:form.labels[oi] ?? option.label})),
     validation:{...question.validation,formGender:gender},
   }));

@@ -67,7 +67,8 @@ export const methodology: MethodologyRegistration = {
           50,
           56
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_respect",
@@ -102,7 +103,8 @@ export const methodology: MethodologyRegistration = {
           41,
           50
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "autosympathy",
@@ -135,7 +137,8 @@ export const methodology: MethodologyRegistration = {
           45,
           56
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "expected_attitude",
@@ -164,7 +167,8 @@ export const methodology: MethodologyRegistration = {
           44,
           49
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_interest",
@@ -183,7 +187,8 @@ export const methodology: MethodologyRegistration = {
           14,
           51
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "confidence",
@@ -203,7 +208,8 @@ export const methodology: MethodologyRegistration = {
           39,
           41
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "others_attitude",
@@ -223,7 +229,8 @@ export const methodology: MethodologyRegistration = {
           43,
           44
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_acceptance",
@@ -240,7 +247,8 @@ export const methodology: MethodologyRegistration = {
         "reverseItems": [
           21
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_guidance",
@@ -261,7 +269,8 @@ export const methodology: MethodologyRegistration = {
           35,
           36
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_blame",
@@ -277,7 +286,8 @@ export const methodology: MethodologyRegistration = {
           56
         ],
         "reverseItems": [],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_interest_actions",
@@ -297,7 +307,8 @@ export const methodology: MethodologyRegistration = {
           49,
           51
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       },
       {
         "key": "self_understanding",
@@ -319,7 +330,8 @@ export const methodology: MethodologyRegistration = {
           22,
           40
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает большую выраженность названного аспекта. В шкале самообвинения повышение балла означает более сильную склонность обвинять себя."
       }
     ]
   },

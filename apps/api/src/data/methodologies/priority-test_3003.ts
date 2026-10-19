@@ -43,7 +43,8 @@ export const methodology: MethodologyRegistration = {
           61,
           73
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       },
       {
         "key": "autonomy",
@@ -73,7 +74,8 @@ export const methodology: MethodologyRegistration = {
           62,
           74
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       },
       {
         "key": "environmental_mastery",
@@ -102,7 +104,8 @@ export const methodology: MethodologyRegistration = {
           63,
           75
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       },
       {
         "key": "personal_growth",
@@ -131,7 +134,8 @@ export const methodology: MethodologyRegistration = {
           76,
           82
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       },
       {
         "key": "purpose_in_life",
@@ -161,7 +165,8 @@ export const methodology: MethodologyRegistration = {
           65,
           83
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       },
       {
         "key": "self_acceptance",
@@ -191,7 +196,8 @@ export const methodology: MethodologyRegistration = {
           66,
           84
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       },
       {
         "key": "well_being",
@@ -324,7 +330,8 @@ export const methodology: MethodologyRegistration = {
           83,
           84
         ],
-        "aggregation": "sum"
+        "aggregation": "sum",
+        "interpretation": "Больший балл отражает более высокое психологическое благополучие в соответствующей сфере; общий показатель объединяет шесть компонентов."
       }
     ]
   },
