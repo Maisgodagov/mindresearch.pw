@@ -185,6 +185,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
           },
           result: result.result,
         });
+        await new Promise((resolve) => setTimeout(resolve, 1800));
         data = { id: body.requestId };
       } else if (path.endsWith("/statistics/analyses") && verb === "GET") {
         polls++;
@@ -236,7 +237,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     await selectedDialog
       .getByRole("button", { name: "Сохранить выборку · 2", exact: true })
       .waitFor();
-    assert.equal(await selectedDialog.getByRole("spinbutton").count(),0);
+    assert.equal(await selectedDialog.getByRole("spinbutton").count(), 0);
     await selectedDialog
       .getByRole("button", { name: "Отмена", exact: true })
       .click();
@@ -311,6 +312,17 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       )) >= 16,
     );
     await app.getByRole("button", { name: "Рассчитать и сохранить" }).click();
+    const calculateButton = app.getByRole("button", {
+      name: "Рассчитать и сохранить",
+    });
+    await calculateButton.locator(".anticon-loading").waitFor();
+    const previewButton = app.getByRole("button", {
+      name: "Проверить данные",
+      exact: true,
+    });
+    assert.equal(await previewButton.locator(".anticon-loading").count(), 0);
+    assert(await previewButton.isDisabled());
+
     await app
       .getByText("Шаг 3 из 3 · Готово", { exact: true })
       .waitFor({ timeout: 15000 });

@@ -46,6 +46,9 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
   const [model, setModel] = useState<Model | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [pendingCalculation, setPendingCalculation] = useState<
+    "preview" | "calculate" | null
+  >(null);
   const [tab, setTab] = useState<"samples" | "new" | "history">("samples");
   const [sampleName, setSampleName] = useState("");
   const [deleting, setDeleting] = useState<Analysis | null>(null);
@@ -131,7 +134,11 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
       clearInterval(timer);
     };
   }, [model?.analyses, report?.id, report?.status, url]);
-  async function perform(action: () => Promise<void>) {
+  async function perform(
+    action: () => Promise<void>,
+    calculation?: "preview" | "calculate",
+  ) {
+    if (calculation) setPendingCalculation(calculation);
     setError("");
     setBusy(true);
     try {
@@ -144,6 +151,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
         ),
       );
     } finally {
+      if (calculation) setPendingCalculation(null);
       setBusy(false);
     }
   }
@@ -857,8 +865,9 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                     <div className="actions" style={{ marginTop: 20 }}>
                       <Button
                         $emphasized
-                        loading={busy}
+                        loading={pendingCalculation === "preview"}
                         disabled={
+                          busy ||
                           !model.canWrite ||
                           choices.some((c) => !c.sampleId || !c.variableId) ||
                           (method === "t_one" && !mu.trim())
@@ -873,7 +882,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                               ...r.data,
                               requestId: crypto.randomUUID(),
                             });
-                          })
+                          }, "preview")
                         }
                       >
                         Проверить данные
@@ -924,7 +933,8 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                         </p>
                         <Button
                           $emphasized
-                          loading={busy}
+                          loading={pendingCalculation === "calculate"}
+                          disabled={busy}
                           onClick={() =>
                             void perform(async () => {
                               const r = await api.post(`${url}/analyses`, {
@@ -935,7 +945,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                               await load();
                               await openReport(r.data.id);
                               setPreview(null);
-                            })
+                            }, "calculate")
                           }
                         >
                           <Calculator size={15} />
