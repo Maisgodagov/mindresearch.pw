@@ -226,16 +226,45 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     });
     await page.goto("http://127.0.0.1:5199/app/surveys/" + id(1) + "/results");
     await page.waitForTimeout(1500);
+    const respondentChecks = page.locator('tbody input[type="checkbox"]');
+    await respondentChecks.nth(0).check();
+    await respondentChecks.nth(1).check();
+    await page
+      .getByRole("button", { name: "Сохранить выборку · 2", exact: true })
+      .click();
+    const selectedDialog = page.getByRole("dialog");
+    await selectedDialog
+      .getByRole("button", { name: "Сохранить выборку · 2", exact: true })
+      .waitFor();
+    await selectedDialog.getByLabel("Возраст от", { exact: true }).fill("22");
+    await selectedDialog
+      .getByRole("button", { name: "Сохранить выборку · 1", exact: true })
+      .waitFor();
+    await selectedDialog
+      .getByRole("button", { name: "Отмена", exact: true })
+      .click();
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await respondentChecks.nth(0).uncheck();
+    await respondentChecks.nth(1).uncheck();
     await page
       .getByRole("button", { name: "Сохранить выборку · 8", exact: true })
       .click();
-    const app = page.getByRole("region", { name: "Статистический анализ" });
-    await app
+    const saveDialog = page.getByRole("dialog");
+    await saveDialog
       .getByLabel("Название · необязательно", { exact: true })
       .fill("Весь опрос");
-    await app
-      .getByRole("button", { name: "Сохранить выборку", exact: true })
+    assert.equal(
+      await page.getByRole("region", { name: "Статистический анализ" }).count(),
+      0,
+    );
+    await saveDialog
+      .getByRole("button", { name: "Сохранить выборку · 8", exact: true })
       .click();
+    await saveDialog.waitFor({ state: "hidden" });
+    await page
+      .getByRole("button", { name: "Статистический анализ", exact: true })
+      .click();
+    const app = page.getByRole("region", { name: "Статистический анализ" });
     await app.getByRole("heading", { name: /Весь опрос/ }).waitFor();
     assert.equal(samples[2].members.length, 8);
     await app
