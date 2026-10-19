@@ -478,7 +478,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
             </div>
           </Stat>
         </Grid>}
-        {statisticsOpen&&statisticsAllowed&&survey&&<Suspense fallback={<SkeletonScreen variant="table" heading={false} label="Загрузка статистического анализа" />}><StatisticsWorkspace key={survey.id} surveyId={survey.id} conditions={sampleConditions} completedOnly={qualityView.status==='completed'} selectedIds={selectedRespondents.map(p=>p.id)} saveOnOpen={false} onClose={()=>setStatisticsOpen(false)}/></Suspense>}
+        {statisticsOpen&&statisticsAllowed&&survey&&<Suspense fallback={<SkeletonScreen variant="table" heading={false} label="Загрузка статистического анализа" />}><StatisticsWorkspace key={survey.id} surveyId={survey.id} onClose={()=>setStatisticsOpen(false)}/></Suspense>}
         {!statisticsOpen&&<>
         <Panel className="respondents-panel" data-quality-respondents>
           <ResultsSelection view={qualityView} onSort={view=>{setQualityView(view);setPage(1);setSelected({});}} sortOptions={sortOptions} conditions={sampleConditions} onApply={applySample} onRemove={removeSampleCondition} onClear={clearSample} questions={sampleQuestions} distribution={allAnswerOptions} hasAge={sortOptions.some(option=>option.value==='age')} visible={visibleRespondents.length} total={result.respondents.length} busy={chartBusy} saveAction={statisticsAllowed&&!readOnly ? <ResultsAction onClick={()=>{setSaveSampleOpen(true)}}><Save size={16}/>Сохранить выборку · {selectedRespondents.length || visibleRespondents.length}</ResultsAction> : undefined}/>

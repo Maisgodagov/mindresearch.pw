@@ -12,7 +12,6 @@ import {
   Download,
   Plus,
   RefreshCw,
-  Save,
   Users,
   Trash2,
 } from "lucide-react";
@@ -21,7 +20,6 @@ import { SelectField } from "../../../../components/SelectField";
 import { api } from "../../../../api";
 import { ResultsAction as Button } from "../ResultsAction";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
-import type { SampleCondition } from "../../selection";
 import type { Analysis, Input, Model, Sample } from "./types";
 import { Workspace } from "./styles";
 
@@ -39,30 +37,17 @@ const statuses = {
 };
 type Props = {
   surveyId: string;
-  conditions: SampleCondition[];
-  completedOnly: boolean;
-  selectedIds: string[];
-  saveOnOpen: boolean;
   onClose: () => void;
 };
 type Choice = { sampleId: string; variableId: string };
 
-export default function StatisticsWorkspace({
-  surveyId,
-  conditions,
-  completedOnly,
-  selectedIds,
-  saveOnOpen,
-  onClose,
-}: Props) {
+export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
   const url = `/admin/surveys/${surveyId}/statistics`;
   const [model, setModel] = useState<Model | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"samples" | "new" | "history">("samples");
-  const [savingSample, setSavingSample] = useState(saveOnOpen),
-    [sampleName, setSampleName] = useState(""),
-    [source, setSource] = useState("filtered");
+  const [sampleName, setSampleName] = useState("");
   const [deleting, setDeleting] = useState<Analysis | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const [editing, setEditing] = useState<Sample | null>(null),
@@ -483,101 +468,9 @@ export default function StatisticsWorkspace({
                     <RefreshCw size={14} />
                     Обновить
                   </Button>
-                  {model.canWrite && (
-                    <Button
-                      onClick={() => {
-                        setSavingSample(!savingSample);
-                        setEditing(null);
-                        setSampleName("");
-                      }}
-                    >
-                      <Plus size={15} />
-                      Сохранить текущую выборку
-                    </Button>
-                  )}
                 </div>
               </div>
-              {savingSample && model.canWrite && (
-                <form
-                  className="editor"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void perform(async () => {
-                      await api.post(`${url}/samples`, {
-                        name: sampleName,
-                        conditions: conditions.map(
-                          ({ question, title, labels, range }) => ({
-                            question,
-                            title,
-                            labels,
-                            range,
-                          }),
-                        ),
-                        completedOnly,
-                        source,
-                        memberIds: selectedIds,
-                      });
-                      await load();
-                      setSavingSample(false);
-                      setSampleName("");
-                    });
-                  }}
-                >
-                  <h3>Сохранение текущей выборки</h3>
-                  <p className="muted">
-                    Используем условия, настроенные в таблице респондентов, по
-                    всем страницам.
-                  </p>
-                  <div className="fields">
-                    <label className="field">
-                      Название · необязательно
-                      <input
-                        value={sampleName}
-                        onChange={(e) => setSampleName(e.target.value)}
-                        maxLength={160}
-                        placeholder="Например, участники 25–40 лет"
-                      />
-                    </label>
-                    <label className="field">
-                      Кого сохранить
-                      <SelectField
-                        value={source}
-                        onChange={(value) => setSource(String(value))}
-                        options={[
-                          {
-                            value: "filtered",
-                            label: "Текущая выборка по всем страницам",
-                          },
-                          {
-                            value: "selected",
-                            disabled: !selectedIds.length,
-                            label: `Отмеченные в таблице (${selectedIds.length})`,
-                          },
-                        ]}
-                      />
-                    </label>
-                  </div>
-                  <p className="notice">
-                    {completedOnly
-                      ? "Только завершённые прохождения."
-                      : "Текущий фильтр включает все статусы, в том числе незавершённые."}{" "}
-                    {conditions.length
-                      ? conditions.map((c) => c.title).join(" · ")
-                      : "Дополнительных условий нет."}{" "}
-                    Для расчёта будут проверены пропуски каждого показателя.
-                  </p>
-                  <div className="actions">
-                    <Button $emphasized htmlType="submit" loading={busy}>
-                      <Save size={15} />
-                      Сохранить выборку
-                    </Button>
-                    <Button onClick={() => setSavingSample(false)}>
-                      Отмена
-                    </Button>
-                  </div>
-                </form>
-              )}
-              {!model.samples.length && !savingSample && (
+              {!model.samples.length && (
                 <div className="empty">
                   <Users size={28} />
                   <h3>Начните с первой выборки</h3>
@@ -587,8 +480,8 @@ export default function StatisticsWorkspace({
                     условий.
                   </p>
                   {model.canWrite && (
-                    <Button $emphasized onClick={() => setSavingSample(true)}>
-                      Сохранить выборку
+                    <Button $emphasized onClick={onClose}>
+                      К респондентам
                     </Button>
                   )}
                 </div>
@@ -642,7 +535,6 @@ export default function StatisticsWorkspace({
                         setSampleName(sample.name);
                         setSearch("");
                         setCandidateOnly(false);
-                        setSavingSample(false);
                       }}
                     >
                       <Pencil size={14} />
@@ -809,16 +701,10 @@ export default function StatisticsWorkspace({
                   <div className="empty">
                     <h3>Сначала сохраните выборку</h3>
                     <p className="muted">
-                      Расчёт будет связан с её конкретным составом и версией.
+                      Сохраните выборку в списке респондентов. Расчёт будет
+                      связан с её составом и версией.
                     </p>
-                    <Button
-                      onClick={() => {
-                        setTab("samples");
-                        setSavingSample(true);
-                      }}
-                    >
-                      Перейти к сохранению
-                    </Button>
+                    <Button onClick={onClose}>К респондентам</Button>
                   </div>
                 ) : (
                   <>
@@ -1581,7 +1467,9 @@ export default function StatisticsWorkspace({
         }}
       >
         <Workspace className="sample-modal">
-          <p>Расчёт «{deleting?.name}» будет удалён из истории. Состав выборок и ответы участников сохранятся.
+          <p>
+            Расчёт «{deleting?.name}» будет удалён из истории. Состав выборок и
+            ответы участников сохранятся.
           </p>
           {deleteError && (
             <p className="error" role="alert">
