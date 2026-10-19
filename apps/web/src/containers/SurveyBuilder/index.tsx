@@ -727,19 +727,28 @@ export function SurveyBuilder() {
                             </Button>
                           </div>
                           {section.kind === "library" && section.formGenders?.length && (
-                            <label className="form-gender-control">
-                              <span>Бланк методики</span>
-                              <Select
-                                aria-label={`Бланк методики «${section.title}»`}
-                                value={section.formGender ?? "male"}
-                                disabled={structureLocked}
-                                options={[{ value: "male", label: "Мужской бланк" }, { value: "female", label: "Женский бланк" }]}
-                                onChange={(value) => {
-                                  updateSection(section.id, current => ({ ...current, formGender: value as "male" | "female", questions: undefined }));
-                                  setOpen(current => ({ ...current, [section.id]: false }));
-                                }}
-                              />
-                            </label>
+                            <div className="form-gender-control">
+                              <span className="form-gender-label">Бланк методики</span>
+                              <div className="form-gender-options" role="radiogroup" aria-label={`Бланк методики «${section.title}»`}>
+                                {([{ value: "male", label: "Мужской" }, { value: "female", label: "Женский" }] as const).map(form => (
+                                  <label key={form.value}>
+                                    <input
+                                      type="radio"
+                                      name={`form-gender-${section.id}`}
+                                      aria-label={`${form.label} бланк`}
+                                      value={form.value}
+                                      checked={(section.formGender ?? "male") === form.value}
+                                      disabled={structureLocked}
+                                      onChange={() => {
+                                        updateSection(section.id, current => ({ ...current, formGender: form.value, questions: undefined }));
+                                        setOpen(current => ({ ...current, [section.id]: false }));
+                                      }}
+                                    />
+                                    <span>{form.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
                           )}
                           {section.kind === "library" && open[section.id] && (
                             <div className="library-questions">

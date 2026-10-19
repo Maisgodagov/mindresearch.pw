@@ -558,12 +558,67 @@ export const Stack = styled.div`
 `;
 export const SectionCard = styled.div<{ $dragging?: boolean }>`
   .form-gender-control {
-    display: grid;
-    gap: 8px;
-    margin: 12px 0;
-    max-width: 320px;
-    font-size: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 0 14px 14px 50px;
   }
+  .form-gender-label {
+    color: #526257;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .form-gender-options {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    background: #f0f4ed;
+  }
+  .form-gender-options label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 96px;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 7px;
+    color: #526257;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .form-gender-options input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .form-gender-options label:has(input:checked) {
+    background: #fff;
+    color: #2d5135;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgb(35 58 39 / 10%);
+  }
+  .form-gender-options label:has(input:focus-visible) {
+    outline: 2px solid #527a50;
+    outline-offset: 2px;
+  }
+  .form-gender-options label:has(input:hover:not(:disabled):not(:checked)) {
+    background: #e5eddf;
+  }
+  .form-gender-options:has(input:disabled) { opacity: 0.6; }
+  .form-gender-options input:disabled { cursor: not-allowed; }
+  @media (max-width: 600px) {
+    .form-gender-control { padding-left: 14px; }
+    .form-gender-options label { min-height: 40px; }
+  }
+
 
   width: 100%;
   min-width: 0;
