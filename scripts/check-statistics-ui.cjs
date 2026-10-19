@@ -236,10 +236,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     await selectedDialog
       .getByRole("button", { name: "Сохранить выборку · 2", exact: true })
       .waitFor();
-    await selectedDialog.getByLabel("Возраст от", { exact: true }).fill("22");
-    await selectedDialog
-      .getByRole("button", { name: "Сохранить выборку · 1", exact: true })
-      .waitFor();
+    assert.equal(await selectedDialog.getByRole("spinbutton").count(),0);
     await selectedDialog
       .getByRole("button", { name: "Отмена", exact: true })
       .click();

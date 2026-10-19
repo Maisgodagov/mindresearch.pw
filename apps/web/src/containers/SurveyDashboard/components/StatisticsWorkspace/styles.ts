@@ -22,6 +22,31 @@ export const Workspace = styled.section`
   &.sample-modal .member-list {
     max-height: min(340px, 40dvh);
   }
+  .saved-sample-conditions {
+    margin-top: 20px;
+  }
+  .saved-sample-conditions h4 {
+    margin: 0 0 12px;
+  }
+  .saved-sample-conditions dl {
+    margin: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .saved-sample-conditions dt {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .saved-sample-conditions dd {
+    margin: 3px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .saved-sample-conditions p {
+    margin: 12px 0 0;
+  }
   .modal-actions {
     display: flex;
     justify-content: flex-end;

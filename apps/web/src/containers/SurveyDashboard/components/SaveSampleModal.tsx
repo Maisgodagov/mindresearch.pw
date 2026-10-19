@@ -30,27 +30,14 @@ export function SaveSampleModal({
   const [scope, setScope] = useState(selected.length ? "selected" : "filtered");
   const [name, setName] = useState("");
   const [completed, setCompleted] = useState(!selected.length && completedOnly);
-  const [min, setMin] = useState("");
-  const [max, setMax] = useState("");
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const invalidAge =
-    (min !== "" && (!Number.isFinite(Number(min)) || Number(min) < 0)) ||
-    (max !== "" && (!Number.isFinite(Number(max)) || Number(max) < 0)) ||
-    (min !== "" && max !== "" && Number(min) > Number(max));
   const base =
     scope === "selected" ? selected : scope === "all" ? people : filtered;
-  const members = base.filter(
-    (p) =>
-      (!completed || p.status === "completed") &&
-      ((!min && !max) ||
-        (p.age != null &&
-          (!min || p.age >= Number(min)) &&
-          (!max || p.age <= Number(max)))),
-  );
+  const members = base.filter((p) => !completed || p.status === "completed");
   async function save() {
-    if (busy || !members.length || invalidAge) return;
+    if (busy || !members.length) return;
     setBusy(true);
     setError("");
     try {
@@ -63,16 +50,6 @@ export function SaveSampleModal({
               labels,
               range,
             }));
-      if (min || max) {
-        const index = rules.findIndex((c) => c.question === "__age");
-        if (index >= 0) rules.splice(index, 1);
-        rules.push({
-          question: "__age",
-          title: "Возраст",
-          labels: [],
-          range: { min, max },
-        });
-      }
       await api.post(`/admin/surveys/${surveyId}/statistics/samples`, {
         name,
         source: "selected",
@@ -137,28 +114,6 @@ export function SaveSampleModal({
             />
           </label>
         </div>
-        <div className="fields">
-          <label className="field">
-            Возраст от
-            <input
-              type="number"
-              min="0"
-              value={min}
-              onChange={(e) => setMin(e.target.value)}
-              placeholder="Без ограничения"
-            />
-          </label>
-          <label className="field">
-            Возраст до
-            <input
-              type="number"
-              min="0"
-              value={max}
-              onChange={(e) => setMax(e.target.value)}
-              placeholder="Без ограничения"
-            />
-          </label>
-        </div>
         <label className="check">
           <input
             type="checkbox"
@@ -168,10 +123,28 @@ export function SaveSampleModal({
           Только завершённые прохождения
         </label>
         {scope === "filtered" && conditions.length > 0 && (
-          <p className="muted">
-            Условия из таблицы: {conditions.map((c) => c.title).join(" · ")}.
-            Учитываются все страницы.
-          </p>
+          <div className="saved-sample-conditions">
+            <h4>Условия отбора</h4>
+            <dl>
+              {conditions.map((condition) => (
+                <div key={condition.question}>
+                  <dt>{condition.title}</dt>
+                  <dd>
+                    {condition.range
+                      ? condition.range.min && condition.range.max
+                        ? `От ${condition.range.min} до ${condition.range.max}`
+                        : condition.range.min
+                          ? `От ${condition.range.min}`
+                          : `До ${condition.range.max}`
+                      : condition.labels.join("; ")}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="muted">
+              Сохраним подходящих респондентов со всех страниц таблицы.
+            </p>
+          </div>
         )}
         <h3 style={{ marginTop: 24 }}>Будет сохранено: {members.length}</h3>
         <label className="field">
@@ -204,11 +177,6 @@ export function SaveSampleModal({
             <p className="muted">Нет участников с такими условиями.</p>
           )}
         </div>
-        {invalidAge && (
-          <p className="error" role="alert">
-            Проверьте диапазон возраста.
-          </p>
-        )}
         {error && (
           <p className="error" role="alert">
             {error}
@@ -221,7 +189,7 @@ export function SaveSampleModal({
           <Button
             $emphasized
             loading={busy}
-            disabled={!members.length || invalidAge}
+            disabled={!members.length}
             onClick={() => void save()}
           >
             <Save size={15} />
