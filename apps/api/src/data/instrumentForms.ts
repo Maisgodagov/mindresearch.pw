@@ -1,8 +1,17 @@
 import texts from './priorityFormTexts.json' with { type: 'json' };
+import catalogTexts from './catalogFormTexts.json' with { type: 'json' };
+import catalogCodes from './catalogFormCodes.json' with { type: 'json' };
 import type { SeedQuestion } from '../types.js';
 export type FormGender = 'male' | 'female' | 'auto';
 export const formGenders: FormGender[] = ['auto', 'male', 'female'];
-export function supportsFormGender(code: string): boolean { return Object.hasOwn(texts, code); }
+const supportedCodes = new Set<string>(catalogCodes);
+export function supportsFormGender(code: string): boolean { return supportedCodes.has(code) || Object.hasOwn(texts, code); }
+type TextPairs = Record<string, string[]>;
+const textPairs = catalogTexts as {questions: TextPairs; options: TextPairs; preserveQuestionCodes: string[]};
+// These questions describe a child, partner, group or situation, rather than the respondent.
+const preserveQuestionCodes = new Set(textPairs.preserveQuestionCodes);
+const formText = (text: string, gender: 'male' | 'female', kind: 'questions' | 'options') =>
+  Object.hasOwn(textPairs[kind], text) ? textPairs[kind][text][gender === 'female' ? 1 : 0] : text;
 export function applyInstrumentForm<T extends {text:string; options?: {value:string;label:string}[]; validation?: Record<string,unknown>|null}>(code:string, questions:T[], gender:FormGender, fallback: 'male' | 'female' = 'male'):T[] {
   if (!supportsFormGender(code)) {
     if (gender !== 'male') throw Object.assign(new Error('Для этой методики выбор бланка недоступен'), {status:400});
@@ -14,6 +23,13 @@ export function applyInstrumentForm<T extends {text:string; options?: {value:str
     return base.map((q,index)=>({...q,validation:{...q.validation,formGender:'auto',formFallback:fallback,
       formVariants:{male:{text:male[index].text,options:male[index].options},female:{text:female[index].text,options:female[index].options}},
     }}));
+  }
+  if (!Object.hasOwn(texts, code)) {
+    return questions.map(question => ({...question,
+      text: preserveQuestionCodes.has(code) ? question.text : formText(question.text, gender, 'questions'),
+      options: question.options?.map(option => ({...option, label: formText(option.label, gender, 'options')})),
+      validation: {...question.validation, formGender: gender},
+    }));
   }
   const form = texts[code as keyof typeof texts][gender];
   if (form.items.length !== questions.length) throw new Error(`Question count does not match form: ${code}`);
