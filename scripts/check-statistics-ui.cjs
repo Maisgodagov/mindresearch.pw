@@ -259,6 +259,10 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       path: process.env.TEMP + "/statistics-preview-desktop.png",
       fullPage: true,
     });
+    await app.locator('.input-tables > details').first().locator('summary').click();
+    assert(!/[0-9a-f]{8}-[0-9a-f]{4}-/.test(await app.locator('.input-tables').innerText()));
+    const confirmation = app.locator('.calculation-confirmation');
+    assert(await confirmation.evaluate(el => parseFloat(getComputedStyle(el).marginBottom)) >= 16);
     await app.getByRole("button", { name: "Рассчитать и сохранить" }).click();
     await app
       .getByText("Шаг 3 из 3 · Готово", { exact: true })

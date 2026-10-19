@@ -1023,7 +1023,7 @@ export default function StatisticsWorkspace({
                       </Button>
                     </div>
                     {preview && (
-                      <section className="editor">
+                      <section className="editor preview-section">
                         <div className="step-title">
                           <span>Шаг 2 из 3</span>
                           <h3>Проверка перед запуском</h3>
@@ -1055,13 +1055,16 @@ export default function StatisticsWorkspace({
                             </tbody>
                           </table>
                         </div>
-                        <InputTables input={preview.input} />
-                        <label className="check">
+                        <InputTables
+                          input={preview.input}
+                          participants={model.participants}
+                        />
+                        <p className="calculation-confirmation">
                           <span>
                             Нажимая «Рассчитать», вы подтверждаете выбранный
                             план и исходные значения.
                           </span>
-                        </label>
+                        </p>
                         <Button
                           $emphasized
                           loading={busy}
@@ -1452,7 +1455,10 @@ export default function StatisticsWorkspace({
                             Данные из сохранённого снимка. Ручные дополнения
                             помечены; исходные ответы опроса не изменены.
                           </p>
-                          <InputTables input={report.input} />
+                          <InputTables
+                            input={report.input}
+                            participants={model.participants}
+                          />
                         </>
                       )}
                       {reportTab === "trace" && (
@@ -1581,9 +1587,15 @@ export default function StatisticsWorkspace({
   );
 }
 
-function InputTables({ input }: { input: Input }) {
+function InputTables({
+  input,
+  participants,
+}: {
+  input: Input;
+  participants: Model["participants"];
+}) {
   return (
-    <>
+    <div className="input-tables">
       {input.groups.map((group, index) => (
         <details key={index}>
           <summary>
@@ -1594,7 +1606,7 @@ function InputTables({ input }: { input: Input }) {
             <table>
               <thead>
                 <tr>
-                  <th>Участник / ID</th>
+                  <th>Участник</th>
                   <th>Значение</th>
                   <th>Источник</th>
                 </tr>
@@ -1602,17 +1614,17 @@ function InputTables({ input }: { input: Input }) {
               <tbody>
                 {group.included.map((row) => (
                   <tr key={row.id}>
-                    <td>
-                      {row.alias}
-                      <small>{row.id}</small>
-                    </td>
+                    <td>{row.alias}</td>
                     <td>{String(row.value)}</td>
                     <td>{row.manual ? "Введено вручную" : "Опрос"}</td>
                   </tr>
                 ))}
                 {group.excluded.map((row) => (
                   <tr key={row.id}>
-                    <td>{row.id}</td>
+                    <td>
+                      {participants.find((person) => person.id === row.id)
+                        ?.alias ?? "Участник"}
+                    </td>
                     <td>—</td>
                     <td>{row.reason}</td>
                   </tr>
@@ -1630,6 +1642,6 @@ function InputTables({ input }: { input: Input }) {
           Источник ручных дополнений: {input.manualReason}
         </p>
       )}
-    </>
+    </div>
   );
 }

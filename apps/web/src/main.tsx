@@ -90,7 +90,6 @@ function App() {
     <ConfigProvider
       locale={ruRU}
       select={{ loadingIcon: <ActionSkeleton /> }}
-      button={{ loadingIcon: <ActionSkeleton /> }}
       theme={{
         token: {
           colorPrimary: "#52764b",

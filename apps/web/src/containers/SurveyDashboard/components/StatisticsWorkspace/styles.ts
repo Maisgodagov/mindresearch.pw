@@ -377,6 +377,24 @@ export const Workspace = styled.section`
     font-weight: 600;
     font-size: 14px;
   }
+  .input-tables {
+    margin-top: 24px;
+  }
+  .input-tables > details {
+    padding: 22px 0;
+  }
+  .input-tables summary {
+    line-height: 1.6;
+  }
+  .input-tables details[open] > summary {
+    margin-bottom: 16px;
+  }
+  .preview-section .calculation-confirmation {
+    margin: 24px 0 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
   .trace {
     padding: 12px 0;
   }
