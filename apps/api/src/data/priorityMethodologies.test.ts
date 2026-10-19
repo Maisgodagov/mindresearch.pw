@@ -32,8 +32,8 @@ describe('priority methodologies and gender forms',()=>{
    expect(female[0].validation?.formGender).toBe('female');
   }
  });
- it('does not offer gender forms for unrelated methods',()=>{
-  expect(supportsFormGender('test_1')).toBe(false);
-  expect(()=>applyInstrumentForm('test_1',[],'female')).toThrow();
+ it('does not offer gender forms for unregistered methods',()=>{
+  expect(supportsFormGender('unregistered-method')).toBe(false);
+  expect(()=>applyInstrumentForm('unregistered-method',[],'female')).toThrow();
  });
 });
