@@ -1,3 +1,4 @@
+import { Modal } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -70,9 +71,7 @@ export default function StatisticsWorkspace({
     ]);
   const [alpha, setAlpha] = useState("0.05"),
     [mu, setMu] = useState("0"),
-    [name, setName] = useState(""),
-    [manual, setManual] = useState<Record<string, string>>({}),
-    [manualReason, setManualReason] = useState("");
+    [name, setName] = useState("");
   const [preview, setPreview] = useState<{
       input: Input;
       hash: string;
@@ -161,7 +160,6 @@ export default function StatisticsWorkspace({
   }
   function invalidate() {
     setPreview(null);
-    setManual({});
   }
   const selectedMethod = model?.methods.find((m) => m.id === method);
   const kind = selectedMethod?.kind ?? "single";
@@ -170,12 +168,8 @@ export default function StatisticsWorkspace({
     alpha: Number(alpha),
     mu: Number(mu),
     name,
-    manualReason,
-    manual: Object.fromEntries(
-      Object.entries(manual)
-        .filter(([, value]) => value.trim())
-        .map(([key, value]) => [key, Number(value.replace(",", "."))]),
-    ),
+    manual: {},
+    manualReason: "",
     groups: choices.map((c) => ({
       sampleId: c.sampleId,
       variableId: c.variableId,
@@ -202,7 +196,6 @@ export default function StatisticsWorkspace({
       },
     ]);
     setMethod("descriptive");
-    setManual({});
   }
   function chooseMethod(id: string) {
     setMethod(id);
@@ -653,124 +646,147 @@ export default function StatisticsWorkspace({
                 </div>
               ))}
               {editing && (
-                <div className="editor">
-                  <div className="toolbar">
-                    <div>
-                      <h3>Состав: {editing.name}</h3>
-                      <p className="muted">
-                        Выбрано {members.length}. Сохранение создаст v
-                        {editing.revision + 1}; прежние отчёты сохранят исходный
-                        состав.
-                      </p>
+                <Modal
+                  open
+                  title="Состав и название выборки"
+                  width={860}
+                  footer={null}
+                  getContainer={() => document.getElementById("root")!}
+                  closable={!busy}
+                  maskClosable={!busy}
+                  keyboard={!busy}
+                  onCancel={() => {
+                    if (!busy) setEditing(null);
+                  }}
+                >
+                  <Workspace className="sample-modal">
+                    <div className="toolbar">
+                      <div>
+                        <h3>Состав: {editing.name}</h3>
+                        <p className="muted">
+                          Выбрано {members.length}. Сохранение создаст v
+                          {editing.revision + 1}; прежние отчёты сохранят
+                          исходный состав.
+                        </p>
+                      </div>
                     </div>
-                    <Button onClick={() => setEditing(null)}>
-                      Закрыть состав
-                    </Button>
-                  </div>
-                  <div className="fields">
-                    <label className="field">
-                      Название
-                      <input
-                        value={sampleName}
-                        onChange={(e) => setSampleName(e.target.value)}
-                        maxLength={160}
-                        disabled={!model.canWrite}
-                      />
-                    </label>
-                    <label className="field">
-                      Поиск участника
-                      <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Имя, возраст или ID"
-                      />
-                    </label>
-                  </div>
-                  <div className="actions">
-                    <label className="check">
-                      <input
-                        type="checkbox"
-                        checked={candidateOnly}
-                        onChange={(e) => setCandidateOnly(e.target.checked)}
-                      />
-                      Только подходящие вне группы ({editing.candidates.length})
-                    </label>
-                    {model.canWrite && editing.candidates.length > 0 && (
-                      <Button
-                        onClick={() =>
-                          setMembers((current) => [
-                            ...new Set([...current, ...editing.candidates]),
-                          ])
-                        }
-                      >
-                        Добавить всех подходящих
-                      </Button>
+                    <div className="fields">
+                      <label className="field">
+                        Название
+                        <input
+                          autoFocus
+                          value={sampleName}
+                          onChange={(e) => setSampleName(e.target.value)}
+                          maxLength={160}
+                          disabled={!model.canWrite}
+                        />
+                      </label>
+                      <label className="field">
+                        Поиск участника
+                        <input
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          placeholder="Имя или возраст"
+                        />
+                      </label>
+                    </div>
+                    <div className="actions">
+                      <label className="check">
+                        <input
+                          type="checkbox"
+                          checked={candidateOnly}
+                          onChange={(e) => setCandidateOnly(e.target.checked)}
+                        />
+                        Только подходящие вне группы (
+                        {editing.candidates.length})
+                      </label>
+                      {model.canWrite && editing.candidates.length > 0 && (
+                        <Button
+                          onClick={() =>
+                            setMembers((current) => [
+                              ...new Set([...current, ...editing.candidates]),
+                            ])
+                          }
+                        >
+                          Добавить всех подходящих
+                        </Button>
+                      )}
+                    </div>
+                    <div className="member-list">
+                      {model.participants
+                        .filter(
+                          (p) =>
+                            (!candidateOnly ||
+                              editing.candidates.includes(p.id)) &&
+                            `${p.alias} ${p.age ?? ""}`
+                              .toLowerCase()
+                              .includes(search.toLowerCase()),
+                        )
+                        .map((p) => (
+                          <label className="member check" key={p.id}>
+                            <input
+                              type="checkbox"
+                              checked={members.includes(p.id)}
+                              disabled={!model.canWrite}
+                              onChange={(e) =>
+                                setMembers((current) =>
+                                  e.target.checked
+                                    ? [...current, p.id]
+                                    : current.filter((id) => id !== p.id),
+                                )
+                              }
+                            />
+                            <span>
+                              {p.alias}
+                              <small>
+                                {p.age ?? "Возраст не указан"} ·{" "}
+                                {p.gender ?? "Пол не указан"} ·{" "}
+                                {p.status === "completed"
+                                  ? "завершено"
+                                  : "не завершено"}
+                                {editing.candidates.includes(p.id)
+                                  ? " · подходит под условия"
+                                  : !editing.members.includes(p.id)
+                                    ? " · добавление вручную"
+                                    : ""}
+                              </small>
+                            </span>
+                          </label>
+                        ))}
+                    </div>
+                    {error && (
+                      <p className="error" role="alert">
+                        {error}
+                      </p>
                     )}
-                  </div>
-                  <div className="member-list">
-                    {model.participants
-                      .filter(
-                        (p) =>
-                          (!candidateOnly ||
-                            editing.candidates.includes(p.id)) &&
-                          `${p.alias} ${p.age ?? ""} ${p.id}`
-                            .toLowerCase()
-                            .includes(search.toLowerCase()),
-                      )
-                      .map((p) => (
-                        <label className="member check" key={p.id}>
-                          <input
-                            type="checkbox"
-                            checked={members.includes(p.id)}
-                            disabled={!model.canWrite}
-                            onChange={(e) =>
-                              setMembers((current) =>
-                                e.target.checked
-                                  ? [...current, p.id]
-                                  : current.filter((id) => id !== p.id),
-                              )
-                            }
-                          />
-                          <span>
-                            {p.alias}
-                            <small>
-                              {p.age ?? "Возраст не указан"} ·{" "}
-                              {p.gender ?? "Пол не указан"} ·{" "}
-                              {p.status === "completed"
-                                ? "завершено"
-                                : "не завершено"}
-                              {editing.candidates.includes(p.id)
-                                ? " · подходит под условия"
-                                : !editing.members.includes(p.id)
-                                  ? " · добавление вручную"
-                                  : ""}
-                            </small>
-                          </span>
-                        </label>
-                      ))}
-                  </div>
-                  {model.canWrite && (
-                    <Button
-                      $emphasized
-                      loading={busy}
-                      disabled={!members.length || !sampleName.trim()}
-                      onClick={() =>
-                        void perform(async () => {
-                          await api.put(`${url}/samples/${editing.id}`, {
-                            revision: editing.revision,
-                            name: sampleName,
-                            memberIds: members,
-                          });
-                          await load();
-                          setEditing(null);
-                          setPreview(null);
-                        })
-                      }
-                    >
-                      Сохранить новую версию
-                    </Button>
-                  )}
-                </div>
+                    <div className="modal-actions">
+                      <Button disabled={busy} onClick={() => setEditing(null)}>
+                        Отмена
+                      </Button>
+                      {model.canWrite && (
+                        <Button
+                          $emphasized
+                          loading={busy}
+                          disabled={!members.length || !sampleName.trim()}
+                          onClick={() =>
+                            void perform(async () => {
+                              await api.put(`${url}/samples/${editing.id}`, {
+                                revision: editing.revision,
+                                name: sampleName,
+                                memberIds: members,
+                              });
+                              await load();
+                              setEditing(null);
+                              setPreview(null);
+                            })
+                          }
+                        >
+                          Сохранить новую версию
+                        </Button>
+                      )}
+                    </div>
+                  </Workspace>
+                </Modal>
               )}
             </>
           )}
@@ -940,63 +956,6 @@ export default function StatisticsWorkspace({
                         />
                       </label>
                     </div>
-                    <details>
-                      <summary>
-                        Дополнить отсутствующие значения вручную
-                      </summary>
-                      <p className="notice">
-                        Ввод дополняет только пропуски выбранного показателя.
-                        Сохранённые ответы не изменяются. Источник будет указан
-                        в отчёте.
-                      </p>
-                      <label className="field">
-                        Источник и причина дополнения
-                        <textarea
-                          value={manualReason}
-                          maxLength={1000}
-                          onChange={(e) => {
-                            setManualReason(e.target.value);
-                            setPreview(null);
-                          }}
-                          placeholder="Например, данные из дополнительного очного замера"
-                        />
-                      </label>
-                      {choices.map((choice, index) => {
-                        const sample = model.samples.find(
-                          (s) => s.id === choice.sampleId,
-                        );
-                        const missing = model.participants.filter(
-                          (p) =>
-                            sample?.members.includes(p.id) &&
-                            p.values[choice.variableId] === undefined,
-                        );
-                        return choice.variableId && missing.length > 0 ? (
-                          <div key={index}>
-                            <h4>
-                              Вход {index + 1} · {missing.length} пропусков
-                              (первые 50)
-                            </h4>
-                            {missing.slice(0, 50).map((p) => (
-                              <label className="field" key={p.id}>
-                                {p.alias}
-                                <input
-                                  type="number"
-                                  step="any"
-                                  value={manual[`${index}:${p.id}`] ?? ""}
-                                  onChange={(e) => {
-                                    setManual((m) => ({
-                                      ...m,
-                                      [`${index}:${p.id}`]: e.target.value,
-                                    }));
-                                    setPreview(null);
-                                  }}
-                                />
-                              </label>
-                            ))}
-                          </div>
-                        ) : null;
-                      })}
-                    </details>
                     <div className="actions" style={{ marginTop: 20 }}>
                       <Button
                         $emphasized

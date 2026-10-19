@@ -236,9 +236,12 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       .getByRole("button", { name: "Состав и название" })
       .first()
       .click();
-    await app.getByLabel(/Только подходящие вне группы/).check();
-    await app.getByLabel(/Участник 4/).check();
-    await app.getByRole("button", { name: "Сохранить новую версию" }).click();
+    const sampleDialog = page.getByRole("dialog");
+    await sampleDialog.getByLabel(/Только подходящие вне группы/).check();
+    await sampleDialog.getByLabel(/Участник 4/).check();
+    await sampleDialog
+      .getByRole("button", { name: "Сохранить новую версию" })
+      .click();
     await app.getByRole("heading", { name: /Младшая группа · v2/ }).waitFor();
     assert.equal(samples[0].members.length, 4);
     await page.screenshot({
@@ -259,10 +262,22 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       path: process.env.TEMP + "/statistics-preview-desktop.png",
       fullPage: true,
     });
-    await app.locator('.input-tables > details').first().locator('summary').click();
-    assert(!/[0-9a-f]{8}-[0-9a-f]{4}-/.test(await app.locator('.input-tables').innerText()));
-    const confirmation = app.locator('.calculation-confirmation');
-    assert(await confirmation.evaluate(el => parseFloat(getComputedStyle(el).marginBottom)) >= 16);
+    await app
+      .locator(".input-tables > details")
+      .first()
+      .locator("summary")
+      .click();
+    assert(
+      !/[0-9a-f]{8}-[0-9a-f]{4}-/.test(
+        await app.locator(".input-tables").innerText(),
+      ),
+    );
+    const confirmation = app.locator(".calculation-confirmation");
+    assert(
+      (await confirmation.evaluate((el) =>
+        parseFloat(getComputedStyle(el).marginBottom),
+      )) >= 16,
+    );
     await app.getByRole("button", { name: "Рассчитать и сохранить" }).click();
     await app
       .getByText("Шаг 3 из 3 · Готово", { exact: true })
@@ -296,13 +311,20 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
 
     await app.getByRole("tab", { name: "Новый расчёт", exact: true }).click();
     await app.getByLabel("Метод расчёта").click();
-    await page.getByRole("option", { name: methods.find(m => m.id === "pearson").label, exact: true }).click();
-    await app
-      .getByLabel("Числовой показатель")
-      .nth(1)
+    await page
+      .getByRole("option", {
+        name: methods.find((m) => m.id === "pearson").label,
+        exact: true,
+      })
       .click();
+    await app.getByLabel("Числовой показатель").nth(1).click();
     await page.getByRole("textbox").last().fill(variables[1].label);
-    await page.getByRole("option", { name: variables[1].label + " \u00b7 v1", exact: true }).click();
+    await page
+      .getByRole("option", {
+        name: variables[1].label + " \u00b7 v1",
+        exact: true,
+      })
+      .click();
     await app
       .getByRole("button", { name: "Проверить данные", exact: true })
       .click();

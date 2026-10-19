@@ -11,6 +11,24 @@ export const Workspace = styled.section`
   border: 1px solid var(--line);
   border-radius: 14px;
   min-width: 0;
+  &.sample-modal {
+    border: 0;
+    border-radius: 0;
+    padding-top: 16px;
+  }
+  &.sample-modal .toolbar {
+    margin-bottom: 24px;
+  }
+  &.sample-modal .member-list {
+    max-height: min(340px, 40dvh);
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 8px;
+  }
   .workspace-head {
     display: flex;
     justify-content: space-between;
