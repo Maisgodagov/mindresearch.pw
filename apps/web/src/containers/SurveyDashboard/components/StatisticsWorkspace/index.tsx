@@ -14,7 +14,9 @@ import {
   RefreshCw,
   Save,
   Users,
+  Trash2,
 } from "lucide-react";
+import { SkeletonScreen } from "../../../../components/LoadingSkeleton";
 import { SelectField } from "../../../../components/SelectField";
 import { api } from "../../../../api";
 import { ResultsAction as Button } from "../ResultsAction";
@@ -61,6 +63,8 @@ export default function StatisticsWorkspace({
   const [savingSample, setSavingSample] = useState(saveOnOpen),
     [sampleName, setSampleName] = useState(""),
     [source, setSource] = useState("filtered");
+  const [deleting, setDeleting] = useState<Analysis | null>(null);
+  const [deleteError, setDeleteError] = useState("");
   const [editing, setEditing] = useState<Sample | null>(null),
     [members, setMembers] = useState<string[]>([]),
     [search, setSearch] = useState(""),
@@ -439,7 +443,15 @@ export default function StatisticsWorkspace({
       )}
       {!model ? (
         <div className="body" role="status">
-          {error ? "Загрузка не завершена." : "Загружаем выборки и показатели…"}
+          {error ? (
+            "Загрузка не завершена."
+          ) : (
+            <SkeletonScreen
+              variant="table"
+              heading={false}
+              label="Загрузка выборок и расчётов"
+            />
+          )}
         </div>
       ) : (
         <div className="body">
@@ -1087,14 +1099,6 @@ export default function StatisticsWorkspace({
                     поправка.
                   </li>
                 </ul>
-                <details className="pilot-details">
-                  <summary>Возможности пилота</summary>
-                  <p>
-                    13 методов, до 5000 участников опроса. Многомерные модели и
-                    статистическое сравнение эффектов добавим следующими
-                    этапами.
-                  </p>
-                </details>
               </aside>
             </div>
           )}
@@ -1532,16 +1536,105 @@ export default function StatisticsWorkspace({
                     )}
                     {statuses[a.status]}
                   </span>
-                  <Button onClick={() => void openReport(a.id)}>
-                    Открыть
-                    <ArrowRight size={14} />
-                  </Button>
+                  <div className="history-actions">
+                    <Button onClick={() => void openReport(a.id)}>
+                      Открыть
+                      <ArrowRight size={14} />
+                    </Button>
+                    {model.canWrite && (
+                      <Button
+                        aria-label={`Удалить расчёт: ${a.name}`}
+                        title={
+                          a.status === "queued" || a.status === "running"
+                            ? "Дождитесь завершения расчёта"
+                            : "Удалить расчёт"
+                        }
+                        disabled={
+                          a.status === "queued" || a.status === "running"
+                        }
+                        onClick={() => {
+                          setDeleteError("");
+                          setDeleting(a);
+                        }}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </>
           )}
         </div>
       )}
+      <Modal
+        open={!!deleting}
+        title="Удалить расчёт?"
+        width={440}
+        footer={null}
+        getContainer={() => document.getElementById("root")!}
+        closable={!busy}
+        maskClosable={!busy}
+        keyboard={!busy}
+        onCancel={() => {
+          if (!busy) setDeleting(null);
+        }}
+      >
+        <Workspace className="sample-modal">
+          <p>Расчёт «{deleting?.name}» будет удалён из истории. Состав выборок и ответы участников сохранятся.
+          </p>
+          {deleteError && (
+            <p className="error" role="alert">
+              {deleteError}
+            </p>
+          )}
+          <div className="modal-actions">
+            <Button disabled={busy} onClick={() => setDeleting(null)}>
+              Отмена
+            </Button>
+            <Button
+              $emphasized
+              loading={busy}
+              onClick={() => {
+                if (!deleting) return;
+                const analysisId = deleting.id;
+                setBusy(true);
+                setDeleteError("");
+                void api
+                  .delete(`${url}/analyses/${analysisId}`)
+                  .then(() => {
+                    setModel((current) =>
+                      current
+                        ? {
+                            ...current,
+                            analyses: current.analyses.filter(
+                              (a) => a.id !== analysisId,
+                            ),
+                          }
+                        : current,
+                    );
+                    setCompareIds((ids) =>
+                      ids.filter((id) => id !== analysisId),
+                    );
+                    setComparison((items) =>
+                      items.filter((item) => item.id !== analysisId),
+                    );
+                    if (report?.id === analysisId) setReport(null);
+                    setDeleting(null);
+                  })
+                  .catch((e) =>
+                    setDeleteError(
+                      getApiErrorMessage(e, "Не удалось удалить расчёт."),
+                    ),
+                  )
+                  .finally(() => setBusy(false));
+              }}
+            >
+              Удалить расчёт
+            </Button>
+          </div>
+        </Workspace>
+      </Modal>
     </Workspace>
   );
 }

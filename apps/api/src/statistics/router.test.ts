@@ -134,6 +134,7 @@ it("denies anonymous and researcher roles at every statistics endpoint, using cu
     ["/analyses", "POST"],
     ["/analyses", "GET"],
     [`/analyses/${ids.analysis}`, "GET"],
+    [`/analyses/${ids.analysis}`, "DELETE"],
   ])
     expect((await request(path, method, {})).status).toBe(403);
   expect(mocks.results).not.toHaveBeenCalled();
@@ -220,4 +221,39 @@ it("requires provenance for manual values and disallows replacing saved scores",
     (await request("/preview", "POST", { ...config, manualReason: "source" }))
       .status,
   ).toBe(400);
+});
+
+it("deletes finished reports only within the authorized survey", async () => {
+  expect((await request(`/analyses/${ids.analysis}`, "DELETE")).status).toBe(
+    204,
+  );
+  const call = mocks.execute.mock.calls.find(([sql]) =>
+    sql.startsWith("DELETE FROM statistical_analyses"),
+  )!;
+  expect(call[0]).toContain("status IN ('completed','failed')");
+  expect(call[1]).toEqual([ids.analysis, ids.survey]);
+});
+it("denies deletion for inspection-only users", async () => {
+  permission = "view";
+  expect((await request(`/analyses/${ids.analysis}`, "DELETE")).status).toBe(
+    403,
+  );
+  expect(mocks.execute).not.toHaveBeenCalled();
+});
+it("distinguishes missing reports from active calculations without deleting either", async () => {
+  mocks.execute.mockResolvedValue([{ affectedRows: 0 }]);
+  expect((await request(`/analyses/${ids.analysis}`, "DELETE")).status).toBe(
+    404,
+  );
+  const original = mocks.query.getMockImplementation()!;
+  mocks.query.mockImplementation(async (sql: string, args: any[]) =>
+    sql.startsWith(
+      "SELECT id FROM statistical_analyses WHERE id=? AND survey_id=?",
+    )
+      ? [[{ id: ids.analysis }]]
+      : original(sql, args),
+  );
+  expect((await request(`/analyses/${ids.analysis}`, "DELETE")).status).toBe(
+    409,
+  );
 });

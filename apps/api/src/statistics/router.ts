@@ -27,11 +27,9 @@ const handle =
   };
 statisticsRouter.use(base, requireAuth, (req: AuthRequest, res, next) => {
   if (!isAdministrator(req))
-    return res
-      .status(403)
-      .json({
-        message: "Статистический анализ пока доступен только admin и owner.",
-      });
+    return res.status(403).json({
+      message: "Статистический анализ пока доступен только admin и owner.",
+    });
   next();
 });
 async function authorize(req: AuthRequest, write = false) {
@@ -412,5 +410,25 @@ statisticsRouter.get(
       [id],
     );
     res.json(rows);
+  }),
+);
+
+statisticsRouter.delete(
+  `${base}/analyses/:analysisId`,
+  handle(async (req, res) => {
+    const { id } = await authorize(req, true);
+    const [result] = await db.execute<any>(
+      "DELETE FROM statistical_analyses WHERE id=? AND survey_id=? AND status IN ('completed','failed')",
+      [req.params.analysisId, id],
+    );
+    if (!result.affectedRows) {
+      const [rows] = await db.query<any[]>(
+        "SELECT id FROM statistical_analyses WHERE id=? AND survey_id=?",
+        [req.params.analysisId, id],
+      );
+      if (!rows.length) fail("Расчёт не найден.", 404);
+      fail("Дождитесь завершения расчёта перед удалением.", 409);
+    }
+    res.status(204).end();
   }),
 );

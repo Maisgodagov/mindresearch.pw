@@ -190,6 +190,12 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
         polls++;
         analyses.forEach((a) => (a.status = "completed"));
         data = analyses.map(({ input, result, ...a }) => a);
+      } else if (path.includes("/statistics/analyses/") && verb === "DELETE") {
+        const index = analyses.findIndex((a) => path.endsWith(a.id));
+        assert(index >= 0);
+        analyses.splice(index, 1);
+        await route.fulfill({ status: 204 });
+        return;
       } else if (path.includes("/statistics/analyses/"))
         data = analyses.find((a) => path.endsWith(a.id));
       else if (path.endsWith("/results"))
@@ -376,6 +382,23 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       ),
       false,
     );
+    await app.getByRole("tab").last().click();
+    const deleteAction = app
+      .locator(".history-actions button[aria-label]")
+      .first();
+    await deleteAction.click();
+    const confirmDelete = page.getByRole("dialog");
+    await confirmDelete
+      .getByRole("button", { name: "Отмена", exact: true })
+      .click();
+    assert.equal(analyses.length, 2);
+    await deleteAction.click();
+    await confirmDelete
+      .getByRole("button", { name: "Удалить расчёт", exact: true })
+      .click();
+    await confirmDelete.waitFor({ state: "hidden" });
+    assert.equal(analyses.length, 1);
+    assert.equal(await app.locator(".history-row").count(), 1);
     researcher = true;
     await page.reload();
     await page

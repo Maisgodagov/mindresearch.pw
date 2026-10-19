@@ -421,6 +421,11 @@ export const Workspace = styled.section`
     line-height: 1.6;
     overflow-wrap: anywhere;
   }
+  .history-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
   .history-row {
     display: grid;
     grid-template-columns: 18px 36px minmax(0, 1fr) 118px auto;
@@ -603,15 +608,6 @@ export const Workspace = styled.section`
     font-weight: 600;
     text-align: right;
   }
-  .pilot-details {
-    margin-top: 18px;
-  }
-  .pilot-details summary {
-    font-size: 12px;
-  }
-  .pilot-details p {
-    margin-top: 10px;
-  }
   .history-copy .text-button {
     font-size: 14px;
     color: var(--ink);
@@ -738,7 +734,7 @@ export const Workspace = styled.section`
       grid-column: 3;
       grid-row: 2;
     }
-    .history-row > .ant-btn {
+    .history-row > .history-actions {
       grid-column: 4;
       grid-row: 1 / span 2;
     }
