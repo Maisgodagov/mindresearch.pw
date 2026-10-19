@@ -1,3 +1,4 @@
+import {withPriorityNorms} from './scoring/priorityNorms.js';
 import { RESPONDENT_GENDER_OPTIONS } from './respondent.js';
 import { db } from './db.js';
 import { withdrawnMethodologyCodes } from './data/withdrawnMethodologies.js';
@@ -99,7 +100,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     return group;
   };
   for (const row of scoreRows.filter(row => !withdrawnMethodologyCodes.has(String(row.instrumentCode ?? row.code)))) groupFor(row.sessionId, row).result = {
-    formulaVersion: row.formulaVersion, values: parseJson(row.result), interpretation: parseJson(row.interpretation) ?? null,
+    formulaVersion: row.formulaVersion, values: withPriorityNorms(String(row.instrumentCode??row.code),parseJson(row.result)), interpretation: parseJson(row.interpretation) ?? null,
   };
   if (!summary && sessions.length) {
     const ids = sessions.map(row => row.id);
