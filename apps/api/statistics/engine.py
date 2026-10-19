@@ -3,16 +3,25 @@ import json
 import math
 import sys
 import warnings
+import hashlib
+from pathlib import Path
 import scipy
 import numpy as np
 from scipy import stats
 
-VERSION = 'statistics-pilot-1'
+VERSION = 'statistics-2'
 
 
 def calculate(request):
     method = request['method']
     alpha = request.get('alpha', 0.05)
+    if method in ['mds_matrix_classical','mds_matrix_nonmetric','mds_individual','mds_preference','cluster_matrix']:
+        from matrices import calculate_matrix
+        out = {'engine': VERSION, 'scipy': scipy.__version__, 'numpy': np.__version__, 'python': sys.version.split()[0],
+               'summary': [], 'warnings': [], 'formula': '', 'steps': [], 'statistic': None, 'p': None, 'effect': None,
+               'ci': None, 'df': None, 'alternative': 'not-applicable', 'alpha': alpha}
+        if not 0 < alpha < 1:raise ValueError('Некорректный уровень значимости.')
+        return clean(calculate_matrix(request,out))
     groups = request['groups']
     arrays = [np.asarray(g['values'], dtype=float) for g in groups]
     if not 0 < alpha < 1 or not arrays or any(not np.isfinite(a).all() for a in arrays):
@@ -45,6 +54,7 @@ def calculate(request):
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter('always')
         if method == 'descriptive':
+            from extended import table
             out['formula'] = 'M = Σx / n; s² = Σ(x − M)² / (n − 1); s = √s²'
             values, counts = np.unique(x, return_counts=True)
             out['modes'] = values[counts == counts.max()].tolist() if counts.max()>1 else []
@@ -61,6 +71,17 @@ def calculate(request):
                 out['steps'].append('Эксцесс: G₂ = (n−1)/[(n−2)(n−3)] · [(n+1)(m₄/m₂² − 3) + 6].')
             out['ci'] = list(map(float, stats.t.interval(1-alpha, len(x)-1, loc=x.mean(), scale=stats.sem(x)))) if x.std() > 0 else [float(x.mean())]*2
             out['ciLabel'] = 'Доверительный интервал среднего'
+            table(out,'Дополнительные описательные показатели',['Показатель','Значение'],[['Стандартная ошибка среднего',float(stats.sem(x))],['Генеральная дисперсия · делитель n',float(x.var(ddof=0))],['Генеральное SD · делитель n',float(x.std(ddof=0))],['Размах',float(np.ptp(x))]])
+            table(out,'Процентили · линейная интерполяция',['Процентиль','Значение'],[[q,float(np.quantile(x,q/100))] for q in [5,10,25,50,75,90,95]])
+            n=len(x)
+            if 'skewness' in out:
+                se=math.sqrt(6*n*(n-1)/((n-2)*(n+1)*(n+3)))
+                table(out,'Стандартная ошибка асимметрии',['Показатель','Значение'],[['SE(G₁)',se]])
+                out['steps'].append('SE(G₁)=√[6n(n−1)/((n−2)(n+1)(n+3))], стандартная ошибка в нормальной модели.')
+            if 'excess' in out:
+                se=math.sqrt(24*n*(n-1)**2/((n-3)*(n-2)*(n+3)*(n+5)))
+                table(out,'Стандартная ошибка эксцесса',['Показатель','Значение'],[['SE(G₂)',se]])
+                out['steps'].append('SE(G₂)=√[24n(n−1)²/((n−3)(n−2)(n+3)(n+5))], нормальная модель.')
         elif method == 'shapiro':
             if len(x) < 3 or len(x) > 5000 or np.ptp(x) == 0:
                 raise ValueError('Для Шапиро—Уилка нужно 3–5000 значений с ненулевой вариативностью.')
@@ -174,16 +195,42 @@ def calculate(request):
             out['steps'] = [f'Общее среднее = {grand}; SS_between = {float(ssb)}; SS_within = {float(ssw)}', 'Классический независимый однофакторный ANOVA; предполагаются независимость, подходящая модель остатков и равенство дисперсий.']
             out['warnings'].append('Проверьте допущения ANOVA. Post-hoc и автоматическая диагностика остатков в пилоте не выполняются.')
         else:
-            raise ValueError('Метод пока не поддерживается.')
+            from extended import calculate_extended
+            calculate_extended(request, arrays, out)
         out['warnings'] += [str(w.message) for w in caught]
-    if out['p'] is not None and (not math.isfinite(out['p']) or not math.isfinite(out['statistic'])):
+    if out['p'] is not None and (not math.isfinite(out['p']) or (out['statistic'] is not None and not math.isfinite(out['statistic']))):
         raise ValueError('На этих данных статистика не определена. Проверьте вариативность и состав групп.')
-    return out
+    return clean(out)
+
+
+def clean(value):
+    if isinstance(value, (complex, np.complexfloating)):
+        if abs(value.imag) > 1e-10:
+            raise ValueError('Получено комплексное решение вместо вещественного. Проверьте матрицу показателей.')
+        return clean(value.real)
+    if isinstance(value, dict):
+        if value.get('engine') == VERSION:
+            value['references'] = [
+                {'title': 'SciPy · статистические процедуры и определения', 'url': 'https://docs.scipy.org/doc/scipy/reference/stats.html'},
+                {'title': 'statsmodels · модели, диагностика, факторный анализ', 'url': 'https://www.statsmodels.org/stable/index.html'},
+                {'title': 'scikit-learn · LDA, отбор, MDS', 'url': 'https://scikit-learn.org/stable/modules/classes.html'},
+            ]
+            value['implementation'] = hashlib.sha256(b''.join((Path(__file__).parent/name).read_bytes() for name in ['engine.py','extended.py','models.py','matrices.py','diagnostics.py'])).hexdigest()
+        return {str(k): clean(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, np.ndarray)):
+        return [clean(v) for v in value]
+    if isinstance(value, (np.integer, np.bool_)):
+        return value.item()
+    if isinstance(value, (float, np.floating)):
+        if not math.isfinite(value):
+            raise ValueError('На этих данных возникла неопределённая оценка. Проверьте вариативность, объём и зависимость показателей.')
+        return float(value)
+    return value
 
 
 if __name__ == '__main__':
     try:
         print(json.dumps({'result': calculate(json.load(sys.stdin))}, ensure_ascii=False, allow_nan=False))
-    except (ValueError, KeyError, TypeError) as error:
+    except (ValueError, KeyError, TypeError, np.linalg.LinAlgError) as error:
         print(json.dumps({'error': str(error)}, ensure_ascii=False))
         sys.exit(0)

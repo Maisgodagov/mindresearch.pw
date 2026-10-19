@@ -24,6 +24,30 @@ const sample = (id: string, members: string[]) => ({
 });
 
 describe("Statistical inputs", () => {
+  it("aligns a complete multivariate block across every column and rejects arbitrary category arithmetic", () => {
+    const people = [person("a", 20), person("b", 30), person("c", 40)];
+    const columns = ["x", "y", "z"].map(id => ({ sample: sample("s", ["c", "b", "a"]), variable: { ...variable, id } }));
+    const output = prepareInput("partial", columns, people, { a: { x: 0, y: 4, z: 5 }, b: { x: 2, y: 5 }, c: { x: 3, y: 6, z: 7 } }, {});
+    expect(output.map(g => g.included.map(row => row.id))).toEqual([["a", "c"], ["a", "c"], ["a", "c"]]);
+    expect(() => prepareInput("partial", [{ ...columns[0], variable: { ...columns[0].variable, categories: [{ code: 0, label: "Category" }] } }, ...columns.slice(1)], people, {}, {})).toThrow("числовой показатель");
+  });
+  it("creates a consistent categorical codebook without changing respondent answers", () => {
+    const people = [{ ...person("a", 20), gender: "Женский" }, { ...person("b", 30), gender: "Мужской" }];
+    const output = analyticalData(people);
+    const gender = output.variables.find(v => v.id === "gender")!;
+    expect(gender.categories).toHaveLength(2);
+    for (const p of people) expect(gender.categories?.find(c => c.code === output.rows[p.id].gender)?.label).toBe(p.gender);
+    expect(people[0].gender).toBe("Женский");
+  });
+  it("pairs independent correlations within samples, then rejects overlap between samples", () => {
+    const people = [person("a", 20), person("b", 30), person("c", 40), person("d", 50)];
+    const rows = Object.fromEntries(people.map((p, i) => [p.id, { x: i, y: i + 2 }]));
+    const columns = ["s", "s", "s2", "s2"].map((id, i) => ({ sample: sample(id, i < 2 ? ["b", "a"] : ["d", "c"]), variable: { ...variable, id: i % 2 ? "y" : "x" } }));
+    const output = prepareInput("compare_independent_correlations", columns, people, rows, {});
+    expect(output.map(g => g.included.map(row => row.id))).toEqual([["a", "b"], ["a", "b"], ["c", "d"], ["c", "d"]]);
+    columns[2].sample.members = columns[3].sample.members = ["a", "b"];
+    expect(() => prepareInput("compare_independent_correlations", columns, people, rows, {})).toThrow("не должны пересекаться");
+  });
   it("keeps selection conditions and completion status independent of pagination", () => {
     const conditions = [
       { question: "__age", title: "Возраст", min: 20, max: 40 },

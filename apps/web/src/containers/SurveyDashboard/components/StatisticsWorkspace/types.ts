@@ -3,6 +3,7 @@ export type Variable = {
   label: string;
   source: string;
   version: string | null;
+  categories?: { code: number; label: string }[];
 };
 export type Participant = {
   id: string;
@@ -32,8 +33,13 @@ export type Sample = {
 export type Method = {
   id: string;
   label: string;
-  kind: "single" | "independent" | "paired" | "multiple";
+  kind: "single" | "independent" | "paired" | "multiple" | "repeated" | "multivariate" | "paired_groups" | "manual";
   description: string;
+  minInputs?: number;
+  maxInputs?: number;
+  roles?: string[];
+  vectors?: { key: string; label: string; placeholder: string }[];
+  parameters?: { key: string; label: string; value: number; min?: number; max?: number; integer?: boolean; options?: { value: number; label: string }[] }[];
 };
 export type Analysis = {
   id: string;
@@ -53,7 +59,7 @@ export type InputGroup = {
   excluded: { id: string; reason: string }[];
 };
 export type Input = {
-  config: { method: string; alpha: number; mu?: number };
+  config: { method: string; alpha: number; mu?: number; parameters?: Record<string, number>; matrixData?: number[][] | number[][][]; vectors?: Record<string, number[]> };
   groups: InputGroup[];
   snapshotAt: string;
   manualReason: string;
@@ -61,6 +67,11 @@ export type Input = {
 };
 export type Output = {
   engine: string;
+  implementation?: string;
+  references?: { title: string; url: string }[];
+  alternative?: string;
+  packages?: Record<string, string>;
+  tables?: { title: string; columns: string[]; rows: (string | number | null)[][] }[];
   scipy: string;
   numpy: string;
   python: string;

@@ -20,7 +20,7 @@ import { SelectField } from "../../../../components/SelectField";
 import { api } from "../../../../api";
 import { ResultsAction as Button } from "../ResultsAction";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
-import type { Analysis, Input, Model, Sample } from "./types";
+import type { Analysis, Input, Model, Sample, Output } from "./types";
 import { Workspace } from "./styles";
 
 const number = (value: number | null | undefined) =>
@@ -61,6 +61,10 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
     [choices, setChoices] = useState<Choice[]>([
       { sampleId: "", variableId: "" },
     ]);
+  const [vectors, setVectors] = useState<Record<string, string>>({});
+  const [matrixData, setMatrixData] = useState("");
+  const [matrixSource, setMatrixSource] = useState("");
+  const [parameters, setParameters] = useState<Record<string, string>>({});
   const [alpha, setAlpha] = useState("0.05"),
     [mu, setMu] = useState("0"),
     [name, setName] = useState("");
@@ -160,13 +164,17 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
   }
   const selectedMethod = model?.methods.find((m) => m.id === method);
   const kind = selectedMethod?.kind ?? "single";
+  const linked = ["paired", "repeated", "multivariate"].includes(kind);
   const config = () => ({
     method,
     alpha: Number(alpha),
     mu: Number(mu),
+    vectors: Object.fromEntries((selectedMethod?.vectors ?? []).map(v => [v.key, (vectors[v.key] ?? "").split(/[;\s,]+/).filter(Boolean).map(Number)])),
+    parameters: Object.fromEntries((selectedMethod?.parameters ?? []).map(p => [p.key, Number(parameters[p.key] ?? p.value)])),
     name,
     manual: {},
-    manualReason: "",
+    matrixData: kind === "manual" ? matrixData : "",
+    manualReason: kind === "manual" ? matrixSource : "",
     groups: choices.map((c) => ({
       sampleId: c.sampleId,
       variableId: c.variableId,
@@ -196,9 +204,11 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
   }
   function chooseMethod(id: string) {
     setMethod(id);
+    setParameters({});
+    setVectors({});
     invalidate();
     const next = model?.methods.find((m) => m.id === id);
-    const count = next?.kind === "single" ? 1 : 2;
+    const count = next?.kind === "manual" ? 0 : next?.minInputs ?? (next?.kind === "single" ? 1 : 2);
     setChoices((previous) =>
       Array.from(
         { length: count },
@@ -274,6 +284,10 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
         "Источник",
       ]);
       for (const g of a.input.groups) {
+        if (g.variable.categories?.length) {
+          data.addRow([g.label, "Коды категорий"]);
+          for (const category of g.variable.categories) data.addRow(["", category.code, "", category.label]);
+        }
         for (const row of g.included)
           data.addRow([
             g.label,
@@ -285,6 +299,10 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
           ]);
         for (const row of g.excluded)
           data.addRow([g.label, g.revision, row.id, "", null, row.reason]);
+      }
+      if (a.input.config.matrixData) {
+        const matrices = Array.isArray(a.input.config.matrixData[0]?.[0]) ? a.input.config.matrixData as number[][][] : [a.input.config.matrixData as number[][]];
+        for (const [i, matrix] of matrices.entries()) { const sheet = workbook.addWorksheet(`Матрица ${i + 1}`); sheet.addRows(matrix); }
       }
       const trace = workbook.addWorksheet("Расчёт");
       trace.addRows([
@@ -300,7 +318,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
       const settings = workbook.addWorksheet("Настройки");
       settings.addRows([
         ["Метод", a.input.config.method],
-        ["Гипотеза", "Двусторонняя"],
+        ["Гипотеза", a.result.alternative ?? "two-sided"],
         ["α", a.input.config.alpha],
         ["μ₀", a.input.config.mu ?? ""],
         ["Снимок", a.input.snapshotAt],
@@ -311,6 +329,17 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
         ["Правила", a.input.policy],
         ["Ручной источник", a.input.manualReason],
       ]);
+      if (a.result.implementation) settings.addRow(["Версия реализации · SHA-256", a.result.implementation]);
+      for (const reference of a.result.references ?? []) trace.addRow([reference.title, reference.url]);
+      for (const [key, value] of Object.entries(a.input.config.vectors ?? {})) settings.addRow([key, value.join(", ")]);
+      for (const [key, value] of Object.entries(a.input.config.parameters ?? {})) settings.addRow([key, value]);
+      for (const [key, value] of Object.entries(a.result.packages ?? {})) settings.addRow([key, value]);
+      for (const [index, t] of (a.result.tables ?? []).entries()) {
+        const sheet = workbook.addWorksheet(`Таблица ${index + 1}`);
+        sheet.addRow([t.title]);
+        sheet.addRow(t.columns);
+        sheet.addRows(t.rows);
+      }
       for (const sheet of workbook.worksheets) {
         sheet.views = [{ state: "frozen", ySplit: 1 }];
         sheet.columns.forEach((c, i) => {
@@ -705,7 +734,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
           {tab === "new" && (
             <div className="analysis-layout">
               <div>
-                {!model.samples.length ? (
+                {!model.samples.length && kind !== "manual" ? (
                   <div className="empty">
                     <h3>Сначала сохраните выборку</h3>
                     <p className="muted">
@@ -713,6 +742,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                       связан с её составом и версией.
                     </p>
                     <Button onClick={onClose}>К респондентам</Button>
+                    <Button onClick={() => chooseMethod("mds_matrix_classical")}>Анализ заданных матриц</Button>
                   </div>
                 ) : (
                   <>
@@ -723,6 +753,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                     <label className="field">
                       Метод расчёта
                       <SelectField
+                        showSearch
                         value={method}
                         onChange={(value) => chooseMethod(String(value))}
                         options={model.methods.map((m) => ({
@@ -734,11 +765,21 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                     <p className="method-description">
                       {selectedMethod?.description}
                     </p>
+                    {kind === "manual" && <div className="input-group">
+                      <label className="field">Матрица данных · JSON
+                        <textarea rows={8} value={matrixData} placeholder={method === "mds_individual" ? "[[[0, 1, 2], [1, 0, 1], [2, 1, 0]], [[0, 2, 3], [2, 0, 1], [3, 1, 0]]]" : "[[0, 1, 2], [1, 0, 1], [2, 1, 0]]"}
+                          onChange={e => { setMatrixData(e.target.value); invalidate(); }} />
+                      </label>
+                      <label className="field">Источник и порядок строк / столбцов
+                        <textarea rows={2} value={matrixSource} placeholder="Откуда данные; что обозначают строки и столбцы и в каком порядке они идут"
+                          onChange={e => { setMatrixSource(e.target.value); invalidate(); }} />
+                      </label>
+                    </div>}
                     {choices.map((choice, index) => (
                       <div className="input-group" key={index}>
                         <h3>
-                          {kind === "paired"
-                            ? `Показатель ${index + 1} · значения одного участника`
+                          {linked || kind === "paired_groups"
+                            ? selectedMethod?.roles?.[Math.min(index, selectedMethod.roles.length - 1)] ?? `Показатель ${index + 1} · значения одного участника`
                             : `${choices.length === 1 ? "Выборка" : `Группа ${index + 1}`}`}
                         </h3>
                         <div className="fields">
@@ -751,7 +792,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                                   current.map((c, i) =>
                                     i === index
                                       ? { ...c, sampleId: String(value) }
-                                      : kind === "paired"
+                                      : linked || (kind === "paired_groups" && Math.floor(i / 2) === Math.floor(index / 2))
                                         ? { ...c, sampleId: String(value) }
                                         : c,
                                   ),
@@ -795,33 +836,42 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                         </div>
                       </div>
                     ))}
-                    {kind === "multiple" && (
+                    {["multiple", "repeated", "multivariate"].includes(kind) && (
                       <div className="actions">
                         <Button
-                          disabled={choices.length >= 8}
+                          disabled={choices.length >= (selectedMethod?.maxInputs ?? 16)}
                           onClick={() => {
                             setChoices((c) => [
                               ...c,
-                              { sampleId: "", variableId: c[0].variableId },
+                              { sampleId: linked ? c[0].sampleId : "", variableId: linked ? "" : c[0].variableId },
                             ]);
                             invalidate();
                           }}
                         >
                           <Plus size={14} />
-                          Добавить группу
+                          {linked ? "Добавить показатель" : "Добавить группу"}
                         </Button>
-                        {choices.length > 2 && (
+                        {choices.length > (selectedMethod?.minInputs ?? 2) && (
                           <Button
                             onClick={() => {
                               setChoices((c) => c.slice(0, -1));
                               invalidate();
                             }}
                           >
-                            Убрать последнюю
+                            Убрать последний
                           </Button>
                         )}
                       </div>
                     )}
+                    {selectedMethod?.vectors?.map(v => <label className="field" key={v.key}>{v.label}<input value={vectors[v.key] ?? ""} placeholder={v.placeholder} onChange={e => { setVectors(current => ({ ...current, [v.key]: e.target.value })); invalidate(); }} /></label>)}
+                    {!!selectedMethod?.parameters?.length && <div className="fields">
+                      {selectedMethod.parameters.map(p => <label className="field" key={p.key}>
+                        {p.label}
+                        {p.options ? <SelectField value={Number(parameters[p.key] ?? p.value)} options={p.options} onChange={value => { setParameters(current => ({ ...current, [p.key]: String(value) })); invalidate(); }} /> : <input type="number" step={p.integer ? "1" : "any"} min={p.min} max={p.max}
+                          value={parameters[p.key] ?? String(p.value)}
+                          onChange={e => { setParameters(current => ({ ...current, [p.key]: e.target.value })); invalidate(); }} />}
+                      </label>)}
+                    </div>}
                     <div className="fields">
                       <label className="field">
                         Уровень значимости α
@@ -869,8 +919,10 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                         disabled={
                           busy ||
                           !model.canWrite ||
+                          (kind === "manual" && (!matrixData.trim() || !matrixSource.trim())) ||
                           choices.some((c) => !c.sampleId || !c.variableId) ||
-                          (method === "t_one" && !mu.trim())
+                          (method === "t_one" && !mu.trim()) ||
+                          (selectedMethod?.parameters ?? []).some(p => parameters[p.key] !== undefined && (!parameters[p.key].trim() || !Number.isFinite(Number(parameters[p.key])) || (p.min !== undefined && Number(parameters[p.key]) < p.min) || (p.max !== undefined && Number(parameters[p.key]) > p.max) || (p.integer && !Number.isInteger(Number(parameters[p.key])))))
                         }
                         onClick={() =>
                           void perform(async () => {
@@ -895,10 +947,14 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                           <h3>Проверка перед запуском</h3>
                         </div>
                         <p className="muted">
-                          Гипотеза двусторонняя. Пропуски исключаются; парные
-                          показатели сопоставлены по ID прохождения.
+                          Для направленных методов порядок показателей задаёт ожидаемое возрастание. Пропуски исключаются; связанные показатели сопоставляются по участникам.
                         </p>
-                        <div className="scroll">
+                        {preview.input.config.matrixData && <div className="notice">
+                          <strong>Зафиксирована заданная матрица</strong>
+                          <p>{preview.input.manualReason}</p>
+                          <details><summary>Проверить исходные значения</summary><pre className="matrix-source">{JSON.stringify(preview.input.config.matrixData, null, 2)}</pre></details>
+                        </div>}
+                        {preview.input.groups.length > 0 && <div className="scroll">
                           <table>
                             <thead>
                               <tr>
@@ -920,7 +976,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                               ))}
                             </tbody>
                           </table>
-                        </div>
+                        </div>}
                         <InputTables
                           input={preview.input}
                           participants={model.participants}
@@ -974,7 +1030,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                     </div>
                     <div>
                       <dt>Гипотеза</dt>
-                      <dd>Двусторонняя</dd>
+                      <dd>{["page", "jonckheere"].includes(method) ? "Возрастание в указанном порядке" : method === "rosenbaum" ? "Первая группа выше второй" : "Указана в описании метода"}</dd>
                     </div>
                   </dl>
                 </div>
@@ -987,12 +1043,11 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                 <ul>
                   <li>Независимые группы не должны пересекаться.</li>
                   <li>
-                    Парные методы используют два показателя одного прохождения.
+                    Связанные методы используют полные наборы показателей одних участников.
                   </li>
                   <li>Пропуск не считается нулём.</li>
                   <li>
-                    Один запуск — одна гипотеза. Для серии проверок потребуется
-                    поправка.
+                    Попарные таблицы содержат своё семейство проверок и указанную поправку.
                   </li>
                 </ul>
               </aside>
@@ -1051,8 +1106,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                   <p className="notice">
                     Это просмотр результатов рядом. Различие p или отметок
                     значимости само по себе не доказывает различия эффектов.
-                    Отдельная проверка различий эффектов в пилот пока не
-                    включена.
+                    Для статистической проверки связей выберите соответствующий метод различия корреляций в новом расчёте.
                   </p>
                   <div className="scroll">
                     <table>
@@ -1192,7 +1246,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                             )}
                             {report.result.p !== null && (
                               <div>
-                                <span>p · двусторонний</span>
+                                <span>{report.result.alternative === "increasing" ? "p · возрастание" : report.result.alternative === "first-greater" ? "p · первая группа выше" : "p"}</span>
                                 <strong>{probability(report.result.p)}</strong>
                               </div>
                             )}
@@ -1252,6 +1306,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                               {report.result.ci.map(number).join(" … ")}
                             </p>
                           )}
+                          {report.result.tables?.map((table, index) => <ResultTable key={report.id + ":" + index} table={table} />)}
                           <details>
                             <summary>Дисперсия и квартили</summary>
                             <div className="scroll">
@@ -1303,7 +1358,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                           ))}
                           <p className="muted">
                             Результат относится к зафиксированным данным и
-                            одному выбранному сравнению. p не является
+                            выбранному анализу. Попарные проверки относятся к указанному в таблице семейству. p не является
                             вероятностью истинности гипотезы.
                           </p>
                         </>
@@ -1314,6 +1369,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                             Данные из сохранённого снимка. Ручные дополнения
                             помечены; исходные ответы опроса не изменены.
                           </p>
+                          {report.input.config.matrixData && <details><summary>Исходная матрица · JSON</summary><pre className="matrix-source">{JSON.stringify(report.input.config.matrixData, null, 2)}</pre></details>}
                           <InputTables
                             input={report.input}
                             participants={model.participants}
@@ -1324,6 +1380,7 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                         <>
                           <h4>Формула</h4>
                           <p className="formula">{report.result.formula}</p>
+                          {!!report.result.references?.length && <details><summary>Источники вычислительных процедур</summary><ul>{report.result.references.map(reference => <li key={reference.url}><a href={reference.url} target="_blank" rel="noopener noreferrer">{reference.title}</a></li>)}</ul></details>}
                           <ol className="trace">
                             {report.result.steps.map((step, i) => (
                               <li key={i}>{step}</li>
@@ -1355,8 +1412,9 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                             {report.result.engine} · SciPy {report.result.scipy}{" "}
                             · NumPy {report.result.numpy} · Python{" "}
                             {report.result.python}
+                            {Object.entries(report.result.packages ?? {}).map(([key, value]) => ` · ${key} ${value}`).join("")}
                             <br />
-                            Гипотеза: двусторонняя. α ={" "}
+                            Вариант: {report.result.alternative ?? "two-sided"}. α ={" "}
                             {number(report.input.config.alpha)}. Политика:
                             полные наблюдения/пары, без импутации и исключения
                             выбросов.
@@ -1552,6 +1610,7 @@ function InputTables({
             {group.label} · {group.included.length} включено /{" "}
             {group.excluded.length} исключено
           </summary>
+          {!!group.variable.categories?.length && <p className="notice">Коды категорий: {group.variable.categories.map(c => c.code + " — " + c.label).join("; ")}. Для бинарных методов событие — код 1.</p>}
           <div className="scroll">
             <table>
               <thead>
@@ -1589,9 +1648,26 @@ function InputTables({
       ))}
       {input.manualReason && (
         <p className="notice">
-          Источник ручных дополнений: {input.manualReason}
+          {input.config.matrixData ? "Источник матрицы" : "Источник ручных дополнений"}: {input.manualReason}
         </p>
       )}
     </div>
   );
+}
+
+function ResultTable({ table }: { table: NonNullable<Output["tables"]>[number] }) {
+  const [page, setPage] = useState(0);
+  const size = 50;
+  return <section className="result-table">
+    <h3>{table.title}</h3>
+    <div className="scroll"><table>
+      <thead><tr>{table.columns.map((column, i) => <th key={i}>{column}</th>)}</tr></thead>
+      <tbody>{table.rows.slice(page * size, (page + 1) * size).map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{typeof cell === "number" ? number(cell) : cell ?? "—"}</td>)}</tr>)}</tbody>
+    </table></div>
+    {table.rows.length > size && <div className="actions">
+      <span className="muted">{page * size + 1}–{Math.min((page + 1) * size, table.rows.length)} из {table.rows.length} · Excel содержит все строки</span>
+      <Button disabled={page === 0} onClick={() => setPage(current => current - 1)} aria-label="Предыдущие строки"><ArrowLeft size={16} /></Button>
+      <Button disabled={(page + 1) * size >= table.rows.length} onClick={() => setPage(current => current + 1)} aria-label="Следующие строки"><ArrowRight size={16} /></Button>
+    </div>}
+  </section>;
 }

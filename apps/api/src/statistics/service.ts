@@ -20,7 +20,7 @@ export function calculateStatistics(input: any): Promise<any> {
             ? {
                 PYTHONPATH:
                   process.env.STATISTICS_SITE_PACKAGES ??
-                  "/opt/mindresearch/statistics-python",
+                  "/opt/mindresearch/statistics-python-v2",
               }
             : {}),
         },

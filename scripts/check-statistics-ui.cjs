@@ -21,6 +21,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       version: "v1",
     },
   ];
+  variables.push({ id: "fixture:noise", label: "Авторская методика · Дополнительный показатель", source: "Авторская методика", version: null });
   const people = Array.from({ length: 8 }, (_, i) => ({
     id: id(i + 20),
     alias: "Участник " + (i + 1),
@@ -28,7 +29,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     gender: "Женский",
     status: "completed",
     groups: [],
-    values: { age: 21 + i, "score:one:score:v1": i * 2 + 3 },
+    values: { age: 21 + i, "score:one:score:v1": i * 2 + 3, "fixture:noise": [1,4,2,7,5,8,3,6][i] },
   }));
   const rows = Object.fromEntries(people.map((p) => [p.id, p.values]));
   let samples = [
@@ -126,8 +127,8 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
         data = {
           hash: "fixture-hash",
           input: {
-            config: { method: body.method, alpha: body.alpha, mu: body.mu },
-            groups: prepareInput(
+            config: { method: body.method, alpha: body.alpha, mu: body.mu, parameters: body.parameters, vectors: body.vectors, ...(body.matrixData ? { matrixData: JSON.parse(body.matrixData) } : {}) },
+            groups: body.matrixData ? [] : prepareInput(
               body.method,
               groups,
               people,
@@ -144,7 +145,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
           sample: samples.find((s) => s.id === g.sampleId),
           variable: variables.find((v) => v.id === g.variableId),
         }));
-        const source = prepareInput(
+        const source = body.matrixData ? [] : prepareInput(
           body.method,
           groups,
           people,
@@ -160,6 +161,9 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
               method: body.method,
               alpha: body.alpha,
               mu: body.mu,
+              parameters: body.parameters,
+              vectors: body.vectors,
+              ...(body.matrixData ? { matrixData: JSON.parse(body.matrixData) } : {}),
               groups: source.map((g) => ({
                 label: g.label,
                 values: g.included.map((r) => r.value),
@@ -177,7 +181,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
           status: "queued",
           createdAt: new Date().toISOString(),
           input: {
-            config: { method: body.method, alpha: body.alpha, mu: body.mu },
+            config: { method: body.method, alpha: body.alpha, mu: body.mu, parameters: body.parameters, vectors: body.vectors, ...(body.matrixData ? { matrixData: JSON.parse(body.matrixData) } : {}) },
             groups: source,
             snapshotAt: new Date().toISOString(),
             manualReason: "",
@@ -348,7 +352,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
       process.env.TEMP + "/statistics-pilot-report.xlsx",
     );
     assert.deepEqual(
-      workbook.worksheets.map((s) => s.name),
+      workbook.worksheets.slice(0,4).map((s) => s.name),
       ["Результат", "Данные", "Расчёт", "Настройки"],
     );
     assert.equal(workbook.getWorksheet("Данные").getCell("E2").value, 21);
@@ -437,6 +441,38 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     await confirmDelete.waitFor({ state: "hidden" });
     assert.equal(analyses.length, 1);
     assert.equal(await app.locator(".history-row").count(), 1);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await app.getByRole("tab", { name: "Новый расчёт", exact: true }).click();
+    await app.getByLabel("Метод расчёта").click();
+    await page.getByRole("textbox").last().fill("главных компонент");
+    await page.getByRole("option", { name: methods.find(m => m.id === "pca").label, exact: true }).click();
+    await app.getByLabel("Числовой показатель").nth(1).click();
+    await page.getByRole("textbox").last().fill(variables[2].label);
+    await page.getByRole("option", { name: variables[2].label, exact: true }).click();
+    await app.getByRole("button", { name: "Проверить данные", exact: true }).click();
+    await app.getByRole("button", { name: "Рассчитать и сохранить" }).click();
+    await app.getByText("Шаг 3 из 3 · Готово", { exact: true }).waitFor({ timeout: 30000 });
+    await app.getByRole("heading", { name: "Нагрузки", exact: true }).waitFor();
+    const [pcaDownload] = await Promise.all([page.waitForEvent("download"), app.getByRole("button", { name: "Excel-отчёт" }).click()]);
+    const pcaPath=process.env.TEMP + "/statistics-pca-report.xlsx"; await pcaDownload.saveAs(pcaPath);
+    const pcaBook=new ExcelJS.Workbook();await pcaBook.xlsx.readFile(pcaPath);
+    assert(pcaBook.getWorksheet("Таблица 2"));
+    await page.screenshot({ path: process.env.TEMP + "/statistics-extended-desktop.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: process.env.TEMP + "/statistics-extended-mobile.png", fullPage: true });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await app.getByRole("tab", { name: "Новый расчёт", exact: true }).click();
+    await app.getByLabel("Метод расчёта").click();
+    await page.getByRole("textbox").last().fill("Торгерсон");
+    await page.getByRole("option", { name: methods.find(m => m.id === "mds_matrix_classical").label, exact: true }).click();
+    await app.getByLabel("Матрица данных · JSON").fill("[[0,1,1,1.4142135623730951],[1,0,1.4142135623730951,1],[1,1.4142135623730951,0,1],[1.4142135623730951,1,1,0]]");
+    await app.getByLabel("Источник и порядок строк / столбцов").fill("Синтетический квадрат, объекты A,B,C,D");
+    await app.getByRole("button", { name: "Проверить данные", exact: true }).click();
+    await app.getByRole("button", { name: "Рассчитать и сохранить" }).click();
+    await app.getByText("Шаг 3 из 3 · Готово", { exact: true }).waitFor({ timeout: 30000 });
+    await app.getByRole("heading", { name: "Координаты объектов", exact: true }).waitFor();
+    assert(analyses[0].input.config.matrixData);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     researcher = true;
     await page.reload();
     await page
@@ -454,7 +490,7 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     );
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: save 8 members, candidate selection, version 2, preview, 2 Python calculations, polling, formulas, XLSX, comparison, mobile, researcher hidden. Downloads:",
+      "PASS: save 8 members, candidate selection, version 2, preview, descriptive/Pearson/PCA/matrix Python calculations, polling, formulas, extended XLSX tables, comparison, mobile, researcher hidden. Downloads:",
       downloads,
     );
   } finally {

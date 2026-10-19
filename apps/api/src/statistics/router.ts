@@ -273,6 +273,9 @@ const configSchema = z.object({
   method: z.enum(methods.map((m) => m.id) as [string, ...string[]]),
   alpha: z.number().min(0.001).max(0.2),
   mu: z.number().finite().optional(),
+  vectors: z.record(z.string().max(40), z.array(z.number().finite()).max(60)).default({}),
+  matrixData: z.string().max(100000).default(""),
+  parameters: z.record(z.string().max(40), z.number().finite()).default({}),
   groups: z
     .array(
       z.object({
@@ -281,8 +284,8 @@ const configSchema = z.object({
         variableId: z.string().max(500),
       }),
     )
-    .min(1)
-    .max(8),
+    .min(0)
+    .max(16),
   manual: z.record(z.string().max(100), z.number().finite()).default({}),
   manualReason: z.string().trim().max(1000).default(""),
   name: z.string().trim().max(160).default(""),
@@ -292,6 +295,40 @@ async function prepare(surveyId: string, raw: z.infer<typeof configSchema>) {
     fail("Можно дополнить не более 500 значений.");
   if (Object.keys(raw.manual).length && !raw.manualReason)
     fail("Укажите источник/причину ручных значений.");
+  const method = methods.find(m => m.id === raw.method)!;
+  for (const key of Object.keys(raw.parameters)) {
+    const field = method.parameters?.find(p => p.key === key);
+    const value = raw.parameters[key];
+    if (!field || (field.min !== undefined && value < field.min) ||
+        (field.max !== undefined && value > field.max) || (field.integer && !Number.isInteger(value)) || (field.options && !field.options.some(o => o.value === value)))
+      fail("Проверьте параметры выбранного метода.");
+  }
+  for (const key of Object.keys(raw.vectors)) if (!method.vectors?.some(v => v.key === key)) fail("Неизвестный вектор настроек метода.");
+  const parameters = Object.fromEntries((method.parameters ?? []).map(p => [p.key, raw.parameters[p.key] ?? p.value]));
+  if (method.kind === "manual") {
+    if (raw.groups.length || Object.keys(raw.manual).length) fail("Для матричного метода задайте матрицу вместо групп участников.");
+    if (!raw.manualReason.trim()) fail("Укажите источник матрицы и смысл её строк и столбцов.");
+    let matrixData: unknown;
+    try { matrixData = JSON.parse(raw.matrixData); } catch { fail("Матрица должна быть корректным JSON-массивом чисел."); }
+    const vector = z.array(z.number().finite().min(0).max(1e10)).min(2).max(60);
+    const matrix = z.array(vector).min(2).max(60);
+    const schema = raw.method === "mds_individual" ? z.array(matrix).min(2).max(10) : matrix;
+    matrixData = schema.parse(matrixData);
+    const matrices = raw.method === "mds_individual" ? matrixData as number[][][] : [matrixData as number[][]];
+    for (const value of matrices) {
+      const width = value[0].length;
+      if (value.length < 3 || width < 3 || value.some(row => row.length !== width)) fail("Нужна прямоугольная матрица минимум 3×3 без пропусков.");
+      if (raw.method !== "mds_preference") {
+        if (value.length !== width || value.some((row, i) => Math.abs(row[i]) > 1e-10 || row.some((entry, j) => Math.abs(entry - value[j][i]) > 1e-10)))
+          fail("Матрица различий должна быть квадратной, симметричной и с нулевой диагональю.");
+      }
+      if (raw.method === "mds_individual" && (value.length > 25 || value.length !== matrices[0].length)) fail("INDSCAL поддерживает одинаковые матрицы до 25 объектов.");
+      if (raw.method === "mds_preference" && (value.length > 25 || width > 25)) fail("Развёртывание поддерживает до 25 строк и столбцов.");
+    }
+    return { config: { method: raw.method, alpha: raw.alpha, parameters, matrixData }, groups: [],
+      manualReason: raw.manualReason, snapshotAt: new Date().toISOString(), policy: "User-provided matrices; no respondent matching; source recorded; deterministic seed" };
+  }
+  if (raw.matrixData) fail("Этот метод использует показатели опроса, а не заданную матрицу.");
   const dataset = await data(surveyId),
     currentSamples = await samples(surveyId);
   const groups = raw.groups.map((g) => {
@@ -327,12 +364,12 @@ async function prepare(surveyId: string, raw: z.infer<typeof configSchema>) {
     raw.manual,
   );
   return {
-    config: { method: raw.method, alpha: raw.alpha, mu: raw.mu },
+    config: { method: raw.method, alpha: raw.alpha, mu: raw.mu, parameters, vectors: raw.vectors },
     groups: prepared,
     manualReason: raw.manualReason,
     snapshotAt: new Date().toISOString(),
     policy:
-      "complete cases; paired by sessionId; no imputation; no outlier exclusion; two-sided; one hypothesis",
+      "complete cases; paired by sessionId; no imputation; no outlier exclusion; alternative and multiplicity in method report",
   };
 }
 statisticsRouter.post(

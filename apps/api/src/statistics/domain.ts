@@ -1,4 +1,5 @@
-export const methods = [
+import { extendedMethods, type StatisticsMethod } from "./extended-methods.js";
+export const methods: StatisticsMethod[] = [
   {
     id: "descriptive",
     label: "Описательная статистика",
@@ -82,7 +83,8 @@ export const methods = [
     kind: "paired",
     description: "Ранговая связь с учётом совпадений.",
   },
-] as const;
+  ...extendedMethods,
+];
 
 export type Condition = {
   question: string;
@@ -104,6 +106,7 @@ export type Variable = {
   label: string;
   source: string;
   version: string | null;
+  categories?: { code: number; label: string }[];
 };
 export const fail = (message: string, status = 400): never => {
   throw Object.assign(new Error(message), { status });
@@ -215,6 +218,28 @@ export function analyticalData(people: Person[]) {
     }
     rows[person.id] = row;
   }
+  // Explicit categorical variables have a shared codebook across the entire survey.
+  const categorical = new Map<string, { label: string; values: Map<string, string> }>();
+  for (const person of people) {
+    if (person.gender) {
+      const entry = categorical.get("gender") ?? { label: "Пол", values: new Map<string, string>() };
+      entry.values.set(person.id, person.gender);
+      categorical.set("gender", entry);
+    }
+    for (const group of person.groups) for (const answer of group.answers) {
+      if (!["choice", "single", "select", "radio", "boolean", "yesno"].includes(answer.type) || answer.value == null || Array.isArray(answer.value)) continue;
+      const id = `category:${answer.questionId}`;
+      const entry = categorical.get(id) ?? { label: `${group.title} · ${answer.question} (категория)`, values: new Map<string, string>() };
+      entry.values.set(person.id, String(answer.displayValue ?? answer.value));
+      categorical.set(id, entry);
+    }
+  }
+  for (const [id, entry] of categorical) {
+    const categories = [...new Set(entry.values.values())].sort().map((label, code) => ({ code, label }));
+    if (categories.length > 50) continue;
+    variables.set(id, { id, label: entry.label, source: "Категориальный ответ", version: null, categories });
+    for (const [personId, label] of entry.values) rows[personId][id] = categories.find(c => c.label === label)!.code;
+  }
   return { variables: [...variables.values()], rows };
 }
 
@@ -235,11 +260,11 @@ export function prepareInput(
     groups.length !==
       (method.kind === "single"
         ? 1
-        : method.kind === "multiple"
+        : ["multiple", "repeated", "multivariate", "paired_groups"].includes(method.kind)
           ? groups.length
           : 2) ||
-    groups.length < (method.kind === "multiple" ? 2 : 1) ||
-    groups.length > 8
+    groups.length < (method.minInputs ?? (["multiple", "repeated", "multivariate", "paired_groups"].includes(method.kind) ? 2 : 1)) ||
+    groups.length > (method.maxInputs ?? 16)
   )
     fail("Проверьте количество групп/показателей.");
   const available = new Map(people.map((p) => [p.id, p]));
@@ -250,6 +275,14 @@ export function prepareInput(
     fail(
       "Для независимого сравнения выберите один и тот же показатель во всех группах.",
     );
+  const categoricalRoles: Record<string, number[]> = {
+    frequency: [0], chisquare_gof: [0], chisquare: [0, 1], fisher: [0, 1], mcnemar: [0, 1],
+    binomial: [0], phi_star: [0, 1], pointbiserial: [0], biserial: [0], eta: [0], factorial_anova: [1, 2, 3, 4], manova: [0], box_m: [0], discriminant: [0], discriminant_stepwise: [0], mixed_anova: [0], sample_size_proportion: [0],
+  };
+  groups.forEach((g, index) => {
+    if (g.variable.categories && !categoricalRoles[methodId]?.includes(index))
+      fail("В этой роли нужен числовой показатель. Коды категорий не являются количественными значениями.");
+  });
   const seen = new Set<string>();
   const source = groups.map(({ sample, variable }, index) => {
     const included: {
@@ -295,33 +328,33 @@ export function prepareInput(
       excluded,
     };
   });
-  if (method.kind === "paired") {
-    if (
-      groups[0].sample.id !== groups[1].sample.id ||
-      groups[0].sample.revision !== groups[1].sample.revision
-    )
-      fail(
-        "Для парного анализа выберите одну версию выборки и два показателя.",
-      );
-    if (groups[0].variable.id === groups[1].variable.id)
-      fail("Выберите два разных показателя.");
-    const paired = new Set(
-      source[0].included
-        .filter((a) => source[1].included.some((b) => a.id === b.id))
-        .map((a) => a.id),
-    );
+  if (["paired", "repeated", "multivariate"].includes(method.kind)) {
+    if (groups.some(g => g.sample.id !== groups[0].sample.id || g.sample.revision !== groups[0].sample.revision))
+      fail("Для связанного анализа выберите одну версию выборки и разные показатели.");
+    if (new Set(groups.map(g => g.variable.id)).size !== groups.length)
+      fail("Выберите разные показатели.");
+    const paired = new Set(source[0].included.filter(row =>
+      source.every(g => g.included.some(other => other.id === row.id))).map(row => row.id));
     for (const group of source) {
-      group.excluded.push(
-        ...group.included
-          .filter((row) => !paired.has(row.id))
-          .map((row) => ({
-            id: row.id,
-            reason: "Нет второго значения в паре",
-          })),
-      );
-      group.included = group.included
-        .filter((row) => paired.has(row.id))
-        .sort((a, b) => a.id.localeCompare(b.id));
+      group.excluded.push(...group.included.filter(row => !paired.has(row.id)).map(row => ({
+        id: row.id, reason: "Нет полного набора связанных показателей",
+      })));
+      group.included = group.included.filter(row => paired.has(row.id)).sort((a, b) => a.id.localeCompare(b.id));
+    }
+  }
+  if (method.kind === "paired_groups") {
+    const first = new Set<string>();
+    for (const [left, right] of [[0, 1], [2, 3]]) {
+      if (groups[left].sample.id !== groups[right].sample.id || groups[left].sample.revision !== groups[right].sample.revision)
+        fail("Каждая корреляция должна использовать одну версию своей выборки.");
+      if (groups[left].variable.id === groups[right].variable.id) fail("В каждой паре нужны разные показатели.");
+      const ids = new Set(source[left].included.filter(row => source[right].included.some(other => other.id === row.id)).map(row => row.id));
+      if (left === 0) for (const id of ids) first.add(id);
+      else if ([...ids].some(id => first.has(id))) fail("Для сравнения независимых корреляций выборки не должны пересекаться.");
+      for (const index of [left, right]) {
+        source[index].excluded.push(...source[index].included.filter(row => !ids.has(row.id)).map(row => ({ id: row.id, reason: "Нет полного набора связанных показателей" })));
+        source[index].included = source[index].included.filter(row => ids.has(row.id)).sort((a, b) => a.id.localeCompare(b.id));
+      }
     }
   }
   if (source.some((g) => g.included.length < 2))

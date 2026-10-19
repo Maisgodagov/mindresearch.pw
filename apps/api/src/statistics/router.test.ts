@@ -233,6 +233,22 @@ it("deletes finished reports only within the authorized survey", async () => {
   expect(call[0]).toContain("status IN ('completed','failed')");
   expect(call[1]).toEqual([ids.analysis, ids.survey]);
 });
+it("validates method-specific parameters and preserves externally supplied matrices with provenance", async () => {
+  const config = { method: "pca", alpha: .05, groups: [{ sampleId: ids.sample, revision: 1, variableId: "age" }], parameters: { components: -1 } };
+  expect((await request("/preview", "POST", config)).status).toBe(400);
+  expect((await request("/preview", "POST", { ...config, parameters: { arbitrary: 1 } })).status).toBe(400);
+  const matrix = { method: "mds_matrix_classical", alpha: .05, groups: [], parameters: { components: 2 }, matrixData: "[[0,1,2],[1,0,1],[2,1,0]]", manualReason: "Synthetic distances; rows and columns A,B,C" };
+  const preview = await request("/preview", "POST", matrix);
+  expect(preview.status).toBe(200);
+  const input = (await preview.json() as any).input;
+  expect(input.config.matrixData).toEqual([[0,1,2],[1,0,1],[2,1,0]]);
+  expect(input.groups).toEqual([]);
+  expect((await request("/preview", "POST", { ...matrix, matrixData: "[[0,1,2],[2,0,1],[2,1,0]]" })).status).toBe(400);
+  expect(input.manualReason).toContain("Synthetic");
+  expect((await request("/preview", "POST", { ...matrix, manualReason: "" })).status).toBe(400);
+  expect((await request("/preview", "POST", { ...matrix, matrixData: "not JSON" })).status).toBe(400);
+  expect((await request("/preview", "POST", { ...matrix, matrixData: '[["execute"], [1]]' })).status).toBe(400);
+});
 it("denies deletion for inspection-only users", async () => {
   permission = "view";
   expect((await request(`/analyses/${ids.analysis}`, "DELETE")).status).toBe(

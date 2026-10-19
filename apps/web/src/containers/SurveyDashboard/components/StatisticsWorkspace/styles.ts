@@ -348,6 +348,9 @@ export const Workspace = styled.section`
     font-weight: 500;
     white-space: nowrap;
   }
+  .matrix-source { overflow-x: auto; max-width: 100%; font-size: 12px; }
+  .result-table { margin-top: 28px; min-width: 0; }
+  .result-table h3 { margin-bottom: 12px; }
   .scroll {
     overflow-x: auto;
     max-width: 100%;
