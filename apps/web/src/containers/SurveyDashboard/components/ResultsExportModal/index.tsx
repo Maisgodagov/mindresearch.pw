@@ -25,17 +25,17 @@ export function ResultsExportModal({ sections, selectedCount, filteredCount, tot
   const count = scope === 'selected' ? selectedCount : scope === 'filtered' ? filteredCount : totalCount;
   return <Modal open title="Выгрузка результатов в Excel" centered width={620} footer={null} onCancel={busy ? undefined : onCancel} closable={!busy} maskClosable={!busy} keyboard={!busy}>
     <Content>
-      <p>Одна строка — один участник. Сначала №, имя, возраст и пол, затем отдельные блоки выбранных методик и тестов.</p>
+      <p>Одна строка — один участник. Сначала №, имя, возраст и пол, затем отдельные блоки выбранных методик и своих вопросов.</p>
       <h3>Участники</h3>
       <Radio.Group className="scope" value={scope} onChange={event => setScope(event.target.value)} disabled={busy}>
         <Radio value="selected" disabled={!selectedCount}>Отмеченные в таблице ({selectedCount})</Radio>
         <Radio value="filtered" disabled={!filteredCount}>Текущая выборка по всем страницам ({filteredCount})</Radio>
         <Radio value="all" disabled={!totalCount}>Все участники опроса ({totalCount})</Radio>
       </Radio.Group>
-      <h3>Методики и пользовательские тесты</h3>
+      <h3>Методики и свои блоки вопросов</h3>
       <div className="selection-actions"><button disabled={busy} onClick={() => setKeys(sections.map(sectionKey))}>Выбрать все</button><button disabled={busy} onClick={() => setKeys([])}>Снять выбор</button><span>{keys.length} из {sections.length}</span></div>
       <div className="sections">{sections.map((section, index) => <Checkbox key={sectionKey(section)} checked={keys.includes(sectionKey(section))} disabled={busy} onChange={event => setKeys(current => event.target.checked ? [...current, sectionKey(section)] : current.filter(key => key !== sectionKey(section)))}>
-        <span className="section-label"><span>{index + 1}. {section.title}</span><small>{section.sectionKind === 'custom' && !section.code.startsWith('custom_method_') ? 'Пользовательский тест: показатели, если настроен расчёт, иначе ответы' : 'Методика: только итоговые показатели'}</small></span>
+        <span className="section-label"><span>{index + 1}. {section.title}</span><small>{section.sectionKind === 'custom' && !section.code.startsWith('custom_method_') ? 'Свой блок: ответы на вопросы или показатели настроенного расчёта' : 'Методика: только итоговые показатели'}</small></span>
       </Checkbox>)}</div>
       <p>Пустая ячейка означает, что данных или рассчитанного результата нет. Качество, время прохождения и ответы на отдельные вопросы методик не включаются.</p>
       <div className="footer"><Button disabled={busy} onClick={onCancel}>Отмена</Button><Button type="primary" loading={busy} disabled={!keys.length || !count} onClick={() => onExport({ sectionKeys: keys, scope })}>Скачать Excel · {count}</Button></div>

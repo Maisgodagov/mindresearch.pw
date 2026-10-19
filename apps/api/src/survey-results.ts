@@ -70,7 +70,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
   const restriction = sessionIds ? ` AND rs.id IN (${inList(sessionIds)})` : statistics ? ' AND rs.deleted_at IS NULL' : '';
   const values = [surveyId, ...(sessionIds ?? [])];
   const [[sections], [sessions], [scoreRows], qualities, [questionCatalog]] = await Promise.all([
-    db.query<any[]>(`SELECT id,code,title,section_kind sectionKind FROM sections WHERE survey_id=? AND code<>'respondent' ORDER BY position`, [surveyId]),
+    db.query<any[]>(`SELECT id,code,title,section_kind sectionKind FROM sections WHERE survey_id=? ORDER BY position`, [surveyId]),
     db.query<any[]>(`SELECT rs.id,rs.status,rs.started_at startedAt,rs.last_activity_at lastActivityAt,
       rs.completed_at completedAt,rs.deleted_at deletedAt,COUNT(a.id) answered,
       MAX(CASE WHEN s.code='respondent' AND q.code='alias' THEN CAST(a.value AS CHAR) END) aliasValue,
@@ -87,7 +87,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
       FROM assessment_results ar JOIN sections s ON s.id=ar.section_id LEFT JOIN instruments i ON i.id=s.source_instrument_id JOIN response_sessions rs ON rs.id=ar.session_id
       WHERE rs.survey_id=?${restriction} ORDER BY s.position`, values),
     !statistics && qualityEnabled() ? storedQualities(surveyId, { summary, sessionIds }) : Promise.resolve({} as Record<string, any>),
-    db.query<any[]>(`SELECT q.id questionId,q.code,q.text,q.type,q.options,s.code sectionCode,s.position sectionPosition,q.position questionPosition FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position,q.id`,[surveyId]),
+    db.query<any[]>(`SELECT q.id questionId,q.code,q.text,q.type,q.options,s.id sectionId,s.code sectionCode,s.position sectionPosition,q.position questionPosition FROM questions q JOIN sections s ON s.id=q.section_id WHERE s.survey_id=? ORDER BY s.position,q.position,q.id`,[surveyId]),
   ]);
   const grouped = new Map<string, Map<string, any>>();
   const groupFor = (sessionId: string, row: any) => {
@@ -134,7 +134,7 @@ export async function loadSurveyResults(surveyId: string, options: { summary?: b
     qualityV2: qualities[session.id] ?? null, detailsLoaded: !summary,
   }));
   const distribution = sessionIds || statistics ? [] : await loadAnswerDistribution(surveyId);
-  return { sections, questions: questionCatalog.map(q=>({...q,options:parseJson(q.options)??[]})), hasGender:questionCatalog.some(q=>q.sectionCode==='respondent'&&q.code==='gender'), hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
+  return { sections: sections.filter(section => section.code !== 'respondent'), exportSections: sections, questions: questionCatalog.map(q=>({...q,options:parseJson(q.options)??[]})), hasGender:questionCatalog.some(q=>q.sectionCode==='respondent'&&q.code==='gender'), hasAge: questionCatalog.some(q=>(q.sectionCode==='respondent'&&q.code==='age')||(q.type==='number'&&q.text.trim().toLowerCase()==='ваш возраст')), respondents: respondents.filter(p => !p.deletedAt), deletedRespondents: respondents.filter(p => p.deletedAt), distribution };
 }
 
 export async function loadQuestionTimingSummary(surveyId: string) {

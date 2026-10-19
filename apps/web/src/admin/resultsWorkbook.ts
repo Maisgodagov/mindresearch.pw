@@ -24,6 +24,13 @@ export type ExportSection = {
   id?: string; code: string; title: string; sectionKind: string;
   questions?: { questionId?: string; code: string; question: string }[];
 };
+const identityCodes = new Set(['alias', 'age', 'gender']);
+export function exportableSections(sections: ExportSection[], questions: { sectionId?: string; sectionCode?: string; code: string; questionId?: string; text: string }[]): ExportSection[] {
+  return sections.map(section => ({ ...section, questions: questions
+    .filter(question => (section.id && question.sectionId ? question.sectionId === section.id : question.sectionCode === section.code) && (section.code !== 'respondent' || !identityCodes.has(question.code)))
+    .map(question => ({ questionId: question.questionId, code: question.code, question: question.text }))
+  })).filter(section => section.code !== 'respondent' || section.questions.length > 0);
+}
 export const sectionKey = (section: ExportSection) => section.id ?? section.code;
 export type ExportScope = 'selected' | 'filtered' | 'all';
 export type ExportSelection = { sectionKeys: string[]; scope: ExportScope };
@@ -103,11 +110,12 @@ export async function createResultsWorkbook(
   const schemaPeople = [...(options.schemaPeople ?? []), ...people];
   const blocks = sections.map(section => {
     const groups = schemaPeople.flatMap(person => { const group = findGroup(person, section); return group ? [group] : []; });
-    const scored = section.sectionKind === 'verified' || section.code.startsWith('test_') || section.code.startsWith('custom_method_') || groups.some(group => group.result !== null);
+    const scored = section.sectionKind === 'verified' || (section.sectionKind !== 'custom' && section.code.startsWith('test_')) || section.code.startsWith('custom_method_') || groups.some(group => group.result != null);
     const columns = new Map<string, Column>();
     if (!scored) for (const question of section.questions ?? []) columns.set(answerKey(question), { key: answerKey(question), label: question.question });
     for (const group of groups) {
-      const rows = scored ? resultMetrics(group.result?.values ?? {}) : group.answers.map(answer => ({ key: answerKey(answer), label: answer.question }));
+      const answers = section.code === 'respondent' ? group.answers.filter(answer => !identityCodes.has(answer.code)) : group.answers;
+      const rows = scored ? resultMetrics(group.result?.values ?? {}) : answers.map(answer => ({ key: answerKey(answer), label: answer.question }));
       for (const row of rows) if (!columns.has(row.key)) columns.set(row.key, { key: row.key, label: row.label });
     }
     if (!columns.size) columns.set('unavailable', { key: 'unavailable', label: scored ? 'Результат не рассчитан' : 'Нет ответов' });

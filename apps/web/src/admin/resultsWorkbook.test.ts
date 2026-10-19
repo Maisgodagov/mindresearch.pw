@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createResultsWorkbook, resultMetrics, RESULT_COLORS, type ExportSection, type ResultsRespondent } from './resultsWorkbook';
+import { createResultsWorkbook, exportableSections, resultMetrics, RESULT_COLORS, type ExportSection, type ResultsRespondent } from './resultsWorkbook';
 import { scoreMspss } from '../../../api/src/scoring/mspss';
 import { scoreDebq } from '../../../api/src/scoring/debq';
 
@@ -15,6 +15,31 @@ const people: ResultsRespondent[] = [
 ];
 
 describe('Wide survey results workbook', () => {
+  it('exports custom blocks and extra respondent questions without duplicating common identity columns', async () => {
+    const sections = [section('respondent', 'О респонденте', 'custom'), section('custom', 'Мои вопросы', 'custom'), section('debq', 'DEBQ')];
+    const questions = [
+      ...['alias','age','gender'].map(code => ({ sectionCode: 'respondent', code, text: code })),
+      { sectionCode: 'respondent', questionId: 'education', code: 'education', text: 'Образование' },
+      { sectionCode: 'custom', questionId: 'c1', code: 'q1', text: 'Город' },
+      { sectionCode: 'custom', questionId: 'c2', code: 'q2', text: 'Количество' },
+    ];
+    const blocks = exportableSections(sections, questions);
+    expect(blocks[0].questions?.map(q => q.code)).toEqual(['education']);
+    expect(exportableSections([sections[0]], questions.slice(0,3))).toEqual([]);
+    const person = { ...people[0], groups: [...people[0].groups, group('respondent', null, [
+      { code: 'alias', question: 'Не дублировать имя', displayValue: 'Анна' },
+      { questionId: 'education', code: 'education', question: 'Образование', displayValue: 'Высшее' },
+    ])] };
+    const book = await createResultsWorkbook([person], blocks.slice(0,2));
+    expect(book.worksheets[0].getRow(3).values).toEqual([undefined,1,'Анна',28,'Женский','Высшее','=SUM(A1:A3)',0]);
+    expect(JSON.stringify(book.worksheets[0].model)).not.toContain('Не дублировать имя');
+  });
+  it('treats explicitly custom question blocks as answers even with a legacy test prefix', async () => {
+    const person = { id: 'x', alias: 'Участник', groups: [group('test_legacy', null, [{ code: 'q1', question: 'Свой вопрос', displayValue: 'Мой ответ' }])] };
+    const book = await createResultsWorkbook([person], [section('test_legacy', 'Мой блок', 'custom')]);
+    expect(book.worksheets[0].getCell('E2').value).toBe('Свой вопрос');
+    expect(book.worksheets[0].getCell('E3').value).toBe('Мой ответ');
+  });
   it('matches the Word layout, preserves numbers and separates selected method blocks', async () => {
     const workbook = await createResultsWorkbook(people, [section('debq', 'DEBQ'), section('eat', 'EAT-26')]);
     expect(workbook.worksheets.map(sheet => sheet.name)).toEqual(['Результаты']);

@@ -31,7 +31,7 @@ import {
 import { api, logout, useDemoFallbacks } from "../../api";
 import { Button, Page, SkeletonScreen } from "../../ui";
 import { exportRespondents } from "../../admin/exportResults";
-import { sectionKey, type ExportSelection } from "../../admin/resultsWorkbook";
+import { exportableSections, sectionKey, type ExportSelection } from "../../admin/resultsWorkbook";
 import { ResultsAction } from './components/ResultsAction';
 import { ResultsExportModal } from "./components/ResultsExportModal";
 import { QualityOverview, QualityDetails, QualityAdministration } from "./components/ResponseQuality";
@@ -280,6 +280,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         title: shortNames[code],
         sectionKind: "verified",
       }));
+  const exportBlocks = exportableSections(result.exportSections ?? resultSections, result.questions ?? []);
   const selectedRespondents = visibleRespondents.filter(
     (person) => selected[person.id],
   );
@@ -329,10 +330,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     );
   const download = async (selection: ExportSelection) => {
     const exportPeople = selection.scope === 'all' ? result.respondents : selection.scope === 'filtered' ? visibleRespondents : selectedRespondents;
-    const exportSections = resultSections.filter(section => selection.sectionKeys.includes(sectionKey(section))).map(section => ({
-      ...section,
-      questions: (result.questions ?? []).filter(question => question.sectionCode === section.code).map(question => ({ questionId: question.questionId, code: question.code, question: question.text })),
-    }));
+    const exportSections = exportBlocks.filter(section => selection.sectionKeys.includes(sectionKey(section)));
     if (!exportPeople.length || !exportSections.length) return;
     const generation = resultGeneration.current;
     setExporting(true);
@@ -403,7 +401,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
       }
     >
       {saveSampleOpen && survey && <SaveSampleModal surveyId={survey.id} people={result.respondents} filtered={visibleRespondents} selected={selectedRespondents} conditions={sampleConditions} completedOnly={qualityView.status==='completed'} onClose={()=>setSaveSampleOpen(false)} />}
-      {exportOpen && <ResultsExportModal sections={resultSections} selectedCount={selectedRespondents.length} filteredCount={visibleRespondents.length} totalCount={result.respondents.length} busy={exporting} onCancel={() => setExportOpen(false)} onExport={selection => void download(selection)} />}
+      {exportOpen && <ResultsExportModal sections={exportBlocks} selectedCount={selectedRespondents.length} filteredCount={visibleRespondents.length} totalCount={result.respondents.length} busy={exporting} onCancel={() => setExportOpen(false)} onExport={selection => void download(selection)} />}
       <Wrap $embedded={embedded}>
         {!embedded && (
           <Header>
