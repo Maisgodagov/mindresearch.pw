@@ -14,6 +14,7 @@ import {
   Save,
   Users,
 } from "lucide-react";
+import { SelectField } from "../../../../components/SelectField";
 import { api } from "../../../../api";
 import { ResultsAction as Button } from "../ResultsAction";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
@@ -534,17 +535,21 @@ export default function StatisticsWorkspace({
                     </label>
                     <label className="field">
                       Кого сохранить
-                      <select
+                      <SelectField
                         value={source}
-                        onChange={(e) => setSource(e.target.value)}
-                      >
-                        <option value="filtered">
-                          Текущая выборка по всем страницам
-                        </option>
-                        <option value="selected" disabled={!selectedIds.length}>
-                          Отмеченные в таблице ({selectedIds.length})
-                        </option>
-                      </select>
+                        onChange={(value) => setSource(String(value))}
+                        options={[
+                          {
+                            value: "filtered",
+                            label: "Текущая выборка по всем страницам",
+                          },
+                          {
+                            value: "selected",
+                            disabled: !selectedIds.length,
+                            label: `Отмеченные в таблице (${selectedIds.length})`,
+                          },
+                        ]}
+                      />
                     </label>
                   </div>
                   <p className="notice">
@@ -795,16 +800,14 @@ export default function StatisticsWorkspace({
                     </div>
                     <label className="field">
                       Метод расчёта
-                      <select
+                      <SelectField
                         value={method}
-                        onChange={(e) => chooseMethod(e.target.value)}
-                      >
-                        {model.methods.map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => chooseMethod(String(value))}
+                        options={model.methods.map((m) => ({
+                          value: m.id,
+                          label: m.label,
+                        }))}
+                      />
                     </label>
                     <p className="method-description">
                       {selectedMethod?.description}
@@ -819,55 +822,53 @@ export default function StatisticsWorkspace({
                         <div className="fields">
                           <label className="field">
                             Сохранённая выборка
-                            <select
+                            <SelectField
                               value={choice.sampleId}
-                              onChange={(e) => {
+                              onChange={(value) => {
                                 setChoices((current) =>
                                   current.map((c, i) =>
                                     i === index
-                                      ? { ...c, sampleId: e.target.value }
+                                      ? { ...c, sampleId: String(value) }
                                       : kind === "paired"
-                                        ? { ...c, sampleId: e.target.value }
+                                        ? { ...c, sampleId: String(value) }
                                         : c,
                                   ),
                                 );
                                 invalidate();
                               }}
-                            >
-                              <option value="">Выберите выборку</option>
-                              {model.samples.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.name} · v{s.revision} · {s.members.length}{" "}
-                                  чел.
-                                </option>
-                              ))}
-                            </select>
+                              showSearch
+                              placeholder="Выберите выборку"
+                              options={model.samples.map((s) => ({
+                                value: s.id,
+                                label: `${s.name} · v${s.revision} · ${s.members.length} чел.`,
+                              }))}
+                            />
                           </label>
                           <label className="field">
                             Числовой показатель
-                            <select
+                            <SelectField
                               value={choice.variableId}
-                              onChange={(e) => {
+                              onChange={(value) => {
                                 setChoices((current) =>
                                   current.map((c, i) =>
                                     i === index ||
                                     kind === "independent" ||
                                     kind === "multiple"
-                                      ? { ...c, variableId: e.target.value }
+                                      ? { ...c, variableId: String(value) }
                                       : c,
                                   ),
                                 );
                                 invalidate();
                               }}
-                            >
-                              <option value="">Выберите показатель</option>
-                              {model.variables.map((v) => (
-                                <option key={v.id} value={v.id}>
-                                  {v.label}
-                                  {v.version ? ` · ${v.version}` : ""}
-                                </option>
-                              ))}
-                            </select>
+                              showSearch
+                              placeholder="Выберите показатель"
+                              options={model.variables.map((v) => ({
+                                value: v.id,
+                                label:
+                                  v.label +
+                                  (v.version ? ` · ${v.version}` : ""),
+                              }))}
+                            />
                           </label>
                         </div>
                       </div>
@@ -902,17 +903,18 @@ export default function StatisticsWorkspace({
                     <div className="fields">
                       <label className="field">
                         Уровень значимости α
-                        <select
+                        <SelectField
                           value={alpha}
-                          onChange={(e) => {
-                            setAlpha(e.target.value);
+                          onChange={(value) => {
+                            setAlpha(String(value));
                             setPreview(null);
                           }}
-                        >
-                          <option value="0.05">0,05 · ДИ 95%</option>
-                          <option value="0.01">0,01 · ДИ 99%</option>
-                          <option value="0.1">0,10 · ДИ 90%</option>
-                        </select>
+                          options={[
+                            { value: "0.05", label: "0,05 · ДИ 95%" },
+                            { value: "0.01", label: "0,01 · ДИ 99%" },
+                            { value: "0.1", label: "0,10 · ДИ 90%" },
+                          ]}
+                        />
                       </label>
                       {method === "t_one" && (
                         <label className="field">

@@ -291,11 +291,14 @@ const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
     assert.equal(workbook.getWorksheet("Данные").getCell("E2").value, 21);
 
     await app.getByRole("tab", { name: "Новый расчёт", exact: true }).click();
-    await app.getByLabel("Метод расчёта").selectOption("pearson");
+    await app.getByLabel("Метод расчёта").click();
+    await page.getByRole("option", { name: methods.find(m => m.id === "pearson").label, exact: true }).click();
     await app
       .getByLabel("Числовой показатель")
       .nth(1)
-      .selectOption("score:one:score:v1");
+      .click();
+    await page.getByRole("textbox").last().fill(variables[1].label);
+    await page.getByRole("option", { name: variables[1].label + " \u00b7 v1", exact: true }).click();
     await app
       .getByRole("button", { name: "Проверить данные", exact: true })
       .click();

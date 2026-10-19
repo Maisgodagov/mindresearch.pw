@@ -169,6 +169,13 @@ export const Workspace = styled.section`
     font-weight: 400;
     caret-color: var(--accent);
   }
+  [role="combobox"] {
+    height: 42px;
+    border-radius: 8px;
+    background: #fafbf9;
+    font-size: 13px;
+    font-weight: 400;
+  }
   select {
     min-width: 0;
     text-overflow: ellipsis;
@@ -711,6 +718,7 @@ export const Workspace = styled.section`
       font-size: 21px;
     }
     input:not([type="checkbox"]),
+    [role="combobox"],
     select,
     textarea {
       font-size: 16px;

@@ -72,6 +72,7 @@ export const SearchInput = styled.input`
   color: #26382f;
   font: inherit;
   &:focus { border-color: #78947e; }
+  @media (max-width: 700px) { font-size: 16px; }
 `;
 
 export const Option = styled.button<{ $selected: boolean; $active: boolean }>`
@@ -86,6 +87,9 @@ export const Option = styled.button<{ $selected: boolean; $active: boolean }>`
   font: inherit;
   font-size: 14px;
   text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
   cursor: ${({ disabled }) => disabled ? "not-allowed" : "pointer"};
   &:hover:not(:disabled) { background: #e8f0e5; }
 `;
