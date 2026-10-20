@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /methods
+Disallow: /app
+Disallow: /admin
+Disallow: /api/
+Sitemap: https://mindresearch.pro/methods-sitemap.xml

@@ -14,6 +14,7 @@ export function getSidebarLinks(role: string): SidebarLink[] {
     ...coreLinks.slice(0, 3),
     { to: "/app/community", label: "Найти респондентов", icon: Handshake },
     { to: "/app/admin/methodologies", label: "Конструктор методик", icon: ClipboardList },
+    { to: "/app/admin/public-methods", label: "Публичные методики", icon: ClipboardList },
     { to: "/app/admin", label: "Админ-центр", icon: ShieldCheck },
     coreLinks[3],
   ];

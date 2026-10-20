@@ -32,6 +32,7 @@ export function Landing() {
   return <div className="landing">
     <header className="landing-header">
       <Link className="landing-brand" to="/" aria-label="Главная страница mindresearch by Евгения Годагова"><Leaf size={27} /><BrandWordmark /></Link>
+      <Link className="landing-header-action" to="/methods">Методики онлайн</Link>
       <Link className="landing-header-action" to={signedIn ? "/app" : "/login"}>{signedIn ? "Мои опросы" : "Войти"}<ArrowRight size={16} /></Link>
     </header>
     <main>

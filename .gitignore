@@ -8,3 +8,6 @@ coverage/
 
 # Local statistical-engine bytecode
 __pycache__/
+
+# Local verification artifacts
+.work/public-methods/

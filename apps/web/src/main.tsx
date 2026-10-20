@@ -13,6 +13,11 @@ import { AuthGuard } from "./platform/AuthGuard";
 import { PlatformLayout } from "./containers/PlatformLayout";
 import { RouteSkeleton } from "./components/RouteSkeleton";
 import { ActionSkeleton } from "./components/LoadingSkeleton";
+const PublicMethods = React.lazy(() => import('./containers/PublicMethods').then(m => ({default:m.PublicMethods})));
+const PublicMethodPage = React.lazy(() => import('./containers/PublicMethods').then(m => ({default:m.PublicMethodPage})));
+const PublicAssessment = React.lazy(() => import('./containers/PublicMethods').then(m => ({default:m.PublicAssessment})));
+const PublicAssessmentResult = React.lazy(() => import('./containers/PublicMethods').then(m => ({default:m.PublicAssessmentResult})));
+const PublicMethodsAdmin = React.lazy(() => import('./containers/PublicMethods/Admin').then(m => ({default:m.PublicMethodsAdmin})));
 const SurveyInvitation = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SurveyInvitation})));
 const SharedSurveyPreview = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SharedSurveyPreview})));
 
@@ -134,6 +139,11 @@ function App() {
       <GlobalStyle />
       <Suspense fallback={<RouteSkeleton />}>
         <Routes>
+          <Route path="/methods" element={<PublicMethods/>}/>
+          <Route path="/methods/:slug" element={<PublicMethodPage/>}/>
+          <Route path="/methods/:slug/start" element={<PublicAssessment/>}/>
+          <Route path="/assessment/result" element={<PublicAssessmentResult/>}/>
+          <Route path="/app/admin/public-methods" element={protectedPage(<PublicMethodsAdmin/>)}/>
           <Route path="/" element={<Landing />} />
           <Route path="/s/:slug" element={<SurveyPage />} />
           <Route path="/p/:slug" element={<PublicProfile />} />

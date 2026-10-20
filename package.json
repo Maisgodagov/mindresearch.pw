@@ -7,7 +7,8 @@
     "build": "npm run build -w @opora/api && npm run audit:scoring && npm run build -w @opora/web",
     "audit:scoring": "node scripts/audit-methodologies.mjs --check",
     "test": "npm run test -w @opora/api && npm run test -w @opora/web",
-    "seed": "npm run seed -w @opora/api"
+    "seed": "npm run seed -w @opora/api",
+    "preview:public-api": "tsx apps/api/src/public-methods/preview.ts"
   },
   "devDependencies": {"concurrently": "^9.2.0"}
 }
