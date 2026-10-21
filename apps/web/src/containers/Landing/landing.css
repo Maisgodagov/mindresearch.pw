@@ -21,3 +21,12 @@
 .landing .landing-workflow p{font-size:14px;line-height:1.65;color:#536a5a;margin:0;max-width:30ch}
 @media(max-width:700px){.landing .landing-workflow{grid-template-columns:1fr;gap:0;border-top:0;border-left:1px solid #b8cbb1;margin-top:14px;width:calc(100% - 48px)}.landing-workflow>li{padding:0 0 30px 24px}.landing-workflow>li:last-child{padding-bottom:0}.landing-workflow>li::before{top:10px;left:-6px}.landing-workflow h3{font-size:25px;margin-bottom:7px}}
 @media(max-width:700px){.landing .landing-header-action{font-size:13px;padding:10px 14px}.landing .landing-hero .landing-button{font-size:16px;padding:15px 21px}}
+
+.landing-in-app{background:transparent}
+.landing-in-app .landing-wrap{width:100%}
+.landing-in-app .landing-hero{padding-top:12px;gap:32px}
+.landing.landing-in-app .landing-hero.landing-wrap h1{font-family:"Lora Variable",serif;font-size:48px;line-height:1.16;font-weight:500;letter-spacing:-.03em}
+.landing-in-app .landing-hero-copy>p{font-size:16px}
+.landing-in-app .landing-footer{margin-top:28px}
+@media(max-width:1000px){.landing-in-app .landing-hero{grid-template-columns:1fr;gap:30px}.landing-in-app .landing-hero-image{max-width:620px}.landing.landing-in-app .landing-hero.landing-wrap h1{font-size:40px}}
+@media(max-width:600px){.landing.landing-in-app .landing-hero.landing-wrap h1{font-size:34px}.landing-in-app .landing-hero{padding-top:0}.landing-in-app .landing-section{padding-top:32px;padding-bottom:32px}}

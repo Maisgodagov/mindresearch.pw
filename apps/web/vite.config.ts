@@ -8,6 +8,20 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       {
+        name: "temporary-home-redirect",
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const url = new URL(req.url || "/", "http://localhost");
+            if (url.pathname !== "/") return next();
+            res.writeHead(302, {
+              Location: "/for-researchers" + url.search,
+              "Cache-Control": "no-store",
+            });
+            res.end();
+          });
+        },
+      },
+      {
         name: "public-methods-html",
         transformIndexHtml: {
           order: "pre",

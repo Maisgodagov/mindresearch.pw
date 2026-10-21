@@ -7,7 +7,7 @@ import "antd/dist/reset.css";
 import "@fontsource-variable/manrope";
 import "@fontsource-variable/lora";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { GlobalStyle } from "./styles";
 import { AuthGuard } from "./platform/AuthGuard";
 import { PlatformLayout } from "./containers/PlatformLayout";
@@ -90,6 +90,11 @@ const ResetPassword = React.lazy(() =>
 
 const protectedPage = (page: React.ReactNode) => <AuthGuard>{page}</AuthGuard>;
 
+function HomeRedirect() {
+  const {search, hash} = useLocation();
+  return <Navigate to={{pathname:"/for-researchers",search,hash}} replace/>;
+}
+
 function App() {
   return (
     <ConfigProvider
@@ -144,7 +149,8 @@ function App() {
           <Route path="/methods/:slug/start" element={<PublicAssessment/>}/>
           <Route path="/assessment/result" element={<PublicAssessmentResult/>}/>
           <Route path="/app/admin/public-methods" element={protectedPage(<PublicMethodsAdmin/>)}/>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<HomeRedirect />} />
+          <Route path="/for-researchers" element={<Landing />} />
           <Route path="/s/:slug" element={<SurveyPage />} />
           <Route path="/p/:slug" element={<PublicProfile />} />
           <Route path="/login" element={<Login />} />

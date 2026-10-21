@@ -1,4 +1,5 @@
-import { platformTitle } from "../../pageTitle";
+import { PlatformLayout } from "../PlatformLayout";
+import { titleForPage } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -22,20 +23,21 @@ export function Landing() {
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
     let active = true;
-    document.title = platformTitle;
+    document.title = titleForPage("Для исследователей");
+    const existing = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const canonical = existing ?? document.createElement("link");
+    const previous = existing?.href;
+    canonical.rel = "canonical";
+    canonical.href = "https://mindresearch.pro/for-researchers";
+    if (!existing) document.head.append(canonical);
     void initializeAuth().then(token => {
       if (active) setSignedIn(Boolean(token));
     }).catch(() => {});
-    return () => { active = false; };
+    return () => { active = false; if (previous) canonical.href = previous; else canonical.remove(); };
   }, []);
   const create = signedIn ? "/app/surveys/new" : "/register";
-  return <div className="landing">
-    <header className="landing-header">
-      <Link className="landing-brand" to="/" aria-label="Главная страница mindresearch by Евгения Годагова"><Leaf size={27} /><BrandWordmark /></Link>
-      <Link className="landing-header-action" to="/methods">Методики онлайн</Link>
-      <Link className="landing-header-action" to={signedIn ? "/app" : "/login"}>{signedIn ? "Мои опросы" : "Войти"}<ArrowRight size={16} /></Link>
-    </header>
-    <main>
+  return <PlatformLayout publicAccess><div className="landing landing-in-app">
+    <div className="landing-content">
       <section className="landing-hero landing-wrap">
         <div className="landing-hero-copy"><h1>От хороших вопросов<br />к понятным <em>результатам.</em></h1><p>Платформа для психологических исследований. Собирайте опросы из готовых методик и своих вопросов, приглашайте респондентов и изучайте результаты в одном месте.</p><div className="landing-actions"><Link className="landing-button" to={create}><Plus size={18} />{signedIn ? "Создать опрос" : "Начать исследование"}</Link><a className="landing-text-link" href="#builder">Посмотреть возможности<ArrowRight size={17} /></a></div><span className="landing-hero-note">От первого вопроса до выгрузки данных — весь процесс под рукой.</span></div>
         <div className="landing-hero-image"><div className="landing-browser"><span /><span /><span /><b>Ваше исследование</b></div><Picture name="builder" alt="Конструктор опроса с готовой методикой и собственным блоком вопросов" /></div>
@@ -58,6 +60,6 @@ export function Landing() {
         ["Что означают показатели качества?", "Это признаки особенностей прохождения, а не доказательство недостоверности ответов. Смотрите доступность данных и отдельные метрики, прежде чем принимать решение."],
       ].map(([q, a]) => <details key={q}><summary>{q}<Plus size={18} /></summary><p>{a}</p></details>)}</section>
       <section className="landing-final landing-wrap"><Leaf size={35} /><h2>Следующее исследование<br />начинается с вашего вопроса.</h2><p>Соберите опрос — платформа поможет с остальным.</p><Link className="landing-button" to={create}>{signedIn ? "Создать опрос" : "Создать аккаунт"}<ArrowRight size={18} /></Link></section>
-    </main><footer className="landing-footer landing-wrap"><Link className="landing-brand" to="/"><Leaf size={22} /><BrandWordmark /></Link><span>Психологические исследования — в одном месте.</span><a href="#" onClick={event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Наверх ↑</a></footer>
-  </div>;
+    </div><footer className="landing-footer landing-wrap"><Link className="landing-brand" to="/"><Leaf size={22} /><BrandWordmark /></Link><span>Психологические исследования — в одном месте.</span><a href="#" onClick={event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Наверх ↑</a></footer>
+  </div></PlatformLayout>;
 }
