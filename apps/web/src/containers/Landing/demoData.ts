@@ -10,7 +10,7 @@ import { rsesInstrument } from "../../../../api/src/data/rses";
 export const demoInstruments: Instrument[] = catalog.map((m) => ({
   id: `demo-${m.code}`,
   code: m.code,
-  title: m.name,
+  title: `${m.name}, ${m.abbreviation}`,
   description: m.intro,
   questionCount: m.code === "test_1" ? 12 : 10,
   isVerified: true,
@@ -195,15 +195,13 @@ export function previewQuestions(
         : instrument?.code === "test_17"
           ? rsesInstrument.questions
           : survey.find((s) => s.code === "test_1")!.questions;
-    return questions
-      .slice(0, 1)
-      .map((q) => ({
-        id: q.code,
-        text: q.text,
-        type: "single" as const,
-        required: true,
-        options: q.options ?? [],
-        sectionTitle: section.title,
-      }));
+    return questions.slice(0, 1).map((q) => ({
+      id: q.code,
+      text: q.text,
+      type: "single" as const,
+      required: true,
+      options: q.options ?? [],
+      sectionTitle: section.title,
+    }));
   });
 }

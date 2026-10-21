@@ -40,6 +40,7 @@ function formatQuestionCount(count: number) {
 }
 
 export function InstrumentCatalog({
+  embedded = false,
   instruments,
   totalCount,
   methodologies,
@@ -152,56 +153,8 @@ export function InstrumentCatalog({
     document.querySelector(".instrument-catalog-modal .ant-modal-body")?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  return (
-    <>
-      <CatalogContent
-        $locked={locked}
-        role="group"
-        aria-label={CATALOG_COPY.title}
-      >
-        <Button
-          className="create-custom"
-         
-          disabled={locked}
-          title={locked ? CATALOG_COPY.locked : undefined}
-          data-analytics="builder.add_custom_block" onClick={onCreateCustom}
-        >
-          <Plus size={17} /> {CATALOG_COPY.createCustom}
-        </Button>
-        <Button
-          className="choose-method"
-         
-          disabled={locked}
-          title={locked ? CATALOG_COPY.locked : undefined}
-          data-analytics="catalog.open" onClick={() => { setPage(1); setOpen(true); }}
-        >
-          <BookOpenText size={17} />
-          <span>{CATALOG_COPY.choose}</span>
-          <span className="available-count">
-            <ShieldCheck size={14} /> Доступно {totalCount}
-          </span>
-        </Button>
-      </CatalogContent>
-
-      <Modal
-        open={open}
-        onCancel={closeCatalog}
-        footer={null}
-        centered
-        width="min(920px, calc(100vw - 24px))"
-        title={CATALOG_COPY.catalogTitle}
-        className="instrument-catalog-modal"
-        styles={{
-          body: {
-            height: "min(78dvh, 760px, calc(100dvh - 140px))",
-            boxSizing: "border-box",
-            scrollbarGutter: "stable",
-            overflowY: "auto",
-            padding: "4px clamp(8px, 2vw, 16px) clamp(10px, 2vw, 16px)",
-          },
-        }}
-      >
-        <CatalogToolbar>
+  const content = (<>
+        <CatalogToolbar className={embedded ? "inline-catalog-toolbar" : undefined}>
         <CatalogIntro>
           <p>{CATALOG_COPY.catalogDescription}</p>
           <span className="catalog-total">
@@ -219,7 +172,7 @@ export function InstrumentCatalog({
               placeholder={CATALOG_COPY.search}
               maxLength={200}
               aria-label={CATALOG_COPY.searchLabel}
-              autoFocus
+              autoFocus={!embedded}
             />
           </div>
           <span className="results-count">
@@ -232,7 +185,7 @@ export function InstrumentCatalog({
               ref={categoryTriggerRef}
               type="button"
               className="category-trigger"
-             
+
               aria-haspopup="listbox"
               aria-expanded={categoryOpen}
               onClick={() => setCategoryOpen((value) => !value)}
@@ -330,7 +283,7 @@ export function InstrumentCatalog({
                   <Button
                     type="primary"
                     className="add"
-                   
+
                     disabled={isAdded}
                     data-analytics={`builder.add_method.${instrument.code??"custom"}`} onClick={() => {
                       onAddInstrument(instrument);
@@ -361,6 +314,59 @@ export function InstrumentCatalog({
             </div>
           </CatalogPagination>
         )}
+  </>);
+  if (embedded) return <section className="embedded-instrument-catalog" aria-label={CATALOG_COPY.catalogTitle}><h3>{CATALOG_COPY.catalogTitle}</h3>{content}</section>;
+
+  return (
+    <>
+      <CatalogContent
+        $locked={locked}
+        role="group"
+        aria-label={CATALOG_COPY.title}
+      >
+        <Button
+          className="create-custom"
+
+          disabled={locked}
+          title={locked ? CATALOG_COPY.locked : undefined}
+          data-analytics="builder.add_custom_block" onClick={onCreateCustom}
+        >
+          <Plus size={17} /> {CATALOG_COPY.createCustom}
+        </Button>
+        <Button
+          className="choose-method"
+
+          disabled={locked}
+          title={locked ? CATALOG_COPY.locked : undefined}
+          data-analytics="catalog.open" onClick={() => { setPage(1); setOpen(true); }}
+        >
+          <BookOpenText size={17} />
+          <span>{CATALOG_COPY.choose}</span>
+          <span className="available-count">
+            <ShieldCheck size={14} /> Доступно {totalCount}
+          </span>
+        </Button>
+      </CatalogContent>
+
+      <Modal
+        open={open}
+        onCancel={closeCatalog}
+        footer={null}
+        centered
+        width="min(920px, calc(100vw - 24px))"
+        title={CATALOG_COPY.catalogTitle}
+        className="instrument-catalog-modal"
+        styles={{
+          body: {
+            height: "min(78dvh, 760px, calc(100dvh - 140px))",
+            boxSizing: "border-box",
+            scrollbarGutter: "stable",
+            overflowY: "auto",
+            padding: "4px clamp(8px, 2vw, 16px) clamp(10px, 2vw, 16px)",
+          },
+        }}
+      >
+        {content}
       </Modal>
     </>
   );

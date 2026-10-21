@@ -1,11 +1,15 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { PlatformLayout } from "../PlatformLayout";
 import { titleForPage } from "../../pageTitle";
+import { BrandWordmark } from "../../components/BrandWordmark";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Check, Leaf, Plus } from "lucide-react";
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
-const ResearchDemo = lazy(() => import("./ResearchDemo"));
+
+import { DemoMedia, DemoProvider } from "./DemoMedia";
+const Picture = DemoMedia;
+
 export function Landing() {
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
@@ -33,132 +37,401 @@ export function Landing() {
   const create = signedIn ? "/app/surveys/new" : "/register";
   return (
     <PlatformLayout publicAccess>
-      <div className="research-landing">
-        <section className="research-hero">
-          <h1>
-            Ваше исследование.
-            <br />
-            От вопросов <span>до статистики.</span>
-          </h1>
-          <div className="research-hero-bottom">
-            <p>
-              Соберите методики и свои вопросы в один опрос. Получайте ответы по
-              ссылке, изучайте результаты и проверяйте гипотезы — в
-              mindresearch.
-            </p>
-            <div className="research-actions">
-              <Link className="research-primary" to={create}>
-                Создать своё исследование
+      <DemoProvider>
+        <div className="landing landing-in-app">
+          <div className="landing-content">
+            <section className="landing-hero landing-wrap">
+              <div className="landing-hero-copy">
+                <h1>
+                  От хороших вопросов
+                  <br />к понятным <em>результатам.</em>
+                </h1>
+                <p>
+                  Платформа для психологических исследований. Собирайте опросы
+                  из готовых методик и своих вопросов, собирайте ответы по
+                  ссылке и рассчитывайте статистику в одном месте.
+                </p>
+                <div className="landing-actions">
+                  <Link className="landing-button" to={create}>
+                    <Plus size={18} />
+                    {signedIn ? "Создать опрос" : "Начать исследование"}
+                  </Link>
+                  <a className="landing-text-link" href="#builder">
+                    Посмотреть возможности
+                    <ArrowRight size={17} />
+                  </a>
+                </div>
+                <span className="landing-hero-note">
+                  От первого вопроса до проверки гипотез и выгрузки — весь
+                  процесс под рукой.
+                </span>
+              </div>
+              <div className="landing-hero-image">
+                <div className="landing-browser">
+                  <span />
+                  <span />
+                  <span />
+                  <b>Ваше исследование</b>
+                </div>
+                <Picture
+                  name="builder"
+                  alt="Конструктор опроса с готовой методикой и собственным блоком вопросов"
+                />
+              </div>
+            </section>
+            <ol
+              className="landing-workflow landing-wrap"
+              aria-label="Как проходит исследование"
+            >
+              <li>
+                <h3>Соберите опрос</h3>
+                <p>Методики и ваши вопросы</p>
+              </li>
+              <li>
+                <h3>Поделитесь ссылкой</h3>
+                <p>Удобное прохождение на любом экране</p>
+              </li>
+              <li>
+                <h3>Изучите результаты</h3>
+                <p>Ответы, шкалы и статистический анализ</p>
+              </li>
+            </ol>
+            <section
+              id="builder"
+              className="landing-section landing-wrap landing-split"
+            >
+              <div>
+                <h2>
+                  Ваш опрос.
+                  <br />
+                  Ваши правила.
+                </h2>
+                <p className="landing-lead">
+                  Соберите исследование так, как задумали: от приветствия до
+                  последнего вопроса.
+                </p>
+                <ul className="landing-benefits">
+                  <li>
+                    <Check />
+                    Настройте начальный и финальный экраны, название и примерное
+                    время прохождения.
+                  </li>
+                  <li>
+                    <Check />
+                    Создавайте свои тесты: один или несколько вариантов ответа,
+                    текстовые и числовые поля.
+                  </li>
+                  <li>
+                    <Check />
+                    Меняйте порядок методик и собственных блоков. Отмечайте
+                    обязательные вопросы.
+                  </li>
+                  <li>
+                    <Check />
+                    Проверяйте опрос в предпросмотре. Черновик сохраняется
+                    автоматически.
+                  </li>
+                </ul>
+                <Link className="landing-text-link" to={create}>
+                  Собрать первый опрос
+                  <ArrowRight size={17} />
+                </Link>
+              </div>
+              <Picture
+                name="custom"
+                alt="Собственный блок с вопросом, вариантами ответа и настройкой обязательности"
+              />
+            </section>
+            <section id="catalog" className="landing-catalog">
+              <div className="landing-wrap">
+                <div className="landing-section-heading">
+                  <h2>
+                    Готовые методики.
+                    <br />
+                    <em>Меньше ручной работы.</em>
+                  </h2>
+                  <p>
+                    Найдите подходящий инструмент в каталоге. Изучите описание,
+                    добавьте его в опрос и используйте автоматический расчёт
+                    там, где он предусмотрен.
+                  </p>
+                </div>
+                <div className="landing-catalog-layout">
+                  <Picture
+                    name="catalog"
+                    alt="Каталог методик с поиском и фильтром категорий"
+                  />
+                  <div className="landing-feature-notes">
+                    <article>
+                      <h3>Поиск и категории</h3>
+                      <p>
+                        Ищите по названию, автору, категории или подкатегории.
+                        Сужайте выбор до интересующей области.
+                      </p>
+                    </article>
+                    <article>
+                      <h3>Информация до добавления</h3>
+                      <p>
+                        Откройте описание методики, чтобы понять, что она
+                        измеряет и подходит ли вашему исследованию.
+                      </p>
+                    </article>
+                    <article>
+                      <h3>Автоматический подсчёт</h3>
+                      <p>
+                        Для методик с расчётом платформа сама вычислит
+                        показатели. Итоговые баллы появятся в результатах — без
+                        переноса ключей вручную.
+                      </p>
+                    </article>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section className="landing-section landing-wrap landing-split">
+              <div>
+                <h2>
+                  Опубликуйте.
+                  <br />
+                  Отправьте.
+                  <br />
+                  <em>Собирайте ответы.</em>
+                </h2>
+                <p className="landing-lead">
+                  Когда опрос готов, опубликуйте его и скопируйте ссылку.
+                  Отправляйте её в мессенджерах, по почте или размещайте там,
+                  где ваша аудитория.
+                </p>
+                <ul className="landing-benefits">
+                  <li>
+                    <Check />
+                    Храните незавершённые исследования в черновиках.
+                  </li>
+                  <li>
+                    <Check />
+                    Следите за количеством начатых и завершённых прохождений.
+                  </li>
+                  <li>
+                    <Check />
+                    Завершайте сбор ответов, когда исследование закончено.
+                  </li>
+                </ul>
+              </div>
+              <Picture
+                name="share"
+                alt="Карточка опубликованного опроса с кнопками копирования ссылки и статистики"
+              />
+            </section>
+            <section
+              id="respondent"
+              className="landing-respondent landing-wrap"
+            >
+              <div className="landing-section-heading">
+                <h2>
+                  Удобно вам.
+                  <br />
+                  Понятно респонденту.
+                </h2>
+                <p>
+                  Участнику достаточно открыть ссылку — регистрация не нужна.
+                  Опрос адаптируется к экрану, показывает прогресс и позволяет
+                  прерваться и продолжить позже.
+                </p>
+              </div>
+              <div className="landing-devices">
+                <Picture
+                  name="desktop"
+                  alt="Экран прохождения опроса на компьютере"
+                  className="landing-desktop"
+                />
+                <Picture
+                  name="phone"
+                  alt="Экран прохождения того же опроса на телефоне"
+                  className="landing-phone"
+                />
+              </div>
+            </section>
+            <section id="results" className="landing-section landing-wrap">
+              <div className="landing-section-heading">
+                <h2>
+                  Ответы собраны.
+                  <br />
+                  <em>Что за ними стоит?</em>
+                </h2>
+                <p>
+                  От общего обзора исследования до конкретного респондента:
+                  смотрите ответы, рассчитанные шкалы и показатели процесса
+                  прохождения.
+                </p>
+              </div>
+              <Picture
+                name="statistics"
+                alt="Статистика опроса: участники, завершённые прохождения и список результатов"
+              />
+              <Picture
+                name="respondents"
+                alt="Список респондентов с сортировкой, фильтрами и раскрытием ответов"
+                className="landing-respondents-picture"
+              />
+              <div className="landing-results-grid">
+                <Picture
+                  name="scales"
+                  alt="Автоматически рассчитанные показатели методики в результатах респондента"
+                />
+                <div className="landing-feature-notes">
+                  <article>
+                    <h3>Результаты по методикам</h3>
+                    <p>
+                      Раскрывайте ответы участника и смотрите рассчитанные
+                      значения шкал для методик с автоподсчётом.
+                    </p>
+                  </article>
+                  <article>
+                    <h3>Время и качество прохождения</h3>
+                    <p>
+                      Оценивайте скорость ответов, быстрые серии и другие
+                      доступные признаки. Они помогают изучать необычные
+                      прохождения; решение об исключении остаётся за вами.
+                    </p>
+                  </article>
+                  <article>
+                    <h3>Фильтры и выгрузка</h3>
+                    <p>
+                      Выбирайте участников, сохраняйте группы для анализа и
+                      выгружайте в Excel нужные методики и собственные блоки
+                      вопросов.
+                    </p>
+                  </article>
+                </div>
+              </div>
+            </section>
+            <section id="analysis" className="landing-section landing-wrap">
+              <div className="landing-section-heading">
+                <h2>
+                  От результатов
+                  <br />
+                  <em>к проверке гипотез.</em>
+                </h2>
+                <p>
+                  Считайте статистику там же, где собрали ответы. Выберите
+                  сохранённую выборку, показатели и подходящий метод — исходные
+                  значения и формулы останутся перед глазами.
+                </p>
+              </div>
+              <Picture
+                name="analysis"
+                alt="Статистический анализ на демонстрационных данных"
+              />
+              <div className="landing-analysis-notes">
+                <article>
+                  <h3>Метод под вашу задачу</h3>
+                  <p>
+                    Описательные показатели, сравнение групп, корреляции и более
+                    сложные модели. Настройки и проверка данных помогают
+                    подготовить расчёт.
+                  </p>
+                </article>
+                <article>
+                  <h3>Прозрачный результат</h3>
+                  <p>
+                    Просматривайте исходные значения, формулы и настройки.
+                    Сохраняйте отчёты и сопоставляйте результаты анализов.
+                  </p>
+                </article>
+              </div>
+            </section>
+            <section className="landing-extras landing-wrap">
+              <article>
+                <h3>Представьте себя участникам</h3>
+                <p>
+                  Настройте публичный профиль исследователя и добавьте ссылку на
+                  него в начале опроса. Вы сами выбираете, будет ли профиль
+                  доступен другим.
+                </p>
+                <Link
+                  className="landing-text-link"
+                  to={signedIn ? "/app/profile" : "/register"}
+                >
+                  Настроить профиль
+                  <ArrowRight size={16} />
+                </Link>
+              </article>
+              <article>
+                <h3>Не нашли нужную методику?</h3>
+                <p>
+                  Отправьте запрос на добавление. А пока можно собрать
+                  собственный блок вопросов и включить его в исследование.
+                </p>
+                <Link
+                  className="landing-text-link"
+                  to={signedIn ? "/app/methodologies/suggest" : "/register"}
+                >
+                  Запросить методику
+                  <ArrowRight size={16} />
+                </Link>
+              </article>
+            </section>
+            <section className="landing-faq landing-wrap">
+              <h2>Несколько полезных деталей</h2>
+              {[
+                [
+                  "Можно объединить свои вопросы и готовые методики?",
+                  "Да. В одном опросе можно использовать несколько методик и собственные блоки, а затем менять их порядок.",
+                ],
+                [
+                  "Участник увидит свои результаты?",
+                  "Это зависит от настроек финального экрана. При создании опроса вы выбираете, показывать ли респонденту результаты методик.",
+                ],
+                [
+                  "Можно изменить опрос после получения ответов?",
+                  "После появления ответов изменение структуры ограничено, чтобы уже собранные данные оставались сопоставимыми. На странице редактирования будет объяснение этих ограничений.",
+                ],
+                [
+                  "Что означают показатели качества?",
+                  "Это признаки особенностей прохождения, а не доказательство недостоверности ответов. Смотрите доступность данных и отдельные метрики, прежде чем принимать решение.",
+                ],
+              ].map(([q, a]) => (
+                <details key={q}>
+                  <summary>
+                    {q}
+                    <Plus size={18} />
+                  </summary>
+                  <p>{a}</p>
+                </details>
+              ))}
+            </section>
+            <section className="landing-final landing-wrap">
+              <Leaf size={35} />
+              <h2>
+                Следующее исследование
+                <br />
+                начинается с вашего вопроса.
+              </h2>
+              <p>Соберите опрос — платформа поможет с остальным.</p>
+              <Link className="landing-button" to={create}>
+                {signedIn ? "Создать опрос" : "Создать аккаунт"}
                 <ArrowRight size={18} />
               </Link>
-              <a href="#try-research">Сначала попробовать ↓</a>
-            </div>
+            </section>
           </div>
-        </section>
-        <section id="try-research" className="research-workshop">
-          <div className="research-section-head">
-            <h2>Попробуйте на небольшом исследовании</h2>
-            <p>
-              Нажимайте, меняйте, считайте. Здесь можно разобраться без
-              регистрации.
-            </p>
-          </div>
-          <Suspense
-            fallback={
-              <div
-                className="research-skeleton"
-                aria-label="Загружаем интерактивный пример"
-              />
-            }
-          >
-            <ResearchDemo />
-          </Suspense>
-        </section>
-        <section className="research-benefits">
-          <div>
-            <h2>
-              Меньше переносить вручную.
-              <br />
-              Больше разбираться в данных.
-            </h2>
-            <p>
-              Для курсовой, диссертации и исследовательского проекта: весь путь
-              остаётся в одном рабочем пространстве.
-            </p>
-          </div>
-          <div className="research-benefit-list">
-            {[
-              [
-                "Опрос под ваш замысел",
-                "Объединяйте готовые методики и собственные блоки. Настраивайте порядок, приветствие и финальный экран. Проверьте всё в предпросмотре перед публикацией.",
-              ],
-              [
-                "Ответы без лишних шагов",
-                "Отправьте участникам ссылку. Для прохождения не нужен аккаунт; опрос работает на телефоне и компьютере. Следите за начатыми и завершёнными прохождениями.",
-              ],
-              [
-                "Отдельные группы для ваших гипотез",
-                "Фильтруйте результаты, выбирайте нужных участников и сохраняйте выборки. Состав фиксируется; изменения остаются под вашим контролем.",
-              ],
-              [
-                "Статистика с понятным происхождением",
-                "Описательные показатели, сравнение групп, корреляции и более сложные модели. Выбирайте метод, проверяйте данные и просматривайте формулы, настройки и исходные значения в отчёте.",
-              ],
-              [
-                "Данные, с которыми можно идти дальше",
-                "Выгружайте Excel с выбранными методиками и своими блоками вопросов. Сопоставляйте сохранённые расчёты и открывайте совместный доступ к исследованию.",
-              ],
-            ].map(([title, text], i) => (
-              <article key={title}>
-                <span>{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-        <section className="research-faq">
-          <h2>Перед первым исследованием</h2>
-          {[
-            [
-              "Нужно ли регистрироваться?",
-              "Исследователю нужен аккаунт, чтобы сохранять опросы и работать с результатами. Респонденты проходят опрос по ссылке без обязательной регистрации.",
-            ],
-            [
-              "Можно использовать собственные вопросы?",
-              "Да. Добавляйте свои блоки вместе с методиками: один или несколько вариантов ответа, текстовые и числовые поля.",
-            ],
-            [
-              "Платформа сама посчитает баллы?",
-              "Для методик с поддерживаемым расчётом — да. Итоговые показатели появляются в результатах. Статистический анализ вы запускаете отдельно, выбирая показатели и выборки.",
-            ],
-            [
-              "Чем публичные методики отличаются от исследования?",
-              "В публичном каталоге человек проходит отдельную методику и получает свой результат. Исследователь создаёт собственный опрос, собирает ответы участников и анализирует общую выборку.",
-            ],
-          ].map(([q, a]) => (
-            <details key={q}>
-              <summary>{q}</summary>
-              <p>{a}</p>
-            </details>
-          ))}
-        </section>
-        <section className="research-final">
-          <h2>
-            Начните с вопроса,
-            <br />
-            который хотите исследовать.
-          </h2>
-          <p>Инструменты для сбора и анализа уже под рукой.</p>
-          <Link className="research-primary" to={create}>
-            Собрать первый опрос
-            <ArrowRight size={18} />
-          </Link>
-          <Link to="/methods">Или познакомиться с публичными методиками →</Link>
-        </section>
-      </div>
+          <footer className="landing-footer landing-wrap">
+            <Link className="landing-brand" to="/">
+              <Leaf size={22} />
+              <BrandWordmark />
+            </Link>
+            <span>Психологические исследования — в одном месте.</span>
+            <a
+              href="#"
+              onClick={(event) => {
+                event.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              Наверх ↑
+            </a>
+          </footer>
+        </div>
+      </DemoProvider>
     </PlatformLayout>
   );
 }
