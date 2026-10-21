@@ -20,7 +20,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { BrandWordmark } from "../../components/BrandWordmark";
+import { PlatformLayout, AuthenticatedOnly } from "../PlatformLayout";
 import {
   publicRequest,
   rememberAssessment,
@@ -95,34 +95,14 @@ function Metadata({
 }
 export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="public-methods">
-      <a className="pm-skip" href="#public-main">
-        К содержимому
-      </a>
-      <header className="pm-header">
-        <Link className="pm-brand" to="/" aria-label="mindresearch — главная">
-          <Leaf size={29} />
-          <BrandWordmark />
-        </Link>
-        <nav aria-label="Основная навигация">
-          <Link to="/methods">Методики</Link>
-          <Link className="pm-button pm-soft" to="/login">
-            Войти <ArrowRight size={17} />
-          </Link>
-        </nav>
-      </header>
-      <main id="public-main">{children}</main>
-      <footer className="pm-footer">
-        <span>mindresearch · by Евгения Годагова</span>
-        <Link to="/">
-          Платформа для исследований <ArrowRight size={15} />
-        </Link>
-        <span>
-          Самоотчёт помогает разобраться в себе, но не заменяет консультацию
-          специалиста.
-        </span>
-      </footer>
-    </div>
+    <PlatformLayout publicAccess>
+      <div className="public-methods pm-app">
+        <a className="pm-skip" href="#public-main">
+          К содержимому
+        </a>
+        <div id="public-main">{children}</div>
+      </div>
+    </PlatformLayout>
   );
 }
 export function PublicLoading() {
@@ -203,11 +183,7 @@ export function PublicMethods() {
     <PublicShell>
       <Metadata />
       <section className="pm-catalog-intro">
-        <h1>
-          Больше понимания
-          <br />
-          <em>себя.</em>
-        </h1>
+        <h1>Методики</h1>
         <div>
           <p>
             Психологические методики с понятными результатами и ссылками на
@@ -217,9 +193,6 @@ export function PublicMethods() {
             Выберите тему, ответьте на вопросы в своём темпе. Регистрация не
             нужна.
           </p>
-          <a className="pm-text" href="#catalog">
-            Выбрать методику <ArrowDown size={17} />
-          </a>
         </div>
       </section>
       <section id="catalog" className="pm-catalog">
@@ -288,18 +261,20 @@ export function PublicMethods() {
           </div>
         )}
       </section>
-      <section className="pm-research">
-        <div>
-          <h2>Проводите своё исследование?</h2>
-          <p>
-            Соберите опрос из методик и собственных вопросов. Пригласите
-            участников и изучите результаты в mindresearch.
-          </p>
-        </div>
-        <Link className="pm-button pm-primary" to="/register">
-          Создать опрос <ArrowRight size={18} />
-        </Link>
-      </section>
+      <AuthenticatedOnly>
+        <section className="pm-research">
+          <div>
+            <h2>Проводите своё исследование?</h2>
+            <p>
+              Соберите опрос из методик и собственных вопросов. Пригласите
+              участников и изучите результаты в mindresearch.
+            </p>
+          </div>
+          <Link className="pm-button pm-primary" to="/app/surveys/new">
+            Создать опрос <ArrowRight size={18} />
+          </Link>
+        </section>
+      </AuthenticatedOnly>
     </PublicShell>
   );
 }
@@ -415,18 +390,20 @@ export function PublicMethodPage() {
               </div>
             </div>
           </div>
-          <section className="pm-research">
-            <div>
-              <h2>Эта методика для вашего исследования</h2>
-              <p>
-                Добавьте её в свой опрос вместе с другими инструментами из
-                библиотеки.
-              </p>
-            </div>
-            <Link className="pm-button pm-soft" to="/register">
-              Создать исследование <ArrowRight size={18} />
-            </Link>
-          </section>
+          <AuthenticatedOnly>
+            <section className="pm-research">
+              <div>
+                <h2>Эта методика для вашего исследования</h2>
+                <p>
+                  Добавьте её в свой опрос вместе с другими инструментами из
+                  библиотеки.
+                </p>
+              </div>
+              <Link className="pm-button pm-soft" to="/app/surveys/new">
+                Создать исследование <ArrowRight size={18} />
+              </Link>
+            </section>
+          </AuthenticatedOnly>
         </>
       )}
     </PublicShell>

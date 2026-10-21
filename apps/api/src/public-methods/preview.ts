@@ -4,6 +4,8 @@ import { createPublicMethodsRouter } from "./router.js";
 import { memoryRepository } from "./testing.js";
 const app = express();
 app.use(express.json({ limit: "200kb" }));
+// The isolated preview has no researcher accounts; use the normal guest status.
+app.post("/api/auth/refresh", (_req, res) => res.status(401).json({ message: "Войдите в аккаунт" }));
 app.use(
   createPublicMethodsRouter(memoryRepository(), [
     (_req, res) => {

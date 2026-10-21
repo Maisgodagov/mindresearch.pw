@@ -79,6 +79,9 @@ describe("public assessments isolated from research", () => {
       await request("/api/public/methods/document?slug=general-self-efficacy")
     ).json();
     expect(doc.body).toContain("Как рассчитывается результат");
+    expect(doc.body).toContain("pm-ssr-sidebar");
+    expect(doc.body).not.toContain('/register');
+    expect(doc.body).not.toContain('href="/app');
     expect(doc.head).toContain(
       "https://mindresearch.pro/methods/general-self-efficacy",
     );

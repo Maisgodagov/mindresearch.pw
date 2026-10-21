@@ -1,7 +1,10 @@
 import styled from "styled-components";
 import { Button } from "../Button";
 
-export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean }>`
+export const Sidebar = styled.aside<{
+  $collapsed: boolean;
+  $mobileOpen: boolean;
+}>`
   padding: 22px ${(p) => (p.$collapsed ? "10px" : "16px")};
   border-right: 1px solid #e1e7df;
   background: #fbfcfa;
@@ -91,6 +94,9 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
     background: #e5efe0;
     color: #2f4e2b;
   }
+  .guest-login-mobile {
+    display: none;
+  }
   .report {
     font-family: inherit;
     line-height: inherit;
@@ -140,14 +146,16 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: clamp(12px, 6vw, 30px);
+      gap: clamp(4px, 1.5vw, 12px);
       width: min(100%, 380px);
       height: 100%;
       margin: 0 auto;
       overflow: visible;
     }
     .nav .mobile-hidden,
-    .nav .report { display: none; }
+    .nav .report {
+      display: none;
+    }
     a,
     .report {
       flex: 0 1 68px;
@@ -162,7 +170,10 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
       border-radius: 8px;
       white-space: normal;
     }
-    a svg { width: 17px; height: 17px; }
+    a svg {
+      width: 17px;
+      height: 17px;
+    }
     a span,
     .report span {
       display: block;
@@ -172,7 +183,12 @@ export const Sidebar = styled.aside<{ $collapsed: boolean; $mobileOpen: boolean 
       white-space: normal;
       overflow-wrap: anywhere;
     }
-    .logout { display: none; }
+    .logout {
+      display: none;
+    }
+    .nav .guest-login-mobile {
+      display: flex;
+    }
   }
 `;
 
