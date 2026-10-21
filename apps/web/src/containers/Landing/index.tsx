@@ -65,6 +65,23 @@ export function Landing() {
                   От первого вопроса до проверки гипотез и выгрузки — весь
                   процесс под рукой.
                 </span>
+                <ol
+                  className="landing-workflow landing-hero-workflow"
+                  aria-label="Как проходит исследование"
+                >
+                  <li>
+                    <h3>Соберите опрос</h3>
+                    <p>Методики и ваши вопросы</p>
+                  </li>
+                  <li>
+                    <h3>Поделитесь ссылкой</h3>
+                    <p>Удобное прохождение на любом экране</p>
+                  </li>
+                  <li>
+                    <h3>Изучите результаты</h3>
+                    <p>Ответы, шкалы и статистический анализ</p>
+                  </li>
+                </ol>
               </div>
               <div className="landing-hero-image">
                 <div className="landing-browser">
@@ -79,23 +96,7 @@ export function Landing() {
                 />
               </div>
             </section>
-            <ol
-              className="landing-workflow landing-wrap"
-              aria-label="Как проходит исследование"
-            >
-              <li>
-                <h3>Соберите опрос</h3>
-                <p>Методики и ваши вопросы</p>
-              </li>
-              <li>
-                <h3>Поделитесь ссылкой</h3>
-                <p>Удобное прохождение на любом экране</p>
-              </li>
-              <li>
-                <h3>Изучите результаты</h3>
-                <p>Ответы, шкалы и статистический анализ</p>
-              </li>
-            </ol>
+
             <section
               id="builder"
               className="landing-section landing-wrap landing-split"

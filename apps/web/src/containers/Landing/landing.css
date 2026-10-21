@@ -1609,5 +1609,63 @@
   min-height: 0;
 }
 
-.hero-composer .section-drag,.hero-composer .section-drag:hover,.hero-composer .section-drag:active{border:0!important;box-shadow:none!important}
+.hero-composer .section-drag,
+.hero-composer .section-drag:hover,
+.hero-composer .section-drag:active {
+  border: 0 !important;
+  box-shadow: none !important;
+}
 
+.landing.landing-in-app .landing-hero-workflow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  width: 100%;
+  margin: 30px 0 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid #b8cbb1;
+  list-style: none;
+}
+.landing-hero-workflow > li {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: baseline;
+  padding: 0 0 18px 19px;
+}
+.landing-hero-workflow > li:last-child {
+  padding-bottom: 0;
+}
+.landing-hero-workflow > li::before {
+  left: -5px;
+  top: 7px;
+  width: 9px;
+  height: 9px;
+  outline-width: 4px;
+}
+.landing .landing-hero-workflow h3 {
+  font-family: "Lora Variable", serif;
+  font-size: 20px;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.landing .landing-hero-workflow p {
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 0;
+  max-width: 25ch;
+}
+@media (max-width: 600px) {
+  .landing.landing-in-app .landing-hero-workflow {
+    margin-top: 26px;
+  }
+  .landing-hero-workflow > li {
+    gap: 12px;
+    padding-left: 16px;
+  }
+  .landing .landing-hero-workflow h3 {
+    font-size: 18px;
+  }
+}
