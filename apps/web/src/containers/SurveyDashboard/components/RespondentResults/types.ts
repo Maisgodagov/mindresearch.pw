@@ -9,6 +9,7 @@ export type ResultSection = {
 };
 
 export type RespondentResultsProps = {
+  storageKey?: string;
   sortKey: string;
   sortDirection: 'asc' | 'desc';
   methodSortOptions: {value:string;label:string}[];

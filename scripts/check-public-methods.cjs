@@ -39,12 +39,12 @@ mkdirSync(output, { recursive: true });
         );
       };
       await page.goto(base + "/methods");
-      await page.getByRole("heading", { name: "Открытые методики" }).waitFor();
-      await page.locator(".pm-method-list article").first().waitFor();
-      assert.equal(await page.locator(".pm-method-list article").count(), 3);
+      await page.getByRole("heading", { name: "Методики", exact: true }).waitFor();
+      await page.locator(".ml-method").first().waitFor();
+      assert.equal(await page.locator(".ml-method").count(), 3);
       await capture("catalog");
       await page.getByRole("textbox", { name: "Поиск методики" }).fill("zzzz");
-      await page.getByRole("heading", { name: "Ничего не найдено" }).waitFor();
+      await page.getByRole("heading", { name: "Методики не найдены" }).waitFor();
       await page.getByRole("button", { name: "Сбросить поиск" }).click();
       await page
         .getByRole("link", { name: "Шкала самооценки Розенберга", exact: true })
@@ -182,7 +182,7 @@ mkdirSync(output, { recursive: true });
       await page.getByRole("button", { name: "Удалить", exact: true }).click();
       await page
         .getByRole("heading", {
-          name: "Многомерная шкала восприятия социальной поддержки",
+          name: "На чью поддержку вы опираетесь",
           exact: true,
         })
         .waitFor();

@@ -33,3 +33,14 @@ npm run preview:public-api — отдельный локальный API на 12
 
 ## Лендинг для исследователей
 Лендинг вынесен на /for-researchers внутри общего публичного сайдбара. Пункт «Для исследователей» находится над «Методиками» и доступен гостям. Корень / временно перенаправляет туда с сохранением query-параметров: HTTP 302 в Nginx и Vite, Navigate replace при клиентской навигации. Canonical лендинга: https://mindresearch.pro/for-researchers. Когда появится новая главная, нужно заменить корневой маршрут и убрать точный location = / в Nginx и временный Vite middleware. Сам лендинг и его адрес остаются прежними.
+
+
+## Public discovery and researcher demo
+
+The public catalogue uses large thematic collections, not category tabs. Six themes are shown initially; larger catalogues expose searchable, paginated theme collections (12 per page). Search and the selected topic are kept in URL parameters. Method pages separate the launch panel, plain-language overview, instructions, expandable reference sections and visible sources. Anonymous taking, stored assessment snapshots and downloadable result cards remain unchanged.
+
+The `/for-researchers` landing uses the shared app shell. Its interactive example reuses SurveyBuilderToolbar, its instrument catalogue, SectionCard, BuilderPreview, MethodologyModal, RespondentResults and the real Excel exporter. All participants and scores are synthetic. Editing and saved selections are local React state; no survey or response mutations are made. Table preferences use an isolated demo storage key. The preview is explicitly shortened to one original question per methodology and never generates interpreted scores.
+
+The statistics example calculates descriptive values (sample standard deviation) and the Pearson coefficient directly from the displayed synthetic observations. It does not claim statistical significance or invent confidence intervals. Changing inputs invalidates the previous calculation. Full application statistical analysis is independent of this example.
+
+Validation: `scripts/check-researcher-demo.cjs` exercises editing, preview, respondent selection, local sample, Excel download and a control calculation, and rejects unexpected API mutations. `scripts/check-public-methods.cjs` covers desktop/mobile anonymous taking, resumption, recovery, result-card download, deletion and crawlable source content. Both scripts target local preview only.

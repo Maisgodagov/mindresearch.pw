@@ -83,7 +83,7 @@ export function createPublicMethodsRouter(
       p.published ? [p.published] : [],
     );
   router.get("/api/public/methods", async (_req, res) =>
-    res.json(await published()),
+    res.json((await published()).map(method => ({...method, questionCount: definition(method).questions.length}))),
   );
   router.get("/api/public/methods/document", async (req, res) => {
     const methods = await published();

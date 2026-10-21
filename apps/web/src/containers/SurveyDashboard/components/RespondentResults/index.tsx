@@ -41,6 +41,7 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 }
 
 export function RespondentResults({
+  storageKey = "mindresearch:results-table:v1",
   sortKey, sortDirection, methodSortOptions, onColumnSort,
   readOnly=false,
   showGender=false,
@@ -83,7 +84,6 @@ export function RespondentResults({
 
   const selectedDeletedCount = Object.values(deletedSelected).some(Boolean);
 
-  const storageKey = 'mindresearch:results-table:v1';
   const [saved] = useState(() => {try {return JSON.parse(localStorage.getItem(storageKey) || '{}');} catch {return {};}});
   const [visibility, setVisibility] = useState<VisibilityState>({});
   const [columnOrder, setColumnOrder] = useState<string[]>(saved.order || []);
