@@ -25,7 +25,7 @@ const { mkdirSync } = require("node:fs");
           mutations.push(r.url());
       });
       await page.goto("http://127.0.0.1:5181/for-researchers");
-      await page.locator(".media-builder textarea").first().waitFor();
+      await page.locator(".hero-demo-block").first().waitFor();
       await page.screenshot({
         path: `.work/public-methods/${name}-landing-initial.png`,
         fullPage: true,
@@ -33,10 +33,67 @@ const { mkdirSync } = require("node:fs");
       assert.equal(await page.locator(".landing img").count(), 0);
       assert.equal(await page.locator(".landing [role=tablist]").count(), 0);
       assert.equal(await page.locator(".landing-component").count(), 10);
-      await page
-        .locator(".media-builder textarea")
-        .first()
-        .fill("Добро пожаловать в пример");
+      const composer = page.locator(".hero-composer");
+      const ids = () =>
+        composer
+          .locator(".hero-demo-block")
+          .evaluateAll((nodes) => nodes.map((n) => n.dataset.blockId));
+      await composer
+        .locator('[data-block-id="success"]')
+        .getByRole("radio", { name: "Мужской", exact: true })
+        .check();
+      assert(
+        await composer
+          .locator('[data-block-id="success"]')
+          .getByRole("radio", { name: "Мужской", exact: true })
+          .isChecked(),
+      );
+      const handle = composer
+        .getByRole("button", { name: "Перетащить тест" })
+        .first();
+      await handle.focus();
+      await page.keyboard.press("Space");
+      await page.waitForTimeout(150);
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(150);
+      await page.keyboard.press("Space");
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector(".hero-demo-block")
+            ?.getAttribute("data-block-id") === "ambiguity",
+      );
+      assert.deepEqual(await ids(), [
+        "ambiguity",
+        "success",
+        "stress",
+        "custom",
+      ]);
+      await composer
+        .getByRole("button", {
+          name: "Выше: Жизненная успешность",
+          exact: true,
+        })
+        .click();
+      assert.equal((await ids())[0], "success");
+      for (let i = 0; i < 4; i++)
+        await composer
+          .getByRole("button", { name: /^Удалить:/ })
+          .first()
+          .click();
+      assert.equal(await composer.locator(".hero-demo-block").count(), 0);
+      await page.waitForTimeout(350);
+      assert.equal(await composer.locator(".hero-demo-block").count(), 0);
+      await composer.locator(".hero-demo-block").first().waitFor();
+      assert.equal(await composer.locator(".hero-demo-block").count(), 4);
+      assert(
+        await composer
+          .locator(".hero-composer-list")
+          .evaluate((n) => n.classList.contains("is-restored")),
+      );
+      await page.screenshot({
+        path: `.work/public-methods/${name}-hero-composer.png`,
+      });
       await page
         .getByRole("textbox", { name: "Текст своего вопроса", exact: true })
         .fill("Что помогает вам отдыхать?");

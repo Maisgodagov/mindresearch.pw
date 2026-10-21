@@ -14,7 +14,7 @@ import { Button } from "../../components/Button";
 import { FieldInput } from "../../components/FieldInput";
 import { SelectField } from "../../components/SelectField";
 import { SurveyTile } from "../../components/SurveyTile";
-import { SurveyScreenSection } from "../SurveyBuilder/components/SurveyScreenSection";
+import { HeroBuilderDemo } from "./HeroBuilderDemo";
 import { SectionCard, QuestionBox } from "../SurveyBuilder/styles";
 import { InstrumentCatalog } from "../SurveyBuilder/components/InstrumentCatalog";
 import {
@@ -49,77 +49,6 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     <DemoContext.Provider value={{ sample, setSample }}>
       {children}
     </DemoContext.Provider>
-  );
-}
-function StartDemo() {
-  const [heading, setHeading] = useState("Спасибо, что решили принять участие"),
-    [body, setBody] = useState(
-      "Расскажите о своём самочувствии. Здесь нет правильных или неправильных ответов — важен ваш опыт.",
-    ),
-    [author, setAuthor] = useState(false),
-    [automatic, setAutomatic] = useState(true);
-  return (
-    <div className="landing-builder-demo">
-      <h3>Содержание опроса</h3>
-      <p className="inline-demo-note">
-        Настройте приветствие — попробуйте изменить текст.
-      </p>
-      <SurveyScreenSection
-        kind="start"
-        title="Стартовый экран"
-        helper="Показывается респонденту перед вопросами"
-        heading={heading}
-        body={body}
-        headingLabel="Заголовок"
-        bodyLabel="Текст перед началом"
-        headingPlaceholder="Приветствие"
-        bodyPlaceholder="Инструкция"
-        settingLabel="Показывать ссылку на профиль автора"
-        settingChecked={author}
-        onHeadingChange={setHeading}
-        onBodyChange={setBody}
-        onSettingChange={setAuthor}
-      >
-        <div className="inline-duration">
-          <b>Примерное время прохождения</b>
-          <label>
-            <input
-              type="radio"
-              checked={automatic}
-              onChange={() => setAutomatic(true)}
-              name="demo-duration"
-            />
-            Рассчитать автоматически · до 5 минут
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={!automatic}
-              onChange={() => setAutomatic(false)}
-              name="demo-duration"
-            />
-            Указать своё время
-          </label>
-          {!automatic && (
-            <FieldInput
-              aria-label="Примерное время в минутах"
-              type="number"
-              min={1}
-              defaultValue={5}
-            />
-          )}
-        </div>
-      </SurveyScreenSection>
-      <SectionCard>
-        <div className="section-head">
-          <Users size={17} />
-          <div className="section-name">
-            <b>О респонденте</b>
-            <span>Возраст и другие вопросы вашего исследования</span>
-          </div>
-        </div>
-      </SectionCard>
-    </div>
   );
 }
 function CustomDemo() {
@@ -430,7 +359,7 @@ export function DemoMedia({
   let component: ReactNode;
   switch (name) {
     case "builder":
-      component = <StartDemo />;
+      component = <HeroBuilderDemo />;
       break;
     case "custom":
       component = <CustomDemo />;
