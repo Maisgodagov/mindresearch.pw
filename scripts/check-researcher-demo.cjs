@@ -76,12 +76,14 @@ const { mkdirSync } = require("node:fs");
         })
         .click();
       assert.equal((await ids())[0], "success");
+      const originalHeight = (await page.locator(".landing-hero-image").boundingBox()).height;
       for (let i = 0; i < 4; i++)
         await composer
           .getByRole("button", { name: /^Удалить:/ })
           .first()
           .click();
       assert.equal(await composer.locator(".hero-demo-block").count(), 0);
+      assert(Math.abs((await page.locator(".landing-hero-image").boundingBox()).height - originalHeight) <= 1, "Hero height changed after deletion");
       await page.waitForTimeout(350);
       assert.equal(await composer.locator(".hero-demo-block").count(), 0);
       await composer.locator(".hero-demo-block").first().waitFor();
