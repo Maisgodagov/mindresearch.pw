@@ -8,7 +8,7 @@ import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
 
 import { DemoMedia, DemoProvider } from "./DemoMedia";
-import { ResearchQuestion } from "./ResearchQuestion";
+import { ResearchIntro } from "./ResearchIntro";
 const Picture = DemoMedia;
 
 export function Landing() {
@@ -42,7 +42,7 @@ export function Landing() {
         <div className="landing landing-in-app">
           <div className="landing-content">
             <section className="landing-hero landing-wrap">
-              <ResearchQuestion create={create} />
+              <ResearchIntro create={create} />
               <div className="landing-hero-image">
                 <div className="landing-browser">
                   <span />

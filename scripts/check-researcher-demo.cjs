@@ -30,11 +30,11 @@ const { mkdirSync } = require("node:fs");
         path: `.work/public-methods/${name}-landing-initial.png`,
         fullPage: true,
       });
-      await page.getByRole("button",{name:"Сравнить группы",exact:true}).click();
-      assert.match(await page.locator(".rq-example").innerText(),/Сравнение выборок/);
-      await page.getByRole("button",{name:"Описать выборку",exact:true}).click();
-      assert.match(await page.locator(".rq-example").innerText(),/Описательная статистика/);
-      await page.getByRole("button",{name:"Найти связь",exact:true}).click();
+      assert.equal(await page.locator(".research-intro button").count(), 0);
+      assert.match(
+        await page.locator(".research-intro").innerText(),
+        /психологических исследований/,
+      );
       assert.equal(await page.locator(".landing img").count(), 0);
       assert.equal(await page.locator(".landing [role=tablist]").count(), 0);
       assert.equal(await page.locator(".landing-component").count(), 10);
@@ -81,14 +81,22 @@ const { mkdirSync } = require("node:fs");
         })
         .click();
       assert.equal((await ids())[0], "success");
-      const originalHeight = (await page.locator(".landing-hero-image").boundingBox()).height;
+      const originalHeight = (
+        await page.locator(".landing-hero-image").boundingBox()
+      ).height;
       for (let i = 0; i < 4; i++)
         await composer
           .getByRole("button", { name: /^Удалить:/ })
           .first()
           .click();
       assert.equal(await composer.locator(".hero-demo-block").count(), 0);
-      assert(Math.abs((await page.locator(".landing-hero-image").boundingBox()).height - originalHeight) <= 1, "Hero height changed after deletion");
+      assert(
+        Math.abs(
+          (await page.locator(".landing-hero-image").boundingBox()).height -
+            originalHeight,
+        ) <= 1,
+        "Hero height changed after deletion",
+      );
       await page.waitForTimeout(350);
       assert.equal(await composer.locator(".hero-demo-block").count(), 0);
       await composer.locator(".hero-demo-block").first().waitFor();

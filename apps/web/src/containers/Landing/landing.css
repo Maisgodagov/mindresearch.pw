@@ -1616,134 +1616,70 @@
   box-shadow: none !important;
 }
 
-/* A concrete research question replaces the feature pitch. */
-.landing-in-app .research-question {
-  padding: 24px 12px 12px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+/* Explain the product before inviting the visitor to explore it. */
+.landing-in-app .research-intro {
+  padding: 24px 14px 12px 0;
   min-width: 0;
 }
-.landing.landing-in-app .landing-hero.landing-wrap .research-question h1 {
+.landing.landing-in-app .landing-hero.landing-wrap .research-intro h1 {
   font-family: "Lora Variable", serif;
-  font-size: clamp(38px, 3.5vw, 52px);
+  font-size: clamp(34px, 3vw, 44px);
   font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 1.12;
-  margin: 0 0 18px;
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+  margin: 0 0 24px;
+  max-width: 20ch;
+  text-wrap: balance;
 }
-.research-question h1 em {
+.research-intro h1 em {
+  font-style: normal;
   color: #647e50;
 }
-.landing-in-app .research-question > p.rq-intro {
-  font-size: 15px;
-  line-height: 1.7;
-  max-width: 41ch;
-  margin: 0 0 22px;
-  color: #526957;
-}
-.rq-choices {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  padding: 4px;
-  background: #eaf0e4;
-  border-radius: 9px;
-}
-.rq-choices button {
-  border: 0;
-  background: transparent;
-  color: #53684c;
-  font:
-    600 12px/1.4 Manrope,
-    sans-serif;
-  padding: 10px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.rq-choices button:hover {
-  background: #dde7d5;
-}
-.rq-choices button[aria-pressed="true"] {
-  background: white;
-  color: #304d3a;
-  box-shadow: 0 2px 5px #3047370a;
-}
-.rq-choices button:focus-visible {
-  outline: 2px solid #52764b;
-  outline-offset: 2px;
-}
-.rq-example {
-  width: 100%;
-  margin-top: 24px;
-  min-height: 242px;
-}
-.rq-example blockquote {
-  font-family: "Lora Variable", serif;
-  font-size: 25px;
-  line-height: 1.4;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+.landing-in-app .research-intro > p.research-intro-lead {
+  font-size: 17px;
+  line-height: 1.75;
+  color: #38563e;
   margin: 0 0 24px;
-  color: #304d3a;
-  max-width: 34ch;
-  min-height: 84px;
+  max-width: 48ch;
 }
-.rq-example dl {
+.research-intro-details {
   display: grid;
   gap: 18px;
+  max-width: 56ch;
+}
+.research-intro-details p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #596e5c;
   margin: 0;
 }
-.rq-example dl > div {
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 12px;
-}
-.rq-example dt {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #66785f;
-  padding-top: 2px;
-}
-.rq-example dd {
-  margin: 0;
-  display: grid;
-  gap: 5px;
-}
-.rq-example dd strong {
-  font-size: 13px;
-  line-height: 1.6;
+.research-intro-details strong {
   font-weight: 650;
-  color: #36513a;
+  color: #304d3a;
 }
-.rq-example dd span {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #5c705a;
-}
-.rq-action {
+.research-intro-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 18px;
-  margin-top: 24px;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 28px;
 }
-.landing .landing-hero .rq-action .landing-button {
-  font-size: 15px;
+.landing .landing-hero .research-intro-actions .landing-button {
   padding: 16px 22px;
-  gap: 24px;
-  box-shadow: none;
+  font-size: 14px;
+  gap: 20px;
   background: #365f3d;
+  box-shadow: none;
 }
-.rq-action > a:last-child {
+.research-intro-actions > a:last-child {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  color: #405f37;
+  gap: 10px;
   font-size: 12px;
   font-weight: 600;
+  color: #405f37;
 }
-.rq-action > a:last-child:hover {
+.research-intro-actions > a:last-child:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -1751,59 +1687,38 @@
   align-items: start;
 }
 @media (max-width: 1000px) {
-  .landing-in-app .research-question {
+  .landing-in-app .research-intro {
     padding: 0;
-    max-width: 650px;
+    max-width: 700px;
   }
-  .rq-example {
-    min-height: 0;
+  .landing.landing-in-app .landing-hero.landing-wrap .research-intro h1 {
+    font-size: 42px;
+    max-width: 24ch;
   }
-  .rq-example blockquote {
-    min-height: 0;
-    max-width: 38ch;
-  }
-  .landing.landing-in-app .landing-hero.landing-wrap .research-question h1 {
-    font-size: 46px;
+  .research-intro-details {
+    max-width: 70ch;
   }
 }
 @media (max-width: 600px) {
-  .landing.landing-in-app .landing-hero.landing-wrap .research-question h1 {
-    font-size: 40px;
+  .landing.landing-in-app .landing-hero.landing-wrap .research-intro h1 {
+    font-size: 34px;
+    margin-bottom: 20px;
+    max-width: 20ch;
   }
-  .landing-in-app .research-question > p.rq-intro {
+  .landing-in-app .research-intro > p.research-intro-lead {
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  .research-intro-details {
+    gap: 16px;
+  }
+  .research-intro-details p {
     font-size: 14px;
+    line-height: 1.75;
   }
-  .rq-choices {
-    gap: 1px;
-    width: 100%;
-  }
-  .rq-choices button {
-    font-size: 11px;
-    padding: 10px 8px;
-    flex: 1;
-  }
-  .rq-example {
-    margin-top: 22px;
-  }
-  .rq-example blockquote {
-    font-size: 24px;
-    line-height: 1.45;
-    margin-bottom: 22px;
-  }
-  .rq-example dl > div {
-    grid-template-columns: 76px minmax(0, 1fr);
-    gap: 10px;
-  }
-  .rq-example dt {
-    font-size: 11px;
-  }
-  .rq-example dd strong {
-    font-size: 12px;
-  }
-  .rq-action {
+  .research-intro-actions {
     margin-top: 24px;
-  }
-  .landing-in-app .landing-hero {
-    gap: 32px;
+    gap: 20px;
   }
 }
