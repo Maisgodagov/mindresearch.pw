@@ -1616,153 +1616,194 @@
   box-shadow: none !important;
 }
 
-/* The opening promise leads; the proof and action are grouped below it. */
-.landing-in-app .landing-hero-intro {
-  align-self: stretch;
-  padding: 28px 12px 16px 0;
+/* A concrete research question replaces the feature pitch. */
+.landing-in-app .research-question {
+  padding: 24px 12px 12px 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 0;
 }
-.landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 {
-  font-family: Manrope, sans-serif;
-  font-size: clamp(36px, 3.45vw, 52px);
-  font-weight: 650;
-  line-height: 1.12;
-  letter-spacing: -0.04em;
-  margin: 0 0 26px;
-  max-width: 100%;
-  text-wrap: initial;
-}
-.landing-hero-intro h1 > span,
-.landing-hero-intro h1 > em {
-  display: block;
-}
-.landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 > em {
+.landing.landing-in-app .landing-hero.landing-wrap .research-question h1 {
   font-family: "Lora Variable", serif;
+  font-size: clamp(38px, 3.5vw, 52px);
   font-weight: 500;
-  font-size: 1.2em;
-  line-height: 1.16;
   letter-spacing: -0.035em;
-  color: #637d50;
-  margin-top: 2px;
+  line-height: 1.12;
+  margin: 0 0 18px;
 }
-.landing-in-app .landing-hero-intro > p.hero-intro-description {
-  font-size: 17px;
-  line-height: 1.75;
-  color: #526957;
-  max-width: 40ch;
-  margin: 0 0 26px;
+.research-question h1 em {
+  color: #647e50;
 }
-.hero-intro-action {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-}
-.landing .landing-hero .hero-intro-action .landing-button {
-  padding: 17px 23px;
-  border-radius: 10px;
-  box-shadow: none;
+.landing-in-app .research-question > p.rq-intro {
   font-size: 15px;
-  gap: 22px;
-  min-height: 54px;
-  background: #365f3d;
+  line-height: 1.7;
+  max-width: 41ch;
+  margin: 0 0 22px;
+  color: #526957;
 }
-.hero-intro-action > span {
-  color: #5b705e;
-  font-size: 12px;
-  line-height: 1.5;
-}
-.hero-intro-capabilities {
-  display: grid;
-  gap: 12px;
-  list-style: none;
-  margin: 30px 0 0;
-  padding: 22px 0 0;
-  border-top: 1px solid #d5dfd0;
-  width: 100%;
-}
-.hero-intro-capabilities > li {
+.rq-choices {
   display: flex;
-  align-items: flex-start;
-  gap: 11px;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 4px;
+  background: #eaf0e4;
+  border-radius: 9px;
+}
+.rq-choices button {
+  border: 0;
+  background: transparent;
+  color: #53684c;
+  font:
+    600 12px/1.4 Manrope,
+    sans-serif;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.rq-choices button:hover {
+  background: #dde7d5;
+}
+.rq-choices button[aria-pressed="true"] {
+  background: white;
+  color: #304d3a;
+  box-shadow: 0 2px 5px #3047370a;
+}
+.rq-choices button:focus-visible {
+  outline: 2px solid #52764b;
+  outline-offset: 2px;
+}
+.rq-example {
+  width: 100%;
+  margin-top: 24px;
+  min-height: 242px;
+}
+.rq-example blockquote {
+  font-family: "Lora Variable", serif;
+  font-size: 25px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+  color: #304d3a;
+  max-width: 34ch;
+  min-height: 84px;
+}
+.rq-example dl {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+}
+.rq-example dl > div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+}
+.rq-example dt {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #66785f;
+  padding-top: 2px;
+}
+.rq-example dd {
+  margin: 0;
+  display: grid;
+  gap: 5px;
+}
+.rq-example dd strong {
   font-size: 13px;
   line-height: 1.6;
-  color: #60715e;
+  font-weight: 650;
+  color: #36513a;
 }
-.hero-intro-capabilities svg {
-  color: #52764b;
-  flex: none;
-  margin-top: 3px;
+.rq-example dd span {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #5c705a;
 }
-.hero-intro-capabilities b {
-  color: #314e38;
-  font-weight: 600;
+.rq-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 24px;
 }
-.hero-intro-explore {
+.landing .landing-hero .rq-action .landing-button {
+  font-size: 15px;
+  padding: 16px 22px;
+  gap: 24px;
+  box-shadow: none;
+  background: #365f3d;
+}
+.rq-action > a:last-child {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  color: #365c3d !important;
-  font-size: 13px;
-  font-weight: 650;
-  margin-top: 24px;
-  line-height: 1.5;
+  color: #405f37;
+  font-size: 12px;
+  font-weight: 600;
 }
-.hero-intro-explore:hover {
-  text-decoration: underline !important;
+.rq-action > a:last-child:hover {
+  text-decoration: underline;
   text-underline-offset: 4px;
-}
-.landing-hero-intro a:focus-visible {
-  outline: 3px solid #86a77a;
-  outline-offset: 5px;
 }
 .landing-in-app .landing-hero {
   align-items: start;
 }
 @media (max-width: 1000px) {
-  .landing-in-app .landing-hero-intro {
-    padding-top: 0;
-    padding-right: 0;
+  .landing-in-app .research-question {
+    padding: 0;
     max-width: 650px;
   }
-  .landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 {
-    font-size: 48px;
+  .rq-example {
+    min-height: 0;
   }
-  .landing-in-app .landing-hero-intro > p.hero-intro-description {
-    max-width: 46ch;
+  .rq-example blockquote {
+    min-height: 0;
+    max-width: 38ch;
   }
-  .hero-intro-capabilities {
-    max-width: 530px;
+  .landing.landing-in-app .landing-hero.landing-wrap .research-question h1 {
+    font-size: 46px;
   }
 }
 @media (max-width: 600px) {
-  .landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 {
-    font-size: clamp(32px, 9vw, 42px);
-    line-height: 1.15;
+  .landing.landing-in-app .landing-hero.landing-wrap .research-question h1 {
+    font-size: 40px;
+  }
+  .landing-in-app .research-question > p.rq-intro {
+    font-size: 14px;
+  }
+  .rq-choices {
+    gap: 1px;
+    width: 100%;
+  }
+  .rq-choices button {
+    font-size: 11px;
+    padding: 10px 8px;
+    flex: 1;
+  }
+  .rq-example {
+    margin-top: 22px;
+  }
+  .rq-example blockquote {
+    font-size: 24px;
+    line-height: 1.45;
     margin-bottom: 22px;
   }
-  .landing-in-app .landing-hero-intro > p.hero-intro-description {
-    font-size: 16px;
-    line-height: 1.7;
-    margin-bottom: 24px;
+  .rq-example dl > div {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 10px;
   }
-  .hero-intro-capabilities {
-    margin-top: 26px;
-    padding-top: 20px;
-    gap: 12px;
-  }
-  .hero-intro-capabilities > li {
-    font-size: 13px;
-  }
-  .hero-intro-action > span {
+  .rq-example dt {
     font-size: 11px;
   }
-  .hero-intro-explore {
-    margin-top: 20px;
+  .rq-example dd strong {
+    font-size: 12px;
   }
-  .landing-in-app .landing-hero-intro {
-    padding-bottom: 0;
+  .rq-action {
+    margin-top: 24px;
+  }
+  .landing-in-app .landing-hero {
+    gap: 32px;
   }
 }

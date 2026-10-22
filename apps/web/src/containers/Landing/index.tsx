@@ -8,6 +8,7 @@ import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
 
 import { DemoMedia, DemoProvider } from "./DemoMedia";
+import { ResearchQuestion } from "./ResearchQuestion";
 const Picture = DemoMedia;
 
 export function Landing() {
@@ -41,51 +42,7 @@ export function Landing() {
         <div className="landing landing-in-app">
           <div className="landing-content">
             <section className="landing-hero landing-wrap">
-              <div className="landing-hero-copy landing-hero-intro">
-                <h1>
-                  <span>Соберите опрос.</span>
-                  <span>Посчитайте</span>
-                  <em>статистику.</em>
-                </h1>
-                <p className="hero-intro-description">
-                  Всё для вашего психологического исследования: от выбора
-                  методик до проверки гипотез.
-                </p>
-                <div className="hero-intro-action">
-                  <Link className="landing-button" to={create}>
-                    {signedIn ? "Создать опрос" : "Начать своё исследование"}
-                    <ArrowRight size={19} />
-                  </Link>
-                  <span>Участники проходят опрос без регистрации</span>
-                </div>
-                <ul
-                  className="hero-intro-capabilities"
-                  aria-label="Возможности исследования"
-                >
-                  <li>
-                    <Check size={16} />
-                    <span>
-                      Готовые методики <b>и ваши вопросы</b>
-                    </span>
-                  </li>
-                  <li>
-                    <Check size={16} />
-                    <span>
-                      Сбор ответов <b>по одной ссылке</b>
-                    </span>
-                  </li>
-                  <li>
-                    <Check size={16} />
-                    <span>
-                      Расчёты <b>с формулами и исходными данными</b>
-                    </span>
-                  </li>
-                </ul>
-                <a className="hero-intro-explore" href="#builder">
-                  Как устроено исследование
-                  <ArrowRight size={16} />
-                </a>
-              </div>
+              <ResearchQuestion create={create} />
               <div className="landing-hero-image">
                 <div className="landing-browser">
                   <span />
