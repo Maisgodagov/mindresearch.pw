@@ -47,24 +47,9 @@ export function Landing() {
                   <br />к понятным <em>результатам.</em>
                 </h1>
                 <p>
-                  Платформа для психологических исследований. Собирайте опросы
-                  из готовых методик и своих вопросов, собирайте ответы по
-                  ссылке и рассчитывайте статистику в одном месте.
+                  Готовые методики, ваши вопросы и статистический анализ — в
+                  одном рабочем пространстве для психологического исследования.
                 </p>
-                <div className="landing-actions">
-                  <Link className="landing-button" to={create}>
-                    <Plus size={18} />
-                    {signedIn ? "Создать опрос" : "Начать исследование"}
-                  </Link>
-                  <a className="landing-text-link" href="#builder">
-                    Посмотреть возможности
-                    <ArrowRight size={17} />
-                  </a>
-                </div>
-                <span className="landing-hero-note">
-                  От первого вопроса до проверки гипотез и выгрузки — весь
-                  процесс под рукой.
-                </span>
                 <ol
                   className="landing-workflow landing-hero-workflow"
                   aria-label="Как проходит исследование"
@@ -82,6 +67,16 @@ export function Landing() {
                     <p>Ответы, шкалы и статистический анализ</p>
                   </li>
                 </ol>
+                <div className="landing-actions">
+                  <Link className="landing-button" to={create}>
+                    <Plus size={18} />
+                    {signedIn ? "Создать опрос" : "Начать исследование"}
+                  </Link>
+                  <a className="landing-text-link" href="#builder">
+                    Посмотреть возможности
+                    <ArrowRight size={17} />
+                  </a>
+                </div>
               </div>
               <div className="landing-hero-image">
                 <div className="landing-browser">

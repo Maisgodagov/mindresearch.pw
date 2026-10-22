@@ -1616,56 +1616,123 @@
   box-shadow: none !important;
 }
 
+/* Opening copy: promise, concrete workflow, then the decision to start. */
+.landing-in-app .landing-hero-copy {
+  padding-top: 36px;
+  padding-right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.landing.landing-in-app .landing-hero.landing-wrap h1 {
+  margin: 0 0 24px;
+  max-width: 100%;
+  font-size: clamp(36px, 3.4vw, 48px);
+  line-height: 1.14;
+  text-wrap: balance;
+}
+.landing-in-app .landing-hero-copy > p {
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 46ch;
+  margin: 0;
+  color: #596f5e;
+}
 .landing.landing-in-app .landing-hero-workflow {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
   width: 100%;
-  margin: 30px 0 0;
-  padding: 0;
+  margin: 32px 0 0;
+  padding: 24px 0 0;
   border: 0;
-  border-left: 1px solid #b8cbb1;
+  border-top: 1px solid #d6dfd0;
   list-style: none;
 }
 .landing-hero-workflow > li {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr);
-  gap: 16px;
-  align-items: baseline;
-  padding: 0 0 18px 19px;
-}
-.landing-hero-workflow > li:last-child {
-  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  min-width: 0;
 }
 .landing-hero-workflow > li::before {
-  left: -5px;
-  top: 7px;
-  width: 9px;
-  height: 9px;
-  outline-width: 4px;
+  display: none;
 }
 .landing .landing-hero-workflow h3 {
-  font-family: "Lora Variable", serif;
-  font-size: 20px;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
+  font-family: Manrope, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
   margin: 0;
+  min-height: 44px;
+  color: #304d3a;
 }
 .landing .landing-hero-workflow p {
   font-size: 12px;
   line-height: 1.65;
   margin: 0;
-  max-width: 25ch;
+  max-width: 100%;
+  color: #596f5e;
 }
-@media (max-width: 600px) {
-  .landing.landing-in-app .landing-hero-workflow {
-    margin-top: 26px;
+.landing-hero-copy .landing-actions {
+  margin: 32px 0 0;
+  gap: 18px;
+}
+.landing .landing-hero .landing-button {
+  box-shadow: none;
+}
+.landing-hero-copy .landing-text-link {
+  font-size: 13px;
+}
+.landing-in-app .landing-hero {
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  .landing-in-app .landing-hero-copy {
+    padding-top: 0;
+    padding-right: 0;
+    max-width: 720px;
   }
-  .landing-hero-workflow > li {
-    gap: 12px;
-    padding-left: 16px;
+  .landing.landing-in-app .landing-hero.landing-wrap h1 {
+    max-width: 20ch;
+  }
+  .landing-in-app .landing-hero-copy > p {
+    max-width: 58ch;
+  }
+  .landing.landing-in-app .landing-hero-workflow {
+    max-width: 600px;
   }
   .landing .landing-hero-workflow h3 {
-    font-size: 18px;
+    min-height: 0;
+  }
+}
+@media (max-width: 600px) {
+  .landing.landing-in-app .landing-hero.landing-wrap h1 {
+    font-size: 36px;
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+  .landing-in-app .landing-hero-copy > p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+  .landing.landing-in-app .landing-hero-workflow {
+    gap: 14px;
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+  .landing .landing-hero-workflow h3 {
+    font-size: 13px;
+    min-height: 38px;
+  }
+  .landing .landing-hero-workflow p {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .landing-hero-copy .landing-actions {
+    margin-top: 26px;
+    gap: 20px;
   }
 }
