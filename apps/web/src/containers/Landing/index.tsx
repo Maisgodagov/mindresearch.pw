@@ -41,42 +41,50 @@ export function Landing() {
         <div className="landing landing-in-app">
           <div className="landing-content">
             <section className="landing-hero landing-wrap">
-              <div className="landing-hero-copy">
+              <div className="landing-hero-copy landing-hero-intro">
                 <h1>
-                  От хороших вопросов
-                  <br />к понятным <em>результатам.</em>
+                  <span>Соберите опрос.</span>
+                  <span>Посчитайте</span>
+                  <em>статистику.</em>
                 </h1>
-                <p>
-                  Готовые методики, ваши вопросы и статистический анализ — в
-                  одном рабочем пространстве для психологического исследования.
+                <p className="hero-intro-description">
+                  Всё для вашего психологического исследования: от выбора
+                  методик до проверки гипотез.
                 </p>
-                <ol
-                  className="landing-workflow landing-hero-workflow"
-                  aria-label="Как проходит исследование"
+                <div className="hero-intro-action">
+                  <Link className="landing-button" to={create}>
+                    {signedIn ? "Создать опрос" : "Начать своё исследование"}
+                    <ArrowRight size={19} />
+                  </Link>
+                  <span>Участники проходят опрос без регистрации</span>
+                </div>
+                <ul
+                  className="hero-intro-capabilities"
+                  aria-label="Возможности исследования"
                 >
                   <li>
-                    <h3>Соберите опрос</h3>
-                    <p>Методики и ваши вопросы</p>
+                    <Check size={16} />
+                    <span>
+                      Готовые методики <b>и ваши вопросы</b>
+                    </span>
                   </li>
                   <li>
-                    <h3>Поделитесь ссылкой</h3>
-                    <p>Удобное прохождение на любом экране</p>
+                    <Check size={16} />
+                    <span>
+                      Сбор ответов <b>по одной ссылке</b>
+                    </span>
                   </li>
                   <li>
-                    <h3>Изучите результаты</h3>
-                    <p>Ответы, шкалы и статистический анализ</p>
+                    <Check size={16} />
+                    <span>
+                      Расчёты <b>с формулами и исходными данными</b>
+                    </span>
                   </li>
-                </ol>
-                <div className="landing-actions">
-                  <Link className="landing-button" to={create}>
-                    <Plus size={18} />
-                    {signedIn ? "Создать опрос" : "Начать исследование"}
-                  </Link>
-                  <a className="landing-text-link" href="#builder">
-                    Посмотреть возможности
-                    <ArrowRight size={17} />
-                  </a>
-                </div>
+                </ul>
+                <a className="hero-intro-explore" href="#builder">
+                  Как устроено исследование
+                  <ArrowRight size={16} />
+                </a>
               </div>
               <div className="landing-hero-image">
                 <div className="landing-browser">

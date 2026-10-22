@@ -1616,123 +1616,153 @@
   box-shadow: none !important;
 }
 
-/* Opening copy: promise, concrete workflow, then the decision to start. */
-.landing-in-app .landing-hero-copy {
-  padding-top: 36px;
-  padding-right: 12px;
+/* The opening promise leads; the proof and action are grouped below it. */
+.landing-in-app .landing-hero-intro {
+  align-self: stretch;
+  padding: 28px 12px 16px 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: flex-start;
 }
-.landing.landing-in-app .landing-hero.landing-wrap h1 {
-  margin: 0 0 24px;
-  max-width: 100%;
-  font-size: clamp(36px, 3.4vw, 48px);
-  line-height: 1.14;
-  text-wrap: balance;
-}
-.landing-in-app .landing-hero-copy > p {
-  font-size: 16px;
-  line-height: 1.8;
-  max-width: 46ch;
-  margin: 0;
-  color: #596f5e;
-}
-.landing.landing-in-app .landing-hero-workflow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  width: 100%;
-  margin: 32px 0 0;
-  padding: 24px 0 0;
-  border: 0;
-  border-top: 1px solid #d6dfd0;
-  list-style: none;
-}
-.landing-hero-workflow > li {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-  min-width: 0;
-}
-.landing-hero-workflow > li::before {
-  display: none;
-}
-.landing .landing-hero-workflow h3 {
+.landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 {
   font-family: Manrope, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.45;
-  letter-spacing: -0.01em;
-  margin: 0;
-  min-height: 44px;
-  color: #304d3a;
-}
-.landing .landing-hero-workflow p {
-  font-size: 12px;
-  line-height: 1.65;
-  margin: 0;
+  font-size: clamp(36px, 3.45vw, 52px);
+  font-weight: 650;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  margin: 0 0 26px;
   max-width: 100%;
-  color: #596f5e;
+  text-wrap: initial;
 }
-.landing-hero-copy .landing-actions {
-  margin: 32px 0 0;
-  gap: 18px;
+.landing-hero-intro h1 > span,
+.landing-hero-intro h1 > em {
+  display: block;
 }
-.landing .landing-hero .landing-button {
+.landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 > em {
+  font-family: "Lora Variable", serif;
+  font-weight: 500;
+  font-size: 1.2em;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+  color: #637d50;
+  margin-top: 2px;
+}
+.landing-in-app .landing-hero-intro > p.hero-intro-description {
+  font-size: 17px;
+  line-height: 1.75;
+  color: #526957;
+  max-width: 40ch;
+  margin: 0 0 26px;
+}
+.hero-intro-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.landing .landing-hero .hero-intro-action .landing-button {
+  padding: 17px 23px;
+  border-radius: 10px;
   box-shadow: none;
+  font-size: 15px;
+  gap: 22px;
+  min-height: 54px;
+  background: #365f3d;
 }
-.landing-hero-copy .landing-text-link {
+.hero-intro-action > span {
+  color: #5b705e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.hero-intro-capabilities {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid #d5dfd0;
+  width: 100%;
+}
+.hero-intro-capabilities > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
   font-size: 13px;
+  line-height: 1.6;
+  color: #60715e;
+}
+.hero-intro-capabilities svg {
+  color: #52764b;
+  flex: none;
+  margin-top: 3px;
+}
+.hero-intro-capabilities b {
+  color: #314e38;
+  font-weight: 600;
+}
+.hero-intro-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #365c3d !important;
+  font-size: 13px;
+  font-weight: 650;
+  margin-top: 24px;
+  line-height: 1.5;
+}
+.hero-intro-explore:hover {
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
+.landing-hero-intro a:focus-visible {
+  outline: 3px solid #86a77a;
+  outline-offset: 5px;
 }
 .landing-in-app .landing-hero {
   align-items: start;
 }
 @media (max-width: 1000px) {
-  .landing-in-app .landing-hero-copy {
+  .landing-in-app .landing-hero-intro {
     padding-top: 0;
     padding-right: 0;
-    max-width: 720px;
+    max-width: 650px;
   }
-  .landing.landing-in-app .landing-hero.landing-wrap h1 {
-    max-width: 20ch;
+  .landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 {
+    font-size: 48px;
   }
-  .landing-in-app .landing-hero-copy > p {
-    max-width: 58ch;
+  .landing-in-app .landing-hero-intro > p.hero-intro-description {
+    max-width: 46ch;
   }
-  .landing.landing-in-app .landing-hero-workflow {
-    max-width: 600px;
-  }
-  .landing .landing-hero-workflow h3 {
-    min-height: 0;
+  .hero-intro-capabilities {
+    max-width: 530px;
   }
 }
 @media (max-width: 600px) {
-  .landing.landing-in-app .landing-hero.landing-wrap h1 {
-    font-size: 36px;
-    max-width: 100%;
-    margin-bottom: 20px;
+  .landing.landing-in-app .landing-hero.landing-wrap .landing-hero-intro h1 {
+    font-size: clamp(32px, 9vw, 42px);
+    line-height: 1.15;
+    margin-bottom: 22px;
   }
-  .landing-in-app .landing-hero-copy > p {
-    font-size: 15px;
-    line-height: 1.75;
+  .landing-in-app .landing-hero-intro > p.hero-intro-description {
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 24px;
   }
-  .landing.landing-in-app .landing-hero-workflow {
-    gap: 14px;
-    margin-top: 24px;
-    padding-top: 20px;
-  }
-  .landing .landing-hero-workflow h3 {
-    font-size: 13px;
-    min-height: 38px;
-  }
-  .landing .landing-hero-workflow p {
-    font-size: 11px;
-    line-height: 1.6;
-  }
-  .landing-hero-copy .landing-actions {
+  .hero-intro-capabilities {
     margin-top: 26px;
-    gap: 20px;
+    padding-top: 20px;
+    gap: 12px;
+  }
+  .hero-intro-capabilities > li {
+    font-size: 13px;
+  }
+  .hero-intro-action > span {
+    font-size: 11px;
+  }
+  .hero-intro-explore {
+    margin-top: 20px;
+  }
+  .landing-in-app .landing-hero-intro {
+    padding-bottom: 0;
   }
 }
