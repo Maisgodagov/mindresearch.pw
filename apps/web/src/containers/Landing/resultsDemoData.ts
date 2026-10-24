@@ -78,3 +78,11 @@ export const resultDemoPeople: Respondent[] = names.map((alias, i) => {
     groups,
   };
 });
+
+
+// Display-only synthetic quality indices, never derived from these fictional answers.
+export const resultDemoQualities: Record<string, import("../SurveyDashboard/quality").Quality> = Object.fromEntries(resultDemoPeople.map((person,i)=>{
+ const scores=[96,99,88,92,78,54];
+ const index=(score:number):import("../SurveyDashboard/quality").Index=>({score,confidence:1,status:score>=85?"high":score>=65?"acceptable":"review",partial:false,flags:[],components:{},metrics:{},version:"2.0.0",calculated_at:"2026-10-01T10:00:00Z",baseline_version:"synthetic-demo"});
+ return [person.id,{version:2,algorithm_version:"2.0.0",config_hash:"synthetic-demo",baseline_version:"synthetic-demo",calculated_at:"2026-10-01T10:00:00Z",overall:index(scores[i]),behavioral:index(scores[i]),response:index(scores[i]),strong_flag_count:0,warning_flag_count:0,independent_concerning_domains:0,hard_checks:{eligibility:"unknown",eligibility_reason:null,duplicate:false,completeness:{required:32,answered:32,complete:true}},cohort:"admin_test",telemetry_version:"demo",input_hash:person.id}];
+}));

@@ -9,7 +9,7 @@ import {
   type Methodology,
 } from "../../components/MethodologyModal";
 import { demoMethodologies } from "./demoData";
-import { resultDemoPeople } from "./resultsDemoData";
+import { resultDemoPeople, resultDemoQualities } from "./resultsDemoData";
 const first = resultDemoPeople[0];
 export function ResultsDemo() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -23,7 +23,8 @@ export function ResultsDemo() {
   });
   const people = [...resultDemoPeople].sort((a, b) => {
     let comparison = 0;
-    if (sort.key === "alias") comparison = a.alias.localeCompare(b.alias, "ru");
+    if (sort.key === "overall") comparison=(resultDemoQualities[a.id].overall.score??0)-(resultDemoQualities[b.id].overall.score??0);
+    else if (sort.key === "alias") comparison = a.alias.localeCompare(b.alias, "ru");
     else if (sort.key === "age") comparison = (a.age ?? 0) - (b.age ?? 0);
     else if (sort.key === "started")
       comparison = a.startedAt.localeCompare(b.startedAt);
@@ -66,7 +67,7 @@ export function ResultsDemo() {
         ageSortDirection={sort.key === "age" ? sort.direction : undefined}
         respondents={people}
         totalCount={6}
-        qualities={{}}
+        qualities={resultDemoQualities}
         deletedRespondents={[]}
         sections={first.groups.map((g) => ({
           code: g.code,
