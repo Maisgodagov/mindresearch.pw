@@ -31,16 +31,16 @@ const { mkdirSync } = require("node:fs");
         fullPage: true,
       });
       assert.equal(await page.locator(".research-intro button").count(), 0);
-      assert.equal(await page.locator('.landing h1').count(),1);
-      assert.equal(await page.locator('meta[name="description"]').count(),1);
-      assert.match(await page.title(),/статистический анализ/);
+      assert.equal(await page.locator(".landing h1").count(), 1);
+      assert.equal(await page.locator('meta[name="description"]').count(), 1);
+      assert.match(await page.title(), /статистический анализ/);
       assert.match(
         await page.locator(".research-intro").innerText(),
         /психологических исследований/,
       );
       assert.equal(await page.locator(".landing img").count(), 0);
       assert.equal(await page.locator(".landing [role=tablist]").count(), 0);
-      assert.equal(await page.locator(".landing-component").count(), 8);
+      assert.equal(await page.locator(".landing-component").count(), 6);
       const composer = page.locator(".hero-composer");
       const ids = () =>
         composer
@@ -112,8 +112,11 @@ const { mkdirSync } = require("node:fs");
       await page.screenshot({
         path: `.work/public-methods/${name}-hero-composer.png`,
       });
-      assert.equal(await page.locator("#builder figure").count(),0);
-      assert.equal(await page.locator(".builder-feature-list article").count(),6);
+      assert.equal(await page.locator("#builder figure").count(), 0);
+      assert.equal(
+        await page.locator(".builder-feature-list article").count(),
+        6,
+      );
       await page.locator(".media-catalog input").first().fill("MSPSS");
       await page
         .locator(".media-catalog")
@@ -122,34 +125,30 @@ const { mkdirSync } = require("node:fs");
       await page.locator(".media-catalog").getByRole("status").waitFor();
       await page.locator(".media-catalog input").first().fill("");
       const taking = page.locator(".media-desktop");
-      assert.equal(await taking.locator(".demo-answer").count(),4);
-      assert.equal(await taking.getByRole("button",{name:"Далее",exact:true}).count(),0);
+      assert.equal(await taking.locator(".demo-answer").count(), 4);
+      assert.equal(
+        await taking
+          .getByRole("button", { name: "Далее", exact: true })
+          .count(),
+        0,
+      );
       await taking
         .getByRole("button", { name: "Совершенно верно", exact: true })
         .click();
       await taking.getByText("Вопрос 2 из 10", { exact: true }).waitFor();
-      await page
-        .getByRole("checkbox", { name: "Выбрать Участник 01", exact: true })
-        .check();
-      await page
-        .getByRole("checkbox", { name: "Выбрать Участник 02", exact: true })
-        .check();
-      await page
-        .getByRole("button", { name: "Сохранить выборку · 2", exact: true })
-        .click();
-      const download = page.waitForEvent("download");
-      await page.getByRole("button", { name: /Экспортировать/ }).click();
-      const file = await download;
-      assert.match(file.suggestedFilename(), /xlsx$/);
-      mkdirSync(".work/public-methods", { recursive: true });
-      await file.saveAs(`.work/public-methods/${name}-demo-results.xlsx`);
+      const results = page.locator("#results");
+      assert.equal(await results.locator(".respondent-row").count(), 6);
+      assert.equal(await results.locator(".method-details-row").count(), 1);
+      assert.equal(
+        await results
+          .getByRole("button", {
+            name: /Экспортировать|Сохранить выборку|Показать показатели качества/,
+          })
+          .count(),
+        0,
+      );
+      assert.match(await results.innerText(), /Гарри Поттер/);
       const analysis = page.locator(".media-analysis");
-      await analysis
-        .getByRole("combobox", { name: "Выборка", exact: true })
-        .click();
-      await page
-        .getByRole("option", { name: "Моя выборка · 2", exact: true })
-        .click();
       await analysis
         .getByRole("button", { name: "Проверить данные", exact: true })
         .click();
@@ -173,7 +172,7 @@ const { mkdirSync } = require("node:fs");
       assert.deepEqual(errors, []);
       assert.deepEqual(mutations, []);
       console.log(
-        `${name}: 8 inline components, editing, catalogue, taking, Excel, shared sample, calculation; no API mutations.`,
+        `${name}: 6 inline components, catalogue, taking, full respondent results, calculation; no API mutations.`,
       );
       await page.close();
     }

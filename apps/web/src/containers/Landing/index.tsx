@@ -217,46 +217,24 @@ export function Landing() {
                 <h2>{content.sections[3].title}</h2>
                 <p>{content.sections[3].text}</p>
               </div>
-              <Picture
-                name="statistics"
-                alt="Статистика опроса: участники, завершённые прохождения и список результатов"
-              />
+              <div className="results-benefits">
+                {content.resultsBenefits.map((item, i) => {
+                  const Icon = [ListChecks, Eye, ArrowDownUp][i];
+                  return (
+                    <article key={item.title}>
+                      <Icon size={22} aria-hidden="true" />
+                      <div>
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
               <Picture
                 name="respondents"
-                alt="Список респондентов с сортировкой, фильтрами и раскрытием ответов"
-                className="landing-respondents-picture"
+                alt="Интерактивная таблица результатов шести вымышленных респондентов с раскрытыми шкалами методики"
               />
-              <div className="landing-results-grid">
-                <Picture
-                  name="scales"
-                  alt="Автоматически рассчитанные показатели методики в результатах респондента"
-                />
-                <div className="landing-feature-notes">
-                  <article>
-                    <h3>Шкалы рассчитаны, ответы под рукой</h3>
-                    <p>
-                      Раскрывайте ответы участника и смотрите рассчитанные
-                      значения шкал для методик с автоподсчётом.
-                    </p>
-                  </article>
-                  <article>
-                    <h3>Время и качество прохождения</h3>
-                    <p>
-                      Оценивайте скорость ответов, быстрые серии и другие
-                      доступные признаки. Они помогают изучать необычные
-                      прохождения; решение об исключении остаётся за вами.
-                    </p>
-                  </article>
-                  <article>
-                    <h3>Нужные участники и методики в Excel</h3>
-                    <p>
-                      Выбирайте участников, сохраняйте группы для анализа и
-                      выгружайте в Excel нужные методики и собственные блоки
-                      вопросов.
-                    </p>
-                  </article>
-                </div>
-              </div>
             </section>
             <section id="analysis" className="landing-section landing-wrap">
               <div className="landing-section-heading">

@@ -42,6 +42,9 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 
 export function RespondentResults({
   storageKey = "mindresearch:results-table:v1",
+  showToolbarActions = true,
+  includeQualityRow = true,
+  initialMethodExpanded = {},
   sortKey, sortDirection, methodSortOptions, onColumnSort,
   readOnly=false,
   showGender=false,
@@ -78,8 +81,8 @@ export function RespondentResults({
   const draggingColumn = useRef<string | null>(null);
   const suppressSort = useRef(false);
   const [dropColumn, setDropColumn] = useState<string | null>(null);
-  const [methodExpanded, setMethodExpanded] = useState<Record<string, boolean>>({});
-  const data = useMemo<ResultRow[]>(() => respondents.map(person => ({...person, subRows:[{...person,id:JSON.stringify([person.id,'__quality']),parentId:person.id,qualityRow:true},...getRespondentGroups(person).map(group => ({...person,id:JSON.stringify([person.id,group.code]),parentId:person.id,methodGroup:group}))]})), [respondents,getRespondentGroups]);
+  const [methodExpanded, setMethodExpanded] = useState<Record<string, boolean>>(initialMethodExpanded);
+  const data = useMemo<ResultRow[]>(() => respondents.map(person => ({...person, subRows:[...(includeQualityRow?[{...person,id:JSON.stringify([person.id,'__quality']),parentId:person.id,qualityRow:true}]:[]),...getRespondentGroups(person).map(group => ({...person,id:JSON.stringify([person.id,group.code]),parentId:person.id,methodGroup:group}))]})), [respondents,getRespondentGroups,includeQualityRow]);
   const expandedRows = useMemo<ExpandedState>(() => ({...expanded,...methodExpanded}), [expanded,methodExpanded]);
 
   const selectedDeletedCount = Object.values(deletedSelected).some(Boolean);
@@ -99,7 +102,7 @@ export function RespondentResults({
     {id:'status',meta:copy.status,size:145,header:copy.status,cell:({row})=><span className={`pill ${row.original.status==='completed'?'completed':'in-progress'}`}>{row.original.status==='completed'?copy.completed:copy.inProgress}</span>},
     {id:'answers',meta:copy.answers,size:95,header:copy.answers,cell:({row})=>row.original.answered+(adminView?' / 208':'')},
     {id:'duration',meta:'Время прохождения',size:165,header:'Время прохождения',cell:({row})=>row.original.status==='completed'?formatDuration(row.original.startedAt,row.original.completedAt)??'—':'—'},
-    ...qualityColumns.filter((_,index)=>qualityExpanded||index===0).map(column=>({id:'quality-'+column.metric,meta:column.label,size:185,header:()=> <>{column.label}<MetricExplanation metric={column.metric}/></>,cell:({row}: {row:{original:Respondent}})=>{const quality=qualities[row.original.id];if(!quality)return <span className="cell-missing" title="Качество ещё не рассчитано">—</span>;if(['overall','behavioral','response'].includes(column.metric)){const index=quality[column.metric as 'overall'|'behavioral'|'response'];return <span className="table-quality" data-status={index.status}><b>{percent(index.score)}</b><span>{STATUS[index.status]}</span></span>;}return <span className="cell-number">{column.render(quality)}</span>;}})),
+    ...(includeQualityRow ? qualityColumns : []).filter((_,index)=>qualityExpanded||index===0).map(column=>({id:'quality-'+column.metric,meta:column.label,size:185,header:()=> <>{column.label}<MetricExplanation metric={column.metric}/></>,cell:({row}: {row:{original:Respondent}})=>{const quality=qualities[row.original.id];if(!quality)return <span className="cell-missing" title="Качество ещё не рассчитано">—</span>;if(['overall','behavioral','response'].includes(column.metric)){const index=quality[column.metric as 'overall'|'behavioral'|'response'];return <span className="table-quality" data-status={index.status}><b>{percent(index.score)}</b><span>{STATUS[index.status]}</span></span>;}return <span className="cell-number">{column.render(quality)}</span>;}})),
     ...sections.map(section=>({id:'method-'+section.code,meta:shortNames[section.code]??section.title,size:190,header:shortNames[section.code]??section.title,cell:({row}: {row:{original:Respondent}})=>{const group=row.original.groups.find(group=>group.code===section.code);return group?.result?renderMethodResult(group):<span className="cell-missing" aria-label="Нет рассчитанного результата" title="Нет рассчитанного результата">—</span>;}})),
     {id:'started',meta:copy.started,size:130,header:copy.started,cell:({row})=>new Date(row.original.startedAt).toLocaleDateString('ru')}
   ];
@@ -128,7 +131,7 @@ export function RespondentResults({
           <div className="respondent-title"><h2>{copy.title}</h2><span className="respondent-count">Всего: {totalCount}</span></div>
           <div className="respondent-selected-count" role="status">{selectedCount > 0 ? `Выбрано ${selectedCount}` : "\u00a0"}</div>
         </div>
-        <div className="toolbar-actions">
+        {showToolbarActions && <div className="toolbar-actions">
           {!readOnly&&<Button
             className="bulk-action delete-action"
             disabled={!selectedCount || updatingTrash}
@@ -147,7 +150,7 @@ export function RespondentResults({
           {qualityExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           {qualityExpanded ? "Скрыть показатели качества" : "Показать показатели качества"}
         </Button>
-        </div>
+        </div>}
       </div>
       <TableWrap>
         <Table id={tableId} $qualityExpanded={qualityExpanded} data-density={density} style={{width:table.getTotalSize(), minWidth:table.getTotalSize(), tableLayout:'fixed'}}>
@@ -193,14 +196,14 @@ export function RespondentResults({
           </tbody>
         </Table>
       </TableWrap>
-      <TrashToggle onClick={onToggleTrash}>
+      {showToolbarActions && <TrashToggle onClick={onToggleTrash}>
         <Trash2 size={13} /> {copy.trash}
         {deletedRespondents.length
           ? ` (${deletedRespondents.length})`
           : ""}{" "}
         {trashOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-      </TrashToggle>
-      {trashOpen && (
+      </TrashToggle>}
+      {showToolbarActions && trashOpen && (
         <TrashBox>
           <div className="head">
             <span className="title">{copy.deletedTitle}</span>

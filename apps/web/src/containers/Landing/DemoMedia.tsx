@@ -48,6 +48,7 @@ import {
 import type { Section } from "../SurveyBuilder/types";
 import { gsesInstrument } from "../../../../api/src/data/gses";
 import ResearchDemo from "./ResearchDemo";
+import { ResultsDemo } from "./ResultsDemo";
 const DemoContext = createContext<{
   sample: string[];
   setSample: (ids: string[]) => void;
@@ -275,13 +276,15 @@ function readDemoProgress(key: string): DemoProgress {
       return {
         index: data.index,
         answers: Object.fromEntries(
-          Object.entries(data.answers).map(([key,value])=>[key,String(value)] as const).filter(
-            ([key, value]) =>
-              Number.isInteger(Number(key)) &&
-              Number(key) >= 0 &&
-              Number(key) < takingQuestions.length &&
-              ["1", "2", "3", "4"].includes(String(value)),
-          ),
+          Object.entries(data.answers)
+            .map(([key, value]) => [key, String(value)] as const)
+            .filter(
+              ([key, value]) =>
+                Number.isInteger(Number(key)) &&
+                Number(key) >= 0 &&
+                Number(key) < takingQuestions.length &&
+                ["1", "2", "3", "4"].includes(String(value)),
+            ),
         ),
         done: data.done === true,
       };
@@ -475,9 +478,7 @@ export function DemoMedia({
       component = <OverviewDemo />;
       break;
     case "respondents":
-      component = (
-        <ResearchDemo view="results" sample={sample} onSaveSample={setSample} />
-      );
+      component = <ResultsDemo />;
       break;
     case "analysis":
       component = (
