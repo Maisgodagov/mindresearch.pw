@@ -4,6 +4,8 @@ import { scoreMspss } from "../../../../api/src/scoring/mspss";
 describe("fictional respondent results", () => {
   it("has six complete fictional respondents whose visible scores match answers", () => {
     expect(resultDemoPeople).toHaveLength(6);
+    expect(resultDemoPeople.filter(p=>p.status==="in_progress")).toHaveLength(2);
+    for(const p of resultDemoPeople.filter(p=>p.status==="in_progress")){expect(p.completedAt).toBeNull();expect(p.answered).toBeLessThan(32);expect(p.groups.some(g=>g.result===null&&g.answers.length>0)).toBe(true);expect(p.groups.some(g=>g.result!==null)).toBe(true);}
     expect(new Set(resultDemoPeople.map((p) => p.alias)).size).toBe(6);
     for (const p of resultDemoPeople) {
       expect(p.answered).toBe(

@@ -28,7 +28,9 @@ const support = [
   [2, 2, 1, 2, 2, 3, 2, 1, 2, 2, 1, 3],
 ];
 export const resultDemoPeople: Respondent[] = names.map((alias, i) => {
+  const incomplete = i >= 4;
   const groups: AnswerGroup[] = instruments.map((instrument, position) => {
+    const answeredCount = i === 4 ? [12, 4, 0][position] : i === 5 ? [12, 10, 3][position] : instrument.questions.length;
     const values = instrument.questions.map((_, j) =>
       instrument.code === "test_1"
         ? support[i][j]
@@ -36,7 +38,7 @@ export const resultDemoPeople: Respondent[] = names.map((alias, i) => {
           ? 1 + ((i + j * 3) % 4)
           : (i + j) % 4,
     );
-    const answers = new Map(values.map((v, j) => [j + 1, v]));
+    const answers = new Map(values.slice(0, answeredCount).map((v, j) => [j + 1, v]));
     const result =
       instrument.code === "test_1"
         ? scoreMspss(answers)
@@ -48,12 +50,12 @@ export const resultDemoPeople: Respondent[] = names.map((alias, i) => {
       code: instrument.code,
       title: instrument.title,
       position,
-      result: {
+      result: result ? {
         formulaVersion: demoMethodologies[instrument.code].version,
         values: { ...result },
         interpretation: null,
-      },
-      answers: instrument.questions.map((q, j) => ({
+      } : null,
+      answers: instrument.questions.slice(0, answeredCount).map((q, j) => ({
         code: q.code,
         question: q.text,
         type: q.type,
@@ -70,11 +72,11 @@ export const resultDemoPeople: Respondent[] = names.map((alias, i) => {
     alias,
     age: [22, 23, 33, 21, 38, 45][i],
     gender: null,
-    status: "completed",
+    status: incomplete ? "in_progress" : "completed",
     startedAt: `2026-10-01T09:${String(i * 5).padStart(2, "0")}:00Z`,
     lastActivityAt: `2026-10-01T09:${String(i * 5 + 8).padStart(2, "0")}:00Z`,
-    completedAt: `2026-10-01T09:${String(i * 5 + 8).padStart(2, "0")}:00Z`,
-    answered: 32,
+    completedAt: incomplete ? null : `2026-10-01T09:${String(i * 5 + 8).padStart(2, "0")}:00Z`,
+    answered: groups.reduce((sum, group) => sum + group.answers.length, 0),
     groups,
   };
 });
@@ -83,6 +85,6 @@ export const resultDemoPeople: Respondent[] = names.map((alias, i) => {
 // Display-only synthetic quality indices, never derived from these fictional answers.
 export const resultDemoQualities: Record<string, import("../SurveyDashboard/quality").Quality> = Object.fromEntries(resultDemoPeople.map((person,i)=>{
  const scores=[96,99,88,92,78,54];
- const index=(score:number):import("../SurveyDashboard/quality").Index=>({score,confidence:1,status:score>=85?"high":score>=65?"acceptable":"review",partial:false,flags:[],components:{},metrics:{},version:"2.0.0",calculated_at:"2026-10-01T10:00:00Z",baseline_version:"synthetic-demo"});
- return [person.id,{version:2,algorithm_version:"2.0.0",config_hash:"synthetic-demo",baseline_version:"synthetic-demo",calculated_at:"2026-10-01T10:00:00Z",overall:index(scores[i]),behavioral:index(scores[i]),response:index(scores[i]),strong_flag_count:0,warning_flag_count:0,independent_concerning_domains:0,hard_checks:{eligibility:"unknown",eligibility_reason:null,duplicate:false,completeness:{required:32,answered:32,complete:true}},cohort:"admin_test",telemetry_version:"demo",input_hash:person.id}];
+ const index=(score:number):import("../SurveyDashboard/quality").Index=>({score,confidence:person.status === "completed" ? 1 : .75,status:score>=85?"high":score>=65?"acceptable":"review",partial:person.status !== "completed",flags:[],components:{},metrics:{},version:"2.0.0",calculated_at:"2026-10-01T10:00:00Z",baseline_version:"synthetic-demo"});
+ return [person.id,{version:2,algorithm_version:"2.0.0",config_hash:"synthetic-demo",baseline_version:"synthetic-demo",calculated_at:"2026-10-01T10:00:00Z",overall:index(scores[i]),behavioral:index(scores[i]),response:index(scores[i]),strong_flag_count:0,warning_flag_count:0,independent_concerning_domains:0,hard_checks:{eligibility:"unknown",eligibility_reason:null,duplicate:false,completeness:{required:32,answered:person.answered,complete:person.status === "completed"}},cohort:"admin_test",telemetry_version:"demo",input_hash:person.id}];
 }));

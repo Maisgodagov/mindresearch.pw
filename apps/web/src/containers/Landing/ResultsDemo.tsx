@@ -31,12 +31,16 @@ export function ResultsDemo() {
     else if (sort.key.startsWith("method:")) {
       const code = decodeURIComponent(sort.key.split(":")[1]);
       const value = (p: typeof a) => {
-        const v = p.groups.find((g) => g.code === code)!.result!.values;
+        const v = p.groups.find((g) => g.code === code)!.result?.values;
+        if (!v) return null;
         return Number(
           code === "test_1" ? (v.overall as { score: number }).score : v.score,
         );
       };
-      comparison = value(a) - value(b);
+      const av=value(a),bv=value(b);
+        if(av===null)return bv===null?0:1;
+        if(bv===null)return -1;
+        comparison = av - bv;
     }
     return comparison * (sort.direction === "asc" ? 1 : -1);
   });
