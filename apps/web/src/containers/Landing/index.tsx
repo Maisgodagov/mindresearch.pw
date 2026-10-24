@@ -20,6 +20,8 @@ import {
   UserRoundCheck,
   ChartNoAxesCombined,
   CirclePause,
+  ShieldCheck,
+  Download,
 } from "lucide-react";
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
@@ -108,6 +110,8 @@ export function Landing() {
                   UserRoundCheck,
                   ChartNoAxesCombined,
                   CirclePause,
+                  ShieldCheck,
+                  Download,
                 ][i];
                 return (
                   <article key={feature.title}>
@@ -158,6 +162,8 @@ export function Landing() {
                   UserRoundCheck,
                   ChartNoAxesCombined,
                   CirclePause,
+                  ShieldCheck,
+                  Download,
                 ][i];
                 return (
                   <article key={item.title}>
@@ -170,6 +176,14 @@ export function Landing() {
                 );
               })}
             </div>
+            <aside className="publish-quality">
+              <ShieldCheck size={26} aria-hidden="true" />
+              <div>
+                <h3>{content.qualityReview.title}</h3>
+                <p>{content.qualityReview.text}</p>
+                <p>{content.qualityReview.note}</p>
+              </div>
+            </aside>
             <div className="publish-footer">
               <span>
                 От приглашения до готовой выборки — под вашим контролем.
@@ -261,44 +275,28 @@ export function Landing() {
               alt="Пример готового отчёта по корреляции Пирсона: коэффициент, значимость, доверительный интервал и исходные данные"
             />
           </section>
-          <section className="landing-collaboration landing-wrap">
-            <h2>{content.sections[5].title}</h2>
-            <p>{content.sections[5].text}</p>
-            <Link className="landing-text-link" to="/methods">
-              Познакомиться с публичными методиками
-              <ArrowRight size={16} />
+          <section id="export" className="landing-collaboration landing-wrap">
+            <header>
+              <h2>{content.sections[5].title}</h2>
+              <p>{content.sections[5].text}</p>
+            </header>
+            <div className="collaboration-benefits">
+              {content.collaborationBenefits.map((item, i) => {
+                const Icon = [Download, ListChecks, Users, ShieldCheck][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={23} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <Link className="landing-text-link" to={create}>
+              Создать исследование <ArrowRight size={17} />
             </Link>
-          </section>
-          <section className="landing-extras landing-wrap">
-            <article>
-              <h3>Расскажите участникам об исследователе</h3>
-              <p>
-                Настройте публичный профиль исследователя и добавьте ссылку на
-                него в начале опроса. Вы сами выбираете, будет ли профиль
-                доступен другим.
-              </p>
-              <Link
-                className="landing-text-link"
-                to={signedIn ? "/app/profile" : "/register"}
-              >
-                Настроить профиль
-                <ArrowRight size={16} />
-              </Link>
-            </article>
-            <article>
-              <h3>Не нашли нужную методику?</h3>
-              <p>
-                Отправьте запрос на добавление. А пока можно собрать собственный
-                блок вопросов и включить его в исследование.
-              </p>
-              <Link
-                className="landing-text-link"
-                to={signedIn ? "/app/methodologies/suggest" : "/register"}
-              >
-                Запросить методику
-                <ArrowRight size={16} />
-              </Link>
-            </article>
           </section>
           <section className="landing-faq landing-wrap">
             <h2>Вопросы о создании опросов и анализе данных</h2>

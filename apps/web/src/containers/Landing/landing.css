@@ -2095,3 +2095,31 @@
 #results>.landing-section-heading{grid-template-columns:1fr;gap:18px;margin-bottom:28px}#results>.landing-section-heading>p{max-width:none}.results-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;margin-bottom:32px}.results-benefits article{display:flex;gap:12px;align-items:flex-start}.results-benefits svg{flex:none;color:#638253;margin-top:3px;stroke-width:1.6}.landing .results-benefits h3{font-size:16px;line-height:1.5;margin:0 0 10px}.results-benefits p{font-size:14px;line-height:1.8;color:#596e5c;margin:0}.landing-results-demo .landing-method-help{display:inline-flex;align-items:center;gap:6px;border:0!important;box-shadow:none!important;background:#edf3e8;color:#405e36;font:600 12px/1.5 Manrope,sans-serif;padding:8px 10px;border-radius:7px;cursor:pointer}.landing-results-demo .landing-method-help:hover{background:#e0ead8}.landing-results-demo .method-subrow-toggle:hover{border-color:transparent!important}.landing-results-demo .respondent-selected-count{min-height:0}.landing-results-demo .respondent-toolbar{margin-bottom:14px}.landing-results-demo .method-details-row .details-cell{white-space:normal}.landing-results-demo .method-details-row table{white-space:normal}@media(max-width:1000px){.results-benefits{grid-template-columns:1fr;gap:22px}}@media(max-width:600px){.landing-results-demo .landing-method-help{font-size:11px}#results>.landing-section-heading{margin-bottom:24px}.results-benefits{margin-bottom:26px}}
 
 #analysis>.landing-section-heading{grid-template-columns:1fr;gap:18px;margin-bottom:30px}#analysis>.landing-section-heading>p{max-width:none}.analysis-benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 56px;margin-bottom:36px}.analysis-benefits article{display:flex;gap:14px;align-items:flex-start}.analysis-benefits svg{color:#638253;flex:none;stroke-width:1.6;margin-top:3px}.landing .analysis-benefits h3{font-size:17px;line-height:1.5;margin:0 0 10px}.analysis-benefits p{font-size:14px;line-height:1.85;color:#596e5c;margin:0}.landing .media-analysis{padding:0;background:transparent}.landing .landing-statistics-report{border:0;box-shadow:none;border-radius:14px}.landing-statistics-report .body{padding:28px}.landing .landing-statistics-report .report-heading h3{font-size:21px!important;line-height:1.5!important;max-width:70ch;margin:14px 0 10px!important}.landing-statistics-report .badge{display:inline-flex;gap:6px;align-items:center}.landing-statistics-report .report-heading .muted{font-size:12px;line-height:1.6}.landing-statistics-report p{font-size:14px;line-height:1.8}.landing-statistics-report .metrics{padding:18px 0;gap:48px}.landing-statistics-report .scroll{max-width:100%;overflow-x:auto}.landing-statistics-report table{min-width:650px}.landing-report-audit{margin-top:22px}.landing-report-audit summary{cursor:pointer;font-weight:650}.landing-report-audit ol{padding-left:22px;font-size:13px;line-height:1.8}@media(max-width:700px){.analysis-benefits{grid-template-columns:1fr;gap:26px;margin-bottom:28px}.landing-statistics-report .body{padding:20px 16px}.landing .landing-statistics-report .report-heading h3{font-size:18px!important}.landing-statistics-report .metrics{gap:24px;padding:10px 0}.landing-statistics-report .metrics strong{font-size:25px}}
+
+/* Export, collaboration and response quality share the landing's open layout. */
+.landing .publish-quality {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 20px;
+  padding: 30px;
+  background: #eaf0e4;
+  border-radius: 16px;
+  color: #35583c;
+}
+.landing .publish-quality h3 { margin: 0 0 12px; font-size: 21px; }
+.landing .publish-quality p { margin: 0; font-size: 17px; line-height: 1.8; }
+.landing .publish-quality p + p { margin-top: 16px; }
+.landing .landing-collaboration { padding-top: 80px; padding-bottom: 80px; }
+.landing .landing-collaboration h2,
+.landing .landing-collaboration > header > p { max-width: none; }
+.landing .landing-collaboration > header > p { font-size: 18px; line-height: 1.8; margin: 24px 0 0; }
+.landing .collaboration-benefits { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 44px 64px; margin: 44px 0 36px; }
+.landing .collaboration-benefits article { display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 18px; }
+.landing .collaboration-benefits article > svg { color: #63844d; margin-top: 3px; }
+.landing .collaboration-benefits h3 { margin: 0 0 12px; font-size: 21px; line-height: 1.4; }
+.landing .collaboration-benefits p { max-width: none; margin: 0; font-size: 17px; line-height: 1.8; }
+@media (max-width: 700px) {
+  .landing .collaboration-benefits { grid-template-columns: 1fr; gap: 30px; margin-top: 32px; }
+  .landing .publish-quality { padding: 22px 18px; gap: 14px; }
+  .landing .landing-collaboration { padding-top: 52px; padding-bottom: 52px; }
+}
