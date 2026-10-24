@@ -37,7 +37,7 @@ const { mkdirSync } = require("node:fs");
       );
       assert.equal(await page.locator(".landing img").count(), 0);
       assert.equal(await page.locator(".landing [role=tablist]").count(), 0);
-      assert.equal(await page.locator(".landing-component").count(), 10);
+      assert.equal(await page.locator(".landing-component").count(), 9);
       const composer = page.locator(".hero-composer");
       const ids = () =>
         composer
@@ -174,7 +174,7 @@ const { mkdirSync } = require("node:fs");
       assert.deepEqual(errors, []);
       assert.deepEqual(mutations, []);
       console.log(
-        `${name}: 10 inline components, editing, catalogue, taking, Excel, shared sample, calculation; no API mutations.`,
+        `${name}: 9 inline components, editing, catalogue, taking, Excel, shared sample, calculation; no API mutations.`,
       );
       await page.close();
     }

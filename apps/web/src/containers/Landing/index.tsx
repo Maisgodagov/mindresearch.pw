@@ -149,7 +149,7 @@ export function Landing() {
                 </div>
               </div>
             </section>
-            <section className="landing-section landing-wrap landing-split">
+            <section className="landing-section landing-wrap landing-publish">
               <div>
                 <h2>
                   Опубликуйте.
@@ -158,6 +158,8 @@ export function Landing() {
                   <br />
                   <em>Собирайте ответы.</em>
                 </h2>
+              </div>
+              <div className="landing-publish-copy">
                 <p className="landing-lead">
                   Когда опрос готов, опубликуйте его и скопируйте ссылку.
                   Отправляйте её в мессенджерах, по почте или размещайте там,
@@ -178,10 +180,6 @@ export function Landing() {
                   </li>
                 </ul>
               </div>
-              <Picture
-                name="share"
-                alt="Карточка опубликованного опроса с кнопками копирования ссылки и статистики"
-              />
             </section>
             <section
               id="respondent"
