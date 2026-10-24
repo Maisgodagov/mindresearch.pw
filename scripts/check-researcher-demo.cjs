@@ -122,11 +122,12 @@ const { mkdirSync } = require("node:fs");
       await page.locator(".media-catalog").getByRole("status").waitFor();
       await page.locator(".media-catalog input").first().fill("");
       const taking = page.locator(".media-desktop");
+      assert.equal(await taking.locator(".demo-answer").count(),4);
+      assert.equal(await taking.getByRole("button",{name:"Далее",exact:true}).count(),0);
       await taking
-        .getByRole("button", { name: "Согласен", exact: true })
+        .getByRole("button", { name: "Совершенно верно", exact: true })
         .click();
-      await taking.getByRole("button", { name: "Далее", exact: true }).click();
-      await taking.getByText("Вопрос 2 из 12", { exact: true }).waitFor();
+      await taking.getByText("Вопрос 2 из 10", { exact: true }).waitFor();
       await page
         .getByRole("checkbox", { name: "Выбрать Участник 01", exact: true })
         .check();

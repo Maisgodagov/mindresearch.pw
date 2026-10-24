@@ -1,6 +1,15 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from "react";
 import {
   ArrowRight,
+  ArrowLeft,
+  Cloud,
   CheckCircle2,
   Clock3,
   Copy,
@@ -37,7 +46,7 @@ import {
   demoPeople,
 } from "./demoData";
 import type { Section } from "../SurveyBuilder/types";
-import survey from "../../../../api/src/data/survey.json";
+import { gsesInstrument } from "../../../../api/src/data/gses";
 import ResearchDemo from "./ResearchDemo";
 const DemoContext = createContext<{
   sample: string[];
@@ -147,15 +156,30 @@ function CustomDemo() {
   );
 }
 function CatalogDemo() {
-  const [catalogueTotal,setCatalogueTotal]=useState<number|null>(null);
-  useEffect(()=>{const controller=new AbortController();fetch('/api/public/catalogue-summary',{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error('Catalogue unavailable');return r.json();}).then(data=>{if(Number.isInteger(data.total)&&data.total>0)setCatalogueTotal(data.total);}).catch(()=>{});return()=>controller.abort();},[]);
+  const [catalogueTotal, setCatalogueTotal] = useState<number | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/public/catalogue-summary", { signal: controller.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error("Catalogue unavailable");
+        return r.json();
+      })
+      .then((data) => {
+        if (Number.isInteger(data.total) && data.total > 0)
+          setCatalogueTotal(data.total);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   const [query, setQuery] = useState(""),
     [sections, setSections] = useState<Section[]>([]),
     [methodology, setMethodology] = useState<Methodology | null>(null);
   return (
     <>
-      <p className="inline-demo-note">Ниже — три примера из каталога платформы.</p>
+      <p className="inline-demo-note">
+        Ниже — три примера из каталога платформы.
+      </p>
       <InstrumentCatalog
         embedded
         instruments={demoInstruments}
@@ -230,74 +254,141 @@ function ShareDemo() {
     </SurveyTile>
   );
 }
-const supportQuestions = survey.find((s) => s.code === "test_1")!.questions;
+const takingQuestions = gsesInstrument.questions;
+type DemoProgress = {
+  index: number;
+  answers: Record<number, string>;
+  done: boolean;
+};
+function readDemoProgress(key: string): DemoProgress {
+  try {
+    const data = JSON.parse(localStorage.getItem(key) ?? "null");
+    if (
+      data &&
+      Number.isInteger(data.index) &&
+      data.index >= 0 &&
+      data.index < takingQuestions.length &&
+      data.answers &&
+      typeof data.answers === "object" &&
+      !Array.isArray(data.answers)
+    )
+      return {
+        index: data.index,
+        answers: Object.fromEntries(
+          Object.entries(data.answers).map(([key,value])=>[key,String(value)] as const).filter(
+            ([key, value]) =>
+              Number.isInteger(Number(key)) &&
+              Number(key) >= 0 &&
+              Number(key) < takingQuestions.length &&
+              ["1", "2", "3", "4"].includes(String(value)),
+          ),
+        ),
+        done: data.done === true,
+      };
+  } catch {}
+  return { index: 0, answers: {}, done: false };
+}
 function TakingDemo({ phone = false }: { phone?: boolean }) {
-  const [index, setIndex] = useState(0),
-    [answers, setAnswers] = useState<Record<number, string>>({}),
-    [done, setDone] = useState(false);
-  const q = supportQuestions[index];
+  const storageKey = `mindresearch:landing-taking:gses:${phone ? "phone" : "desktop"}:v1`;
+  const [progress, setProgress] = useState(() => readDemoProgress(storageKey));
+  const [leaving, setLeaving] = useState(false),
+    [busy, setBusy] = useState(false),
+    [saved, setSaved] = useState(true);
+  const timers = useRef<number[]>([]),
+    answering = useRef(false);
+  useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(progress));
+      setSaved(true);
+    } catch {
+      setSaved(false);
+    }
+  }, [progress, storageKey]);
+  const { index, answers, done } = progress;
+  const q = takingQuestions[index];
+  function choose(value: string) {
+    if (answering.current) return;
+    answering.current = true;
+    setBusy(true);
+    setProgress((old) => ({
+      ...old,
+      answers: { ...old.answers, [index]: value },
+    }));
+    timers.current.push(window.setTimeout(() => setLeaving(true), 320));
+    timers.current.push(
+      window.setTimeout(() => {
+        setProgress((old) => ({
+          ...old,
+          index: index === takingQuestions.length - 1 ? index : index + 1,
+          done: index === takingQuestions.length - 1,
+        }));
+        setLeaving(false);
+        setBusy(false);
+        answering.current = false;
+      }, 500),
+    );
+  }
   return (
     <div className={`landing-taking-demo${phone ? " is-phone" : ""}`}>
       <Header>
         <Leaf size={18} />
-        mindresearch
+        <span>mindresearch</span>
       </Header>
+      <div className="demo-save-status">
+        <Cloud size={12} />
+        {saved ? "Сохранено в примере" : "Без сохранения в браузере"}
+      </div>
       <Bar>
         <i
           style={{
-            width: `${(Object.keys(answers).length / supportQuestions.length) * 100}%`,
+            width: `${done ? 100 : ((index + 1) / takingQuestions.length) * 100}%`,
           }}
         />
       </Bar>
       {done ? (
         <div className="inline-taking-done">
           <h3>Спасибо за ответы</h3>
-          <p>Это пример прохождения. Ответы не отправлялись.</p>
+          <p>
+            В настоящем опросе исследователь получит ответы автоматически. В
+            этом примере они остались в вашем браузере.
+          </p>
           <Button
-            onClick={() => {
-              setDone(false);
-              setIndex(0);
-              setAnswers({});
-            }}
+            onClick={() => setProgress({ index: 0, answers: {}, done: false })}
           >
             Пройти ещё раз
           </Button>
         </div>
       ) : (
         <>
-          <QuestionCard className="inline-question-card" $leaving={false}>
-            <span className="eyebrow">
-              Вопрос {index + 1} из {supportQuestions.length}
+          <QuestionCard className="inline-question-card" $leaving={leaving}>
+            <span className="eyebrow" aria-live="polite">
+              Вопрос {index + 1} из {takingQuestions.length}
             </span>
-            <h3 className="question">{q.text}</h3>
+            <div className="question">{q.text}</div>
             <Options>
               {q.options?.map((option) => (
                 <Choice
-                  key={option.value}
+                  key={`${index}-${option.value}`}
+                  className="demo-answer"
                   $active={answers[index] === option.value}
+                  disabled={busy}
                   aria-pressed={answers[index] === option.value}
-                  onClick={() =>
-                    setAnswers((old) => ({ ...old, [index]: option.value }))
-                  }
+                  onClick={() => choose(option.value)}
                 >
-                  {option.label}
+                  <span className="option-label">{option.label}</span>
                 </Choice>
               ))}
             </Options>
             <div className="inline-taking-nav">
-              <Button disabled={!index} onClick={() => setIndex(index - 1)}>
-                Назад
-              </Button>
               <Button
-                disabled={!answers[index]}
+                aria-label="Предыдущий вопрос"
+                disabled={!index || busy}
                 onClick={() =>
-                  index === supportQuestions.length - 1
-                    ? setDone(true)
-                    : setIndex(index + 1)
+                  setProgress((old) => ({ ...old, index: old.index - 1 }))
                 }
               >
-                {index === supportQuestions.length - 1 ? "Завершить" : "Далее"}
-                <ArrowRight size={15} />
+                <ArrowLeft size={16} />
               </Button>
             </div>
           </QuestionCard>

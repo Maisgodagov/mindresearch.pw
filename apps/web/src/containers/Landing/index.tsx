@@ -184,6 +184,26 @@ export function Landing() {
                 <h2>{content.sections[2].title}</h2>
                 <p>{content.sections[2].text}</p>
               </div>
+              <div className="respondent-benefits">
+                {content.respondentBenefits.map((item, i) => {
+                  const Icon = [PanelsTopLeft, CirclePause, Check][i];
+                  return (
+                    <article key={item.title}>
+                      <Icon size={22} aria-hidden="true" />
+                      <div>
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+              <p className="taking-demo-caption">
+                Попробуйте выбрать ответ — следующий вопрос появится
+                автоматически. В примере используется шкала общей
+                самоэффективности (GSES); ответы остаются только в вашем
+                браузере.
+              </p>
               <div className="landing-devices">
                 <Picture
                   name="desktop"
