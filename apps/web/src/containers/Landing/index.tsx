@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
+  ArrowUp,
   Check,
   Leaf,
   Plus,
@@ -31,6 +32,13 @@ import { ResearchIntro } from "./ResearchIntro";
 const Picture = DemoMedia;
 
 export function Landing() {
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  useEffect(() => {
+    const update = () => setShowBackToTop(window.scrollY > 600);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
     let active = true;
@@ -332,17 +340,29 @@ export function Landing() {
             <Leaf size={22} />
             <BrandWordmark />
           </Link>
-          <span>Психологические исследования — в одном месте.</span>
-          <a
-            href="#"
-            onClick={(event) => {
-              event.preventDefault();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            Наверх ↑
-          </a>
+          <p className="landing-footer-tagline">
+            Психологические исследования — в одном месте.
+          </p>
         </footer>
+        {showBackToTop && (
+          <button
+            className="landing-back-to-top"
+            type="button"
+            aria-label="Вернуться наверх"
+            title="Наверх"
+            onClick={() =>
+              window.scrollTo({
+                top: 0,
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                  .matches
+                  ? "instant"
+                  : "smooth",
+              })
+            }
+          >
+            <ArrowUp size={21} aria-hidden="true" />
+          </button>
+        )}
       </div>
     </PlatformLayout>
   );
