@@ -31,6 +31,9 @@ const { mkdirSync } = require("node:fs");
         fullPage: true,
       });
       assert.equal(await page.locator(".research-intro button").count(), 0);
+      assert.equal(await page.locator('.landing h1').count(),1);
+      assert.equal(await page.locator('meta[name="description"]').count(),1);
+      assert.match(await page.title(),/статистический анализ/);
       assert.match(
         await page.locator(".research-intro").innerText(),
         /психологических исследований/,
@@ -110,7 +113,7 @@ const { mkdirSync } = require("node:fs");
         path: `.work/public-methods/${name}-hero-composer.png`,
       });
       assert.equal(await page.locator("#builder figure").count(),0);
-      assert.equal(await page.locator(".builder-feature-list article").count(),4);
+      assert.equal(await page.locator(".builder-feature-list article").count(),6);
       await page.locator(".media-catalog input").first().fill("MSPSS");
       await page
         .locator(".media-catalog")

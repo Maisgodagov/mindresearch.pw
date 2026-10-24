@@ -1,3 +1,5 @@
+import { researcherDocument } from "../api/src/public-methods/landing";
+import { injectDocument } from "../api/src/public-methods/render";
 import { realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
@@ -7,6 +9,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      {name:"researcher-landing-prerender",enforce:"post",generateBundle(_options,bundle){
+        const entry=bundle["index.html"];
+        if(entry?.type==="asset")this.emitFile({type:"asset",fileName:"for-researchers/index.html",source:injectDocument(String(entry.source),researcherDocument())});
+      }},
       {
         name: "temporary-home-redirect",
         configureServer(server) {
@@ -30,7 +36,7 @@ export default defineConfig(({ mode }) => {
               ctx.originalUrl || ctx.path,
               "http://localhost",
             ).pathname;
-            if (!ctx.server || !/^\/methods(?:\/[^/]+)?\/?$/.test(path))
+            if (!ctx.server || (path !== "/for-researchers" && !/^\/methods(?:\/[^/]+)?\/?$/.test(path)))
               return html;
             const slug = path.split("/").filter(Boolean)[1];
             const target =
@@ -39,7 +45,7 @@ export default defineConfig(({ mode }) => {
               "http://127.0.0.1:4011";
             try {
               const response = await fetch(
-                `${target}/api/public/methods/document${slug ? `?slug=${encodeURIComponent(slug)}` : ""}`,
+                path === "/for-researchers" ? `${target}/api/public/researcher-document` : `${target}/api/public/methods/document${slug ? `?slug=${encodeURIComponent(slug)}` : ""}`,
               );
               if (!response.ok) return html;
               const doc = (await response.json()) as {

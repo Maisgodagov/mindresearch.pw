@@ -1,9 +1,19 @@
 import { PlatformLayout } from "../PlatformLayout";
-import { titleForPage } from "../../pageTitle";
+import content from "../../../../api/src/data/researcherLanding.json";
+import { LandingMetadata } from "./LandingMetadata";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Check, Leaf, Plus, PanelsTopLeft, ListChecks, ArrowDownUp, Eye } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Leaf,
+  Plus,
+  PanelsTopLeft,
+  ListChecks,
+  ArrowDownUp,
+  Eye,
+} from "lucide-react";
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
 
@@ -15,7 +25,7 @@ export function Landing() {
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
     let active = true;
-    document.title = titleForPage("Для исследователей");
+
     const existing = document.head.querySelector<HTMLLinkElement>(
       'link[rel="canonical"]',
     );
@@ -38,6 +48,7 @@ export function Landing() {
   const create = signedIn ? "/app/surveys/new" : "/register";
   return (
     <PlatformLayout publicAccess>
+      <LandingMetadata />
       <DemoProvider>
         <div className="landing landing-in-app">
           <div className="landing-content">
@@ -57,32 +68,52 @@ export function Landing() {
               </div>
             </section>
 
-            <section id="builder" className="landing-section landing-wrap landing-builder-features">
+            <section
+              id="builder"
+              className="landing-section landing-wrap landing-builder-features"
+            >
               <div className="builder-feature-intro">
-                <h2>Ваш опрос.<br/>Ваши правила.</h2>
-                <p className="landing-lead">Соберите исследование так, как задумали: от приветствия до последнего вопроса.</p>
-                <Link className="landing-text-link" to={create}>Собрать первый опрос<ArrowRight size={17}/></Link>
+                <h2>
+                  Конструктор опросов <em>под ваше исследование</em>
+                </h2>
+                <p className="landing-lead">
+                  От готовой методики до собственной анкеты — соберите нужные
+                  инструменты в одном опросе. Настройте детали один раз, чтобы
+                  участникам было легко отвечать, а вам — работать с
+                  результатами.
+                </p>
+                <Link className="landing-text-link" to={create}>
+                  Создать опрос для исследования
+                  <ArrowRight size={17} />
+                </Link>
               </div>
               <div className="builder-feature-list">
-                <article><PanelsTopLeft size={22} aria-hidden="true"/><div><h3>Начало и завершение</h3><p>Добавьте приветствие, инструкции и финальный текст. Укажите название и примерное время прохождения.</p></div></article>
-                <article><ListChecks size={22} aria-hidden="true"/><div><h3>Ваши вопросы</h3><p>Один или несколько вариантов ответа, текстовые и числовые поля. Отмечайте вопросы, на которые нужно ответить обязательно.</p></div></article>
-                <article><ArrowDownUp size={22} aria-hidden="true"/><div><h3>Нужный порядок</h3><p>Объединяйте готовые методики и собственные блоки. Перетаскивайте их, чтобы выстроить логику исследования.</p></div></article>
-                <article><Eye size={22} aria-hidden="true"/><div><h3>Проверка до публикации</h3><p>Пройдите опрос в предпросмотре и проверьте, как его увидят участники. Черновик сохраняется автоматически.</p></div></article>
+                {content.features.map((feature, i) => {
+                  const Icon = [
+                    ListChecks,
+                    PanelsTopLeft,
+                    Leaf,
+                    ArrowDownUp,
+                    Check,
+                    Eye,
+                  ][i];
+                  return (
+                    <article key={feature.title}>
+                      <Icon size={22} aria-hidden="true" />
+                      <div>
+                        <h3>{feature.title}</h3>
+                        <p>{feature.text}</p>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </section>
             <section id="catalog" className="landing-catalog">
               <div className="landing-wrap">
                 <div className="landing-section-heading">
-                  <h2>
-                    Готовые методики.
-                    <br />
-                    <em>Меньше ручной работы.</em>
-                  </h2>
-                  <p>
-                    Выберите методики для своего исследования.
-                    Там, где предусмотрен автоподсчёт, платформа рассчитает
-                    показатели за вас.
-                  </p>
+                  <h2>{content.sections[0].title}</h2>
+                  <p>{content.sections[0].text}</p>
                 </div>
                 <div className="landing-catalog-layout">
                   <Picture
@@ -118,20 +149,10 @@ export function Landing() {
             </section>
             <section className="landing-section landing-wrap landing-publish">
               <div>
-                <h2>
-                  Опубликуйте.
-                  <br />
-                  Отправьте.
-                  <br />
-                  <em>Собирайте ответы.</em>
-                </h2>
+                <h2>{content.sections[1].title}</h2>
               </div>
               <div className="landing-publish-copy">
-                <p className="landing-lead">
-                  Когда опрос готов, опубликуйте его и скопируйте ссылку.
-                  Отправляйте её в мессенджерах, по почте или размещайте там,
-                  где ваша аудитория.
-                </p>
+                <p className="landing-lead">{content.sections[1].text}</p>
                 <ul className="landing-benefits">
                   <li>
                     <Check />
@@ -153,16 +174,8 @@ export function Landing() {
               className="landing-respondent landing-wrap"
             >
               <div className="landing-section-heading">
-                <h2>
-                  Удобно вам.
-                  <br />
-                  Понятно респонденту.
-                </h2>
-                <p>
-                  Участнику достаточно открыть ссылку — регистрация не нужна.
-                  Опрос адаптируется к экрану, показывает прогресс и позволяет
-                  прерваться и продолжить позже.
-                </p>
+                <h2>{content.sections[2].title}</h2>
+                <p>{content.sections[2].text}</p>
               </div>
               <div className="landing-devices">
                 <Picture
@@ -179,16 +192,8 @@ export function Landing() {
             </section>
             <section id="results" className="landing-section landing-wrap">
               <div className="landing-section-heading">
-                <h2>
-                  Ответы собраны.
-                  <br />
-                  <em>Что за ними стоит?</em>
-                </h2>
-                <p>
-                  От общего обзора исследования до конкретного респондента:
-                  смотрите ответы, рассчитанные шкалы и показатели процесса
-                  прохождения.
-                </p>
+                <h2>{content.sections[3].title}</h2>
+                <p>{content.sections[3].text}</p>
               </div>
               <Picture
                 name="statistics"
@@ -206,7 +211,7 @@ export function Landing() {
                 />
                 <div className="landing-feature-notes">
                   <article>
-                    <h3>Результаты по методикам</h3>
+                    <h3>Шкалы рассчитаны, ответы под рукой</h3>
                     <p>
                       Раскрывайте ответы участника и смотрите рассчитанные
                       значения шкал для методик с автоподсчётом.
@@ -221,7 +226,7 @@ export function Landing() {
                     </p>
                   </article>
                   <article>
-                    <h3>Фильтры и выгрузка</h3>
+                    <h3>Нужные участники и методики в Excel</h3>
                     <p>
                       Выбирайте участников, сохраняйте группы для анализа и
                       выгружайте в Excel нужные методики и собственные блоки
@@ -233,16 +238,8 @@ export function Landing() {
             </section>
             <section id="analysis" className="landing-section landing-wrap">
               <div className="landing-section-heading">
-                <h2>
-                  От результатов
-                  <br />
-                  <em>к проверке гипотез.</em>
-                </h2>
-                <p>
-                  Считайте статистику там же, где собрали ответы. Выберите
-                  сохранённую выборку, показатели и подходящий метод — исходные
-                  значения и формулы останутся перед глазами.
-                </p>
+                <h2>{content.sections[4].title}</h2>
+                <p>{content.sections[4].text}</p>
               </div>
               <Picture
                 name="analysis"
@@ -250,25 +247,34 @@ export function Landing() {
               />
               <div className="landing-analysis-notes">
                 <article>
-                  <h3>Метод под вашу задачу</h3>
+                  <h3>От описания выборки до проверки гипотез</h3>
                   <p>
-                    Описательные показатели, сравнение групп, корреляции и более
-                    сложные модели. Настройки и проверка данных помогают
-                    подготовить расчёт.
+                    Описывайте распределение результатов, проверяйте различия
+                    между группами, изучайте связи показателей. Перед запуском
+                    проверьте состав выборки и данные, которые войдут в расчёт.
                   </p>
                 </article>
                 <article>
-                  <h3>Прозрачный результат</h3>
+                  <h3>Каждый расчёт можно проверить</h3>
                   <p>
-                    Просматривайте исходные значения, формулы и настройки.
-                    Сохраняйте отчёты и сопоставляйте результаты анализов.
+                    Откройте формулы, исходные значения и параметры анализа.
+                    Сохранённый отчёт фиксирует данные на момент запуска: к нему
+                    можно вернуться и сопоставить с другими расчётами.
                   </p>
                 </article>
               </div>
             </section>
+            <section className="landing-collaboration landing-wrap">
+              <h2>{content.sections[5].title}</h2>
+              <p>{content.sections[5].text}</p>
+              <Link className="landing-text-link" to="/methods">
+                Познакомиться с публичными методиками
+                <ArrowRight size={16} />
+              </Link>
+            </section>
             <section className="landing-extras landing-wrap">
               <article>
-                <h3>Представьте себя участникам</h3>
+                <h3>Расскажите участникам об исследователе</h3>
                 <p>
                   Настройте публичный профиль исследователя и добавьте ссылку на
                   него в начале опроса. Вы сами выбираете, будет ли профиль
@@ -298,25 +304,8 @@ export function Landing() {
               </article>
             </section>
             <section className="landing-faq landing-wrap">
-              <h2>Несколько полезных деталей</h2>
-              {[
-                [
-                  "Можно объединить свои вопросы и готовые методики?",
-                  "Да. В одном опросе можно использовать несколько методик и собственные блоки, а затем менять их порядок.",
-                ],
-                [
-                  "Участник увидит свои результаты?",
-                  "Это зависит от настроек финального экрана. При создании опроса вы выбираете, показывать ли респонденту результаты методик.",
-                ],
-                [
-                  "Можно изменить опрос после получения ответов?",
-                  "После появления ответов изменение структуры ограничено, чтобы уже собранные данные оставались сопоставимыми. На странице редактирования будет объяснение этих ограничений.",
-                ],
-                [
-                  "Что означают показатели качества?",
-                  "Это признаки особенностей прохождения, а не доказательство недостоверности ответов. Смотрите доступность данных и отдельные метрики, прежде чем принимать решение.",
-                ],
-              ].map(([q, a]) => (
+              <h2>Вопросы о создании опросов и анализе данных</h2>
+              {content.faq.map(([q, a]) => (
                 <details key={q}>
                   <summary>
                     {q}
@@ -333,7 +322,10 @@ export function Landing() {
                 <br />
                 начинается с вашего вопроса.
               </h2>
-              <p>Соберите опрос — платформа поможет с остальным.</p>
+              <p>
+                Создайте онлайн-опрос, соберите выборку и переходите к анализу
+                данных — в одном рабочем пространстве.
+              </p>
               <Link className="landing-button" to={create}>
                 {signedIn ? "Создать опрос" : "Создать аккаунт"}
                 <ArrowRight size={18} />

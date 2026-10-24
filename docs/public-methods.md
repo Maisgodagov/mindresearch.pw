@@ -46,3 +46,10 @@ The statistics example calculates descriptive values (sample standard deviation)
 Validation: `scripts/check-researcher-demo.cjs` exercises editing, embedded catalogue, taking, respondent selection, local sample, Excel download and a control calculation, and rejects unexpected API mutations. `scripts/check-public-methods.cjs` covers desktop/mobile anonymous taking, resumption, recovery, result-card download, deletion and crawlable source content. Both scripts target local preview only.
 
 The opening demo restores its four original blocks one second after the final deletion; the restored list animates in and respects reduced-motion preferences. All timers are cleaned up on unmount.
+
+
+## Researcher landing copy and search presentation
+
+`apps/api/src/data/researcherLanding.json` supplies the landing metadata, constructor benefits, section introductions and FAQ. The React page and crawler-readable document share those statements. Copy connects supported functions with concrete research tasks; no price, conversion, diagnostic accuracy or ranking claims are made. Constructor text covers mixed instruments/custom blocks, answer types, instructions/results visibility, order/gender forms, autosave and preview. Later sections cover distribution, respondent experience, scoring, cohorts/quality, statistical analysis, Excel and collaboration.
+
+Vite emits `dist/for-researchers/index.html` containing the content and metadata before JavaScript runs. The API also serves the document at `/for-researchers` and `/api/public/researcher-document`; the development HTML transform uses the latter. The canonical remains `https://mindresearch.pro/for-researchers`; the public sitemap includes it. Client metadata is restored on navigation. Structured data describes a WebPage, with no invented ratings or offers. Search rankings are not guaranteed, and deployment/indexing are outside the local change.
