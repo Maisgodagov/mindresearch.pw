@@ -198,12 +198,7 @@ export function Landing() {
                   );
                 })}
               </div>
-              <p className="taking-demo-caption">
-                Попробуйте выбрать ответ — следующий вопрос появится
-                автоматически. В примере используется шкала общей
-                самоэффективности (GSES); ответы остаются только в вашем
-                браузере.
-              </p>
+
               <div className="landing-devices">
                 <Picture
                   name="desktop"
