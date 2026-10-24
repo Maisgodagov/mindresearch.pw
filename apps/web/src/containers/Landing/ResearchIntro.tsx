@@ -7,7 +7,7 @@ export function ResearchIntro({ create }: { create: string }) {
         Платформа для <em>психологических исследований</em>
       </h1>
       <p className="research-intro-lead">
-        mindresearch помогает студентам, психологам и исследователям проводить
+        <strong className="research-intro-brand">mindresearch</strong> помогает студентам, психологам и исследователям проводить
         опросы и анализировать данные в одном месте.
       </p>
       <div className="research-intro-details">
