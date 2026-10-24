@@ -2,7 +2,7 @@ import { PlatformLayout } from "../PlatformLayout";
 import content from "../../../../api/src/data/researcherLanding.json";
 import { LandingMetadata } from "./LandingMetadata";
 import { BrandWordmark } from "../../components/BrandWordmark";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -32,6 +32,22 @@ import { ResearchIntro } from "./ResearchIntro";
 const Picture = DemoMedia;
 
 export function Landing() {
+  const scrollFrame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(scrollFrame.current), []);
+  const scrollToTop = () => {
+    cancelAnimationFrame(scrollFrame.current);
+    const from = window.scrollY;
+    const started = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - started) / 420, 1);
+      window.scrollTo({
+        top: from * Math.pow(1 - progress, 3),
+        behavior: "instant",
+      });
+      if (progress < 1) scrollFrame.current = requestAnimationFrame(step);
+    };
+    scrollFrame.current = requestAnimationFrame(step);
+  };
   const [showBackToTop, setShowBackToTop] = useState(false);
   useEffect(() => {
     const update = () => setShowBackToTop(window.scrollY > 600);
@@ -340,9 +356,6 @@ export function Landing() {
             <Leaf size={22} />
             <BrandWordmark />
           </Link>
-          <p className="landing-footer-tagline">
-            Психологические исследования — в одном месте.
-          </p>
         </footer>
         {showBackToTop && (
           <button
@@ -350,15 +363,7 @@ export function Landing() {
             type="button"
             aria-label="Вернуться наверх"
             title="Наверх"
-            onClick={() =>
-              window.scrollTo({
-                top: 0,
-                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
-                  .matches
-                  ? "instant"
-                  : "smooth",
-              })
-            }
+            onClick={scrollToTop}
           >
             <ArrowUp size={21} aria-hidden="true" />
           </button>
