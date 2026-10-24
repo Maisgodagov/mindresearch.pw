@@ -351,7 +351,8 @@ export const Library = styled.div`
   .more {
     min-height: 36px;
     padding: 0 9px;
-    border: 1px solid transparent;
+    border: 0 !important;
+    box-shadow: none !important;
     border-radius: 8px;
     background: transparent;
     color: #4a674e;
@@ -363,7 +364,7 @@ export const Library = styled.div`
     justify-content: center;
     align-self: flex-end;
   }
-  .more:hover { background: #f0f5ed; color: #365532; }
+  .more:hover, .more:active { border: 0 !important; box-shadow: none !important; background: #f0f5ed; color: #365532; }
   .add {
     min-height: 36px;
     padding-inline: 12px;

@@ -120,29 +120,13 @@ export function Landing() {
                     name="catalog"
                     alt="Каталог методик с поиском и фильтром категорий"
                   />
-                  <div className="landing-feature-notes">
-                    <article>
-                      <h3>Поиск и категории</h3>
-                      <p>
-                        Ищите по названию, автору, категории или подкатегории.
-                        Сужайте выбор до интересующей области.
-                      </p>
-                    </article>
-                    <article>
-                      <h3>Информация до добавления</h3>
-                      <p>
-                        Откройте описание методики, чтобы понять, что она
-                        измеряет и подходит ли вашему исследованию.
-                      </p>
-                    </article>
-                    <article>
-                      <h3>Автоматический подсчёт</h3>
-                      <p>
-                        Для методик с расчётом платформа сама вычислит
-                        показатели. Итоговые баллы появятся в результатах — без
-                        переноса ключей вручную.
-                      </p>
-                    </article>
+                  <div className="landing-feature-notes catalogue-benefits">
+                    {content.catalogueBenefits.map((item) => (
+                      <article key={item.title}>
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                      </article>
+                    ))}
                   </div>
                 </div>
               </div>

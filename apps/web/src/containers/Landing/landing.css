@@ -2073,3 +2073,6 @@
     font-size: 30px;
   }
 }
+
+/* Section introductions use their full available width; columns belong to the examples below. */
+.landing .builder-feature-intro,.landing .builder-feature-intro h2,.landing .builder-feature-intro .landing-lead{max-width:none;width:100%}.landing.landing-in-app .landing-catalog .landing-section-heading h2,.landing.landing-in-app .landing-catalog .landing-section-heading>p{max-width:none;width:100%}.landing .builder-feature-list h3,.landing .builder-feature-list p{max-width:none}.landing-in-app .landing-catalog-layout{align-items:start;gap:36px}.landing-catalog .catalogue-benefits{padding-top:10px}.landing-catalog .catalogue-benefits article+article{margin-top:28px;padding-top:28px}.landing.landing-in-app .landing-catalog .catalogue-benefits h3{font-size:18px;line-height:1.5;margin-bottom:12px}.landing.landing-in-app .landing-catalog .catalogue-benefits p{font-size:14px;line-height:1.85}@media(max-width:1000px){.landing-catalog .catalogue-benefits{padding-top:0}.landing-catalog .catalogue-benefits article+article{margin:0;padding:0}}@media(max-width:600px){.landing-in-app .landing-catalog-layout{gap:28px}.landing-catalog .catalogue-benefits article+article{margin-top:24px;padding-top:24px}.landing.landing-in-app .landing-catalog .catalogue-benefits h3{font-size:17px}}
