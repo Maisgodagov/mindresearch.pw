@@ -4,7 +4,7 @@ import type { Instrument, Section } from "../../types";
 export type InstrumentCatalogProps = {
   embedded?: boolean;
   instruments: Instrument[];
-  totalCount: number;
+  totalCount?: number;
   methodologies: Record<string, Methodology>;
   sections: Section[];
   query: string;

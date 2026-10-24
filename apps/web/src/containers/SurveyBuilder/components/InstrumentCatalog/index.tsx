@@ -158,7 +158,7 @@ export function InstrumentCatalog({
         <CatalogIntro>
           <p>{CATALOG_COPY.catalogDescription}</p>
           <span className="catalog-total">
-            <ShieldCheck size={14} /> {totalCount} методик
+            <ShieldCheck size={14} /> {totalCount ? `${totalCount} методик` : "Каталог платформы"}
           </span>
         </CatalogIntro>
         <CatalogTools>
@@ -343,7 +343,7 @@ export function InstrumentCatalog({
           <BookOpenText size={17} />
           <span>{CATALOG_COPY.choose}</span>
           <span className="available-count">
-            <ShieldCheck size={14} /> Доступно {totalCount}
+            <ShieldCheck size={14} /> Доступно {totalCount ?? instruments.length}
           </span>
         </Button>
       </CatalogContent>

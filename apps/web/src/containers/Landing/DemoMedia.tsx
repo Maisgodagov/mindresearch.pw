@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -147,15 +147,19 @@ function CustomDemo() {
   );
 }
 function CatalogDemo() {
+  const [catalogueTotal,setCatalogueTotal]=useState<number|null>(null);
+  useEffect(()=>{const controller=new AbortController();fetch('/api/public/catalogue-summary',{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error('Catalogue unavailable');return r.json();}).then(data=>{if(Number.isInteger(data.total)&&data.total>0)setCatalogueTotal(data.total);}).catch(()=>{});return()=>controller.abort();},[]);
+
   const [query, setQuery] = useState(""),
     [sections, setSections] = useState<Section[]>([]),
     [methodology, setMethodology] = useState<Methodology | null>(null);
   return (
     <>
+      <p className="inline-demo-note">Ниже — три примера из каталога платформы.</p>
       <InstrumentCatalog
         embedded
         instruments={demoInstruments}
-        totalCount={demoInstruments.length}
+        totalCount={catalogueTotal ?? undefined}
         methodologies={demoMethodologies}
         sections={sections}
         query={query}

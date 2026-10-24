@@ -1730,3 +1730,5 @@
 @media(max-width:600px){.landing.landing-in-app .landing-catalog{padding:26px 16px;border-radius:16px}.landing.landing-in-app .landing-catalog .landing-section-heading h2{font-size:30px}.landing.landing-in-app .landing-catalog .landing-section-heading>p{font-size:14px}.landing-in-app .landing-catalog .landing-section-heading{margin-bottom:24px}.landing-catalog .landing-component-surface{padding:16px}.landing-catalog .landing-feature-notes{grid-template-columns:1fr;gap:0}.landing-catalog .landing-feature-notes article+article{margin-top:20px;padding-top:20px;border-top:1px solid #cbd7c2}.landing-in-app .landing-catalog-layout{gap:24px}.landing.landing-in-app .landing-catalog .landing-feature-notes h3{font-size:16px}}
 
 .research-intro-lead .research-intro-brand { font-weight: 750; color: #365f3d; letter-spacing: -.025em; white-space: nowrap; }
+
+.landing-in-app .landing-catalog .landing-section-heading{grid-template-columns:1fr;gap:16px}.landing.landing-in-app .landing-catalog .landing-section-heading>p{max-width:70ch;margin:0;font-size:15px}.landing-catalog .landing-section-heading h2 br{display:none}
