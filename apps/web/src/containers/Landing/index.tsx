@@ -3,7 +3,7 @@ import { titleForPage } from "../../pageTitle";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Check, Leaf, Plus } from "lucide-react";
+import { ArrowRight, Check, Leaf, Plus, PanelsTopLeft, ListChecks, ArrowDownUp, Eye } from "lucide-react";
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
 
@@ -57,51 +57,18 @@ export function Landing() {
               </div>
             </section>
 
-            <section
-              id="builder"
-              className="landing-section landing-wrap landing-split"
-            >
-              <div>
-                <h2>
-                  Ваш опрос.
-                  <br />
-                  Ваши правила.
-                </h2>
-                <p className="landing-lead">
-                  Соберите исследование так, как задумали: от приветствия до
-                  последнего вопроса.
-                </p>
-                <ul className="landing-benefits">
-                  <li>
-                    <Check />
-                    Настройте начальный и финальный экраны, название и примерное
-                    время прохождения.
-                  </li>
-                  <li>
-                    <Check />
-                    Создавайте свои тесты: один или несколько вариантов ответа,
-                    текстовые и числовые поля.
-                  </li>
-                  <li>
-                    <Check />
-                    Меняйте порядок методик и собственных блоков. Отмечайте
-                    обязательные вопросы.
-                  </li>
-                  <li>
-                    <Check />
-                    Проверяйте опрос в предпросмотре. Черновик сохраняется
-                    автоматически.
-                  </li>
-                </ul>
-                <Link className="landing-text-link" to={create}>
-                  Собрать первый опрос
-                  <ArrowRight size={17} />
-                </Link>
+            <section id="builder" className="landing-section landing-wrap landing-builder-features">
+              <div className="builder-feature-intro">
+                <h2>Ваш опрос.<br/>Ваши правила.</h2>
+                <p className="landing-lead">Соберите исследование так, как задумали: от приветствия до последнего вопроса.</p>
+                <Link className="landing-text-link" to={create}>Собрать первый опрос<ArrowRight size={17}/></Link>
               </div>
-              <Picture
-                name="custom"
-                alt="Собственный блок с вопросом, вариантами ответа и настройкой обязательности"
-              />
+              <div className="builder-feature-list">
+                <article><PanelsTopLeft size={22} aria-hidden="true"/><div><h3>Начало и завершение</h3><p>Добавьте приветствие, инструкции и финальный текст. Укажите название и примерное время прохождения.</p></div></article>
+                <article><ListChecks size={22} aria-hidden="true"/><div><h3>Ваши вопросы</h3><p>Один или несколько вариантов ответа, текстовые и числовые поля. Отмечайте вопросы, на которые нужно ответить обязательно.</p></div></article>
+                <article><ArrowDownUp size={22} aria-hidden="true"/><div><h3>Нужный порядок</h3><p>Объединяйте готовые методики и собственные блоки. Перетаскивайте их, чтобы выстроить логику исследования.</p></div></article>
+                <article><Eye size={22} aria-hidden="true"/><div><h3>Проверка до публикации</h3><p>Пройдите опрос в предпросмотре и проверьте, как его увидят участники. Черновик сохраняется автоматически.</p></div></article>
+              </div>
             </section>
             <section id="catalog" className="landing-catalog">
               <div className="landing-wrap">

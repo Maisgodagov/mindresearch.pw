@@ -37,7 +37,7 @@ const { mkdirSync } = require("node:fs");
       );
       assert.equal(await page.locator(".landing img").count(), 0);
       assert.equal(await page.locator(".landing [role=tablist]").count(), 0);
-      assert.equal(await page.locator(".landing-component").count(), 9);
+      assert.equal(await page.locator(".landing-component").count(), 8);
       const composer = page.locator(".hero-composer");
       const ids = () =>
         composer
@@ -109,13 +109,8 @@ const { mkdirSync } = require("node:fs");
       await page.screenshot({
         path: `.work/public-methods/${name}-hero-composer.png`,
       });
-      await page
-        .getByRole("textbox", { name: "Текст своего вопроса", exact: true })
-        .fill("Что помогает вам отдыхать?");
-      await page
-        .getByRole("button", { name: "Добавить вариант ответа", exact: true })
-        .click();
-      assert.equal(await page.locator(".media-custom .option").count(), 4);
+      assert.equal(await page.locator("#builder figure").count(),0);
+      assert.equal(await page.locator(".builder-feature-list article").count(),4);
       await page.locator(".media-catalog input").first().fill("MSPSS");
       await page
         .locator(".media-catalog")
@@ -174,7 +169,7 @@ const { mkdirSync } = require("node:fs");
       assert.deepEqual(errors, []);
       assert.deepEqual(mutations, []);
       console.log(
-        `${name}: 9 inline components, editing, catalogue, taking, Excel, shared sample, calculation; no API mutations.`,
+        `${name}: 8 inline components, editing, catalogue, taking, Excel, shared sample, calculation; no API mutations.`,
       );
       await page.close();
     }
