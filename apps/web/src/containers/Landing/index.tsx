@@ -13,6 +13,10 @@ import {
   ListChecks,
   ArrowDownUp,
   Eye,
+  Link2,
+  UserRoundCheck,
+  ChartNoAxesCombined,
+  CirclePause,
 } from "lucide-react";
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
@@ -96,6 +100,10 @@ export function Landing() {
                     ArrowDownUp,
                     Check,
                     Eye,
+                    Link2,
+                    UserRoundCheck,
+                    ChartNoAxesCombined,
+                    CirclePause,
                   ][i];
                   return (
                     <article key={feature.title}>
@@ -131,26 +139,41 @@ export function Landing() {
                 </div>
               </div>
             </section>
-            <section className="landing-section landing-wrap landing-publish">
-              <div>
+            <section
+              id="collect"
+              className="landing-section landing-wrap landing-publish"
+            >
+              <header className="publish-intro">
                 <h2>{content.sections[1].title}</h2>
+                <p>{content.sections[1].text}</p>
+              </header>
+              <div className="publish-benefits">
+                {content.publishBenefits.map((item, i) => {
+                  const Icon = [
+                    Link2,
+                    UserRoundCheck,
+                    ChartNoAxesCombined,
+                    CirclePause,
+                  ][i];
+                  return (
+                    <article key={item.title}>
+                      <Icon size={23} aria-hidden="true" />
+                      <div>
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
-              <div className="landing-publish-copy">
-                <p className="landing-lead">{content.sections[1].text}</p>
-                <ul className="landing-benefits">
-                  <li>
-                    <Check />
-                    Храните незавершённые исследования в черновиках.
-                  </li>
-                  <li>
-                    <Check />
-                    Следите за количеством начатых и завершённых прохождений.
-                  </li>
-                  <li>
-                    <Check />
-                    Завершайте сбор ответов, когда исследование закончено.
-                  </li>
-                </ul>
+              <div className="publish-footer">
+                <span>
+                  От приглашения до готовой выборки — под вашим контролем.
+                </span>
+                <Link className="landing-text-link" to={create}>
+                  Создать опрос
+                  <ArrowRight size={17} />
+                </Link>
               </div>
             </section>
             <section
