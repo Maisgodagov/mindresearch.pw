@@ -1,3 +1,4 @@
+import { StatisticsResult } from "./StatisticsResult";
 import { Modal } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -1229,132 +1230,8 @@ export default function StatisticsWorkspace({ surveyId, onClose }: Props) {
                       </nav>
                       {reportTab === "result" && (
                         <>
-                          <div className="metrics">
-                            {report.result.statistic !== null && (
-                              <div>
-                                <span>{report.result.statisticLabel}</span>
-                                <strong>
-                                  {number(report.result.statistic)}
-                                </strong>
-                              </div>
-                            )}
-                            {report.result.p !== null && (
-                              <div>
-                                <span>{report.result.alternative === "increasing" ? "p · возрастание" : report.result.alternative === "first-greater" ? "p · первая группа выше" : "p"}</span>
-                                <strong>{probability(report.result.p)}</strong>
-                              </div>
-                            )}
-                            <div>
-                              <span>Уровень значимости α</span>
-                              <strong>
-                                {number(report.input.config.alpha)}
-                              </strong>
-                            </div>
-                          </div>
-                          {report.result.p !== null && (
-                            <p>
-                              {report.result.p < report.input.config.alpha
-                                ? "Нулевая гипотеза отвергается при выбранном α."
-                                : "Оснований отвергнуть нулевую гипотезу при выбранном α недостаточно."}{" "}
-                              Интерпретируйте результат с учётом гипотезы метода
-                              и ограничений ниже.
-                            </p>
-                          )}
-                          <div className="scroll">
-                            <table>
-                              <thead>
-                                <tr>
-                                  <th>Группа / показатель</th>
-                                  <th>N</th>
-                                  <th>Среднее</th>
-                                  <th>Медиана</th>
-                                  <th>SD</th>
-                                  <th>Мин.</th>
-                                  <th>Макс.</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {report.result.summary.map((s, i) => (
-                                  <tr key={i}>
-                                    <td>{s.label}</td>
-                                    <td>{s.n}</td>
-                                    <td>{number(s.mean)}</td>
-                                    <td>{number(s.median)}</td>
-                                    <td>{number(s.sd)}</td>
-                                    <td>{number(s.min)}</td>
-                                    <td>{number(s.max)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          {report.result.effect !== null && (
-                            <p>
-                              <strong>{report.result.effectLabel}:</strong>{" "}
-                              {number(report.result.effect)}
-                            </p>
-                          )}
-                          {report.result.ci && (
-                            <p>
-                              <strong>{report.result.ciLabel}:</strong>{" "}
-                              {report.result.ci.map(number).join(" … ")}
-                            </p>
-                          )}
-                          {report.result.tables?.map((table, index) => <ResultTable key={report.id + ":" + index} table={table} />)}
-                          <details>
-                            <summary>Дисперсия и квартили</summary>
-                            <div className="scroll">
-                              <table>
-                                <thead>
-                                  <tr>
-                                    <th>Группа / показатель</th>
-                                    <th>Дисперсия</th>
-                                    <th>Q₁</th>
-                                    <th>Q₃</th>
-                                    <th>IQR</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {report.result.summary.map((s, i) => (
-                                    <tr key={i}>
-                                      <td>{s.label}</td>
-                                      <td>{number(s.variance)}</td>
-                                      <td>{number(s.q1)}</td>
-                                      <td>{number(s.q3)}</td>
-                                      <td>{number(s.q3 - s.q1)}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </details>
-                          {report.result.modes && (
-                            <p>
-                              Мода:{" "}
-                              {report.result.modes.length
-                                ? `${report.result.modes.map(number).join(", ")} · частота ${report.result.modeFrequency}`
-                                : "все значения различны; модальная группа не выделяется"}
-                            </p>
-                          )}
-                          {report.result.skewness !== undefined && (
-                            <p>Асимметрия: {number(report.result.skewness)}</p>
-                          )}
-                          {report.result.excess !== undefined && (
-                            <p>
-                              Исправленный эксцесс (относительно 0):{" "}
-                              {number(report.result.excess)}
-                            </p>
-                          )}
-                          {report.result.warnings.map((warning, i) => (
-                            <p className="notice" key={i}>
-                              {warning}
-                            </p>
-                          ))}
-                          <p className="muted">
-                            Результат относится к зафиксированным данным и
-                            выбранному анализу. Попарные проверки относятся к указанному в таблице семейству. p не является
-                            вероятностью истинности гипотезы.
-                          </p>
+                          <StatisticsResult result={report.result} alpha={report.input.config.alpha} reportId={report.id}/>
+
                         </>
                       )}
                       {reportTab === "data" && (
@@ -1647,21 +1524,4 @@ function InputTables({
       )}
     </div>
   );
-}
-
-function ResultTable({ table }: { table: NonNullable<Output["tables"]>[number] }) {
-  const [page, setPage] = useState(0);
-  const size = 50;
-  return <section className="result-table">
-    <h3>{table.title}</h3>
-    <div className="scroll"><table>
-      <thead><tr>{table.columns.map((column, i) => <th key={i}>{column}</th>)}</tr></thead>
-      <tbody>{table.rows.slice(page * size, (page + 1) * size).map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{typeof cell === "number" ? number(cell) : cell ?? "—"}</td>)}</tr>)}</tbody>
-    </table></div>
-    {table.rows.length > size && <div className="actions">
-      <span className="muted">{page * size + 1}–{Math.min((page + 1) * size, table.rows.length)} из {table.rows.length} · Excel содержит все строки</span>
-      <Button disabled={page === 0} onClick={() => setPage(current => current - 1)} aria-label="Предыдущие строки"><ArrowLeft size={16} /></Button>
-      <Button disabled={(page + 1) * size >= table.rows.length} onClick={() => setPage(current => current + 1)} aria-label="Следующие строки"><ArrowRight size={16} /></Button>
-    </div>}
-  </section>;
 }

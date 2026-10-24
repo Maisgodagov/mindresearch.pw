@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useRef,
-  type ReactNode,
-} from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowLeft,
@@ -47,20 +40,8 @@ import {
 } from "./demoData";
 import type { Section } from "../SurveyBuilder/types";
 import { gsesInstrument } from "../../../../api/src/data/gses";
-import ResearchDemo from "./ResearchDemo";
+import { StatisticsReportDemo } from "./StatisticsReportDemo";
 import { ResultsDemo } from "./ResultsDemo";
-const DemoContext = createContext<{
-  sample: string[];
-  setSample: (ids: string[]) => void;
-}>({ sample: [], setSample: () => {} });
-export function DemoProvider({ children }: { children: ReactNode }) {
-  const [sample, setSample] = useState<string[]>([]);
-  return (
-    <DemoContext.Provider value={{ sample, setSample }}>
-      {children}
-    </DemoContext.Provider>
-  );
-}
 function CustomDemo() {
   const [title, setTitle] = useState("Вопросы о самочувствии"),
     [text, setText] = useState("Как вы оцениваете своё самочувствие сегодня?"),
@@ -453,7 +434,6 @@ export function DemoMedia({
   alt: string;
   className?: string;
 }) {
-  const { sample, setSample } = useContext(DemoContext);
   let component: ReactNode;
   switch (name) {
     case "builder":
@@ -481,13 +461,7 @@ export function DemoMedia({
       component = <ResultsDemo />;
       break;
     case "analysis":
-      component = (
-        <ResearchDemo
-          view="analysis"
-          sample={sample}
-          onSaveSample={setSample}
-        />
-      );
+      component = <StatisticsReportDemo />;
       break;
     case "scales":
       component = (

@@ -149,16 +149,11 @@ const { mkdirSync } = require("node:fs");
       );
       assert.match(await results.innerText(), /Гарри Поттер/);
       const analysis = page.locator(".media-analysis");
-      await analysis
-        .getByRole("button", { name: "Проверить данные", exact: true })
-        .click();
-      await analysis
-        .getByRole("button", { name: "Рассчитать", exact: true })
-        .click();
-      assert.match(
-        await analysis.locator(".demo-calculated").innerText(),
-        /29,5/,
-      );
+      assert.equal(await analysis.getByRole("combobox").count(),0);
+      assert.match(await analysis.locator(".metrics").innerText(),/0,82358/);
+      assert.match(await analysis.locator(".metrics").innerText(),/0,00099/);
+      await analysis.getByText("Формула и исходные данные примера",{exact:true}).click();
+      assert.equal(await analysis.locator(".landing-report-audit tbody tr").count(),12);
       await page.screenshot({
         path: `.work/public-methods/${name}-landing-inline.png`,
         fullPage: true,
@@ -172,7 +167,7 @@ const { mkdirSync } = require("node:fs");
       assert.deepEqual(errors, []);
       assert.deepEqual(mutations, []);
       console.log(
-        `${name}: 6 inline components, catalogue, taking, full respondent results, calculation; no API mutations.`,
+        `${name}: 6 inline components, catalogue, taking, full respondent results, Pearson report; no API mutations.`,
       );
       await page.close();
     }

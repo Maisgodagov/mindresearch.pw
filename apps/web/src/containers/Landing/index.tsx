@@ -13,6 +13,9 @@ import {
   ListChecks,
   ArrowDownUp,
   Eye,
+  Users,
+  Calculator,
+  FileText,
   Link2,
   UserRoundCheck,
   ChartNoAxesCombined,
@@ -21,7 +24,7 @@ import {
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
 
-import { DemoMedia, DemoProvider } from "./DemoMedia";
+import { DemoMedia } from "./DemoMedia";
 import { ResearchIntro } from "./ResearchIntro";
 const Picture = DemoMedia;
 
@@ -53,303 +56,296 @@ export function Landing() {
   return (
     <PlatformLayout publicAccess>
       <LandingMetadata />
-      <DemoProvider>
-        <div className="landing landing-in-app">
-          <div className="landing-content">
-            <section className="landing-hero landing-wrap">
-              <ResearchIntro create={create} />
-              <div className="landing-hero-image">
-                <div className="landing-browser">
-                  <span />
-                  <span />
-                  <span />
-                  <b>Ваше исследование</b>
-                </div>
-                <Picture
-                  name="builder"
-                  alt="Конструктор опроса с готовой методикой и собственным блоком вопросов"
-                />
-              </div>
-            </section>
-
-            <section
-              id="builder"
-              className="landing-section landing-wrap landing-builder-features"
-            >
-              <div className="builder-feature-intro">
-                <h2>
-                  Конструктор опросов <em>под ваше исследование</em>
-                </h2>
-                <p className="landing-lead">
-                  От готовой методики до собственной анкеты — соберите нужные
-                  инструменты в одном опросе. Настройте детали один раз, чтобы
-                  участникам было легко отвечать, а вам — работать с
-                  результатами.
-                </p>
-                <Link className="landing-text-link" to={create}>
-                  Создать опрос для исследования
-                  <ArrowRight size={17} />
-                </Link>
-              </div>
-              <div className="builder-feature-list">
-                {content.features.map((feature, i) => {
-                  const Icon = [
-                    ListChecks,
-                    PanelsTopLeft,
-                    Leaf,
-                    ArrowDownUp,
-                    Check,
-                    Eye,
-                    Link2,
-                    UserRoundCheck,
-                    ChartNoAxesCombined,
-                    CirclePause,
-                  ][i];
-                  return (
-                    <article key={feature.title}>
-                      <Icon size={22} aria-hidden="true" />
-                      <div>
-                        <h3>{feature.title}</h3>
-                        <p>{feature.text}</p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-            <section id="catalog" className="landing-catalog">
-              <div className="landing-wrap">
-                <div className="landing-section-heading">
-                  <h2>{content.sections[0].title}</h2>
-                  <p>{content.sections[0].text}</p>
-                </div>
-                <div className="landing-catalog-layout">
-                  <Picture
-                    name="catalog"
-                    alt="Каталог методик с поиском и фильтром категорий"
-                  />
-                  <div className="landing-feature-notes catalogue-benefits">
-                    {content.catalogueBenefits.map((item) => (
-                      <article key={item.title}>
-                        <h3>{item.title}</h3>
-                        <p>{item.text}</p>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-            <section
-              id="collect"
-              className="landing-section landing-wrap landing-publish"
-            >
-              <header className="publish-intro">
-                <h2>{content.sections[1].title}</h2>
-                <p>{content.sections[1].text}</p>
-              </header>
-              <div className="publish-benefits">
-                {content.publishBenefits.map((item, i) => {
-                  const Icon = [
-                    Link2,
-                    UserRoundCheck,
-                    ChartNoAxesCombined,
-                    CirclePause,
-                  ][i];
-                  return (
-                    <article key={item.title}>
-                      <Icon size={23} aria-hidden="true" />
-                      <div>
-                        <h3>{item.title}</h3>
-                        <p>{item.text}</p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-              <div className="publish-footer">
-                <span>
-                  От приглашения до готовой выборки — под вашим контролем.
-                </span>
-                <Link className="landing-text-link" to={create}>
-                  Создать опрос
-                  <ArrowRight size={17} />
-                </Link>
-              </div>
-            </section>
-            <section
-              id="respondent"
-              className="landing-respondent landing-wrap"
-            >
-              <div className="landing-section-heading">
-                <h2>{content.sections[2].title}</h2>
-                <p>{content.sections[2].text}</p>
-              </div>
-              <div className="respondent-benefits">
-                {content.respondentBenefits.map((item, i) => {
-                  const Icon = [PanelsTopLeft, CirclePause, Check][i];
-                  return (
-                    <article key={item.title}>
-                      <Icon size={22} aria-hidden="true" />
-                      <div>
-                        <h3>{item.title}</h3>
-                        <p>{item.text}</p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-
-              <div className="landing-devices">
-                <Picture
-                  name="desktop"
-                  alt="Экран прохождения опроса на компьютере"
-                  className="landing-desktop"
-                />
-                <Picture
-                  name="phone"
-                  alt="Экран прохождения того же опроса на телефоне"
-                  className="landing-phone"
-                />
-              </div>
-            </section>
-            <section id="results" className="landing-section landing-wrap">
-              <div className="landing-section-heading">
-                <h2>{content.sections[3].title}</h2>
-                <p>{content.sections[3].text}</p>
-              </div>
-              <div className="results-benefits">
-                {content.resultsBenefits.map((item, i) => {
-                  const Icon = [ListChecks, Eye, ArrowDownUp][i];
-                  return (
-                    <article key={item.title}>
-                      <Icon size={22} aria-hidden="true" />
-                      <div>
-                        <h3>{item.title}</h3>
-                        <p>{item.text}</p>
-                      </div>
-                    </article>
-                  );
-                })}
+      <div className="landing landing-in-app">
+        <div className="landing-content">
+          <section className="landing-hero landing-wrap">
+            <ResearchIntro create={create} />
+            <div className="landing-hero-image">
+              <div className="landing-browser">
+                <span />
+                <span />
+                <span />
+                <b>Ваше исследование</b>
               </div>
               <Picture
-                name="respondents"
-                alt="Интерактивная таблица результатов шести вымышленных респондентов с раскрытыми шкалами методики"
+                name="builder"
+                alt="Конструктор опроса с готовой методикой и собственным блоком вопросов"
               />
-            </section>
-            <section id="analysis" className="landing-section landing-wrap">
+            </div>
+          </section>
+
+          <section
+            id="builder"
+            className="landing-section landing-wrap landing-builder-features"
+          >
+            <div className="builder-feature-intro">
+              <h2>
+                Конструктор опросов <em>под ваше исследование</em>
+              </h2>
+              <p className="landing-lead">
+                От готовой методики до собственной анкеты — соберите нужные
+                инструменты в одном опросе. Настройте детали один раз, чтобы
+                участникам было легко отвечать, а вам — работать с результатами.
+              </p>
+              <Link className="landing-text-link" to={create}>
+                Создать опрос для исследования
+                <ArrowRight size={17} />
+              </Link>
+            </div>
+            <div className="builder-feature-list">
+              {content.features.map((feature, i) => {
+                const Icon = [
+                  ListChecks,
+                  PanelsTopLeft,
+                  Leaf,
+                  ArrowDownUp,
+                  Check,
+                  Eye,
+                  Users,
+                  Calculator,
+                  FileText,
+                  Link2,
+                  UserRoundCheck,
+                  ChartNoAxesCombined,
+                  CirclePause,
+                ][i];
+                return (
+                  <article key={feature.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+          <section id="catalog" className="landing-catalog">
+            <div className="landing-wrap">
               <div className="landing-section-heading">
-                <h2>{content.sections[4].title}</h2>
-                <p>{content.sections[4].text}</p>
+                <h2>{content.sections[0].title}</h2>
+                <p>{content.sections[0].text}</p>
               </div>
+              <div className="landing-catalog-layout">
+                <Picture
+                  name="catalog"
+                  alt="Каталог методик с поиском и фильтром категорий"
+                />
+                <div className="landing-feature-notes catalogue-benefits">
+                  {content.catalogueBenefits.map((item) => (
+                    <article key={item.title}>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+          <section
+            id="collect"
+            className="landing-section landing-wrap landing-publish"
+          >
+            <header className="publish-intro">
+              <h2>{content.sections[1].title}</h2>
+              <p>{content.sections[1].text}</p>
+            </header>
+            <div className="publish-benefits">
+              {content.publishBenefits.map((item, i) => {
+                const Icon = [
+                  Link2,
+                  UserRoundCheck,
+                  ChartNoAxesCombined,
+                  CirclePause,
+                ][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={23} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <div className="publish-footer">
+              <span>
+                От приглашения до готовой выборки — под вашим контролем.
+              </span>
+              <Link className="landing-text-link" to={create}>
+                Создать опрос
+                <ArrowRight size={17} />
+              </Link>
+            </div>
+          </section>
+          <section id="respondent" className="landing-respondent landing-wrap">
+            <div className="landing-section-heading">
+              <h2>{content.sections[2].title}</h2>
+              <p>{content.sections[2].text}</p>
+            </div>
+            <div className="respondent-benefits">
+              {content.respondentBenefits.map((item, i) => {
+                const Icon = [PanelsTopLeft, CirclePause, Check][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="landing-devices">
               <Picture
-                name="analysis"
-                alt="Статистический анализ на демонстрационных данных"
+                name="desktop"
+                alt="Экран прохождения опроса на компьютере"
+                className="landing-desktop"
               />
-              <div className="landing-analysis-notes">
-                <article>
-                  <h3>От описания выборки до проверки гипотез</h3>
-                  <p>
-                    Описывайте распределение результатов, проверяйте различия
-                    между группами, изучайте связи показателей. Перед запуском
-                    проверьте состав выборки и данные, которые войдут в расчёт.
-                  </p>
-                </article>
-                <article>
-                  <h3>Каждый расчёт можно проверить</h3>
-                  <p>
-                    Откройте формулы, исходные значения и параметры анализа.
-                    Сохранённый отчёт фиксирует данные на момент запуска: к нему
-                    можно вернуться и сопоставить с другими расчётами.
-                  </p>
-                </article>
-              </div>
-            </section>
-            <section className="landing-collaboration landing-wrap">
-              <h2>{content.sections[5].title}</h2>
-              <p>{content.sections[5].text}</p>
-              <Link className="landing-text-link" to="/methods">
-                Познакомиться с публичными методиками
+              <Picture
+                name="phone"
+                alt="Экран прохождения того же опроса на телефоне"
+                className="landing-phone"
+              />
+            </div>
+          </section>
+          <section id="results" className="landing-section landing-wrap">
+            <div className="landing-section-heading">
+              <h2>{content.sections[3].title}</h2>
+              <p>{content.sections[3].text}</p>
+            </div>
+            <div className="results-benefits">
+              {content.resultsBenefits.map((item, i) => {
+                const Icon = [ListChecks, Eye, ArrowDownUp][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <Picture
+              name="respondents"
+              alt="Интерактивная таблица результатов шести вымышленных респондентов с раскрытыми шкалами методики"
+            />
+          </section>
+          <section id="analysis" className="landing-section landing-wrap">
+            <div className="landing-section-heading">
+              <h2>{content.sections[4].title}</h2>
+              <p>{content.sections[4].text}</p>
+            </div>
+            <div className="analysis-benefits">
+              {content.analysisBenefits.map((item, i) => {
+                const Icon = [Users, Calculator, Eye, FileText][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <Picture
+              name="analysis"
+              alt="Пример готового отчёта по корреляции Пирсона: коэффициент, значимость, доверительный интервал и исходные данные"
+            />
+          </section>
+          <section className="landing-collaboration landing-wrap">
+            <h2>{content.sections[5].title}</h2>
+            <p>{content.sections[5].text}</p>
+            <Link className="landing-text-link" to="/methods">
+              Познакомиться с публичными методиками
+              <ArrowRight size={16} />
+            </Link>
+          </section>
+          <section className="landing-extras landing-wrap">
+            <article>
+              <h3>Расскажите участникам об исследователе</h3>
+              <p>
+                Настройте публичный профиль исследователя и добавьте ссылку на
+                него в начале опроса. Вы сами выбираете, будет ли профиль
+                доступен другим.
+              </p>
+              <Link
+                className="landing-text-link"
+                to={signedIn ? "/app/profile" : "/register"}
+              >
+                Настроить профиль
                 <ArrowRight size={16} />
               </Link>
-            </section>
-            <section className="landing-extras landing-wrap">
-              <article>
-                <h3>Расскажите участникам об исследователе</h3>
-                <p>
-                  Настройте публичный профиль исследователя и добавьте ссылку на
-                  него в начале опроса. Вы сами выбираете, будет ли профиль
-                  доступен другим.
-                </p>
-                <Link
-                  className="landing-text-link"
-                  to={signedIn ? "/app/profile" : "/register"}
-                >
-                  Настроить профиль
-                  <ArrowRight size={16} />
-                </Link>
-              </article>
-              <article>
-                <h3>Не нашли нужную методику?</h3>
-                <p>
-                  Отправьте запрос на добавление. А пока можно собрать
-                  собственный блок вопросов и включить его в исследование.
-                </p>
-                <Link
-                  className="landing-text-link"
-                  to={signedIn ? "/app/methodologies/suggest" : "/register"}
-                >
-                  Запросить методику
-                  <ArrowRight size={16} />
-                </Link>
-              </article>
-            </section>
-            <section className="landing-faq landing-wrap">
-              <h2>Вопросы о создании опросов и анализе данных</h2>
-              {content.faq.map(([q, a]) => (
-                <details key={q}>
-                  <summary>
-                    {q}
-                    <Plus size={18} />
-                  </summary>
-                  <p>{a}</p>
-                </details>
-              ))}
-            </section>
-            <section className="landing-final landing-wrap">
-              <Leaf size={35} />
-              <h2>
-                Следующее исследование
-                <br />
-                начинается с вашего вопроса.
-              </h2>
+            </article>
+            <article>
+              <h3>Не нашли нужную методику?</h3>
               <p>
-                Создайте онлайн-опрос, соберите выборку и переходите к анализу
-                данных — в одном рабочем пространстве.
+                Отправьте запрос на добавление. А пока можно собрать собственный
+                блок вопросов и включить его в исследование.
               </p>
-              <Link className="landing-button" to={create}>
-                {signedIn ? "Создать опрос" : "Создать аккаунт"}
-                <ArrowRight size={18} />
+              <Link
+                className="landing-text-link"
+                to={signedIn ? "/app/methodologies/suggest" : "/register"}
+              >
+                Запросить методику
+                <ArrowRight size={16} />
               </Link>
-            </section>
-          </div>
-          <footer className="landing-footer landing-wrap">
-            <Link className="landing-brand" to="/">
-              <Leaf size={22} />
-              <BrandWordmark />
+            </article>
+          </section>
+          <section className="landing-faq landing-wrap">
+            <h2>Вопросы о создании опросов и анализе данных</h2>
+            {content.faq.map(([q, a]) => (
+              <details key={q}>
+                <summary>
+                  {q}
+                  <Plus size={18} />
+                </summary>
+                <p>{a}</p>
+              </details>
+            ))}
+          </section>
+          <section className="landing-final landing-wrap">
+            <Leaf size={35} />
+            <h2>
+              Следующее исследование
+              <br />
+              начинается с вашего вопроса.
+            </h2>
+            <p>
+              Создайте онлайн-опрос, соберите выборку и переходите к анализу
+              данных — в одном рабочем пространстве.
+            </p>
+            <Link className="landing-button" to={create}>
+              {signedIn ? "Создать опрос" : "Создать аккаунт"}
+              <ArrowRight size={18} />
             </Link>
-            <span>Психологические исследования — в одном месте.</span>
-            <a
-              href="#"
-              onClick={(event) => {
-                event.preventDefault();
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              Наверх ↑
-            </a>
-          </footer>
+          </section>
         </div>
-      </DemoProvider>
+        <footer className="landing-footer landing-wrap">
+          <Link className="landing-brand" to="/">
+            <Leaf size={22} />
+            <BrandWordmark />
+          </Link>
+          <span>Психологические исследования — в одном месте.</span>
+          <a
+            href="#"
+            onClick={(event) => {
+              event.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
+            Наверх ↑
+          </a>
+        </footer>
+      </div>
     </PlatformLayout>
   );
 }
