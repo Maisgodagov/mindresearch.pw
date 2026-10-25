@@ -18,7 +18,7 @@ const researchersLink: SidebarLink = {
 
 const methodsLink: SidebarLink = {
   to: "/methods",
-  label: "Методики",
+  label: "Тесты и методики",
   icon: BookOpen,
 };
 

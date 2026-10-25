@@ -17,14 +17,14 @@ export function Metadata({
       ? "Ваше прохождение | mindresearch"
       : method
         ? `${method.name} (${method.abbreviation}) — пройти онлайн | mindresearch`
-        : "Психологические методики и тесты онлайн | mindresearch";
+        : "Психологические тесты онлайн без регистрации | mindresearch";
     const values: [string, string, string][] = [
       ["name", "robots", privatePage ? "noindex,nofollow" : "index,follow"],
       [
         "name",
         "description",
         method?.intro ??
-          "Психологические методики для самопознания. Онлайн-прохождение без регистрации, понятные результаты и первоисточники.",
+          "Психологические тесты онлайн: самооценка, уверенность в своих силах и поддержка близких. Без регистрации, с результатами, пояснениями и источниками методик.",
       ],
     ];
     const changes: (() => void)[] = [];

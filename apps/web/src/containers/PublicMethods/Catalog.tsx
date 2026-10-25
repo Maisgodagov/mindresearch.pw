@@ -1,33 +1,62 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  ArrowLeft,
   ArrowRight,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
+  BookOpen,
+  ChartNoAxesCombined,
   Clock3,
   Search,
+  UserRound,
   X,
 } from "lucide-react";
 import { PublicShell, Metadata, PublicLoading, PublicError } from "./shared";
 import { publicRequest } from "./types";
-import {
-  collections,
-  findMethods,
-  methodCount,
-  type CatalogMethod,
-} from "./catalogModel";
+import { collections, findMethods, type CatalogMethod } from "./catalogModel";
 import "./catalog.css";
+
+const topicCopy: Record<string, { title: string; text: string }> = {
+  Самооценка: {
+    title: "Как вы относитесь к себе?",
+    text: "Принятие себя и ощущение собственной ценности. Посмотрите, как вы оцениваете себя сейчас.",
+  },
+  Самоэффективность: {
+    title: "Насколько вы верите в свои силы?",
+    text: "Уверенность в том, что вы справитесь с трудностями. Исследуйте, как вы воспринимаете свои возможности.",
+  },
+  "Социальная поддержка": {
+    title: "На чью поддержку вы опираетесь?",
+    text: "Семья, друзья и близкий человек. Узнайте, насколько доступной вы ощущаете поддержку в своей жизни.",
+  },
+};
+function TestLink({ method }: { method: CatalogMethod }) {
+  return (
+    <article className="tc-test">
+      <div className="tc-test-copy">
+        <span className="tc-test-meta">
+          {method.abbreviation} ·{" "}
+          {method.questionCount ? `${method.questionCount} вопросов · ` : ""}
+          {method.minutes}
+        </span>
+        <h3>
+          <Link to={`/methods/${method.slug}`}>{method.name}</Link>
+        </h3>
+        <p>{method.intro}</p>
+      </div>
+      <Link
+        className="pm-button pm-soft tc-test-action"
+        to={`/methods/${method.slug}`}
+      >
+        Подробнее о тесте <ArrowRight size={18} />
+      </Link>
+    </article>
+  );
+}
 export function PublicMethods() {
-  const [methods, setMethods] = useState<CatalogMethod[] | null>(null),
-    [error, setError] = useState("");
+  const [methods, setMethods] = useState<CatalogMethod[] | null>(null);
+  const [error, setError] = useState("");
   const [params, setParams] = useSearchParams();
-  const topic = params.get("topic") ?? "",
-    query = params.get("q") ?? "";
-  const [allTopics, setAllTopics] = useState(false),
-    [topicQuery, setTopicQuery] = useState(""),
-    [topicPage, setTopicPage] = useState(0);
+  const query = params.get("q") ?? "",
+    topic = params.get("topic") ?? "";
   const load = () => {
     setError("");
     publicRequest<CatalogMethod[]>("methods")
@@ -37,213 +66,150 @@ export function PublicMethods() {
   useEffect(load, []);
   const groups = useMemo(() => collections(methods ?? []), [methods]);
   const matches = findMethods(methods ?? [], topic, query);
-  const filteredTopics = groups.filter((g) =>
-    g.topic
-      .toLocaleLowerCase("ru")
-      .includes(topicQuery.trim().toLocaleLowerCase("ru")),
-  );
-  const perPage = allTopics ? 12 : 6;
-  const visibleTopics = filteredTopics.slice(
-    topicPage * perPage,
-    (topicPage + 1) * perPage,
-  );
-  const update = (key: string, value: string) => {
+  const searching = Boolean(query || topic);
+  const search = (value: string) => {
     const next = new URLSearchParams(params);
-    if (value) next.set(key, value);
-    else next.delete(key);
-    setParams(next, { replace: key === "q" });
+    if (value) next.set("q", value);
+    else next.delete("q");
+    setParams(next, { replace: true });
   };
   return (
     <PublicShell>
       <Metadata />
-      <div className="method-library">
-        <header className="ml-heading">
-          <div>
-            <h1>Методики</h1>
-            <p>Начните с темы, которую хотите исследовать.</p>
+      <div className="test-catalog">
+        <header className="tc-intro">
+          <h1>
+            Психологические тесты,
+            <br />
+            <span>чтобы лучше понять себя</span>
+          </h1>
+          <p>
+            Как вы относитесь к себе, справляетесь с трудностями и ощущаете
+            поддержку близких? Выберите тему, пройдите тест онлайн и получите
+            результат с пояснениями.
+          </p>
+          <div className="tc-promises">
+            <span>
+              <UserRound size={17} />
+              Без регистрации
+            </span>
+            <span>
+              <Clock3 size={17} />
+              Несколько минут на тест
+            </span>
+            <span>
+              <ChartNoAxesCombined size={17} />
+              Результат сразу
+            </span>
           </div>
-          <Link className="ml-research-link" to="/for-researchers">
-            Проводите исследование? <ArrowRight size={16} />
-          </Link>
         </header>
-        <label className="ml-search">
-          <Search size={21} />
-          <input
-            aria-label="Поиск методики"
-            placeholder="Название, тема или то, что хотите узнать"
-            value={query}
-            onChange={(e) => update("q", e.target.value)}
-          />
-          {query && (
-            <button aria-label="Очистить поиск" onClick={() => update("q", "")}>
-              <X size={18} />
-            </button>
-          )}
-        </label>
-        {error ? (
-          <PublicError message={error} retry={load} />
-        ) : !methods ? (
-          <PublicLoading />
-        ) : (
-          <>
-            {!topic && !query && (
-              <section
-                className="ml-collections"
-                aria-labelledby="collections-title"
-              >
-                <div className="ml-section-heading">
-                  <h2 id="collections-title">Что вам интересно?</h2>
-                  {groups.length > 6 && (
-                    <button
-                      onClick={() => {
-                        setAllTopics((v) => !v);
-                        setTopicPage(0);
-                        setTopicQuery("");
-                      }}
-                      className="pm-text"
-                    >
-                      {allTopics
-                        ? "Свернуть подборки"
-                        : `Все темы · ${groups.length}`}
-                      <ChevronDown size={16} />
-                    </button>
-                  )}
-                </div>
-                {allTopics && (
-                  <label className="ml-topic-search">
-                    <Search size={17} />
-                    <input
-                      aria-label="Поиск темы"
-                      value={topicQuery}
-                      placeholder="Найти тему"
-                      onChange={(e) => {
-                        setTopicQuery(e.target.value);
-                        setTopicPage(0);
-                      }}
-                    />
-                  </label>
-                )}
-                <div className="ml-collection-grid">
-                  {visibleTopics.map((group) => (
-                    <button
-                      className="ml-collection"
-                      key={group.topic}
-                      onClick={() => update("topic", group.topic)}
-                    >
-                      <span className="ml-collection-count">
-                        {methodCount(group.items.length)}
-                      </span>
-                      <h3>{group.topic}</h3>
-                      <p>{group.items[0].title}</p>
-                      <span className="ml-collection-link">
-                        Смотреть подборку <ArrowRight size={18} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                {!visibleTopics.length && (
-                  <p className="ml-empty">
-                    Такой темы пока нет. Попробуйте другое название.
-                  </p>
-                )}
-                {allTopics && filteredTopics.length > perPage && (
-                  <div className="ml-pagination">
-                    <button
-                      className="pm-button pm-soft"
-                      aria-label="Предыдущие темы"
-                      disabled={!topicPage}
-                      onClick={() => setTopicPage((p) => p - 1)}
-                    >
-                      <ChevronLeft size={17} />
-                    </button>
-                    <span>
-                      Страница {topicPage + 1} из{" "}
-                      {Math.ceil(filteredTopics.length / perPage)}
-                    </span>
-                    <button
-                      className="pm-button pm-soft"
-                      aria-label="Следующие темы"
-                      disabled={
-                        (topicPage + 1) * perPage >= filteredTopics.length
-                      }
-                      onClick={() => setTopicPage((p) => p + 1)}
-                    >
-                      <ChevronRight size={17} />
-                    </button>
-                  </div>
-                )}
-              </section>
-            )}
-            <section className="ml-results" aria-labelledby="methods-title">
-              <div className="ml-section-heading">
-                <div>
-                  {topic && (
-                    <button
-                      className="pm-text ml-back"
-                      onClick={() => update("topic", "")}
-                    >
-                      <ArrowLeft size={15} />
-                      Все темы
-                    </button>
-                  )}
-                  <h2 id="methods-title">
-                    {topic || (query ? "Результаты поиска" : "Все методики")}
-                  </h2>
-                </div>
-                <span className="ml-result-count" role="status">
-                  {methodCount(matches.length)}
-                </span>
+        <section className="tc-discovery" aria-labelledby="tc-topics">
+          <div className="tc-discovery-head">
+            <div>
+              <h2 id="tc-topics">Что вы хотите узнать о себе?</h2>
+              <p>
+                Психологические методики с описанием, источниками и понятным
+                расчётом.
+              </p>
+            </div>
+            <label className="tc-search">
+              <Search size={20} />
+              <input
+                aria-label="Найти психологический тест"
+                placeholder="Найти тест или тему"
+                value={query}
+                onChange={(e) => search(e.target.value)}
+              />
+              {query && (
+                <button aria-label="Очистить поиск" onClick={() => search("")}>
+                  <X size={18} />
+                </button>
+              )}
+            </label>
+          </div>
+          {error ? (
+            <PublicError message={error} retry={load} />
+          ) : !methods ? (
+            <PublicLoading />
+          ) : searching ? (
+            <div className="tc-search-results">
+              <div className="tc-search-summary">
+                <h2>{topic || "Результаты поиска"}</h2>
+                <span role="status">Найдено: {matches.length}</span>
+                <button className="pm-text" onClick={() => setParams({})}>
+                  Все тесты <X size={16} />
+                </button>
               </div>
-              <div className="ml-methods">
-                {matches.map((m) => (
-                  <article className="ml-method" key={m.slug}>
-                    <div className="ml-method-main">
-                      <span className="ml-method-code">
-                        {m.abbreviation}
-                        <span>{m.topic}</span>
-                      </span>
-                      <h3>
-                        <Link to={`/methods/${m.slug}`}>{m.name}</Link>
-                      </h3>
-                      <p>{m.intro}</p>
-                    </div>
-                    <div className="ml-method-action">
-                      <span>
-                        <Clock3 size={15} />
-                        {m.minutes}
-                        {m.questionCount
-                          ? ` · ${m.questionCount} вопросов`
-                          : ""}
-                      </span>
-                      <Link
-                        className="pm-button pm-soft"
-                        to={`/methods/${m.slug}`}
-                      >
-                        Открыть методику <ArrowRight size={17} />
-                      </Link>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              {matches.map((m) => (
+                <TestLink key={m.slug} method={m} />
+              ))}
               {!matches.length && (
-                <div className="ml-empty">
-                  <h3>Методики не найдены</h3>
-                  <p>Попробуйте другое название или вернитесь ко всем темам.</p>
-                  <button
-                    className="pm-button pm-soft"
-                    onClick={() => setParams({})}
-                  >
-                    Сбросить поиск
-                  </button>
+                <div className="tc-empty">
+                  <h3>Пока ничего не нашлось</h3>
+                  <p>
+                    Попробуйте «самооценка», «поддержка» или название методики.
+                  </p>
                 </div>
               )}
-            </section>
-            <p className="ml-footnote">
-              Можно пройти для себя без регистрации. На странице каждой методики
-              — описание, ограничения и первоисточники.
+            </div>
+          ) : (
+            <div className="tc-collections">
+              {groups.map((group) => {
+                const copy = topicCopy[group.topic];
+                return (
+                  <section className="tc-collection" key={group.topic}>
+                    <div className="tc-topic">
+                      <span>{group.topic}</span>
+                      <h2>{copy?.title ?? group.topic}</h2>
+                      <p>
+                        {copy?.text ??
+                          "Выберите тест, чтобы узнать больше об этой стороне своей жизни."}
+                      </p>
+                    </div>
+                    <div className="tc-topic-tests">
+                      {group.items.map((m) => (
+                        <TestLink key={m.slug} method={m} />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
+        </section>
+        <section className="tc-guide" aria-labelledby="tc-guide-title">
+          <div>
+            <BookOpen size={25} />
+            <h2 id="tc-guide-title">
+              За каждым тестом — методика.
+              <br />
+              За результатом — ваши ответы.
+            </h2>
+          </div>
+          <div>
+            <p>
+              Перед прохождением можно прочитать, что измеряет тест, какая
+              версия используется и на какие источники мы опираемся. После —
+              посмотреть рассчитанные показатели и пояснения к ним.
             </p>
-          </>
-        )}
+            <p className="tc-limit">
+              Тесты предназначены для самопознания взрослых. Результат не
+              является диагнозом и не заменяет консультацию специалиста.
+            </p>
+          </div>
+        </section>
+        <aside className="tc-research">
+          <div>
+            <h2>Нужен опрос для своего исследования?</h2>
+            <p>
+              Объединяйте методики и свои вопросы, собирайте ответы по ссылке и
+              считайте статистику в mindresearch.
+            </p>
+          </div>
+          <Link className="pm-button pm-soft" to="/for-researchers">
+            Для исследователей <ArrowRight size={18} />
+          </Link>
+        </aside>
       </div>
     </PublicShell>
   );

@@ -12,16 +12,16 @@ const canonicalBase = "https://mindresearch.pro";
 export function publicDocument(methods: PublicMethod[], method?: PublicMethod) {
   const title = method
     ? `${method.name} (${method.abbreviation}) — пройти онлайн | mindresearch`
-    : "Психологические методики и тесты онлайн | mindresearch";
+    : "Психологические тесты онлайн без регистрации | mindresearch";
   const description =
     method?.intro ??
-    "Самооценка, самоэффективность и социальная поддержка. Пройдите психологическую методику без регистрации, изучите результат и источники.";
+    "Психологические тесты онлайн: самооценка, уверенность в своих силах и поддержка близких. Без регистрации, с результатами, пояснениями и источниками методик.";
   const path = method ? `/methods/${method.slug}` : "/methods";
   const header =
     '<aside class="pm-ssr-sidebar"><a class="pm-ssr-brand" href="/">mindresearch</a><nav aria-label="Основное меню"><a href="/for-researchers">Для исследователей</a><a class="pm-ssr-active" href="/methods">Методики</a></nav><a class="pm-ssr-login" href="/login">Войти</a></aside>';
   const body = method
     ? `<a href="/methods">Все методики</a><h1>${e(method.title)}</h1><p>${e(method.name)} · ${e(method.abbreviation)}</p><p>${e(method.intro)}</p><p>${e(method.minutes)} · Без регистрации · 18+</p><a class="pm-button" href="${path}/start">Пройти методику</a><p>${e(method.audience)}</p>${method.sections.map((s) => `<section><h2>${e(s.title)}</h2><p>${e(s.text)}</p></section>`).join("")}<section><h2>Ограничения</h2><p>${e(method.limitations)}</p></section><section><h2>Источники и версия</h2><p>${e(method.version)}</p><ol>${method.sources.map((s) => `<li><a href="${e(s.url)}" rel="noopener noreferrer">${e(s.title)}</a></li>`).join("")}</ol><p>${e(method.rights)}</p></section><a class="pm-button" href="${path}/start">Пройти методику</a>`
-    : `<h1>Методики</h1><p>${e(description)}</p><div class="pm-list">${methods.map((m) => `<article><p>${e(m.topic)} · ${e(m.minutes)}</p><h2><a href="/methods/${m.slug}">${e(m.name)}</a></h2><p>${e(m.intro)}</p><a href="/methods/${m.slug}">О методике и прохождение</a></article>`).join("")}</div>`;
+    : `<h1>Психологические тесты, чтобы лучше понять себя</h1><p>${e(description)}</p><div class="pm-list">${methods.map((m) => `<article><p>${e(m.topic)} · ${e(m.minutes)}</p><h2><a href="/methods/${m.slug}">${e(m.name)}</a></h2><p>${e(m.intro)}</p><a href="/methods/${m.slug}">О методике и прохождение</a></article>`).join("")}</div>`;
   const structured = {
     "@context": "https://schema.org",
     "@type": method ? "WebPage" : "CollectionPage",
