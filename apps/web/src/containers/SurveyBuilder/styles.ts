@@ -956,6 +956,8 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     font-size: 12px;
     line-height: 1.45;
   }
+  &[data-respondent-block] .body { gap: 8px; }
+  &[data-respondent-block] .readonly-question { margin-top: 0; }
   .readonly-question {
     display: grid;
     grid-template-columns: 30px minmax(0, 1fr);
