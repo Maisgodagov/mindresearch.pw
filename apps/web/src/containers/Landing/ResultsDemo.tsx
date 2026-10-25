@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Info } from "lucide-react";
 import { RespondentResults } from "../SurveyDashboard/components/RespondentResults";
 import { RespondentDetails } from "../SurveyDashboard/components/RespondentDetails";
@@ -12,6 +12,15 @@ import { demoMethodologies } from "./demoData";
 import { resultDemoPeople, resultDemoQualities } from "./resultsDemoData";
 const first = resultDemoPeople[0];
 export function ResultsDemo() {
+  const [compact, setCompact] = useState(
+    () => window.matchMedia("(max-width: 760px)").matches,
+  );
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 760px)");
+    const update = () => setCompact(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
       [first.id]: true,
     }),
@@ -23,8 +32,12 @@ export function ResultsDemo() {
   });
   const people = [...resultDemoPeople].sort((a, b) => {
     let comparison = 0;
-    if (sort.key === "overall") comparison=(resultDemoQualities[a.id].overall.score??0)-(resultDemoQualities[b.id].overall.score??0);
-    else if (sort.key === "alias") comparison = a.alias.localeCompare(b.alias, "ru");
+    if (sort.key === "overall")
+      comparison =
+        (resultDemoQualities[a.id].overall.score ?? 0) -
+        (resultDemoQualities[b.id].overall.score ?? 0);
+    else if (sort.key === "alias")
+      comparison = a.alias.localeCompare(b.alias, "ru");
     else if (sort.key === "age") comparison = (a.age ?? 0) - (b.age ?? 0);
     else if (sort.key === "started")
       comparison = a.startedAt.localeCompare(b.startedAt);
@@ -37,10 +50,11 @@ export function ResultsDemo() {
           code === "test_1" ? (v.overall as { score: number }).score : v.score,
         );
       };
-      const av=value(a),bv=value(b);
-        if(av===null)return bv===null?0:1;
-        if(bv===null)return -1;
-        comparison = av - bv;
+      const av = value(a),
+        bv = value(b);
+      if (av === null) return bv === null ? 0 : 1;
+      if (bv === null) return -1;
+      comparison = av - bv;
     }
     return comparison * (sort.direction === "asc" ? 1 : -1);
   });
@@ -115,6 +129,7 @@ export function ResultsDemo() {
         renderRespondentDetails={(p, groupCode) => (
           <RespondentDetails
             respondent={p}
+            collapseAnswers={compact}
             groupCode={groupCode}
             methodologies={demoMethodologies}
             onShowMethodology={setMethodology}
