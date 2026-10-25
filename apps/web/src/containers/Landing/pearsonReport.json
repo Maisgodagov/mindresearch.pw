@@ -1,0 +1,108 @@
+{
+  "request": {
+    "method": "pearson",
+    "alpha": 0.05,
+    "groups": [
+      {
+        "label": "Общая самоэффективность · GSES",
+        "values": [
+          28,
+          31,
+          24,
+          35,
+          30,
+          26,
+          33,
+          27,
+          34,
+          29,
+          32,
+          25
+        ]
+      },
+      {
+        "label": "Социальная поддержка · MSPSS",
+        "values": [
+          4.25,
+          5.5,
+          3.75,
+          5.75,
+          4.5,
+          4,
+          5.25,
+          4.75,
+          6,
+          3.5,
+          5,
+          4.25
+        ]
+      }
+    ]
+  },
+  "result": {
+    "engine": "statistics-2",
+    "scipy": "1.17.1",
+    "numpy": "2.3.3",
+    "python": "3.12.10",
+    "summary": [
+      {
+        "label": "Общая самоэффективность · GSES",
+        "n": 12,
+        "mean": 29.5,
+        "median": 29.5,
+        "sd": 3.605551275463989,
+        "variance": 13.0,
+        "min": 24.0,
+        "max": 35.0,
+        "q1": 26.75,
+        "q3": 32.25
+      },
+      {
+        "label": "Социальная поддержка · MSPSS",
+        "n": 12,
+        "mean": 4.708333333333333,
+        "median": 4.625,
+        "sd": 0.8036375634160795,
+        "variance": 0.6458333333333333,
+        "min": 3.5,
+        "max": 6.0,
+        "q1": 4.1875,
+        "q3": 5.3125
+      }
+    ],
+    "warnings": [],
+    "formula": "r = Σ[(x − Mx)(y − My)] / √[Σ(x − Mx)² Σ(y − My)²]",
+    "steps": [
+      "Σ[(x − Mx)(y − My)] = 26.25",
+      "Двусторонний p: точное beta-распределение r при нулевой корреляции и нормальной модели."
+    ],
+    "statistic": 0.8235779645048227,
+    "p": 0.000992779074537107,
+    "effect": 0.8235779645048227,
+    "ci": [
+      0.47345716873317684,
+      0.9489539232548702
+    ],
+    "df": null,
+    "alternative": "two-sided",
+    "alpha": 0.05,
+    "ciLabel": "ДИ r: преобразование Фишера",
+    "statisticLabel": "r",
+    "effectLabel": "Коэффициент связи",
+    "references": [
+      {
+        "title": "SciPy · статистические процедуры и определения",
+        "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+      },
+      {
+        "title": "statsmodels · модели, диагностика, факторный анализ",
+        "url": "https://www.statsmodels.org/stable/index.html"
+      },
+      {
+        "title": "scikit-learn · LDA, отбор, MDS",
+        "url": "https://scikit-learn.org/stable/modules/classes.html"
+      }
+    ],
+    "implementation": "913f749f5ec37fcac8126962c1084c4e27dafbd497b73939d0cbbf7cd7716ac0"
+  }
+}

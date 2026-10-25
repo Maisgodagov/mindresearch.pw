@@ -9,6 +9,10 @@ export type ResultSection = {
 };
 
 export type RespondentResultsProps = {
+  storageKey?: string;
+  showToolbarActions?: boolean;
+  includeQualityRow?: boolean;
+  initialMethodExpanded?: Record<string, boolean>;
   sortKey: string;
   sortDirection: 'asc' | 'desc';
   methodSortOptions: {value:string;label:string}[];

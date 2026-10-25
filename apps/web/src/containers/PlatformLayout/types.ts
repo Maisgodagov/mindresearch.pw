@@ -1,2 +1,5 @@
 import type { ReactNode } from "react";
-export type PlatformLayoutProps = { children: ReactNode };
+export type PlatformLayoutProps = {
+  children: ReactNode;
+  publicAccess?: boolean;
+};

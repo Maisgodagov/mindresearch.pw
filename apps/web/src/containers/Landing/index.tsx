@@ -1,62 +1,374 @@
-import { platformTitle } from "../../pageTitle";
+import { PlatformLayout } from "../PlatformLayout";
+import content from "../../../../api/src/data/researcherLanding.json";
+import { LandingMetadata } from "./LandingMetadata";
 import { BrandWordmark } from "../../components/BrandWordmark";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Check, Leaf, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUp,
+  Check,
+  Leaf,
+  Plus,
+  PanelsTopLeft,
+  ListChecks,
+  ArrowDownUp,
+  Eye,
+  Users,
+  Calculator,
+  FileText,
+  Link2,
+  UserRoundCheck,
+  ChartNoAxesCombined,
+  CirclePause,
+  ShieldCheck,
+  Download,
+} from "lucide-react";
 import { getCachedCurrentUser, initializeAuth } from "../../api";
 import "./landing.css";
 
-const pictureDimensions: Record<string, [number, number]> = {
-  builder: [754, 1676], custom: [720, 676], catalog: [920, 898],
-  share: [566, 235], desktop: [1100, 740], phone: [390, 820],
-  statistics: [1175, 275], respondents: [1152, 976], scales: [1084, 322],
-};
-
-function Picture({ name, alt, className = "" }: { name: string; alt: string; className?: string }) {
-  const [width, height] = pictureDimensions[name];
-  const filename = name === "catalog" ? "catalog-1163" : ["statistics", "respondents", "scales"].includes(name) ? `${name}-hd` : name;
-  return <figure className={`landing-picture ${className}`}><img src={`/landing/${filename}.png`} alt={alt} width={width} height={height} loading={name === "builder" ? "eager" : "lazy"} /><figcaption>Пример интерфейса · демонстрационные данные</figcaption></figure>;
-}
+import { DemoMedia } from "./DemoMedia";
+import { ResearchIntro } from "./ResearchIntro";
+const Picture = DemoMedia;
 
 export function Landing() {
+  const scrollFrame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(scrollFrame.current), []);
+  const scrollToTop = () => {
+    cancelAnimationFrame(scrollFrame.current);
+    const from = window.scrollY;
+    const started = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - started) / 420, 1);
+      window.scrollTo({
+        top: from * Math.pow(1 - progress, 3),
+        behavior: "instant",
+      });
+      if (progress < 1) scrollFrame.current = requestAnimationFrame(step);
+    };
+    scrollFrame.current = requestAnimationFrame(step);
+  };
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  useEffect(() => {
+    const update = () => setShowBackToTop(window.scrollY > 600);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
   const [signedIn, setSignedIn] = useState(Boolean(getCachedCurrentUser()));
   useEffect(() => {
     let active = true;
-    document.title = platformTitle;
-    void initializeAuth().then(token => {
-      if (active) setSignedIn(Boolean(token));
-    }).catch(() => {});
-    return () => { active = false; };
+
+    const existing = document.head.querySelector<HTMLLinkElement>(
+      'link[rel="canonical"]',
+    );
+    const canonical = existing ?? document.createElement("link");
+    const previous = existing?.href;
+    canonical.rel = "canonical";
+    canonical.href = "https://mindresearch.pro/for-researchers";
+    if (!existing) document.head.append(canonical);
+    void initializeAuth()
+      .then((token) => {
+        if (active) setSignedIn(Boolean(token));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+      if (previous) canonical.href = previous;
+      else canonical.remove();
+    };
   }, []);
   const create = signedIn ? "/app/surveys/new" : "/register";
-  return <div className="landing">
-    <header className="landing-header">
-      <Link className="landing-brand" to="/" aria-label="Главная страница mindresearch by Евгения Годагова"><Leaf size={27} /><BrandWordmark /></Link>
-      <Link className="landing-header-action" to={signedIn ? "/app" : "/login"}>{signedIn ? "Мои опросы" : "Войти"}<ArrowRight size={16} /></Link>
-    </header>
-    <main>
-      <section className="landing-hero landing-wrap">
-        <div className="landing-hero-copy"><h1>От хороших вопросов<br />к понятным <em>результатам.</em></h1><p>Платформа для психологических исследований. Собирайте опросы из готовых методик и своих вопросов, приглашайте респондентов и изучайте результаты в одном месте.</p><div className="landing-actions"><Link className="landing-button" to={create}><Plus size={18} />{signedIn ? "Создать опрос" : "Начать исследование"}</Link><a className="landing-text-link" href="#builder">Посмотреть возможности<ArrowRight size={17} /></a></div><span className="landing-hero-note">От первого вопроса до выгрузки данных — весь процесс под рукой.</span></div>
-        <div className="landing-hero-image"><div className="landing-browser"><span /><span /><span /><b>Ваше исследование</b></div><Picture name="builder" alt="Конструктор опроса с готовой методикой и собственным блоком вопросов" /></div>
-      </section>
-      <ol className="landing-workflow landing-wrap" aria-label="Как проходит исследование">
-        <li><h3>Соберите опрос</h3><p>Методики и ваши вопросы</p></li>
-        <li><h3>Поделитесь ссылкой</h3><p>Удобное прохождение на любом экране</p></li>
-        <li><h3>Изучите результаты</h3><p>Ответы, шкалы и качество прохождения</p></li>
-      </ol>
-      <section id="builder" className="landing-section landing-wrap landing-split"><div><h2>Ваш опрос.<br />Ваши правила.</h2><p className="landing-lead">Соберите исследование так, как задумали: от приветствия до последнего вопроса.</p><ul className="landing-benefits"><li><Check />Настройте начальный и финальный экраны, название и примерное время прохождения.</li><li><Check />Создавайте свои тесты: один или несколько вариантов ответа, текстовые и числовые поля.</li><li><Check />Меняйте порядок методик и собственных блоков. Отмечайте обязательные вопросы.</li><li><Check />Проверяйте опрос в предпросмотре. Черновик сохраняется автоматически.</li></ul><Link className="landing-text-link" to={create}>Собрать первый опрос<ArrowRight size={17} /></Link></div><Picture name="custom" alt="Собственный блок с вопросом, вариантами ответа и настройкой обязательности" /></section>
-      <section id="catalog" className="landing-catalog"><div className="landing-wrap"><div className="landing-section-heading"><h2>Готовые методики.<br /><em>Меньше ручной работы.</em></h2><p>Найдите подходящий инструмент в каталоге. Изучите описание, добавьте его в опрос и используйте автоматический расчёт там, где он предусмотрен.</p></div><div className="landing-catalog-layout"><Picture name="catalog" alt="Каталог методик с поиском и фильтром категорий" /><div className="landing-feature-notes"><article><h3>Поиск и категории</h3><p>Ищите по названию, автору, категории или подкатегории. Сужайте выбор до интересующей области.</p></article><article><h3>Информация до добавления</h3><p>Откройте описание методики, чтобы понять, что она измеряет и подходит ли вашему исследованию.</p></article><article><h3>Автоматический подсчёт</h3><p>Для методик с расчётом платформа сама вычислит показатели. Результаты появятся в статистике.</p></article></div></div></div></section>
-      <section className="landing-section landing-wrap landing-split"><div><h2>Опубликуйте.<br />Отправьте.<br /><em>Собирайте ответы.</em></h2><p className="landing-lead">Когда опрос готов, опубликуйте его и скопируйте ссылку. Отправляйте её в мессенджерах, по почте или размещайте там, где ваша аудитория.</p><ul className="landing-benefits"><li><Check />Храните незавершённые исследования в черновиках.</li><li><Check />Следите за количеством начатых и завершённых прохождений.</li><li><Check />Завершайте сбор ответов, когда исследование закончено.</li></ul></div><Picture name="share" alt="Карточка опубликованного опроса с кнопками копирования ссылки и статистики" /></section>
-      <section className="landing-respondent landing-wrap"><div className="landing-section-heading"><h2>Удобно вам.<br />Понятно респонденту.</h2><p>Участнику достаточно открыть ссылку — регистрация не нужна. Опрос адаптируется к экрану, показывает прогресс и позволяет прерваться и продолжить позже.</p></div><div className="landing-devices"><Picture name="desktop" alt="Экран прохождения опроса на компьютере" className="landing-desktop" /><Picture name="phone" alt="Экран прохождения того же опроса на телефоне" className="landing-phone" /></div></section>
-      <section id="results" className="landing-section landing-wrap"><div className="landing-section-heading"><h2>Ответы собраны.<br /><em>Что за ними стоит?</em></h2><p>От общего обзора исследования до конкретного респондента: смотрите ответы, рассчитанные шкалы и показатели процесса прохождения.</p></div><Picture name="statistics" alt="Статистика опроса: участники, завершённые прохождения и список результатов" /><Picture name="respondents" alt="Список респондентов с сортировкой, фильтрами и раскрытием ответов" className="landing-respondents-picture" /><div className="landing-results-grid"><Picture name="scales" alt="Автоматически рассчитанные показатели методики в результатах респондента" /><div className="landing-feature-notes"><article><h3>Результаты по методикам</h3><p>Раскрывайте ответы участника и смотрите рассчитанные значения шкал для методик с автоподсчётом.</p></article><article><h3>Время и качество прохождения</h3><p>Оценивайте скорость ответов, быстрые серии и другие доступные признаки. Они помогают изучать необычные прохождения; решение об исключении остаётся за вами.</p></article><article><h3>Фильтры и выгрузка</h3><p>Сортируйте и фильтруйте респондентов, выбирайте размер страницы и экспортируйте данные для дальнейшего анализа.</p></article></div></div></section>
-      <section className="landing-extras landing-wrap"><article><h3>Представьте себя участникам</h3><p>Настройте публичный профиль исследователя и добавьте ссылку на него в начале опроса. Вы сами выбираете, будет ли профиль доступен другим.</p><Link className="landing-text-link" to={signedIn ? "/app/profile" : "/register"}>Настроить профиль<ArrowRight size={16} /></Link></article><article><h3>Не нашли нужную методику?</h3><p>Отправьте запрос на добавление. А пока можно собрать собственный блок вопросов и включить его в исследование.</p><Link className="landing-text-link" to={signedIn ? "/app/methodologies/suggest" : "/register"}>Запросить методику<ArrowRight size={16} /></Link></article></section>
-      <section className="landing-faq landing-wrap"><h2>Несколько полезных деталей</h2>{[
-        ["Можно объединить свои вопросы и готовые методики?", "Да. В одном опросе можно использовать несколько методик и собственные блоки, а затем менять их порядок."],
-        ["Участник увидит свои результаты?", "Это зависит от настроек финального экрана. При создании опроса вы выбираете, показывать ли респонденту результаты методик."],
-        ["Можно изменить опрос после получения ответов?", "После появления ответов изменение структуры ограничено, чтобы уже собранные данные оставались сопоставимыми. На странице редактирования будет объяснение этих ограничений."],
-        ["Что означают показатели качества?", "Это признаки особенностей прохождения, а не доказательство недостоверности ответов. Смотрите доступность данных и отдельные метрики, прежде чем принимать решение."],
-      ].map(([q, a]) => <details key={q}><summary>{q}<Plus size={18} /></summary><p>{a}</p></details>)}</section>
-      <section className="landing-final landing-wrap"><Leaf size={35} /><h2>Следующее исследование<br />начинается с вашего вопроса.</h2><p>Соберите опрос — платформа поможет с остальным.</p><Link className="landing-button" to={create}>{signedIn ? "Создать опрос" : "Создать аккаунт"}<ArrowRight size={18} /></Link></section>
-    </main><footer className="landing-footer landing-wrap"><Link className="landing-brand" to="/"><Leaf size={22} /><BrandWordmark /></Link><span>Психологические исследования — в одном месте.</span><a href="#" onClick={event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Наверх ↑</a></footer>
-  </div>;
+  return (
+    <PlatformLayout publicAccess>
+      <LandingMetadata />
+      <div className="landing landing-in-app">
+        <div className="landing-content">
+          <section className="landing-hero landing-wrap">
+            <ResearchIntro create={create} />
+            <div className="landing-hero-image">
+              <div className="landing-browser">
+                <span />
+                <span />
+                <span />
+                <b>Ваше исследование</b>
+              </div>
+              <Picture
+                name="builder"
+                alt="Конструктор опроса с готовой методикой и собственным блоком вопросов"
+              />
+            </div>
+          </section>
+
+          <section
+            id="builder"
+            className="landing-section landing-wrap landing-builder-features"
+          >
+            <div className="builder-feature-intro">
+              <h2>
+                Конструктор опросов <em>под ваше исследование</em>
+              </h2>
+              <p className="landing-lead">
+                От готовой методики до собственной анкеты — соберите нужные
+                инструменты в одном опросе. Настройте детали один раз, чтобы
+                участникам было легко отвечать, а вам — работать с результатами.
+              </p>
+              <Link className="landing-text-link" to={create}>
+                Создать опрос для исследования
+                <ArrowRight size={17} />
+              </Link>
+            </div>
+            <div className="builder-feature-list">
+              {content.features.map((feature, i) => {
+                const Icon = [
+                  ListChecks,
+                  PanelsTopLeft,
+                  Leaf,
+                  ArrowDownUp,
+                  Check,
+                  Eye,
+                  Users,
+                  Calculator,
+                  FileText,
+                  Link2,
+                  UserRoundCheck,
+                  ChartNoAxesCombined,
+                  CirclePause,
+                  ShieldCheck,
+                  Download,
+                ][i];
+                return (
+                  <article key={feature.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+          <section id="catalog" className="landing-catalog">
+            <div className="landing-wrap">
+              <div className="landing-section-heading">
+                <h2>{content.sections[0].title}</h2>
+                <p>{content.sections[0].text}</p>
+              </div>
+              <div className="landing-catalog-layout">
+                <Picture
+                  name="catalog"
+                  alt="Каталог методик с поиском и фильтром категорий"
+                />
+                <div className="landing-feature-notes catalogue-benefits">
+                  {content.catalogueBenefits.map((item) => (
+                    <article key={item.title}>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+          <section
+            id="collect"
+            className="landing-section landing-wrap landing-publish"
+          >
+            <header className="publish-intro">
+              <h2>{content.sections[1].title}</h2>
+              <p>{content.sections[1].text}</p>
+            </header>
+            <div className="publish-benefits">
+              {content.publishBenefits.map((item, i) => {
+                const Icon = [
+                  Link2,
+                  UserRoundCheck,
+                  ChartNoAxesCombined,
+                  CirclePause,
+                  ShieldCheck,
+                  Download,
+                ][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={23} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <aside className="publish-quality">
+              <ShieldCheck size={26} aria-hidden="true" />
+              <div>
+                <h3>{content.qualityReview.title}</h3>
+                <p>{content.qualityReview.text}</p>
+                <p>{content.qualityReview.note}</p>
+              </div>
+            </aside>
+            <div className="publish-footer">
+              <span>
+                От приглашения до готовой выборки — под вашим контролем.
+              </span>
+              <Link className="landing-text-link" to={create}>
+                Создать опрос
+                <ArrowRight size={17} />
+              </Link>
+            </div>
+          </section>
+          <section id="respondent" className="landing-respondent landing-wrap">
+            <div className="landing-section-heading">
+              <h2>{content.sections[2].title}</h2>
+              <p>{content.sections[2].text}</p>
+            </div>
+            <div className="respondent-benefits">
+              {content.respondentBenefits.map((item, i) => {
+                const Icon = [PanelsTopLeft, CirclePause, Check][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="landing-devices">
+              <Picture
+                name="desktop"
+                alt="Экран прохождения опроса на компьютере"
+                className="landing-desktop"
+              />
+              <Picture
+                name="phone"
+                alt="Экран прохождения того же опроса на телефоне"
+                className="landing-phone"
+              />
+            </div>
+          </section>
+          <section id="results" className="landing-section landing-wrap">
+            <div className="landing-section-heading">
+              <h2>{content.sections[3].title}</h2>
+              <p>{content.sections[3].text}</p>
+            </div>
+            <div className="results-benefits">
+              {content.resultsBenefits.map((item, i) => {
+                const Icon = [ListChecks, Eye, ArrowDownUp][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <Picture
+              name="respondents"
+              alt="Интерактивная таблица результатов шести вымышленных респондентов с раскрытыми шкалами методики"
+            />
+          </section>
+          <section id="analysis" className="landing-section landing-wrap">
+            <div className="landing-section-heading">
+              <h2>{content.sections[4].title}</h2>
+              <p>{content.sections[4].text}</p>
+            </div>
+            <div className="analysis-benefits">
+              {content.analysisBenefits.map((item, i) => {
+                const Icon = [Users, Calculator, Eye, FileText][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <Picture
+              name="analysis"
+              alt="Пример готового отчёта по корреляции Пирсона: коэффициент, значимость, доверительный интервал и исходные данные"
+            />
+          </section>
+          <section id="export" className="landing-collaboration landing-wrap">
+            <header>
+              <h2>{content.sections[5].title}</h2>
+              <p>{content.sections[5].text}</p>
+            </header>
+            <div className="collaboration-benefits">
+              {content.collaborationBenefits.map((item, i) => {
+                const Icon = [Download, ListChecks, Users, ShieldCheck][i];
+                return (
+                  <article key={item.title}>
+                    <Icon size={23} aria-hidden="true" />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <Link className="landing-text-link" to={create}>
+              Создать исследование <ArrowRight size={17} />
+            </Link>
+          </section>
+          <section className="landing-faq landing-wrap">
+            <h2>Вопросы о создании опросов и анализе данных</h2>
+            {content.faq.map(([q, a]) => (
+              <details key={q}>
+                <summary>
+                  {q}
+                  <Plus size={18} />
+                </summary>
+                <p>{a}</p>
+              </details>
+            ))}
+          </section>
+          <section className="landing-final landing-wrap">
+            <Leaf size={35} />
+            <h2>
+              Следующее исследование
+              <br />
+              начинается с вашего вопроса.
+            </h2>
+            <p>
+              Создайте онлайн-опрос, соберите выборку и переходите к анализу
+              данных — в одном рабочем пространстве.
+            </p>
+            <Link className="landing-button" to={create}>
+              {signedIn ? "Создать опрос" : "Создать аккаунт"}
+              <ArrowRight size={18} />
+            </Link>
+          </section>
+        </div>
+        <footer className="landing-footer landing-wrap">
+          <Link className="landing-brand" to="/">
+            <Leaf size={22} />
+            <BrandWordmark />
+          </Link>
+        </footer>
+        {showBackToTop && (
+          <button
+            className="landing-back-to-top"
+            type="button"
+            aria-label="Вернуться наверх"
+            title="Наверх"
+            onClick={scrollToTop}
+          >
+            <ArrowUp size={21} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+    </PlatformLayout>
+  );
 }

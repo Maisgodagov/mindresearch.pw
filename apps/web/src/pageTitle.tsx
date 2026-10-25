@@ -14,6 +14,7 @@ export function PageTitles() {
   const { pathname, search } = useLocation();
   useLayoutEffect(() => {
     const staticTitles: Record<string, string> = {
+      "/for-researchers": "Для исследователей",
       "/login": "Вход",
       "/register": "Регистрация",
       "/forgot-password": "Восстановление пароля",
