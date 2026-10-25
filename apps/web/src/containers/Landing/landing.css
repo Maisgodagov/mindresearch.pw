@@ -2266,3 +2266,7 @@ main:has(> .landing-in-app) { padding-bottom: 0; }
 }
 
 .landing [id] { scroll-margin-top: 76px; }
+
+@media (max-width: 760px) {
+  .landing.landing-in-app .landing-hero-image { display: none; }
+}
