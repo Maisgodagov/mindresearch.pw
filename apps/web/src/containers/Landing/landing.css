@@ -2166,3 +2166,101 @@ main:has(> .landing-in-app) { padding-bottom: 0; }
 @media (max-width: 700px) {
   main:has(> .landing-in-app) { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 }
+
+/* Mobile landing: readable content, touch-sized demos and bounded detail. */
+@media (max-width: 760px) {
+  .landing.landing-in-app .landing-hero { gap: 28px; padding-top: 12px; padding-bottom: 44px; }
+  .landing.landing-in-app .research-intro h1 { font-size: clamp(30px, 8.2vw, 40px); line-height: 1.18; }
+  .landing.landing-in-app .research-intro-lead { font-size: 17px; line-height: 1.7; margin-top: 24px; }
+  .landing.landing-in-app .research-intro-details p { font-size: 15px; line-height: 1.75; }
+  .landing .research-intro-actions { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  .landing .research-intro-actions > a { min-height: 48px; justify-content: center; font-size: 15px; text-align: center; }
+  .landing.landing-in-app .landing-section { padding-top: 44px; padding-bottom: 44px; }
+  .landing.landing-in-app .landing-section-heading h2,
+  .landing.landing-in-app .publish-intro h2,
+  .landing.landing-in-app .builder-feature-intro h2,
+  .landing.landing-in-app .landing-collaboration h2 { font-size: 29px; line-height: 1.22; overflow-wrap: break-word; }
+  .landing.landing-in-app .landing-section-heading > p,
+  .landing.landing-in-app .publish-intro > p,
+  .landing.landing-in-app .builder-feature-intro > p,
+  .landing.landing-in-app .landing-collaboration > header > p { font-size: 16px; line-height: 1.75; }
+  .landing .builder-feature-list,
+  .landing .publish-benefits,
+  .landing .respondent-benefits,
+  .landing .results-benefits,
+  .landing .analysis-benefits,
+  .landing .collaboration-benefits { gap: 28px; }
+  .landing .builder-feature-list p,
+  .landing .publish-benefits p,
+  .landing .respondent-benefits p,
+  .landing .results-benefits p,
+  .landing .analysis-benefits p,
+  .landing .collaboration-benefits p,
+  .landing .catalogue-benefits p { font-size: 15px; line-height: 1.75; }
+  .landing.landing-in-app .landing-catalog { padding: 28px 12px; }
+  .landing .landing-catalog-layout { gap: 28px; }
+  .landing .landing-catalog .landing-component-surface { padding: 14px 10px; }
+  .landing .landing-catalog .inline-demo-note { font-size: 13px; line-height: 1.6; }
+  .landing.landing-in-app .landing-hero-image { padding: 10px; border-radius: 16px; }
+  .landing .hero-composer .section-head { flex-wrap: wrap; gap: 10px; padding: 14px 10px; }
+  .landing .hero-composer .section-name { flex: 1; min-width: 0; }
+  .landing .hero-composer .section-name b { font-size: 14px; line-height: 1.5; }
+  .landing .hero-composer .section-name span { font-size: 12px; line-height: 1.5; }
+  .landing .hero-block-actions { width: 100%; justify-content: flex-end; gap: 4px; }
+  .landing .hero-composer .icon { width: 40px; min-width: 40px; height: 40px; }
+  .landing .hero-composer .form-gender-control { padding: 0 10px 14px; gap: 10px; }
+  .landing .hero-composer .form-gender-label { width: 100%; font-size: 12px; }
+  .landing .hero-composer .form-gender-options { width: 100%; display: flex; }
+  .landing .hero-composer .form-gender-options label { flex: 1; }
+  .landing .hero-composer .form-gender-options label span { display: grid; place-items: center; min-height: 40px; font-size: 12px; padding: 8px 6px; }
+  .landing .hero-composer .form-fallback { font-size: 12px; min-height: 36px; text-align: left; }
+  .landing .hero-demo-status { font-size: 12px; }
+  .landing .landing-component figcaption { font-size: 11px; line-height: 1.5; }
+  .landing .publish-footer { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .landing .publish-quality { padding: 22px 16px; grid-template-columns: 1fr; gap: 12px; }
+  .landing .publish-quality h3 { font-size: 19px; }
+  .landing .publish-quality p { font-size: 15px; line-height: 1.75; }
+  .landing.landing-in-app .landing-respondent { padding: 28px 12px; border-radius: 16px; }
+  .landing .landing-devices { margin-top: 24px; }
+  .landing .landing-component-surface.media-desktop { padding: 12px 8px; border-width: 3px; height: 660px; }
+  .landing .landing-taking-demo .question { font-size: 20px!important; min-height: 120px; }
+  .landing .landing-taking-demo .demo-answer { font-size: 14px; min-height: 48px; }
+  .landing .landing-taking-demo .demo-save-status { font-size: 11px; }
+  .landing .landing-results-demo .demo-answer-disclosure { padding: 14px 0; }
+  .landing .demo-answer-disclosure > summary { padding: 12px 16px; min-height: 44px; font-size: 14px; cursor: pointer; }
+  .landing .demo-answer-disclosure table { min-width: 580px; }
+  .landing .landing-statistics-report .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 16px; }
+  .landing .landing-statistics-report .metrics > div { min-width: 0; }
+  .landing .landing-statistics-report .metrics span { font-size: 12px; line-height: 1.5; }
+  .landing .landing-statistics-report .metrics strong { font-size: 23px; }
+  .landing .landing-statistics-report .report-heading h3 { font-size: 19px!important; line-height: 1.5!important; }
+  .landing .landing-report-audit summary { font-size: 14px; line-height: 1.6; padding: 10px 0; }
+  .landing .landing-faq { padding-top: 40px; padding-bottom: 40px; }
+  .landing .landing-faq h2 { font-size: 28px; line-height: 1.3; }
+  .landing .landing-faq summary { padding: 20px 0; gap: 16px; font-size: 15px; line-height: 1.55; }
+  .landing .landing-faq summary svg { flex: none; }
+  .landing .landing-faq details p { font-size: 15px; line-height: 1.8; }
+  .landing .landing-final { padding: 34px 20px; }
+  .landing .landing-final h2 { font-size: 30px; line-height: 1.3; }
+  .landing .landing-final p { font-size: 15px; line-height: 1.75; }
+  .landing .landing-final .landing-button { width: 100%; min-height: 48px; font-size: 15px; justify-content: center; }
+}
+
+@media (max-width: 760px) {
+  .landing .media-catalog .item { padding: 14px 12px; gap: 14px; }
+  .landing .media-catalog .item .title { font-size: 14px!important; line-height: 1.5; }
+  .landing .media-catalog .item .description { font-size: 13px!important; line-height: 1.65; -webkit-line-clamp: 3; }
+  .landing .media-catalog .item-meta > span { font-size: 11px; line-height: 1.4; }
+  .landing .media-catalog .item .links { width: 100%; gap: 10px; justify-content: space-between; }
+  .landing .media-catalog .item .links button { min-height: 44px; font-size: 13px!important; }
+  .landing .media-catalog input { font-size: 16px!important; }
+  .landing .hero-composer .form-gender-options label { padding: 0; }
+  .landing .hero-composer .section-drag { min-width: 28px; min-height: 44px; }
+  .landing .landing-results-demo .method-subrow-toggle { font-size: 13px; line-height: 1.5; }
+  .landing .landing-results-demo .method-subrow-result { font-size: 13px; }
+  .landing .landing-results-demo .method-answer-count { font-size: 12px; }
+  .landing .landing-results-demo .landing-method-help { font-size: 12px; min-height: 40px; }
+  .landing .landing-footer .landing-brand { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+  .landing .landing-footer .brand-wordmark { display: inline-block; white-space: normal; line-height: 1.3; }
+  .landing .landing-footer .brand-wordmark > small { display: block; margin-top: 4px; }
+}

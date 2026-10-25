@@ -6,6 +6,7 @@ import type { Quality } from "../../quality";
 export type RespondentDetailsProps = {
   respondent: Respondent;
   groupCode?: string;
+  collapseAnswers?: boolean;
   quality?: Quality;
   methodologies: Record<string, Methodology>;
   onShowMethodology: (methodology: Methodology) => void;

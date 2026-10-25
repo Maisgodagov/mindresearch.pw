@@ -125,6 +125,79 @@ export const Sidebar = styled.aside<{
     outline: 2px solid #91b784;
     outline-offset: 2px;
   }
+  .mobile-logout {
+    display: none;
+  }
+  .menu-backdrop {
+    display: none;
+  }
+  .research-group-heading {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .research-group-heading > a {
+    flex: 1;
+    min-width: 0;
+    padding-right: 4px;
+  }
+  .research-group-toggle {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    color: #5a715c;
+    background: transparent;
+    cursor: pointer;
+  }
+  .research-group-toggle:hover {
+    background: #edf3e8;
+  }
+  .research-group-toggle svg {
+    transition: transform 160ms ease;
+  }
+  .research-group-toggle[aria-expanded="false"] svg {
+    transform: rotate(-90deg);
+  }
+  .research-children {
+    display: ${(p) => (p.$collapsed ? "grid" : "none")};
+    padding-left: ${(p) => (p.$collapsed ? "0" : "17px")};
+    gap: 3px;
+  }
+  .research-children[data-open="true"] {
+    display: grid;
+  }
+  .research-group-toggle {
+    display: ${(p) => (p.$collapsed ? "none" : "grid")};
+  }
+  .personal-navigation {
+    display: grid;
+    gap: 3px;
+    margin-top: 20px;
+  }
+  .personal-navigation .report {
+    margin-top: 0;
+  }
+  .admin-navigation:not(:empty) {
+    display: grid;
+    gap: 3px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e1e7df;
+  }
+  .nav {
+    max-height: calc(100dvh - 180px);
+    overflow-y: auto;
+  }
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid #8fa47d;
+    outline-offset: 2px;
+  }
   @media (max-width: 760px) {
     position: fixed;
     z-index: 10;
@@ -139,6 +212,91 @@ export const Sidebar = styled.aside<{
     padding: 5px 10px max(5px, env(safe-area-inset-bottom));
     background: rgba(251, 252, 250, 0.98);
     box-shadow: 0 -5px 16px rgba(33, 50, 37, 0.07);
+    &[data-authenticated="true"] {
+      .nav {
+        display: ${(p) => (p.$mobileOpen ? "flex" : "none")};
+        position: absolute;
+        bottom: 70px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        height: auto;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        padding: 16px;
+        background: #fbfcfa;
+        border-radius: 16px;
+        box-shadow: 0 10px 35px rgb(30 50 35 / 18%);
+        z-index: 12;
+      }
+      .nav a,
+      .nav .report {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        flex: none;
+        gap: 12px;
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      .nav a span,
+      .nav .report span {
+        display: inline;
+        width: auto;
+        text-align: left;
+        line-height: 1.4;
+      }
+      .nav .research-group-heading a {
+        flex: 1;
+      }
+      .nav .research-group-toggle {
+        display: grid;
+        width: 44px;
+        height: 44px;
+      }
+      .nav .research-children {
+        padding-left: 20px;
+        display: none;
+      }
+      .nav .research-children[data-open="true"] {
+        display: grid;
+      }
+      .nav .personal-navigation,
+      .nav .admin-navigation {
+        width: 100%;
+      }
+      .nav .mobile-logout {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #56645a;
+        font: inherit;
+        font-size: 14px;
+        text-align: left;
+        cursor: pointer;
+      }
+      .nav .mobile-logout span {
+        display: inline;
+      }
+      .menu-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        border: 0;
+        border-radius: 0;
+        background: rgb(30 50 35 / 20%);
+        z-index: 11;
+      }
+    }
     .top {
       display: none;
     }
@@ -194,6 +352,25 @@ export const Sidebar = styled.aside<{
 
 export const MobileMenuButton = styled(Button)`
   display: none;
+  @media (max-width: 760px) {
+    &&[data-authenticated="true"] {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      z-index: 13;
+      margin: 2px auto;
+      height: 44px;
+      min-width: 150px;
+      border: 0;
+      box-shadow: none;
+      background: #e7efdf;
+      color: #355238;
+      border-radius: 9px;
+      font-size: 14px;
+    }
+  }
 `;
 
 export const ToggleButton = styled(Button)`

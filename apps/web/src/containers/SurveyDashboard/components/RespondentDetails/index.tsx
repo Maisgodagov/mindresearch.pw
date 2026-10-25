@@ -16,10 +16,12 @@ import { formatQuestionTime } from "../QuestionTiming";
 export function RespondentDetails({
   respondent,
   groupCode,
+  collapseAnswers = false,
   methodologies,
   onShowMethodology,
   renderResult,
 }: RespondentDetailsProps) {
+  const AnswersContainer = collapseAnswers ? "details" : "div";
   const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
     <Details>
@@ -61,6 +63,8 @@ export function RespondentDetails({
                   </div>
                 </ResultBox>
               )}
+              <AnswersContainer className={collapseAnswers ? "demo-answer-disclosure" : undefined}>
+                {collapseAnswers && <summary>Ответы на вопросы · {group.answers.length}</summary>}
               <Answers role="region" aria-label={`Ответы: ${group.title}`}>
                 <table aria-label={`Ответы: ${group.title}`}>
                   <colgroup><col className="answer-indent"/><col style={{width:52}}/><col style={{width:'clamp(260px, 36cqw, 500px)'}}/><col style={{width:'clamp(180px, 24cqw, 320px)'}}/>
@@ -86,6 +90,7 @@ export function RespondentDetails({
                   </tbody>
                 </table>
               </Answers>
+              </AnswersContainer>
             </>
           )}
         </Group>

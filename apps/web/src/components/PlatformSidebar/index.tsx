@@ -1,7 +1,8 @@
 import { BrandWordmark } from "../BrandWordmark";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bug,
+  ChevronDown,
   Leaf,
   LogIn,
   LogOut,
@@ -23,16 +24,78 @@ export function PlatformSidebar({
   onLogout,
 }: PlatformSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [researchOpen, setResearchOpen] = useState(true);
   const closeMobile = () => setMobileOpen(false);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [mobileOpen]);
+  const researchPaths = [
+    "/app",
+    "/app/surveys/new",
+    "/app/methodologies/suggest",
+    "/app/community",
+  ];
+  const research = links.find((link) => link.to === "/for-researchers");
+  const renderLink = ({
+    to,
+    end,
+    label,
+    icon: Icon,
+  }: (typeof links)[number]) => (
+    <NavLink
+      to={to}
+      end={end}
+      aria-label={label}
+      title={collapsed ? label : undefined}
+      key={to}
+      onClick={closeMobile}
+    >
+      <Icon size={18} />
+      <span>{label}</span>
+    </NavLink>
+  );
+  const reportButton = onReport && (
+    <button
+      className="report"
+      type="button"
+      title={collapsed ? "Сообщить об ошибке" : undefined}
+      onClick={() => {
+        closeMobile();
+        onReport();
+      }}
+    >
+      <Bug size={18} />
+      <span>Сообщить об ошибке</span>
+    </button>
+  );
   return (
-    <Sidebar $collapsed={collapsed} $mobileOpen={mobileOpen}>
+    <Sidebar
+      $collapsed={collapsed}
+      $mobileOpen={mobileOpen}
+      data-authenticated={Boolean(onLogout)}
+    >
+      {mobileOpen && (
+        <button
+          className="menu-backdrop"
+          aria-label="Закрыть меню"
+          onClick={closeMobile}
+        />
+      )}
       <MobileMenuButton
+        className="mobile-menu-toggle"
+        data-authenticated={Boolean(onLogout)}
         type="button"
         aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
         aria-expanded={mobileOpen}
         onClick={() => setMobileOpen((open) => !open)}
       >
         {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        <span>{mobileOpen ? "Закрыть меню" : "Меню"}</span>
       </MobileMenuButton>
       <div className="top">
         <div
@@ -62,25 +125,65 @@ export function PlatformSidebar({
         </ToggleButton>
       </div>
       <nav className="nav" aria-label="Основное меню">
-        {links.map(({ to, end, label, icon: Icon }) => (
-          <NavLink
-            to={to}
-            end={end}
-            aria-label={label}
-            title={collapsed ? label : undefined}
-            key={to}
-            className={
-              to === "/app/methodologies/suggest" ||
-              to === "/app/admin/methodologies"
-                ? "mobile-hidden"
-                : undefined
-            }
-            onClick={closeMobile}
+        {onLogout && research ? (
+          <>
+            <div className="research-group-heading">
+              {renderLink(research)}
+              <button
+                className="research-group-toggle"
+                type="button"
+                aria-label={
+                  researchOpen
+                    ? "Свернуть раздел Для исследователей"
+                    : "Развернуть раздел Для исследователей"
+                }
+                aria-expanded={researchOpen}
+                aria-controls="research-navigation"
+                onClick={() => setResearchOpen((open) => !open)}
+              >
+                <ChevronDown size={16} />
+              </button>
+            </div>
+            <div
+              id="research-navigation"
+              className="research-children"
+              data-open={researchOpen}
+            >
+              {links
+                .filter((link) => researchPaths.includes(link.to))
+                .map(renderLink)}
+            </div>
+            <div className="personal-navigation">
+              {links
+                .filter(
+                  (link) =>
+                    link.to === "/app/profile" || link.to === "/methods",
+                )
+                .map(renderLink)}
+              {reportButton}
+            </div>
+            <div className="admin-navigation">
+              {links
+                .filter((link) => link.to.startsWith("/app/admin"))
+                .map(renderLink)}
+            </div>
+          </>
+        ) : (
+          links.map(renderLink)
+        )}
+        {onLogout && (
+          <button
+            className="mobile-logout"
+            type="button"
+            onClick={() => {
+              closeMobile();
+              onLogout();
+            }}
           >
-            <Icon size={18} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
+            <LogOut size={18} />
+            <span>Выйти</span>
+          </button>
+        )}
         {!onLogout && (
           <NavLink
             to="/login"
@@ -90,17 +193,6 @@ export function PlatformSidebar({
             <LogIn size={18} />
             <span>Войти</span>
           </NavLink>
-        )}
-        {onReport && (
-          <button
-            className="report"
-            type="button"
-            title={collapsed ? "Сообщить об ошибке" : undefined}
-            onClick={onReport}
-          >
-            <Bug size={18} />
-            <span>Сообщить об ошибке</span>
-          </button>
         )}
       </nav>
       {onLogout ? (
