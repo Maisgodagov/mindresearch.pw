@@ -138,7 +138,6 @@ export function PlatformSidebar({
         {onLogout && research ? (
           <>
             <div className="research-group-heading">
-              {renderLink(research)}
               <button
                 className="research-group-toggle"
                 type="button"
@@ -153,6 +152,7 @@ export function PlatformSidebar({
               >
                 <ChevronDown size={16} />
               </button>
+              {renderLink(research)}
             </div>
             <div
               id="research-navigation"

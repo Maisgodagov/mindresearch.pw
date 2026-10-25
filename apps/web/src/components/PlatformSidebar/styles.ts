@@ -140,6 +140,7 @@ export const Sidebar = styled.aside<{
     flex: 1;
     min-width: 0;
     padding-right: 4px;
+    padding-left: 4px;
   }
   .research-group-toggle {
     display: grid;
