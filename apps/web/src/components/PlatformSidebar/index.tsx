@@ -28,11 +28,16 @@ export function PlatformSidebar({
   const closeMobile = () => setMobileOpen(false);
   useEffect(() => {
     if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMobileOpen(false);
     };
     window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", close);
+    };
   }, [mobileOpen]);
   const researchPaths = [
     "/app",
@@ -86,17 +91,22 @@ export function PlatformSidebar({
           onClick={closeMobile}
         />
       )}
-      <MobileMenuButton
-        className="mobile-menu-toggle"
-        data-authenticated={Boolean(onLogout)}
-        type="button"
-        aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
-        aria-expanded={mobileOpen}
-        onClick={() => setMobileOpen((open) => !open)}
-      >
-        {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-        <span>{mobileOpen ? "Закрыть меню" : "Меню"}</span>
-      </MobileMenuButton>
+      <div className="mobile-header">
+        <MobileMenuButton
+          className="mobile-menu-toggle"
+          data-authenticated={Boolean(onLogout)}
+          type="button"
+          aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
+          aria-expanded={mobileOpen}
+          aria-controls="platform-navigation"
+          onClick={() => setMobileOpen((open) => !open)}
+        >
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </MobileMenuButton>
+        <NavLink className="mobile-wordmark" to="/" onClick={closeMobile}>
+          mindresearch
+        </NavLink>
+      </div>
       <div className="top">
         <div
           className="brand"
@@ -124,7 +134,7 @@ export function PlatformSidebar({
           )}
         </ToggleButton>
       </div>
-      <nav className="nav" aria-label="Основное меню">
+      <nav id="platform-navigation" className="nav" aria-label="Основное меню">
         {onLogout && research ? (
           <>
             <div className="research-group-heading">

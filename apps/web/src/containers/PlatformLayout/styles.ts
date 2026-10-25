@@ -6,7 +6,7 @@ export const Frame = styled.div<{ $collapsed: boolean }>`
   min-height: 100dvh; background: var(--color-page); display: grid;
   grid-template-columns: ${p => p.$collapsed ? sidebarWidth.collapsed : sidebarWidth.expanded}px minmax(0, 1fr);
   transition: grid-template-columns ${sidebarTransitionMs}ms ease;
-  @media (max-width: 760px) { grid-template-columns: 1fr; padding-bottom: 64px; }
+  @media (max-width: 760px) { grid-template-columns: 1fr; padding-top: calc(56px + env(safe-area-inset-top)); padding-bottom: 0; }
 `;
 
 export const Main = styled.main`
