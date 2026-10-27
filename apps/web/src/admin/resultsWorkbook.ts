@@ -33,7 +33,8 @@ export function exportableSections(sections: ExportSection[], questions: { secti
 }
 export const sectionKey = (section: ExportSection) => section.id ?? section.code;
 export type ExportScope = 'selected' | 'filtered' | 'all';
-export type ExportSelection = { sectionKeys: string[]; scope: ExportScope };
+export type ExportContent = 'results' | 'answers' | 'both';
+export type ExportSelection = { sectionKeys: string[]; scope: ExportScope; content?: ExportContent };
 type Highlight = { color: string; explanation: string };
 type Metric = { key: string; label: string; value: number; highlight?: Highlight };
 type Column = { key: string; label: string };
@@ -99,15 +100,19 @@ const answerKey = (answer: { questionId?: string; code: string }) => answer.ques
 export async function createResultsWorkbook(
   people: ResultsRespondent[],
   sections: ExportSection[],
-  options: { schemaPeople?: ResultsRespondent[]; respondentNumbers?: Record<string, number> } = {},
+  options: { schemaPeople?: ResultsRespondent[]; respondentNumbers?: Record<string, number>; content?: ExportContent } = {},
 ) {
   if (!people.length || !sections.length) throw new Error('Выберите участников и хотя бы один раздел опроса.');
   const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'mindresearch by Евгения Годагова';
   workbook.created = new Date();
-  const sheet = workbook.addWorksheet('Результаты');
   const schemaPeople = [...(options.schemaPeople ?? []), ...people];
+  if (options.content === 'answers') {
+    addAnswerSheets(workbook, people, sections, schemaPeople, options.respondentNumbers);
+    return workbook;
+  }
+  const sheet = workbook.addWorksheet('Результаты');
   const blocks = sections.map(section => {
     const groups = schemaPeople.flatMap(person => { const group = findGroup(person, section); return group ? [group] : []; });
     const scored = section.sectionKind === 'verified' || (section.sectionKind !== 'custom' && section.code.startsWith('test_')) || section.code.startsWith('custom_method_') || groups.some(group => group.result != null);
@@ -190,5 +195,61 @@ export async function createResultsWorkbook(
       if (rowIndex > 2 && col > 4 && typeof cell.value === 'number') cell.numFmt = '0.00';
     }
   });
+  if (options.content === 'both') addAnswerSheets(workbook, people, sections, schemaPeople, options.respondentNumbers);
   return workbook;
+}
+
+function addAnswerSheets(
+  workbook: import('exceljs').Workbook,
+  people: ResultsRespondent[],
+  sections: ExportSection[],
+  schemaPeople: ResultsRespondent[],
+  numbers?: Record<string, number>,
+) {
+  for (const section of sections) {
+    const questions = new Map((section.questions ?? []).map(question => [answerKey(question), question]));
+    for (const person of schemaPeople) for (const answer of findGroup(person, section)?.answers ?? []) {
+      if (section.code === 'respondent' && identityCodes.has(answer.code)) continue;
+      if (!questions.has(answerKey(answer))) questions.set(answerKey(answer), answer);
+    }
+    if (questions.size > 16380 || people.length > 1048573) throw new Error('Превышен размер листа Excel. Выберите меньше вопросов или участников.');
+    // Excel forbids colons and limits tab names to 31 characters; the full title stays in A1.
+    const base = `Бланки: ${section.title}`.replace(/[\\/?*\[\]:]/g, ' ').replace(/'/g, '’').trim();
+    let name = base.slice(0, 31);
+    for (let suffix = 2; workbook.worksheets.some(sheet => sheet.name.toLowerCase() === name.toLowerCase()); suffix++) {
+      const tail = ` (${suffix})`;
+      name = base.slice(0, 31 - tail.length) + tail;
+    }
+    const sheet = workbook.addWorksheet(name);
+    const columns = [...questions.values()];
+    const columnCount = Math.max(4, columns.length + 4);
+    sheet.addRow([`Бланки: ${section.title}`]);
+    sheet.mergeCells(1, 1, 1, columnCount);
+    sheet.addRow(['Одна строка — один участник. Пустая ячейка — нет ответа.']);
+    sheet.mergeCells(2, 1, 2, columnCount);
+    sheet.addRow(['№', 'Имя / псевдоним', 'Возраст', 'Пол', ...columns.map(question => question.question)]);
+    people.forEach((person, index) => {
+      const identity = person.groups.find(group => group.code === 'respondent');
+      const demographic = (code: string) => identity?.answers.find(answer => answer.code === code);
+      const answers = new Map((findGroup(person, section)?.answers ?? []).map(answer => [answerKey(answer), answer.displayValue]));
+      sheet.addRow([numbers?.[person.id] ?? index + 1, person.alias, person.age ?? demographic('age')?.displayValue ?? '', person.gender ?? demographic('gender')?.displayValue ?? '', ...columns.map(question => answers.get(answerKey(question)) ?? '')]);
+    });
+    [8, 28, 12, 18, ...columns.map(() => 18)].forEach((width, index) => { sheet.getColumn(index + 1).width = width; });
+    sheet.views = [{ state: 'frozen', xSplit: 4, ySplit: 3 }];
+    sheet.autoFilter = { from: { row: 3, column: 1 }, to: { row: people.length + 3, column: columnCount } };
+    sheet.getRow(1).height = 32;
+    sheet.getRow(2).height = 26;
+    sheet.getRow(3).height = 240;
+    sheet.eachRow((row, rowIndex) => {
+      for (let column = 1; column <= columnCount; column++) {
+        const cell = row.getCell(column);
+        cell.font = { name: 'Calibri', size: rowIndex === 1 ? 14 : 11, bold: rowIndex === 1 || rowIndex === 3, color: { argb: rowIndex === 1 ? 'FFFFFFFF' : 'FF304536' } };
+        cell.alignment = { vertical: 'middle', horizontal: column === 2 || rowIndex < 3 ? 'left' : 'center', wrapText: true, ...(rowIndex === 3 && column > 4 ? { textRotation: 90 } : {}) };
+        const color = rowIndex === 1 ? 'FF52764B' : rowIndex === 3 ? 'FFE6EBE3' : rowIndex > 3 && rowIndex % 2 === 0 ? 'FFF4F7F1' : 'FFFFFFFF';
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
+        cell.border = { bottom: { style: 'hair', color: { argb: 'FFDCE3D8' } } };
+        if (rowIndex === 3 && column > 4) cell.note = columns[column - 5].question;
+      }
+    });
+  }
 }
