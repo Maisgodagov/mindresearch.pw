@@ -15,6 +15,37 @@ const people: ResultsRespondent[] = [
 ];
 
 describe('Wide survey results workbook', () => {
+  it('exports answer matrices and round-trips vertical headers and literal answers', async () => {
+    const blocks = [section('debq', 'Название / методики: с очень длинным названием'), section('custom', 'Название / методики: с очень длинным названием', 'custom'), { ...section('missing', 'Не пройдена'), questions: [{ code: 'q', question: 'Неотвеченный вопрос' }] }];
+    const book = await createResultsWorkbook(people, blocks, { content: 'answers', respondentNumbers: { a: 7, b: 9 } });
+    expect(book.worksheets).toHaveLength(3);
+    expect(new Set(book.worksheets.map(sheet => sheet.name)).size).toBe(3);
+    for (const sheet of book.worksheets) {
+      expect(sheet.name.length).toBeLessThanOrEqual(31);
+      expect(sheet.name).not.toMatch(/[\\/?*\[\]:]/);
+    }
+    const { default: ExcelJS } = await import('exceljs');
+    const reopened = new ExcelJS.Workbook();
+    await reopened.xlsx.load(await book.xlsx.writeBuffer());
+    const [method, custom, missing] = reopened.worksheets;
+    expect(method.getCell('E3').alignment.textRotation).toBe(90);
+    expect(method.getCell('E4').value).toBe('Секретный ответ');
+    expect(method.getCell('A4').value).toBe(7);
+    expect(method.getCell('A5').value).toBe(9);
+    expect(method.getCell('E5').value ?? '').toBe('');
+    expect(method.views[0]).toMatchObject({ xSplit: 4, ySplit: 3 });
+    expect(custom.getCell('E4').value).toBe('=SUM(A1:A3)');
+    expect(custom.getCell('F4').value).toBe('0');
+    expect(missing.getCell('E3').value).toBe('Неотвеченный вопрос');
+  });
+
+  it('appends answer sheets after the unchanged results sheet in combined mode', async () => {
+    const blocks = [section('debq', 'DEBQ')];
+    const original = await createResultsWorkbook(people, blocks);
+    const combined = await createResultsWorkbook(people, blocks, { content: 'both' });
+    expect(combined.worksheets.map(sheet => sheet.name)).toEqual(['Результаты', 'Бланки  DEBQ']);
+    expect(combined.worksheets[0].getSheetValues()).toEqual(original.worksheets[0].getSheetValues());
+  });
   it('exports custom blocks and extra respondent questions without duplicating common identity columns', async () => {
     const sections = [section('respondent', 'О респонденте', 'custom'), section('custom', 'Мои вопросы', 'custom'), section('debq', 'DEBQ')];
     const questions = [

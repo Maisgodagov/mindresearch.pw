@@ -347,6 +347,7 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
         if(full.detailsLoaded===false) throw new Error('Часть результатов недоступна');
         return full;
       }), exportSections, {
+        content: selection.content,
         schemaPeople: result.respondents,
         respondentNumbers: Object.fromEntries(result.respondents.map((person, index) => [person.id, index + 1])),
       });
