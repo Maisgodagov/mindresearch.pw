@@ -92,7 +92,11 @@ const protectedPage = (page: React.ReactNode) => <AuthGuard>{page}</AuthGuard>;
 
 function HomeRedirect() {
   const {search, hash} = useLocation();
-  return <Navigate to={{pathname:"/for-researchers",search,hash}} replace/>;
+  return (
+    <AuthGuard loginPath={"/for-researchers" + search + hash}>
+      <Navigate to={{pathname: "/app", search, hash}} replace />
+    </AuthGuard>
+  );
 }
 
 function App() {
