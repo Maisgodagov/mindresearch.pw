@@ -19,7 +19,7 @@ export function Metadata({
         ? `${method.name} (${method.abbreviation}) — пройти онлайн | mindresearch`
         : "Психологические тесты онлайн без регистрации | mindresearch";
     const values: [string, string, string][] = [
-      ["name", "robots", privatePage ? "noindex,nofollow" : "index,follow"],
+      ["name", "robots", "noindex,nofollow"],
       [
         "name",
         "description",

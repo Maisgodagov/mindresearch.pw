@@ -14,20 +14,6 @@ export default defineConfig(({ mode }) => {
         if(entry?.type==="asset")this.emitFile({type:"asset",fileName:"for-researchers/index.html",source:injectDocument(String(entry.source),researcherDocument())});
       }},
       {
-        name: "temporary-home-redirect",
-        configureServer(server) {
-          server.middlewares.use((req, res, next) => {
-            const url = new URL(req.url || "/", "http://localhost");
-            if (url.pathname !== "/") return next();
-            res.writeHead(302, {
-              Location: "/for-researchers" + url.search,
-              "Cache-Control": "no-store",
-            });
-            res.end();
-          });
-        },
-      },
-      {
         name: "public-methods-html",
         transformIndexHtml: {
           order: "pre",

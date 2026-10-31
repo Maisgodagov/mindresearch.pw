@@ -9,5 +9,15 @@ coverage/
 # Local statistical-engine bytecode
 __pycache__/
 
-# Local verification artifacts
-.work/public-methods/
+# Local workspaces and generated design/verification output
+.work/
+.impeccable/
+apps/web/public/logo-exploration/
+*.tar.gz
+*.bundle
+*.pickle
+*.whl
+
+# Per-machine configuration (keep the documented template)
+.env.*
+!.env.example

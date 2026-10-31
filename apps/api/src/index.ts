@@ -46,7 +46,8 @@ app.use('/api',communityRouter);
 app.use('/api',sharingRouter);
 app.use('/api',statisticsRouter);
 
-app.use(createPublicMethodsRouter(mysqlRepository(), [requireAuth, (req, res, next) => { if (!isAdministrator(req as AuthRequest)) return res.status(403).json({ message: 'Недостаточно прав' }); next(); }]));
+const previewAccess = [requireAuth, (req: express.Request, res: express.Response, next: express.NextFunction) => { if (!isAdministrator(req as AuthRequest)) return res.status(403).json({ message: 'Недостаточно прав' }); next(); }];
+app.use(createPublicMethodsRouter(mysqlRepository(), previewAccess, previewAccess));
 
 app.get('/api/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/public/surveys/:slug',async(req,res,next)=>{try{

@@ -1,3 +1,4 @@
+import { initializeAuth } from "../../api";
 export type PublicMethod = {
   slug: string;
   code: string;
@@ -52,11 +53,11 @@ export async function publicRequest<T>(
   method = "POST",
   signal?: AbortSignal,
 ): Promise<T> {
+  const token = await initializeAuth();
   const response = await fetch(`/api/public/${path}`, {
     method: body === undefined && method === "POST" ? "GET" : method,
     credentials: "same-origin",
-    headers:
-      body === undefined ? undefined : { "Content-Type": "application/json" },
+    headers: { ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal,
   }).catch((error: Error) => {

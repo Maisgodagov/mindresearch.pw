@@ -148,11 +148,11 @@ function App() {
       <GlobalStyle />
       <Suspense fallback={<RouteSkeleton />}>
         <Routes>
-          <Route path="/methods" element={<PublicMethods/>}/>
-          <Route path="/methods/:slug" element={<PublicMethodPage/>}/>
-          <Route path="/methods/:slug/start" element={<PublicAssessment/>}/>
-          <Route path="/assessment/result" element={<PublicAssessmentResult/>}/>
-          <Route path="/app/admin/public-methods" element={protectedPage(<PublicMethodsAdmin/>)}/>
+          <Route path="/methods" element={<AuthGuard adminOnly><PublicMethods/></AuthGuard>}/>
+          <Route path="/methods/:slug" element={<AuthGuard adminOnly><PublicMethodPage/></AuthGuard>}/>
+          <Route path="/methods/:slug/start" element={<AuthGuard adminOnly><PublicAssessment/></AuthGuard>}/>
+          <Route path="/assessment/result" element={<AuthGuard adminOnly><PublicAssessmentResult/></AuthGuard>}/>
+          <Route path="/app/admin/public-methods" element={<AuthGuard adminOnly><PublicMethodsAdmin/></AuthGuard>}/>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/for-researchers" element={<Landing />} />
           <Route path="/s/:slug" element={<SurveyPage />} />
@@ -164,7 +164,7 @@ function App() {
           <Route path="/invite/:token" element={<SurveyInvitation />} />
           <Route path="/app/surveys/:surveyId/preview" element={protectedPage(<SharedSurveyPreview/>)} />
           <Route path="/app" element={protectedPage(<PlatformHome />)} />
-          <Route path="/app/community" element={protectedPage(<Community />)} />
+          <Route path="/app/community" element={<AuthGuard adminOnly><Community /></AuthGuard>} />
           <Route path="/app/profile" element={protectedPage(<ProfilePage />)} />
           <Route
             path="/app/methodologies/suggest"

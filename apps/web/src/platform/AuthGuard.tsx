@@ -1,17 +1,19 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { initializeAuth } from "../api";
+import { initializeAuth, getCurrentUser } from "../api";
 import { RouteSkeleton } from "../components/RouteSkeleton";
 import { Button, Page, Shell } from "../ui";
 
-type AuthState = "loading" | "allowed" | "denied" | "unavailable";
+type AuthState = "loading" | "allowed" | "denied" | "forbidden" | "unavailable";
 
 export function AuthGuard({
   children,
   loginPath = "/login",
+  adminOnly = false,
 }: {
   children: ReactNode;
   loginPath?: string;
+  adminOnly?: boolean;
 }) {
   const [state, setState] = useState<AuthState>("loading");
   const [retry, setRetry] = useState(0);
@@ -22,7 +24,8 @@ export function AuthGuard({
     const checkSession = async () => {
       try {
         const token = await initializeAuth();
-        if (active) setState(token ? "allowed" : "denied");
+        const allowed = token && (!adminOnly || ["admin", "owner"].includes((await getCurrentUser()).role));
+        if (active) setState(!token ? "denied" : allowed ? "allowed" : "forbidden");
       } catch {
         // A restart or a temporary network failure does not mean the session
         // has expired. Keep the route and let the user retry the check.
@@ -36,7 +39,9 @@ export function AuthGuard({
       active = false;
       window.removeEventListener("mindresearch:session-ended", ended);
     };
-  }, [retry]);
+  }, [retry, adminOnly]);
+
+  if (state === "forbidden") return <Navigate to="/app" replace />;
 
   if (state === "loading")
     return (

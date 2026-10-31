@@ -26,7 +26,6 @@ const coreLinks: SidebarLink[] = [
   { to: "/app", end: true, label: "Мои опросы", icon: ClipboardList },
   { to: "/app/surveys/new", label: "Создать опрос", icon: Plus },
   researchersLink,
-  methodsLink,
   { to: "/app/methodologies/suggest", label: "Запросить методику", icon: Send },
   { to: "/app/profile", label: "Профиль", icon: UserRound },
 ];
@@ -35,10 +34,11 @@ export function getSidebarLinks(
   role: string,
   authenticated = true,
 ): SidebarLink[] {
-  if (!authenticated) return [researchersLink, methodsLink];
+  if (!authenticated) return [researchersLink];
   if (!["owner", "admin"].includes(role)) return coreLinks;
   return [
     ...coreLinks.slice(0, -1),
+    methodsLink,
     { to: "/app/community", label: "Найти респондентов", icon: Handshake },
     {
       to: "/app/admin/methodologies",
