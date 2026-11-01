@@ -210,7 +210,7 @@ export function PlatformHome() {
           <EmptyState>
             <span className="icon"><ClipboardList size={24} /></span>
             <h2>Опросов пока нет</h2>
-            <p>Создайте свой первый опрос — нажмите «Новый опрос» вверху страницы, чтобы начать.</p>
+            <p>Чтобы создать первый опрос, нажмите «Новый опрос» вверху страницы.</p>
           </EmptyState>
         ) : orderedSurveys.map((s, index) => (
           <Fragment key={s.id}>

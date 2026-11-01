@@ -112,8 +112,7 @@ export function PublicMethods() {
             <div>
               <h2 id="tc-topics">Что вы хотите узнать о себе?</h2>
               <p>
-                Психологические методики с описанием, источниками и понятным
-                расчётом.
+                У каждого теста есть описание, источники и объяснение подсчёта.
               </p>
             </div>
             <label className="tc-search">
@@ -167,7 +166,7 @@ export function PublicMethods() {
                       <h2>{copy?.title ?? group.topic}</h2>
                       <p>
                         {copy?.text ??
-                          "Выберите тест, чтобы узнать больше об этой стороне своей жизни."}
+                          "Откройте тест, чтобы прочитать описание и пройти его."}
                       </p>
                     </div>
                     <div className="tc-topic-tests">
