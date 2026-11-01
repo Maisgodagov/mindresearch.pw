@@ -7,7 +7,7 @@ import { sidebarWidth } from './PlatformSidebar/const';
 
 const Navigation = styled.aside`
   padding: 24px 16px; display: flex; flex-direction: column; gap: 16px;
-  background: #fbfcfa; border: 0;
+  background: var(--color-surface-muted); border: 0;
   @media(max-width:760px) { display: none; }
 `;
 const PublicFrame = styled.main`

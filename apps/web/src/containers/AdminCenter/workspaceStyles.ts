@@ -2,7 +2,7 @@ import styled from "styled-components";
 export const AdminWorkspace = styled.div`
   max-width: 1280px;
   width: 100%;
-  color: #304a38;
+  color: var(--color-text-304a38);
   h1 {
     font-size: clamp(28px, 4vw, 42px);
     margin: 10px 0;
@@ -15,17 +15,17 @@ export const AdminWorkspace = styled.div`
     line-height: 1.6;
   }
   .muted {
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
   }
   .error {
-    color: #a03a35;
+    color: var(--color-text-a03a35);
   }
   .back {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 18px;
-    color: #436b4d;
+    color: var(--color-text-436b4d);
   }
   .top {
     display: flex;
@@ -41,12 +41,12 @@ export const AdminWorkspace = styled.div`
     flex-wrap: wrap;
   }
   .tabs button[aria-pressed="true"] {
-    background: #355d42;
-    color: white;
+    background: var(--color-brand);
+    color: var(--color-surface);
   }
   .panel {
-    background: #fff;
-    border: 1px solid #dce6dc;
+    background: var(--color-surface);
+    border: 1px solid var(--color-brand-soft);
     border-radius: 18px;
     padding: 24px;
     margin-bottom: 20px;
@@ -60,8 +60,8 @@ export const AdminWorkspace = styled.div`
   }
   .metric {
     padding: 18px;
-    background: #fff;
-    border: 1px solid #dce6dc;
+    background: var(--color-surface);
+    border: 1px solid var(--color-brand-soft);
     border-radius: 14px;
   }
   .metric b {
@@ -70,7 +70,7 @@ export const AdminWorkspace = styled.div`
   }
   .metric span {
     font-size: 13px;
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
   }
   .columns {
     display: grid;
@@ -97,7 +97,7 @@ export const AdminWorkspace = styled.div`
     gap: 12px;
   }
   .facts dt {
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
   }
   .facts dd {
     margin: 0;
@@ -112,12 +112,12 @@ export const AdminWorkspace = styled.div`
     display: flex;
     gap: 14px;
     justify-content: space-between;
-    border-bottom: 1px solid #e5ece5;
+    border-bottom: 1px solid var(--color-brand-soft);
     padding: 12px 0;
     flex-wrap: wrap;
   }
   .timeline small {
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
   }
   .timeline b {
     display: block;
@@ -135,14 +135,14 @@ export const AdminWorkspace = styled.div`
   .bar {
     height: 7px;
     margin-top: 7px;
-    background: #e7efe4;
+    background: var(--color-brand-soft);
     border-radius: 8px;
     overflow: hidden;
   }
   .bar span {
     display: block;
     height: 100%;
-    background: #5f845b;
+    background: var(--color-brand);
   }
   .table-scroll {
     overflow: auto;
@@ -156,16 +156,16 @@ export const AdminWorkspace = styled.div`
   td {
     text-align: left;
     padding: 12px;
-    border-bottom: 1px solid #e4ece3;
+    border-bottom: 1px solid var(--color-brand-soft);
   }
   th {
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
     font-weight: 600;
     white-space: nowrap;
   }
   .empty {
     padding: 30px 0;
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
     max-width: 650px;
   }
   .link-line {
@@ -177,14 +177,14 @@ export const AdminWorkspace = styled.div`
     margin: 12px 0 28px;
   }
   .link-line a {
-    color: #436b4d;
+    color: var(--color-text-436b4d);
     overflow-wrap: anywhere;
   }
   .survey-description {
     white-space: pre-line;
   }
   .survey-content section {
-    border-top: 1px solid #e4ece3;
+    border-top: 1px solid var(--color-brand-soft);
     padding-top: 16px;
   }
   .survey-content li {
@@ -197,7 +197,7 @@ export const AdminWorkspace = styled.div`
   }
   .retention {
     font-size: 12px;
-    color: #6a7c70;
+    color: var(--color-text-6a7c70);
   }
   @media (max-width: 760px) {
     .columns {

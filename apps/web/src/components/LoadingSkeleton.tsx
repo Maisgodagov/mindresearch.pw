@@ -10,7 +10,7 @@ export const Skeleton = styled.div.attrs({ 'aria-hidden': true })<{
   border: 0;
   box-shadow: none;
   border-radius: ${p => p.$radius ?? '6px'};
-  background: var(--color-skeleton, #e7ede5);
+  background: var(--color-skeleton, var(--color-brand-soft));
   animation: ${pulse} 1.5s ease-in-out infinite;
   @media (prefers-reduced-motion: reduce) { animation: none; }
   @media (forced-colors: active) { background: GrayText; }
@@ -22,7 +22,7 @@ const Layout = styled.div`
   .sk-heading { margin-bottom: 8px; }
   .sk-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .sk-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,max(500px,calc((100% - 16px)/2))),1fr)); gap: 16px; }
-  .sk-panel { padding: 24px; border: 0; border-radius: 14px; background: var(--color-surface,#fff); min-width: 0; }
+  .sk-panel { padding: 24px; border: 0; border-radius: 14px; background: var(--color-surface,var(--color-surface)); min-width: 0; }
   .sk-card { display: grid; gap: 16px; min-height: 300px; }
   .sk-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
   .sk-row { display: grid; grid-template-columns: 32px 1.5fr 1fr .7fr; gap: 16px; align-items: center; padding: 16px 0; border: 0; }

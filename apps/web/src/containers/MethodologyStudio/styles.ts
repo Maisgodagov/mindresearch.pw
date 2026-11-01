@@ -17,7 +17,7 @@ export const Panel = styled.div`
   }
   .section h2 {
     margin: 0;
-    color: #395540;
+    color: var(--color-text-395540);
     font-size: 18px;
   }
   .editor {
@@ -25,22 +25,22 @@ export const Panel = styled.div`
     gap: 14px;
   }
   .intro {
-    color: #758279;
+    color: var(--color-text-758279);
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
   }
   .section {
     padding: 16px;
-    border: 1px solid #e0e8dc;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 14px;
-    background: #fff;
+    background: var(--color-surface);
     display: grid;
     gap: 12px;
   }
   .section-head p {
     margin: 3px 0 0;
-    color: #829087;
+    color: var(--color-text-829087);
     font-size: 12px;
   }
   .grid {
@@ -51,7 +51,7 @@ export const Panel = styled.div`
   .field {
     display: grid;
     gap: 5px;
-    color: #53685a;
+    color: var(--color-text-53685a);
     font-size: 12px;
     font-weight: 650;
   }
@@ -63,19 +63,19 @@ export const Panel = styled.div`
   select {
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid #d6e1d3;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 10px;
-    background: #fff;
+    background: var(--color-surface);
     padding: 10px 12px;
-    color: #263a2d;
+    color: var(--color-text-263a2d);
     font: inherit;
     font-size: 14px;
     outline: none;
   }
   input:focus,
   textarea:focus {
-    border-color: #779580;
-    box-shadow: 0 0 0 3px #edf4ec;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px var(--color-surface-muted);
   }
   textarea {
     min-height: 82px;
@@ -109,8 +109,8 @@ export const Panel = styled.div`
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #edf3e9;
-    color: #52715a;
+    background: var(--color-brand-soft);
+    color: var(--color-text-52715a);
     font-size: 12px;
     font-weight: 750;
   }
@@ -119,10 +119,10 @@ export const Panel = styled.div`
     place-items: center;
     width: 36px;
     height: 36px;
-    border: 1px solid #d6e1d3;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 10px;
-    background: #f7faf6;
-    color: #62796a;
+    background: var(--color-surface-muted);
+    color: var(--color-text-62796a);
     cursor: pointer;
   }
   .add {
@@ -132,22 +132,22 @@ export const Panel = styled.div`
     gap: 7px;
     min-height: 38px;
     padding: 0 13px;
-    border: 1px solid #bfd0bd;
+    border: 1px solid var(--color-border-strong);
     border-radius: 10px;
-    background: #e8f1e5;
-    color: #42614a;
+    background: var(--color-brand-soft);
+    color: var(--color-text-42614a);
     font-weight: 700;
     cursor: pointer;
   }
   .add:hover {
-    background: #dcebd8;
+    background: var(--color-brand-soft);
   }
   .pill {
     display: inline-flex;
     padding: 5px 8px;
     border-radius: 999px;
-    background: #eef4eb;
-    color: #56745d;
+    background: var(--color-brand-soft);
+    color: var(--color-text-56745d);
     font-size: 11px;
     align-items: center;
     gap: 5px;
@@ -155,16 +155,16 @@ export const Panel = styled.div`
   .muted {
     font-size: 12px;
     line-height: 1.5;
-    color: #7f8d83;
+    color: var(--color-text-7f8d83);
     margin: 0;
   }
   .bulk-import {
     display: grid;
     gap: 8px;
     padding: 12px;
-    border: 1px dashed #cbd9c8;
+    border: 1px dashed var(--color-border-strong);
     border-radius: 12px;
-    background: #f8faf6;
+    background: var(--color-surface-muted);
   }
   .bulk-import textarea {
     min-height: 96px;
@@ -174,8 +174,8 @@ export const Panel = styled.div`
     margin: 10px 0 0;
     padding: 10px 12px;
     border-radius: 10px;
-    background: #f6f2e7;
-    color: #786842;
+    background: var(--color-palette-f6f2e7);
+    color: var(--color-text-786842);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -183,9 +183,9 @@ export const Panel = styled.div`
     display: grid;
     gap: 9px;
     padding: 13px;
-    border: 1px solid #e0e8dc;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 12px;
-    background: #fbfcfa;
+    background: var(--color-surface-muted);
   }
   .scale-top {
     display: grid;
@@ -203,20 +203,20 @@ export const Panel = styled.div`
     gap: 5px;
     align-items: center;
     padding: 5px 8px;
-    border: 1px solid #dce5d9;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: white;
-    color: #52665a;
+    background: var(--color-surface);
+    color: var(--color-text-52665a);
     font-size: 11px;
   }
   .chip input {
     width: auto;
     margin: 0;
-    accent-color: #557660;
+    accent-color: var(--color-brand);
   }
   .case {
     padding: 12px;
-    border: 1px solid #e1e9de;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 12px;
     display: grid;
     gap: 9px;
@@ -243,13 +243,13 @@ export const Panel = styled.div`
   .feedback {
     padding: 12px;
     border-radius: 11px;
-    background: #f0f5ed;
-    color: #45644c;
+    background: var(--color-surface-muted);
+    color: var(--color-text-45644c);
     font-size: 12px;
   }
   .feedback.error {
-    background: #fff1ef;
-    color: #a03e35;
+    background: var(--color-palette-fff1ef);
+    color: var(--color-text-a03e35);
   }
   .guard {
     display: flex;
@@ -257,8 +257,8 @@ export const Panel = styled.div`
     align-items: flex-start;
     padding: 12px;
     border-radius: 11px;
-    background: #f6f2e7;
-    color: #786842;
+    background: var(--color-palette-f6f2e7);
+    color: var(--color-text-786842);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -270,7 +270,7 @@ export const Panel = styled.div`
   .validation-case {
     margin-top: 9px;
     padding-top: 8px;
-    border-top: 1px solid rgba(80, 110, 85, 0.15);
+    border-top: 1px solid var(--color-brand-alpha-150);
   }
   .validation-scale {
     display: flex;
@@ -280,10 +280,10 @@ export const Panel = styled.div`
     font-size: 11px;
   }
   .validation-scale .ok {
-    color: #3d7048;
+    color: var(--color-text-3d7048);
   }
   .validation-scale .bad {
-    color: #a03e35;
+    color: var(--color-text-a03e35);
   }
   @media (max-width: 850px) {
     grid-template-columns: 1fr;

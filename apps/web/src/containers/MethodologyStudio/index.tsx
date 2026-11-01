@@ -1078,7 +1078,7 @@ export function MethodologyStudio() {
               display: "grid",
               placeItems: "center",
               padding: 20,
-              background: "rgba(24, 36, 28, .42)",
+              background: "var(--color-brand-alpha-420)",
             }}
           >
             <div
@@ -1090,13 +1090,13 @@ export function MethodologyStudio() {
                 width: "min(460px, 100%)",
                 padding: 24,
                 borderRadius: 18,
-                background: "#fff",
-                boxShadow: "0 24px 80px rgba(20, 35, 24, .25)",
+                background: "var(--color-surface)",
+                boxShadow: "0 24px 80px var(--color-brand-alpha-250)",
               }}
             >
               <h2
                 id="method-delete-title"
-                style={{ margin: "0 0 10px", color: "#395540" }}
+                style={{ margin: "0 0 10px", color: "var(--color-text-395540)" }}
               >
                 {locked
                   ? "Убрать методику из каталога?"

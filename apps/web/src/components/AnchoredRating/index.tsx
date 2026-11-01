@@ -6,8 +6,8 @@ const Rating=styled.div`
  .rating-buttons {display:flex;gap:6px;overflow-x:auto;padding:3px;margin:-3px;}
  .rating-buttons button {flex:1 0 24px;}
  .rating-buttons button.ant-btn {justify-content:center !important;text-align:center;min-height:52px;padding:8px 0;border-radius:10px;font-size:16px;font-variant-numeric:tabular-nums;}
- .rating-buttons button:focus-visible {outline:2px solid #527a50;outline-offset:1px;}
- .rating-anchors {display:flex;justify-content:space-between;gap:24px;margin-top:12px;color:#526257;font-size:13px;line-height:1.5;}
+ .rating-buttons button:focus-visible {outline:2px solid var(--color-brand);outline-offset:1px;}
+ .rating-anchors {display:flex;justify-content:space-between;gap:24px;margin-top:12px;color:var(--color-text-526257);font-size:13px;line-height:1.5;}
  .rating-anchors span {max-width:45%;}
  .rating-anchors span:last-child {text-align:right;}
  @media(max-width:480px){.rating-buttons {gap:4px;} .rating-buttons button.ant-btn {font-size:14px;} }

@@ -29,7 +29,7 @@ export function LegacyLogin() {
   return (
     <Page>
       <LoginBox>
-        <Leaf color="#58735f" />
+        <Leaf color="var(--color-brand)" />
         <h1>Панель исследования</h1>
         <form onSubmit={submit}>
           <label htmlFor="legacy-email">Электронная почта</label>

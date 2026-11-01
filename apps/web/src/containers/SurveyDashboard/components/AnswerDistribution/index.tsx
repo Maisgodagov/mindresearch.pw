@@ -74,37 +74,37 @@ export function AnswerDistribution({
       {!loading&&!error&&data.length>0&&<DistributionChart>
         <ResponsiveContainer>
           <BarChart data={sortNumericAnswers(data)}>
-            <CartesianGrid stroke="#e5ebe3" strokeDasharray="4 4" vertical={false} />
+            <CartesianGrid stroke="var(--color-brand-soft)" strokeDasharray="4 4" vertical={false} />
             <XAxis
               dataKey="answer"
-              tick={{ fontSize: 10, fill: "#6d7b70" }}
+              tick={{ fontSize: 10, fill: "var(--color-palette-6d7b70)" }}
               tickLine={false}
-              axisLine={{ stroke: "#cbd7c9" }}
+              axisLine={{ stroke: "var(--color-border-strong)" }}
               tickMargin={8}
               minTickGap={16}
             />
             <YAxis
               allowDecimals={false}
-              tick={{ fontSize: 10, fill: "#77847a" }}
+              tick={{ fontSize: 10, fill: "var(--color-palette-77847a)" }}
               tickLine={false}
               axisLine={false}
               width={32}
             />
             <Tooltip
-              contentStyle={{ border: "1px solid #dce5da", borderRadius: 9, boxShadow: "0 6px 18px rgba(37, 55, 40, .1)" }}
-              labelStyle={{ color: "#304536", fontWeight: 650 }}
-              itemStyle={{ color: "#52764b", fontSize: 12 }}
-              cursor={{ fill: "#edf4ea" }}
+              contentStyle={{ border: "1px solid var(--color-brand-soft)", borderRadius: 9, boxShadow: "0 6px 18px var(--color-brand-alpha-100)" }}
+              labelStyle={{ color: "var(--color-text-304536)", fontWeight: 650 }}
+              itemStyle={{ color: "var(--color-text-52764b)", fontSize: 12 }}
+              cursor={{ fill: "var(--color-brand-soft)" }}
             />
             <Bar
               isAnimationActive={false}
               dataKey="count"
               name={copy.answerCount}
-              fill="#66866c"
+              fill="var(--color-brand)"
               radius={[5, 5, 0, 0]}
               onClick={(entry:any)=>choose(entry.answer ?? entry.payload?.answer)}
               cursor="pointer"
-            >{sortNumericAnswers(data).map(row=><Cell key={row.answer} fill={selected.includes(row.answer)?'#365532':selected.length?'#b9cbb3':'#66866c'} />)}</Bar>
+            >{sortNumericAnswers(data).map(row=><Cell key={row.answer} fill={selected.includes(row.answer)?'var(--color-brand)':selected.length?'var(--color-border-strong)':'var(--color-brand)'} />)}</Bar>
           </BarChart>
         </ResponsiveContainer>
       </DistributionChart>}

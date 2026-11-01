@@ -1,3 +1,4 @@
+import { resolveThemeValue } from "../../theme/resolveThemeValue";
 import "@fontsource-variable/onest";
 import "@fontsource/prata";
 import type { PublicResult } from "./types";
@@ -15,7 +16,7 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   canvas.height = 1920;
   const c = canvas.getContext("2d");
   if (!c) throw new Error("Браузер не поддерживает создание изображения");
-  const ink = "#203e32", paper = "#fff5da";
+  const ink = resolveThemeValue("var(--color-story-203e32)"), paper = resolveThemeValue("var(--color-story-fff5da)");
   const main = result.scales[0];
   const additional = result.scales.slice(1);
   const multiple = additional.length > 0;
@@ -24,10 +25,15 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   const position = span > 0 ? Math.max(0, Math.min(1, (main.value - main.min) / span)) : 0;
   const mix = (a: number[], b: number[], t: number) =>
     `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`;
+  const rgb = (name: string) => {
+    const hex = resolveThemeValue(`var(${name})`).slice(1);
+    return [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
+  };
+  const low = rgb("--color-chart-low"), mid = rgb("--color-chart-mid"), high = rgb("--color-chart-high");
   const accent = position < 0.5
-    ? mix([153, 199, 223], [247, 181, 132], position * 2)
-    : mix([247, 181, 132], [208, 235, 119], (position - 0.5) * 2);
-  const highlight = position < 0.5 ? "#e67f55" : "#c8e878";
+    ? mix(low, mid, position * 2)
+    : mix(mid, high, (position - 0.5) * 2);
+  const highlight = position < 0.5 ? resolveThemeValue("var(--color-story-e67f55)") : resolveThemeValue("var(--color-story-c8e878)");
   const titles: Record<string, string[]> = {
     "satisfaction-with-life": ["Моя жизнь.", "Мои ощущения."],
     "subjective-happiness": ["Моё ощущение", "счастья"],
@@ -89,7 +95,7 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   c.beginPath();
   c.arc(centerX, centerY, orbitRadius - 12, Math.PI * 1.82, Math.PI * 2.1);
   c.stroke();
-  c.fillStyle = "#fff9e9";
+  c.fillStyle = resolveThemeValue("var(--color-story-fff9e9)");
   c.beginPath();
   c.arc(centerX, centerY, radius - 46, 0, Math.PI * 2);
   c.fill();
@@ -101,8 +107,8 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   c.stroke();
   if (position > 0) {
     const shading = c.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-    shading.addColorStop(0, "#203e32");
-    shading.addColorStop(1, "#527b61");
+    shading.addColorStop(0, resolveThemeValue("var(--color-story-203e32)"));
+    shading.addColorStop(1, resolveThemeValue("var(--color-story-527b61)"));
     c.strokeStyle = shading;
     c.beginPath();
     c.arc(centerX, centerY, radius, start, end);
@@ -156,8 +162,8 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
       c.stroke();
       if (fraction > 0) {
         const shading = c.createLinearGradient(x - miniRadius, y - miniRadius, x + miniRadius, y + miniRadius);
-        shading.addColorStop(0, "#203e32");
-        shading.addColorStop(1, "#527b61");
+        shading.addColorStop(0, resolveThemeValue("var(--color-story-203e32)"));
+        shading.addColorStop(1, resolveThemeValue("var(--color-story-527b61)"));
         c.strokeStyle = shading;
         c.beginPath();
         c.arc(x, y, miniRadius, start, start + fraction * Math.PI * 2);

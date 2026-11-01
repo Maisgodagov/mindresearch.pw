@@ -25,8 +25,8 @@ const LinksList = styled.div`
     padding: 10px 15px;
     border: 0;
     border-radius: 999px;
-    color: #36583d;
-    background: #edf3e9;
+    color: var(--color-text-36583d);
+    background: var(--color-brand-soft);
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
@@ -37,12 +37,12 @@ const LinksList = styled.div`
     transition: background-color .15s ease, color .15s ease;
   }
   a:hover {
-    background: #e0ebda;
-    color: #284a30;
+    background: var(--color-brand-soft);
+    color: var(--color-text-284a30);
     transform: none;
   }
   a:focus-visible {
-    outline: 2px solid #52764b;
+    outline: 2px solid var(--color-brand);
     outline-offset: 3px;
   }
   svg {
@@ -97,7 +97,7 @@ export function LinkedBio({ text }: { text: string }) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color: "#426c48",
+                color: "var(--color-text-426c48)",
                 textDecoration: "underline",
                 overflowWrap: "anywhere",
               }}

@@ -58,16 +58,16 @@ export function AuthGuard({
               maxWidth: 520,
               margin: "0 auto",
               padding: 28,
-              border: "1px solid #dce6d9",
+              border: "1px solid var(--color-brand-soft)",
               borderRadius: 18,
-              background: "#fff",
-              color: "#405747",
+              background: "var(--color-surface)",
+              color: "var(--color-text-405747)",
             }}
           >
             <h1 style={{ margin: "0 0 10px", fontSize: 22 }}>
               Не удалось проверить сессию
             </h1>
-            <p style={{ margin: "0 0 18px", lineHeight: 1.6, color: "#758178" }}>
+            <p style={{ margin: "0 0 18px", lineHeight: 1.6, color: "var(--color-text-758178)" }}>
               Сервер может быть временно недоступен. Проверьте подключение и повторите
               попытку — входить заново пока не нужно.
             </p>

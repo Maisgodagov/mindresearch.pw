@@ -94,3 +94,9 @@ export function rememberAssessment(slug: string, id?: string) {
 }
 export const formatScore = (value: number) =>
   new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value);
+
+const questionPlural = new Intl.PluralRules("ru");
+export function formatQuestionCount(count: number) {
+  const form = questionPlural.select(count);
+  return `${count} ${form === "one" ? "вопрос" : form === "few" ? "вопроса" : "вопросов"}`;
+}

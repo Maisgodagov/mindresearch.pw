@@ -834,7 +834,7 @@ export function SurveyBuilder() {
                                 className="field shared-options-field"
                                 style={{
                                   padding: "13px",
-                                  background: "#f2f6f0",
+                                  background: "var(--color-surface-muted)",
                                   borderRadius: 12,
                                 }}
                               >

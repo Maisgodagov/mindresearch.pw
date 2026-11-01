@@ -1,3 +1,3 @@
 export const pageDefaults = {
-  background: '#f3f6f0',
+  background: 'var(--color-surface-muted)',
 };

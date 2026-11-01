@@ -8,16 +8,16 @@ export const ControlPanel = styled.aside`
   display: grid;
   gap: 16px;
   padding: 18px;
-  border: 1px solid #dce5da;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 14px;
-  background: #fff;
-  color: #29392e;
+  background: var(--color-surface);
+  color: var(--color-text-29392e);
 
   .control-heading {
     display: flex;
     align-items: center;
     gap: 10px;
-    h2 { margin: 0; color: #28392d; font-size: 17px; font-weight: 750; line-height: 1.3; }
+    h2 { margin: 0; color: var(--color-text-28392d); font-size: 17px; font-weight: 750; line-height: 1.3; }
   }
   .control-icon {
     width: 34px;
@@ -26,45 +26,45 @@ export const ControlPanel = styled.aside`
     place-items: center;
     flex: none;
     border-radius: 9px;
-    background: #edf4ea;
-    color: #4b6b4d;
+    background: var(--color-brand-soft);
+    color: var(--color-text-4b6b4d);
   }
   .survey-details {
     display: grid;
     gap: 9px;
     padding-bottom: 13px;
-    border-bottom: 1px solid #e7ece5;
+    border-bottom: 1px solid var(--color-brand-soft);
   }
   .field-group { display: grid; gap: 4px; min-width: 0; }
-  .field-group label { color: #596b5d; font-size: 10px; font-weight: 700; }
+  .field-group label { color: var(--color-text-596b5d); font-size: 10px; font-weight: 700; }
   .description-toggle { display: none; }
   .description-content { display: grid; gap: 4px; }
   .survey-details input,
   .survey-details textarea {
     width: 100%;
     min-width: 0;
-    border: 1px solid #dce5da;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: #fbfcfa;
-    color: #29392e;
+    background: var(--color-surface-muted);
+    color: var(--color-text-29392e);
     font-size: 12px;
   }
   .survey-details input { min-height: 35px; padding: 7px 9px; }
   .survey-details textarea { min-height: 54px; padding: 7px 9px; resize: vertical; line-height: 1.4; }
   .survey-details input:focus,
-  .survey-details textarea:focus { border-color: #87a087; background: #fff; outline: 2px solid rgba(112, 150, 108, .14); }
-  .survey-details .invalid { border-color: #c96d67 !important; background: #fff8f7 !important; }
-  .field-note { color: #7b887e; font-size: 10px; }
+  .survey-details textarea:focus { border-color: var(--color-brand); background: var(--color-surface); outline: 2px solid var(--color-brand-alpha-140); }
+  .survey-details .invalid { border-color: var(--color-palette-c96d67) !important; background: var(--color-palette-fff8f7) !important; }
+  .field-note { color: var(--color-text-7b887e); font-size: 10px; }
   .control-add {
     padding-top: 0;
-    h3 { margin: 0; color: #344b38; font-size: 13px; font-weight: 750; }
-    p { margin: 6px 0 11px; color: #67766a; font-size: 12px; line-height: 1.5; }
+    h3 { margin: 0; color: var(--color-text-344b38); font-size: 13px; font-weight: 750; }
+    p { margin: 6px 0 11px; color: var(--color-text-67766a); font-size: 12px; line-height: 1.5; }
   }
   .control-actions {
     display: grid;
     gap: 5px;
     padding-top: 12px;
-    border-top: 1px solid #e7ece5;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .action-buttons {
     display: grid;
@@ -91,12 +91,12 @@ export const ControlPanel = styled.aside`
   .action-buttons svg { flex:0 0 15px; width:15px; min-width:15px; height:15px; }
   .save-button {
     && {
-      border: 1px solid #385a40 !important;
-      background: #385a40 !important;
-      color: #fff !important;
+      border: 1px solid var(--color-brand) !important;
+      background: var(--color-brand) !important;
+      color: var(--color-text-fff) !important;
       box-shadow: none;
     }
-    &:hover:not(:disabled) { border-color: #2d4d35 !important; background: #2d4d35 !important; }
+    &:hover:not(:disabled) { border-color: var(--color-ink) !important; background: var(--color-brand) !important; }
   }
   .publish-toggle {
     display: flex;
@@ -104,20 +104,20 @@ export const ControlPanel = styled.aside`
     justify-content: flex-start;
     gap: 8px;
     min-height: 32px;
-    color: #5c6b5f;
+    color: var(--color-text-5c6b5f);
     font-size: 11px;
     font-weight: 600;
-    input { width: 16px; height: 16px; margin: 0; accent-color: #456b4c; flex: none; }
+    input { width: 16px; height: 16px; margin: 0; accent-color: var(--color-brand); flex: none; }
   }
   .preview-button {
     && {
-      border: 1px solid #dce5da;
-      background: #fff;
-      color: #506454;
+      border: 1px solid var(--color-brand-soft);
+      background: var(--color-surface);
+      color: var(--color-text-506454);
     }
-    &:hover:not(:disabled) { background: #f1f5ef !important; color: #344c39 !important; }
+    &:hover:not(:disabled) { background: var(--color-surface-muted) !important; color: var(--color-text-344c39) !important; }
   }
-  .preview-error { margin: 0; color: #a05252; font-size: 11px; line-height: 1.45; }
+  .preview-error { margin: 0; color: var(--color-text-a05252); font-size: 11px; line-height: 1.45; }
 
   @media (max-width: 900px) {
     position: static;
@@ -161,14 +161,14 @@ export const ControlPanel = styled.aside`
       padding: 0;
       border: 0;
       background: transparent;
-      color: #596b5d;
+      color: var(--color-text-596b5d);
       font: inherit;
       font-size: 10px;
       font-weight: 700;
       text-align: left;
       cursor: pointer;
     }
-    .description-state { margin-left: auto; color: #7b887e; font-size: 9px; font-weight: 500; }
+    .description-state { margin-left: auto; color: var(--color-text-7b887e); font-size: 9px; font-weight: 500; }
     .description-toggle svg { flex: none; transition: transform 140ms ease; }
     .description-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
     .description-content { display: none; }

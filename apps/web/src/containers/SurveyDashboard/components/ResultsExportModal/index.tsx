@@ -8,20 +8,20 @@ const Content = styled.div`
   max-height: calc(100dvh - 160px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #a1b09b transparent;
+  scrollbar-color: var(--color-brand) transparent;
   h3:first-child { margin-top: 6px; }
-  p { color: #647268; line-height: 1.6; }
+  p { color: var(--color-text-647268); line-height: 1.6; }
   h3 { font-size: 14px; margin: 22px 0 10px; }
   .content-options { display: grid; gap: 10px; width: 100%; }
   .content-options .ant-radio-wrapper { margin: 0; align-items: flex-start; }
-  .content-options small { display: block; color: #647268; line-height: 1.5; margin-top: 2px; }
+  .content-options small { display: block; color: var(--color-text-647268); line-height: 1.5; margin-top: 2px; }
   .scope { display: grid; gap: 9px; }
   .selection-actions { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
-  .selection-actions button { padding: 0; background: none; border: 0; color: #52764b; text-decoration: underline; text-underline-offset: 3px; }
+  .selection-actions button { padding: 0; background: none; border: 0; color: var(--color-text-52764b); text-decoration: underline; text-underline-offset: 3px; }
   .sections { display: grid; gap: 14px; max-height: 28vh; overflow: auto; overscroll-behavior: contain; padding: 4px; }
   .section-label { display: grid; gap: 3px; }
-  .section-label small { color: #647268; font-size: 12px; }
-  .footer { position: sticky; bottom: 0; background: #fff; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding: 12px 0 2px; }
+  .section-label small { color: var(--color-text-647268); font-size: 12px; }
+  .footer { position: sticky; bottom: 0; background: var(--color-surface); display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding: 12px 0 2px; }
 `;
 
 export function ResultsExportModal({ sections, selectedCount, filteredCount, totalCount, busy, onCancel, onExport }: {

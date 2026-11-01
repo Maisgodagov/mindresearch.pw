@@ -1,3 +1,5 @@
+import "./theme/colors.css";
+import { resolveThemeValue } from "./theme/resolveThemeValue";
 import { ProductAnalytics } from "./analytics";
 import { PageTitles } from "./pageTitle";
 import React, { Suspense } from "react";
@@ -106,41 +108,42 @@ function App() {
       select={{ loadingIcon: <ActionSkeleton /> }}
       theme={{
         token: {
-          colorPrimary: "#52764b",
-          colorInfo: "#52764b",
-          colorSuccess: "#52764b",
-          colorWarning: "#9a7540",
-          colorError: "#b85d55",
-          colorText: "#1e2c23",
-          colorTextSecondary: "#647268",
-          colorBorder: "#d9e2d8",
-          colorBgContainer: "#fff",
-          borderRadius: 9,
-          borderRadiusLG: 14,
-          controlHeight: 42,
+          colorPrimary: resolveThemeValue("var(--color-brand)"),
+          colorInfo: resolveThemeValue("var(--color-brand)"),
+          colorSuccess: resolveThemeValue("var(--color-brand)"),
+          colorWarning: resolveThemeValue("var(--color-palette-9a7540)"),
+          colorError: resolveThemeValue("var(--color-palette-b85d55)"),
+          colorText: resolveThemeValue("var(--color-ink)"),
+          colorTextSecondary: resolveThemeValue("var(--color-muted)"),
+          colorBorder: resolveThemeValue("var(--color-border)"),
+          colorBgContainer: resolveThemeValue("var(--color-surface)"),
+          borderRadius: 8,
+          borderRadiusLG: 16,
+          controlHeight: 44,
           fontFamily: "Manrope Variable, sans-serif",
-          boxShadowSecondary: "0 12px 30px rgba(34,52,37,.12)",
+          fontWeightStrong: 600,
+          boxShadowSecondary: resolveThemeValue("0 8px 24px var(--color-brand-alpha-080)"),
         },
         components: {
           Button: {
             primaryShadow: "none",
             defaultShadow: "none",
             controlHeightLG: 48,
-            defaultHoverBg: "#edf4ea",
-            defaultHoverColor: "#365532",
-            defaultHoverBorderColor: "#b8cbb2",
-            defaultActiveBg: "#e3eddf",
-            defaultActiveColor: "#304d2d",
-            defaultActiveBorderColor: "#a9c09f",
+            defaultHoverBg: resolveThemeValue("var(--color-brand-soft)"),
+            defaultHoverColor: resolveThemeValue("var(--color-brand)"),
+            defaultHoverBorderColor: "transparent",
+            defaultActiveBg: resolveThemeValue("var(--color-brand-soft)"),
+            defaultActiveColor: resolveThemeValue("var(--color-ink)"),
+            defaultActiveBorderColor: "transparent",
           },
           Input: {
-            activeShadow: "0 0 0 3px rgba(82,118,75,.2)",
-            activeBorderColor: "#52764b",
-            hoverBorderColor: "#a7bda2",
+            activeShadow: resolveThemeValue("0 0 0 3px var(--color-brand-alpha-200)"),
+            activeBorderColor: resolveThemeValue("var(--color-brand)"),
+            hoverBorderColor: resolveThemeValue("var(--color-border-strong)"),
           },
           Select: {
-            activeOutlineColor: "rgba(82,118,75,.2)",
-            optionSelectedBg: "#e8f1e3",
+            activeOutlineColor: resolveThemeValue("var(--color-brand-alpha-200)"),
+            optionSelectedBg: resolveThemeValue("var(--color-brand-soft)"),
           },
         },
       }}

@@ -302,11 +302,11 @@ export function InstrumentCatalog({
         </Library>
         {categoryFilteredInstruments.length > pageSize && (
           <CatalogPagination aria-label="\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u044b \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0430">
-            <span>{(page - 1) * pageSize + 1}&#8211;{Math.min(page * pageSize, categoryFilteredInstruments.length)} {"\u0438\u0437"} {categoryFilteredInstruments.length}</span>
+            <span>{(page - 1) * pageSize + 1}&var(--color-palette-882211-a067);{Math.min(page * pageSize, categoryFilteredInstruments.length)} {"\u0438\u0437"} {categoryFilteredInstruments.length}</span>
             <div className="pages">
               <Button className="page-arrow" disabled={page === 1} aria-label="\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430" onClick={() => changePage(page - 1)}>&#x2039;</Button>
               {paginationItems.map((item, index) => item === "ellipsis" ? (
-                <span className="page-ellipsis" key={`ellipsis-${index}`} aria-hidden="true">&#8230;</span>
+                <span className="page-ellipsis" key={`ellipsis-${index}`} aria-hidden="true">&var(--color-palette-882233-a000);</span>
               ) : (
                 <Button key={item} className={item === page ? "page-number active" : "page-number"} aria-current={item === page ? "page" : undefined} onClick={() => changePage(item)}>{item}</Button>
               ))}

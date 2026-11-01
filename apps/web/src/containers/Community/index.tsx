@@ -215,7 +215,7 @@ export function Community() {
               <Button icon={<UserRound size={16} />} onClick={() => setEditingProfile(true)}>
                 Карточка участника
               </Button>
-              <Popover open={walletOpen} onOpenChange={setWalletOpen} trigger="click" placement="bottomRight" styles={{ container: { padding: 0, borderRadius: 14, boxShadow: "0 8px 28px rgba(34,52,37,.14)" } }} content={
+              <Popover open={walletOpen} onOpenChange={setWalletOpen} trigger="click" placement="bottomRight" styles={{ container: { padding: 0, borderRadius: 14, boxShadow: "0 8px 28px var(--color-brand-alpha-140)" } }} content={
                 <WalletDetails aria-label="Ваш баланс">
                   <div className="wallet-summary">
                     <div className="wallet-total"><h2>Ваш баланс</h2><strong>{points(balance)}</strong></div>

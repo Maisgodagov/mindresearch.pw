@@ -383,7 +383,7 @@ export function AdminUserPage() {
                     width: "100%",
                     padding: 12,
                     margin: "10px 0 20px",
-                    border: "1px solid #cbd9ca",
+                    border: "1px solid var(--color-border-strong)",
                     borderRadius: 10,
                   }}
                 />

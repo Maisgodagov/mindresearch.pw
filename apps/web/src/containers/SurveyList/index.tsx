@@ -22,10 +22,10 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { api, getCurrentUser, useDemoFallbacks } from "../../api";
+import { api, useDemoFallbacks } from "../../api";
 import { getApiErrorMessage } from "../../utils/apiErrors";
 import { Button, SkeletonScreen } from "../../ui";
-import { demoSurveys, demoUser } from "../../platform/demo";
+import { demoSurveys } from "../../platform/demo";
 import { PlatformLayout } from "../PlatformLayout";
 import type { Survey } from "./types";
 import { formatSurveyDate } from "./const";
@@ -47,7 +47,6 @@ export function PlatformHome() {
     [trashOpen, setTrashOpen] = useState(false),
     [deleteTarget, setDeleteTarget] = useState<Survey | null>(null),
     [archiveTarget, setArchiveTarget] = useState<Survey | null>(null),
-    [name, setName] = useState(""),
     [copied, setCopied] = useState(""),
     [publishing, setPublishing] = useState(""),
     [working, setWorking] = useState(""),
@@ -56,19 +55,16 @@ export function PlatformHome() {
     Promise.all([
       api.get("/admin/surveys"),
       api.get("/account/surveys/trash"),
-      getCurrentUser(),
       api.get('/sharing/shared'),
     ])
-      .then(([s, t, u, sharedResponse]) => {
+      .then(([s, t, sharedResponse]) => {
         setShared(sharedResponse.data);
         setSurveys(s.data);
         setTrash(t.data);
-        setName(u.name);
       })
       .catch(() => {
         if (useDemoFallbacks) {
           setSurveys(demoSurveys);
-          setName(demoUser.name);
         } else {
           setError("Не удалось загрузить опросы с сервера.");
         }
@@ -195,7 +191,6 @@ export function PlatformHome() {
     <PlatformLayout>
       <Head>
         <div>
-          <span className="hello">Здравствуйте{name ? `, ${name}` : ""}</span>
           <h1>Ваши опросы</h1>
         </div>
         <Link to="/app/surveys/new">
@@ -204,7 +199,7 @@ export function PlatformHome() {
           </Button>
         </Link>
       </Head>
-      {error && <p style={{ color: "#a25c55" }}>{error}</p>}
+      {error && <p style={{ color: "var(--color-text-a25c55)" }}>{error}</p>}
       <Grid>
         {orderedSurveys.length === 0 ? shared.length ? null : (
           <EmptyState>
@@ -231,7 +226,7 @@ export function PlatformHome() {
                   {<button type="button" className="tool-button" title="Совместный доступ" aria-label={`Совместный доступ: ${s.title}`} onClick={()=>setSharing(s.id)}><Users size={16}/></button>}
                   <Link
                     className="tool-button edit"
-                   
+
                     to={`/app/surveys/${s.id}/edit`}
                     aria-label={`${s.hasBuilderState ? "Продолжить создание" : "Редактировать опрос"} ${s.title}`}
                     title={
@@ -297,7 +292,7 @@ export function PlatformHome() {
                       </Link>
                       <Button
                         className="publish"
-                       
+
                         data-survey-id={s.id}
                         disabled={publishing === s.id}
                         onClick={() => publish(s)}
@@ -309,7 +304,7 @@ export function PlatformHome() {
                   ) : (
                     <Button
                       className="publish"
-                     
+
                       data-survey-id={s.id}
                       disabled={publishing === s.id}
                       onClick={() => publish(s)}

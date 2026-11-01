@@ -18,7 +18,7 @@ import {
   PublicError,
   Sources,
 } from "./shared";
-import { publicRequest, type PublicMethod } from "./types";
+import { publicRequest, formatQuestionCount, type PublicMethod } from "./types";
 import { AuthenticatedOnly } from "../PlatformLayout";
 import "./catalog.css";
 
@@ -92,10 +92,10 @@ export function PublicMethodPage() {
             </div>
             <aside className="td-test-passport" aria-label="Прохождение теста">
               <BookOpen size={25} strokeWidth={1.5} />
-              <h2>{m.name}</h2>
+              <h2>Пройти тест</h2>
               <p className="td-passport-version">{m.abbreviation} · Для взрослых, 18+</p>
               <div className="td-meta">
-                <span><FileText size={18} />{data.questionCount} вопросов</span>
+                <span><FileText size={18} />{formatQuestionCount(data.questionCount)}</span>
                 <span><Clock3 size={18} />{m.minutes}</span>
               </div>
               <Link className="pm-button pm-primary" to={`/methods/${m.slug}/start/`}>
@@ -130,7 +130,7 @@ export function PublicMethodPage() {
               <section id="test-details" className="td-details">
                 <h2>Как устроена методика</h2>
                 {m.sections.slice(1).map((section, i) => (
-                  <details key={`${slug}-${i}`} open={i === 0}>
+                  <details key={`${slug}-${i}`} >
                     <summary>
                       {section.title}
                       <ChevronDown size={18} />
@@ -169,7 +169,7 @@ export function PublicMethodPage() {
             <div>
               <h2>Начните с нескольких минут для себя</h2>
               <p>
-                {data.questionCount} вопросов · {m.minutes} · результат сразу
+                {formatQuestionCount(data.questionCount)} · {m.minutes} · результат сразу
                 после прохождения
               </p>
             </div>

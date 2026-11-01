@@ -70,7 +70,6 @@ export function Register() {
           </div>
         </Intro>
         <Box>
-          <div className="form-kicker">Начните работу</div>
           <h2>Создать аккаунт</h2>
           <form onSubmit={submit}>
             <div className="field">

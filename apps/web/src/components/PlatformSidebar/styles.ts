@@ -1,32 +1,34 @@
 import styled from "styled-components";
 import { Button } from "../Button";
+import { sidebarTransitionMs } from "./const";
 
-export const Sidebar = styled.aside<{
+export const Sidebar = styled.aside.attrs<{ "data-sidebar-motion": boolean }>({ "data-sidebar-motion": true })<{
   $collapsed: boolean;
   $mobileOpen: boolean;
 }>`
-  padding: 22px ${(p) => (p.$collapsed ? "10px" : "16px")};
-  border-right: 1px solid #e1e7df;
-  background: #fbfcfa;
+  padding: 24px ${(p) => (p.$collapsed ? "8px" : "16px")};
+  border-right: 1px solid var(--color-brand-soft);
+  background: var(--color-sidebar);
   position: sticky;
   top: 0;
   height: 100dvh;
-  transition: none;
+  transition: padding-inline ${sidebarTransitionMs}ms cubic-bezier(.4, 0, .2, 1);
+  .toggle { flex-shrink: 0; }
   .top {
     display: flex;
     flex-direction: ${(p) => (p.$collapsed ? "column" : "row")};
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
-    margin-bottom: 31px;
+    gap: 8px;
+    margin-bottom: 32px;
     min-height: ${(p) => (p.$collapsed ? "72px" : "36px")};
   }
   .brand {
     display: flex;
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
-    gap: 6px;
-    color: #365532;
+    gap: 8px;
+    color: var(--color-text-365532);
     font-size: 17px;
     font-weight: 750;
     letter-spacing: -0.025em;
@@ -58,15 +60,18 @@ export const Sidebar = styled.aside<{
     border: 0;
     text-decoration: none;
     background: transparent;
-    color: #56645a;
+    color: var(--color-text-56645a);
     display: flex;
     align-items: center;
     justify-content: ${(p) => (p.$collapsed ? "center" : "flex-start")};
-    gap: 10px;
-    padding: 10px 11px;
+    gap: 8px;
+    padding: 8px;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 36px;
     border-radius: 8px;
-    font-weight: 650;
-    font-size: 13px;
+    font-weight: 500;
+    font-size: 14px;
     white-space: nowrap;
     cursor: pointer;
     transition:
@@ -78,21 +83,28 @@ export const Sidebar = styled.aside<{
   .logout svg,
   .report svg {
     flex: none;
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.5;
   }
   a span,
   .logout span,
   .report span {
     display: ${(p) => (p.$collapsed ? "none" : "inline")};
+    min-width: 0;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    flex-shrink: 0;
   }
   a.active,
   a:hover,
   .report:hover {
-    background: #f0f5ed;
-    color: #365532;
+    background: var(--color-surface-muted);
+    color: var(--color-text-365532);
   }
   a.active {
-    background: #e5efe0;
-    color: #2f4e2b;
+    background: var(--color-brand-soft);
+    color: var(--color-text-2f4e2b);
   }
   .guest-login-mobile {
     display: none;
@@ -102,27 +114,27 @@ export const Sidebar = styled.aside<{
     line-height: inherit;
     width: 100%;
     margin-top: 16px;
-    color: #69786d;
+    color: var(--color-text-69786d);
   }
   .logout {
     appearance: none;
     position: absolute;
-    bottom: 22px;
+    bottom: 24px;
     left: ${(p) => (p.$collapsed ? "10px" : "18px")};
     right: ${(p) => (p.$collapsed ? "10px" : "18px")};
     width: auto;
-    border-top: 1px solid #e1e7df;
+    border-top: 1px solid var(--color-brand-soft);
     border-radius: 0;
-    padding-top: 15px;
+    padding-top: 16px;
     text-align: left;
     transition: color 0.12s ease;
   }
   .logout:hover {
     background: transparent;
-    color: #4b6250;
+    color: var(--color-text-4b6250);
   }
   .logout:focus-visible {
-    outline: 2px solid #91b784;
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
   .mobile-logout {
@@ -150,13 +162,13 @@ export const Sidebar = styled.aside<{
     height: 36px;
     padding: 0;
     border: 0;
-    border-radius: 7px;
-    color: #5a715c;
+    border-radius: 8px;
+    color: var(--color-text-5a715c);
     background: transparent;
     cursor: pointer;
   }
   .research-group-toggle:hover {
-    background: #edf3e8;
+    background: var(--color-brand-soft);
   }
   .research-group-toggle svg {
     transition: transform 160ms ease;
@@ -166,8 +178,8 @@ export const Sidebar = styled.aside<{
   }
   .research-children {
     display: ${(p) => (p.$collapsed ? "grid" : "none")};
-    padding-left: ${(p) => (p.$collapsed ? "0" : "17px")};
-    gap: 3px;
+    padding-left: ${(p) => (p.$collapsed ? "0" : "16px")};
+    gap: 4px;
   }
   .research-children[data-open="true"] {
     display: grid;
@@ -177,7 +189,7 @@ export const Sidebar = styled.aside<{
   }
   .personal-navigation {
     display: grid;
-    gap: 3px;
+    gap: 4px;
     margin-top: 20px;
   }
   .personal-navigation .report {
@@ -185,18 +197,20 @@ export const Sidebar = styled.aside<{
   }
   .admin-navigation:not(:empty) {
     display: grid;
-    gap: 3px;
+    gap: 4px;
     margin-top: 20px;
     padding-top: 16px;
-    border-top: 1px solid #e1e7df;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .nav {
     max-height: calc(100dvh - 180px);
     overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
   }
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #8fa47d;
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
   .mobile-header {
@@ -213,8 +227,8 @@ export const Sidebar = styled.aside<{
     height: calc(56px + env(safe-area-inset-top));
     padding: 0;
     border: 0;
-    background: #fbfcfa;
-    box-shadow: 0 1px 0 #e1e7df;
+    background: var(--color-sidebar);
+    box-shadow: 0 1px 0 var(--color-brand-soft);
     .top,
     .logout {
       display: none;
@@ -227,7 +241,7 @@ export const Sidebar = styled.aside<{
       z-index: 13;
       height: 100%;
       padding-top: env(safe-area-inset-top);
-      background: #fbfcfa;
+      background: var(--color-sidebar);
     }
     .mobile-wordmark {
       grid-column: 2;
@@ -236,7 +250,7 @@ export const Sidebar = styled.aside<{
       font-size: 20px;
       font-weight: 750;
       letter-spacing: -0.025em;
-      color: #355238;
+      color: var(--color-text-355238);
     }
     .mobile-wordmark.active,
     .mobile-wordmark:hover {
@@ -248,7 +262,7 @@ export const Sidebar = styled.aside<{
       inset: calc(56px + env(safe-area-inset-top)) 0 0;
       border: 0;
       border-radius: 0;
-      background: rgb(30 50 35 / 25%);
+      background: var(--color-brand);
       z-index: 11;
     }
     .nav {
@@ -266,8 +280,10 @@ export const Sidebar = styled.aside<{
       padding: 20px 14px calc(20px + env(safe-area-inset-bottom));
       margin: 0;
       overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
       overscroll-behavior: contain;
-      background: #fbfcfa;
+      background: var(--color-sidebar);
       z-index: 12;
       gap: 4px;
       border-radius: 0;
@@ -287,7 +303,7 @@ export const Sidebar = styled.aside<{
       justify-content: flex-start;
       flex: none;
       gap: 12px;
-      min-height: 46px;
+      min-height: 44px;
       padding: 10px 12px;
       margin: 0;
       font-size: 14px;
@@ -310,7 +326,7 @@ export const Sidebar = styled.aside<{
       height: 44px;
     }
     .nav .research-children {
-      padding-left: 18px;
+      padding-left: 16px;
       display: none;
     }
     .nav .research-children[data-open="true"] {
@@ -324,7 +340,7 @@ export const Sidebar = styled.aside<{
       border: 0;
       border-radius: 8px;
       background: transparent;
-      color: #56645a;
+      color: var(--color-text-56645a);
       font-family: inherit;
       text-align: left;
       cursor: pointer;
@@ -357,11 +373,11 @@ export const MobileMenuButton = styled(Button)`
       border: 0;
       box-shadow: none;
       background: transparent;
-      color: #355238;
+      color: var(--color-text-355238);
       border-radius: 8px;
     }
     &&&:hover {
-      background: #edf3e8;
+      background: var(--color-brand-soft);
     }
   }
 `;
@@ -370,7 +386,7 @@ export const ToggleButton = styled(Button)`
   && {
     border: 0;
     background: transparent;
-    color: #56745f;
+    color: var(--color-text-56745f);
     box-shadow: none;
   }
   width: 30px;
@@ -383,7 +399,7 @@ export const ToggleButton = styled(Button)`
   &&:active {
     border: 0;
     background: transparent;
-    color: #385942;
+    color: var(--color-text-385942);
     box-shadow: none;
   }
 `;

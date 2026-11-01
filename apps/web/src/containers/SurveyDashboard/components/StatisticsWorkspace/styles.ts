@@ -1,13 +1,13 @@
 import styled from "styled-components";
 
 export const Workspace = styled.section`
-  --ink: #273b30;
-  --muted: #59685e;
-  --line: #dce4dc;
-  --accent: #52764c;
-  --wash: #f4f7f2;
+  --ink: var(--color-ink);
+  --muted: var(--color-brand);
+  --line: var(--color-brand-soft);
+  --accent: var(--color-brand);
+  --wash: var(--color-surface-muted);
   color: var(--ink);
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--line);
   border-radius: 14px;
   min-width: 0;
@@ -118,8 +118,8 @@ export const Workspace = styled.section`
     border-radius: 6px;
   }
   .tabs button[aria-selected="true"] {
-    color: #365431;
-    background: #e4ecde;
+    color: var(--color-text-365431);
+    background: var(--color-brand-soft);
   }
   .body {
     padding: 24px;
@@ -162,8 +162,8 @@ export const Workspace = styled.section`
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #425d3d;
-    background: #edf3e8;
+    color: var(--color-text-425d3d);
+    background: var(--color-brand-soft);
     border-radius: 6px;
     padding: 4px 8px;
     font-size: 12px;
@@ -204,9 +204,9 @@ export const Workspace = styled.section`
     width: 100%;
     min-height: 42px;
     padding: 10px 12px;
-    border: 1px solid #dce4d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: #fafbf9;
+    background: var(--color-surface-muted);
     color: var(--ink);
     font: inherit;
     font-weight: 400;
@@ -215,7 +215,7 @@ export const Workspace = styled.section`
   [role="combobox"] {
     height: 42px;
     border-radius: 8px;
-    background: #fafbf9;
+    background: var(--color-surface-muted);
     font-size: 13px;
     font-weight: 400;
   }
@@ -242,8 +242,8 @@ export const Workspace = styled.section`
     outline-offset: 3px;
   }
   ::selection {
-    background: #dcebcf;
-    color: #273b30;
+    background: var(--color-brand-soft);
+    color: var(--color-text-273b30);
   }
   .check {
     display: flex;
@@ -286,9 +286,9 @@ export const Workspace = styled.section`
     margin: 14px 0;
   }
   .error {
-    background: #fff4f1;
-    border: 1px solid #e9c9c0;
-    color: #873d30;
+    background: var(--color-palette-fff4f1);
+    border: 1px solid var(--color-palette-e9c9c0);
+    color: var(--color-text-873d30);
     border-radius: 8px;
     padding: 12px 16px;
     margin: 16px 28px;
@@ -311,7 +311,7 @@ export const Workspace = styled.section`
     position: sticky;
     top: 20px;
     align-self: start;
-    background: #f4f7f1;
+    background: var(--color-surface-muted);
     border: 0;
     padding: 20px;
     font-size: 12px;
@@ -499,12 +499,12 @@ export const Workspace = styled.section`
   }
   .workspace-tabs {
     padding: 9px 24px;
-    background: #f8faf6;
-    border-top: 1px solid #edf1e9;
+    background: var(--color-surface-muted);
+    border-top: 1px solid var(--color-brand-soft);
   }
   .tabs button:hover {
-    background: #edf2e8;
-    color: #365431;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365431);
   }
   .tabs button[aria-selected="true"] {
     font-weight: 650;
@@ -547,8 +547,8 @@ export const Workspace = styled.section`
     width: 36px;
     height: 36px;
     flex-shrink: 0;
-    color: #56744d;
-    background: #f0f4ec;
+    color: var(--color-text-56744d);
+    background: var(--color-surface-muted);
     border-radius: 8px;
   }
   .version {
@@ -574,7 +574,7 @@ export const Workspace = styled.section`
   .sample-row small {
     margin-top: 6px;
     font-size: 11px;
-    color: #476b3d;
+    color: var(--color-text-476b3d);
   }
   .method-description {
     color: var(--muted);
@@ -596,12 +596,12 @@ export const Workspace = styled.section`
   .run-summary {
     padding-bottom: 16px;
     margin-bottom: 18px;
-    border-bottom: 1px solid #dce5d6;
+    border-bottom: 1px solid var(--color-brand-soft);
   }
   .run-summary > p {
     font-weight: 650;
     font-size: 14px !important;
-    color: #365431;
+    color: var(--color-text-365431);
   }
   .run-summary dl {
     margin: 14px 0 0;
@@ -635,23 +635,23 @@ export const Workspace = styled.section`
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
-    background: #f1f3ef;
-    color: #59685e;
+    background: var(--color-surface-muted);
+    color: var(--color-text-59685e);
   }
   .history-status.completed {
-    background: #edf4e7;
-    color: #47663c;
+    background: var(--color-brand-soft);
+    color: var(--color-text-47663c);
   }
   .history-status.running {
-    background: #edf2f5;
-    color: #49697c;
+    background: var(--color-palette-edf2f5);
+    color: var(--color-text-49697c);
   }
   .history-status.failed {
-    background: #faeee9;
-    color: #924d3c;
+    background: var(--color-palette-faeee9);
+    color: var(--color-text-924d3c);
   }
   .history-row:has(input:checked) {
-    background: #f5f8f1;
+    background: var(--color-surface-muted);
   }
 
   @media (max-width: 950px) {

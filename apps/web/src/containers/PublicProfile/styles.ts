@@ -6,12 +6,12 @@ export const ProfileShell = styled.div<{ $embedded?: boolean }>`
   max-width: 1060px;
   margin: ${({ $embedded }) => ($embedded ? "0" : "0 auto")};
   padding: ${({ $embedded }) => ($embedded ? "0 0 32px" : "28px 0 64px")};
-  color: #304d3a;
+  color: var(--color-text-304d3a);
   .public-brand {
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    color: #36553e;
+    color: var(--color-text-36553e);
     font-size: 19px;
     font-weight: 750;
     text-decoration: none;
@@ -26,17 +26,17 @@ export const ProfileShell = styled.div<{ $embedded?: boolean }>`
   }
   a:focus-visible,
   button:focus-visible {
-    outline: 2px solid #64845c;
+    outline: 2px solid var(--color-brand);
     outline-offset: 4px;
   }
   ::selection {
-    background: #dfead7;
-    color: #28412e;
+    background: var(--color-brand-soft);
+    color: var(--color-text-28412e);
   }
   .profile-state {
     padding: 48px 36px;
-    background: #fff;
-    border: 1px solid #dce5d8;
+    background: var(--color-surface);
+    border: 1px solid var(--color-brand-soft);
     border-radius: 16px;
   }
   .profile-state h1 {
@@ -44,10 +44,10 @@ export const ProfileShell = styled.div<{ $embedded?: boolean }>`
     line-height: 1.3;
     font-weight: 600;
     margin: 0 0 12px;
-    color: #304d3a;
+    color: var(--color-text-304d3a);
   }
   .profile-state p {
-    color: #5f7164;
+    color: var(--color-text-5f7164);
     font-size: 14px;
     line-height: 1.7;
     margin: 0;
@@ -63,17 +63,17 @@ export const ProfileShell = styled.div<{ $embedded?: boolean }>`
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
-    color: #416d47;
+    color: var(--color-text-416d47);
   }
   .state-action {
     cursor: pointer;
-    background: #edf3e7;
+    background: var(--color-brand-soft);
     border: 0;
     border-radius: 9px;
     padding: 10px 16px;
   }
   .state-action:hover {
-    background: #dfead7;
+    background: var(--color-brand-soft);
   }
   .back-link:hover {
     text-decoration: underline;
@@ -106,9 +106,9 @@ export const Hero = styled.section`
   column-gap: 28px;
   row-gap: 16px;
   padding: 36px;
-  border: 1px solid #dce5d8;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 16px;
-  background: #fff;
+  background: var(--color-surface);
   .avatar {
     grid-column: 1;
     grid-row: 1 / 4;
@@ -132,7 +132,7 @@ export const Hero = styled.section`
     line-height: 1.2;
     font-weight: 600;
     letter-spacing: -0.025em;
-    color: #304d3a;
+    color: var(--color-text-304d3a);
     margin: 0 0 10px;
     overflow-wrap: anywhere;
   }
@@ -143,7 +143,7 @@ export const Hero = styled.section`
     gap: 6px 14px;
     font-size: 13px;
     line-height: 1.6;
-    color: #607165;
+    color: var(--color-text-607165);
     margin: 0;
   }
   .author-role span {
@@ -157,7 +157,7 @@ export const Hero = styled.section`
     margin: 0;
     font-size: 15px;
     line-height: 1.8;
-    color: #4f6556;
+    color: var(--color-text-4f6556);
     white-space: pre-line;
     overflow-wrap: anywhere;
   }
@@ -232,18 +232,18 @@ export const SurveyList = styled.section`
     line-height: 1.35;
     font-weight: 550;
     letter-spacing: -0.02em;
-    color: #304d3a;
+    color: var(--color-text-304d3a);
     margin: 0;
   }
   .survey-count {
     font-size: 15px;
-    color: #66766a;
+    color: var(--color-text-66766a);
     font-weight: 500;
     letter-spacing: 0;
     font-variant-numeric: tabular-nums;
   }
   .surveys-heading p {
-    color: #607165;
+    color: var(--color-text-607165);
     font-size: 13px;
     line-height: 1.6;
     margin: 7px 0 0;
@@ -252,9 +252,9 @@ export const SurveyList = styled.section`
     list-style: none;
     margin: 0;
     padding: 0;
-    border: 1px solid #dce5d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 16px;
-    background: #fff;
+    background: var(--color-surface);
     overflow: hidden;
   }
   .survey {
@@ -267,21 +267,21 @@ export const SurveyList = styled.section`
     transition: background-color 160ms ease;
   }
   .survey + .survey {
-    border-top: 1px solid #e5ebe1;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .survey:hover,
   .survey:focus-within {
-    background: #f9fbf7;
+    background: var(--color-surface-muted);
   }
   .survey-icon {
-    color: #5f7c60;
+    color: var(--color-text-5f7c60);
     flex: none;
   }
   .survey-copy {
     min-width: 0;
   }
   h3 {
-    color: #354f3b;
+    color: var(--color-text-354f3b);
     font-size: 16px;
     font-weight: 650;
     line-height: 1.55;
@@ -292,7 +292,7 @@ export const SurveyList = styled.section`
     max-width: 74ch;
     margin: 7px 0 0;
     font-size: 13px;
-    color: #607165;
+    color: var(--color-text-607165);
     line-height: 1.7;
     white-space: pre-line;
     overflow-wrap: anywhere;
@@ -305,8 +305,8 @@ export const SurveyList = styled.section`
     min-height: 42px;
     padding: 10px 16px;
     border-radius: 9px;
-    background: #52734c;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
     font-size: 13px;
     font-weight: 650;
     line-height: 1.5;
@@ -315,16 +315,16 @@ export const SurveyList = styled.section`
     transition: background-color 160ms ease;
   }
   .survey-start:hover {
-    color: #fff;
-    background: #3e5e39;
+    color: var(--color-text-fff);
+    background: var(--color-brand);
   }
   .survey-start svg {
     flex: none;
   }
   .empty-surveys {
-    border: 1px solid #dce5d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 16px;
-    background: #fff;
+    background: var(--color-surface);
     padding: 30px;
   }
   .empty-surveys h3 {
@@ -332,7 +332,7 @@ export const SurveyList = styled.section`
     font-weight: 600;
   }
   .empty-surveys p {
-    color: #607165;
+    color: var(--color-text-607165);
     font-size: 14px;
     line-height: 1.7;
     margin: 8px 0 0;

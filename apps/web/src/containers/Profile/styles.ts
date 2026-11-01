@@ -7,7 +7,7 @@ const controls = css`
     appearance: none;
     border: 0;
     background: transparent;
-    color: #44634b;
+    color: var(--color-text-44634b);
     font: inherit;
     font-size: 13px;
     font-weight: 650;
@@ -24,7 +24,7 @@ const controls = css`
       background-color 160ms ease;
   }
   .text-action:hover {
-    color: #263f2d;
+    color: var(--color-text-263f2d);
     text-decoration: underline;
     text-underline-offset: 4px;
   }
@@ -33,7 +33,7 @@ const controls = css`
     flex: none;
   }
   .icon-action:hover {
-    background: #edf2e9;
+    background: var(--color-brand-soft);
   }
   button:disabled {
     cursor: wait;
@@ -41,21 +41,21 @@ const controls = css`
   }
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #64845c;
+    outline: 2px solid var(--color-brand);
     outline-offset: 4px;
   }
   svg {
     flex: none;
   }
   ::selection {
-    background: #dfead7;
-    color: #28412e;
+    background: var(--color-brand-soft);
+    color: var(--color-text-28412e);
   }
 `;
 
 export const ProfileSurface = styled.div`
-  --profile-ink: #304d3a;
-  --profile-muted: #647469;
+  --profile-ink: var(--color-ink);
+  --profile-muted: var(--color-brand);
   width: 100%;
   color: var(--profile-ink);
   ${controls}
@@ -75,9 +75,9 @@ export const ProfileSurface = styled.div`
   }
   .profile-card {
     padding: 36px;
-    border: 1px solid #dce5d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 16px;
-    background: #fff;
+    background: var(--color-surface);
   }
   .identity {
     display: grid;
@@ -107,13 +107,13 @@ export const ProfileSurface = styled.div`
     height: 36px;
     border: 3px solid white;
     border-radius: 50%;
-    background: #e5efde;
-    color: #35543b;
+    background: var(--color-brand-soft);
+    color: var(--color-text-35543b);
     cursor: pointer;
     transition: background-color 160ms ease;
   }
   .avatar-edit:hover {
-    background: #d2e2c8;
+    background: var(--color-border-strong);
   }
   .identity-copy {
     padding-top: 6px;
@@ -130,7 +130,7 @@ export const ProfileSurface = styled.div`
   .bio {
     margin: 0;
     max-width: 65ch;
-    color: #526659;
+    color: var(--color-text-526659);
     font-size: 14px;
     line-height: 1.7;
     white-space: pre-line;
@@ -143,8 +143,8 @@ export const ProfileSurface = styled.div`
     align-self: start;
     margin-top: 6px;
     border-color: transparent;
-    color: #3e5b44;
-    background: #f6f9f3;
+    color: var(--color-text-3e5b44);
+    background: var(--color-surface-muted);
   }
   #root && .edit-details,
   #root && .edit-details:hover,
@@ -158,7 +158,7 @@ export const ProfileSurface = styled.div`
     gap: 24px;
     margin: 32px 0 0;
     padding: 26px 0;
-    border-block: 1px solid #e5ebe1;
+    border-block: 1px solid var(--color-brand-soft);
   }
   .profile-facts > div {
     min-width: 0;
@@ -203,7 +203,7 @@ export const ProfileSurface = styled.div`
   }
   .address a {
     display: inline;
-    color: #416d47;
+    color: var(--color-text-416d47);
     text-decoration: none;
   }
   .address a svg {
@@ -241,7 +241,7 @@ export const ProfileSurface = styled.div`
     justify-content: space-between;
     align-items: center;
     gap: 24px;
-    background: #f2f6ee;
+    background: var(--color-surface-muted);
     padding: 20px 22px;
     border-radius: 12px;
   }
@@ -256,7 +256,7 @@ export const ProfileSurface = styled.div`
   .visibility p {
     margin: 7px 0 0;
     max-width: 65ch;
-    color: #5b6c5f;
+    color: var(--color-text-5b6c5f);
     font-size: 13px;
     line-height: 1.6;
   }
@@ -268,7 +268,7 @@ export const ProfileSurface = styled.div`
     flex: 0 0 46px;
     border: 0;
     border-radius: 20px;
-    background: #9eada1;
+    background: var(--color-brand);
     padding: 3px;
     cursor: pointer;
     transition: background-color 160ms ease;
@@ -277,32 +277,32 @@ export const ProfileSurface = styled.div`
     display: block;
     width: 22px;
     height: 22px;
-    background: #fff;
+    background: var(--color-surface);
     border-radius: 50%;
     transition: transform 160ms ease;
   }
   .visibility-switch[aria-checked="true"] {
-    background: #52734c;
+    background: var(--color-brand);
   }
   .visibility-switch[aria-checked="true"] span {
     transform: translateX(18px);
   }
   .visibility-switch:hover {
-    background: #85998a;
+    background: var(--color-brand);
   }
   .visibility-switch[aria-checked="true"]:hover {
-    background: #3d5c38;
+    background: var(--color-brand);
   }
   .account-actions {
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    border-top: 1px solid #e5ebe1;
+    border-top: 1px solid var(--color-brand-soft);
     padding-top: 19px;
     margin-top: 28px;
   }
   .logout-action {
-    color: #6f625b;
+    color: var(--color-text-6f625b);
   }
   .save-notice {
     display: flex;
@@ -311,7 +311,7 @@ export const ProfileSurface = styled.div`
     min-height: 32px;
     margin-top: 12px;
     font-size: 13px;
-    color: #416448;
+    color: var(--color-text-416448);
   }
   .load-error {
     padding: 20px 0;
@@ -410,7 +410,7 @@ export const ProfileDialog = styled(Modal)`
   .ant-modal-content {
     padding: 28px;
     border-radius: 16px;
-    background: #fff;
+    background: var(--color-surface);
   }
   .ant-modal-header {
     margin-bottom: 10px;
@@ -418,19 +418,19 @@ export const ProfileDialog = styled(Modal)`
     background: transparent;
   }
   .ant-modal-title {
-    color: #304d3a;
+    color: var(--color-text-304d3a);
     font-size: 22px;
     line-height: 1.35;
     font-weight: 600;
     letter-spacing: -0.02em;
   }
   .ant-modal-close {
-    color: #5c7161;
+    color: var(--color-text-5c7161);
     top: 20px;
     right: 20px;
   }
   .ant-modal-close:hover {
-    background: #edf3e8;
+    background: var(--color-brand-soft);
   }
   @media (max-width: 600px) {
     .ant-modal-content {
@@ -443,11 +443,11 @@ export const ProfileDialog = styled(Modal)`
 `;
 
 export const DialogBody = styled.div`
-  color: #304d3a;
+  color: var(--color-text-304d3a);
   ${controls}
   .dialog-intro {
     margin: 0 0 22px;
-    color: #617266;
+    color: var(--color-text-617266);
     font-size: 13px;
     line-height: 1.65;
   }
@@ -462,7 +462,7 @@ export const DialogBody = styled.div`
     margin: 18px 0 7px;
     font-size: 13px;
     font-weight: 650;
-    color: #425b49;
+    color: var(--color-text-425b49);
   }
   fieldset > label:first-child {
     margin-top: 0;
@@ -470,11 +470,11 @@ export const DialogBody = styled.div`
   input,
   textarea {
     width: 100%;
-    caret-color: #416448;
+    caret-color: var(--color-brand);
   }
   input::placeholder,
   textarea::placeholder {
-    color: #68796c;
+    color: var(--color-text-68796c);
     opacity: 1;
   }
   textarea {
@@ -484,7 +484,7 @@ export const DialogBody = styled.div`
   .field-hint {
     font-size: 12px;
     line-height: 1.6;
-    color: #647469;
+    color: var(--color-text-647469);
     margin: 8px 0 0;
   }
   .slug-field {
@@ -493,7 +493,7 @@ export const DialogBody = styled.div`
     gap: 8px;
   }
   .slug-field > span {
-    color: #647469;
+    color: var(--color-text-647469);
     font-size: 14px;
   }
   .slug-field input {
@@ -506,7 +506,7 @@ export const DialogBody = styled.div`
     gap: 10px;
     padding-top: 22px;
     margin-top: 24px;
-    border-top: 1px solid #e5ebe1;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .dialog-actions button {
     white-space: normal;
@@ -516,9 +516,9 @@ export const DialogBody = styled.div`
   .form-error {
     margin: 18px 0 0;
     padding: 12px 14px;
-    background: #faf0ed;
+    background: var(--color-palette-faf0ed);
     border-radius: 8px;
-    color: #934b3c;
+    color: var(--color-text-934b3c);
     font-size: 13px;
     line-height: 1.6;
   }
@@ -553,7 +553,7 @@ export const DialogBody = styled.div`
     margin: 0;
   }
   .custom-links-heading span {
-    color: #647469;
+    color: var(--color-text-647469);
     font-size: 12px;
   }
   .custom-link {
@@ -573,13 +573,13 @@ export const DialogBody = styled.div`
     place-items: center;
     width: 56px;
     height: 56px;
-    color: #4a6b44;
-    background: #edf3e7;
+    color: var(--color-text-4a6b44);
+    background: var(--color-brand-soft);
     border-radius: 50%;
     margin: 22px 0 18px;
   }
   .confirm-copy {
-    color: #526659;
+    color: var(--color-text-526659);
     font-size: 14px;
     line-height: 1.75;
     margin: 0;
@@ -589,7 +589,7 @@ export const DialogBody = styled.div`
     align-items: center;
     gap: 9px;
     padding: 14px 0 0;
-    color: #416448;
+    color: var(--color-text-416448);
     font-size: 13px;
     overflow-wrap: anywhere;
   }
@@ -637,13 +637,13 @@ export const Avatars = styled.div`
     transition: border-color 160ms ease;
   }
   button:hover {
-    border-color: #a1b298;
+    border-color: var(--color-brand);
   }
   button.selected {
-    border-color: #4f7456;
+    border-color: var(--color-brand);
   }
   button:focus-visible {
-    outline: 2px solid #64845c;
+    outline: 2px solid var(--color-brand);
     outline-offset: 3px;
   }
   button img {

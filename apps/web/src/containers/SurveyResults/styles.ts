@@ -6,13 +6,13 @@ export const Header = styled.header`
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #526f5b;
+  color: var(--color-text-526f5b);
   font-size: 18px;
   font-weight: 750;
 `;
 export const Hero = styled(Card)`
   margin: 5vh auto 18px;
-  background: #fff;
+  background: var(--color-surface);
   & > .ant-card-body {
     padding: clamp(24px, 4vw, 36px);
   }
@@ -20,11 +20,11 @@ export const Hero = styled(Card)`
     font:
       500 clamp(32px, 7vw, 50px)/1.08 var(--font-heading),
       serif;
-    color: #2f4938;
+    color: var(--color-text-2f4938);
     margin: 12px 0 8px;
   }
   p {
-    color: #607067;
+    color: var(--color-text-607067);
     line-height: 1.6;
     margin: 0;
     max-width: 680px;
@@ -33,8 +33,8 @@ export const Hero = styled(Card)`
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    color: #50705a;
-    background: #e1ece0;
+    color: var(--color-text-50705a);
+    background: var(--color-brand-soft);
     padding: 7px 11px;
     border-radius: 99px;
     font-size: 13px;
@@ -68,23 +68,23 @@ export const ResultCard = styled(Card)`
     font:
       600 19px/1.3 var(--font-heading),
       serif;
-    color: #334c3b;
+    color: var(--color-text-334c3b);
     margin: 0 0 8px;
   }
   .summary {
     font-size: 14px;
     line-height: 1.55;
-    color: #657269;
+    color: var(--color-text-657269);
     margin-bottom: 18px;
   }
   .main {
     font-size: 25px;
     font-weight: 800;
-    color: #3f624a;
+    color: var(--color-text-3f624a);
     margin: 8px 0;
   }
   .sub {
-    color: #7a867e;
+    color: var(--color-text-7a867e);
     font-size: 12px;
   }
   @media (max-width: 480px) {
@@ -103,38 +103,38 @@ export const Bars = styled.div`
   }
   .name {
     font-size: 12px;
-    color: #526158;
+    color: var(--color-text-526158);
   }
   .value {
     text-align: right;
     font-weight: 800;
-    color: #3f5e48;
+    color: var(--color-text-3f5e48);
   }
   .track {
     grid-column: 1 / 3;
     height: 9px;
-    background: #e8ede6;
+    background: var(--color-brand-soft);
     border-radius: 10px;
     overflow: hidden;
   }
   .fill {
     height: 100%;
-    background: #6f8b75;
+    background: var(--color-brand);
     border-radius: 10px;
   }
   .note {
     grid-column: 1 / 3;
-    color: #7c887f;
+    color: var(--color-text-7c887f);
     font-size: 11px;
     margin-top: -2px;
   }
   .note.high {
-    color: #8a654d;
+    color: var(--color-text-8a654d);
   }
 `;
 export const Notice = styled(Card)`
   margin: 0 0 30px;
-  color: #647168;
+  color: var(--color-text-647168);
   font-size: 13px;
   line-height: 1.55;
   & > .ant-card-body {
@@ -145,35 +145,35 @@ export const Notice = styled(Card)`
   }
   svg {
     flex: none;
-    color: #63806a;
+    color: var(--color-text-63806a);
     margin-top: 2px;
   }
 `;
 export const Sources = styled(Card)`
   margin: 22px 0 44px;
   padding: 22px 24px;
-  color: #657269;
+  color: var(--color-text-657269);
   font-size: 13px;
   line-height: 1.55;
   h2 {
     font:
       600 19px/1.3 var(--font-heading),
       serif;
-    color: #334c3b;
+    color: var(--color-text-334c3b);
     margin: 0 0 6px;
   }
   .intro {
     margin: 0 0 16px;
-    color: #7b877f;
+    color: var(--color-text-7b877f);
   }
   .group + .group {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid #e3e9e1;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .method {
     font-weight: 750;
-    color: #405a48;
+    color: var(--color-text-405a48);
     margin-bottom: 7px;
   }
   .links {
@@ -182,16 +182,16 @@ export const Sources = styled(Card)`
     gap: 7px 16px;
   }
   a {
-    color: #52705a;
+    color: var(--color-text-52705a);
     text-decoration: underline;
-    text-decoration-color: #b9c8bb;
+    text-decoration-color: var(--color-border-strong);
     text-underline-offset: 3px;
     display: inline-flex;
     align-items: flex-start;
     gap: 5px;
   }
   a:hover {
-    color: #2f4938;
+    color: var(--color-text-2f4938);
     text-decoration-color: currentColor;
   }
   svg {

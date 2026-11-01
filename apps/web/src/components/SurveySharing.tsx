@@ -14,7 +14,7 @@ const InvitationPage=styled.div`
   .invitation-brand { display:flex; align-items:center; gap:10px; width:fit-content; margin:0 auto; text-decoration:none; color:var(--color-brand-ink); font-size:22px; font-weight:650; }
   .invitation-card { max-width:600px; margin:64px auto 0; background:var(--color-surface); border:1px solid var(--color-border); border-radius:16px; overflow:hidden; }
   .invitation-heading { padding:32px; background:var(--color-brand-soft); }
-  .invitation-symbol { display:grid; place-items:center; width:52px; height:52px; margin-bottom:22px; color:#fff; background:var(--color-brand-strong); border-radius:14px; }
+  .invitation-symbol { display:grid; place-items:center; width:52px; height:52px; margin-bottom:22px; color:var(--color-text-fff); background:var(--color-brand-strong); border-radius:14px; }
   h1 { margin:0; font-size:clamp(27px,4vw,36px); font-weight:600; line-height:1.2; letter-spacing:-.025em; color:var(--color-brand-ink); text-wrap:balance; }
   .invitation-body { padding:28px 32px 32px; }
   p { margin:0; font-size:16px; line-height:1.75; }
@@ -38,7 +38,7 @@ const Surface=styled.div`
   h3 { font-size:16px; margin:24px 0 4px; }
   small { display:block; color:var(--color-muted); }
   .sharing-link { display:grid; gap:8px; padding:14px; background:var(--color-page); border-radius:12px; margin-top:16px; }
-  .sharing-error { color:#a25c55; }
+  .sharing-error { color:var(--color-text-a25c55); }
   @media(max-width:550px){.sharing-row { align-items:flex-start; flex-direction:column; }.sharing-controls{width:100%;}}
 `;
 const permissionOptions=[{value:'view',label:'Только просмотр'},{value:'edit',label:'Просмотр и редактирование'}];

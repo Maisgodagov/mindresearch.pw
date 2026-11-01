@@ -5,14 +5,14 @@ import { SelectField } from '../../../../components/SelectField';
 const Row = styled.div`
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
   gap: 12px 18px; padding: 14px 0;
-  color: #526557; font-size: 12px;
+  color: var(--color-text-526557); font-size: 12px;
   .range { font-variant-numeric: tabular-nums; }
   .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
   .size { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .size > span { white-space: nowrap; }
   .ant-select { width: 80px; flex-shrink: 0; }
-  .ant-pagination-item-active { background: #52764b; border-color: #52764b; }
-  .ant-pagination-item-active a, .ant-pagination-item-active:hover a { color: #fff; }
+  .ant-pagination-item-active { background: var(--color-brand); border-color: var(--color-brand); }
+  .ant-pagination-item-active a, .ant-pagination-item-active:hover a { color: var(--color-text-fff); }
   .ant-pagination-item, .ant-pagination-prev, .ant-pagination-next { border-radius: 7px; }
   @media(max-width: 700px) {
     display: grid; grid-template-columns: minmax(0,1fr) auto;

@@ -122,7 +122,7 @@ export function RespondentResults({
     if(from===to||from==='select'||to==='select')return;
     const next=[...orderedIds];const targetIndex=next.indexOf(to);next.splice(next.indexOf(from),1);next.splice(targetIndex,0,from);setColumnOrder(next);
   }
-  function columnStyle(column: ReturnType<typeof table.getAllLeafColumns>[number]) {return {position:column.getIsPinned()?'sticky' as const:undefined,left:column.getIsPinned()==='left'?column.getStart('left'):undefined,zIndex:column.getIsPinned()?3:undefined,width:column.getSize(),textAlign:column.id==='select'?'center' as const:undefined,verticalAlign:column.id==='select'?'middle':undefined,background:column.getIsPinned()?'var(--table-cell-background, #fff)':undefined};}
+  function columnStyle(column: ReturnType<typeof table.getAllLeafColumns>[number]) {return {position:column.getIsPinned()?'sticky' as const:undefined,left:column.getIsPinned()==='left'?column.getStart('left'):undefined,zIndex:column.getIsPinned()?3:undefined,width:column.getSize(),textAlign:column.id==='select'?'center' as const:undefined,verticalAlign:column.id==='select'?'middle':undefined,background:column.getIsPinned()?'var(--table-cell-background, var(--color-surface))':undefined};}
 
   return (
     <>

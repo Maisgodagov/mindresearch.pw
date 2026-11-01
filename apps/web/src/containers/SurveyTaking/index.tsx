@@ -400,7 +400,7 @@ export function SurveyPage() {
                 onClick={previous}
                 style={{
                   background: "transparent",
-                  color: "#526f5b",
+                  color: "var(--color-text-526f5b)",
                   padding: "12px",
                 }}
               >

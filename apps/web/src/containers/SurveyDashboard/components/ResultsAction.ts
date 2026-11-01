@@ -12,22 +12,22 @@ export const ResultsAction = styled(Button).attrs({ type: 'text' as const })<{ $
     padding: 0 13px;
     border: 0 !important;
     border-radius: 7px;
-    background: ${p=>p.$emphasized?'#52764b':'#e4e9e0'} !important;
-    color: ${p=>p.$emphasized?'#ffffff':'#344b39'} !important;
+    background: ${p=>p.$emphasized?'var(--color-brand)':'var(--color-brand-soft)'} !important;
+    color: ${p=>p.$emphasized?'var(--color-surface)':'var(--color-ink)'} !important;
     box-shadow: none !important;
     font-size: 13px;
     font-weight: 650;
     white-space: nowrap;
   }
   #root &&&:not(:disabled):hover {
-    background: ${p=>p.$emphasized?'#45683f':'#d8e2d2'} !important;
-    color: ${p=>p.$emphasized?'#ffffff':'#2c432f'} !important;
+    background: ${p=>p.$emphasized?'var(--color-brand)':'var(--color-brand-soft)'} !important;
+    color: ${p=>p.$emphasized?'var(--color-surface)':'var(--color-ink)'} !important;
   }
   #root &&&:not(:disabled):active {
-    background: ${p=>p.$emphasized?'#385933':'#cbd8c5'} !important;
+    background: ${p=>p.$emphasized?'var(--color-brand)':'var(--color-border-strong)'} !important;
     transform: translateY(1px);
   }
-  #root &&&:focus-visible { outline: 2px solid #52764b; outline-offset: 3px; }
+  #root &&&:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 3px; }
   #root &&&:disabled { opacity: .5; }
   #root &&& svg { flex-shrink: 0; }
 `;

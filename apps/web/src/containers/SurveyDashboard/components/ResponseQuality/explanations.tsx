@@ -112,7 +112,7 @@ export function ExplanationText({explanation}:{explanation:Explanation}) {
 
 export function MetricExplanation({metric}:{metric:MetricKey}) {
   const label=METRICS.find(m=>m.key===metric)?.label??metric;
-  return <Popover trigger="click" title={label} content={<div style={{maxWidth:'min(360px, calc(100vw - 64px))',fontSize:13,lineHeight:1.6}}><ExplanationText explanation={METRIC_EXPLANATIONS[metric]}/></div>}><Button type="text" className="metric-help" style={{minHeight:22,height:22,width:22,padding:0,verticalAlign:"middle",color:"#52764b"}} aria-label={`Как рассчитывается: ${label}`}><Info size={14}/></Button></Popover>;
+  return <Popover trigger="click" title={label} content={<div style={{maxWidth:'min(360px, calc(100vw - 64px))',fontSize:13,lineHeight:1.6}}><ExplanationText explanation={METRIC_EXPLANATIONS[metric]}/></div>}><Button type="text" className="metric-help" style={{minHeight:22,height:22,width:22,padding:0,verticalAlign:"middle",color:"var(--color-text-52764b)"}} aria-label={`Как рассчитывается: ${label}`}><Info size={14}/></Button></Popover>;
 }
 
 export function QualityCalculationGuide() {

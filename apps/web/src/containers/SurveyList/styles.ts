@@ -11,12 +11,9 @@ export const Head = styled.div`
     font:
       500 clamp(32px, 5vw, 46px) var(--font-heading),
       serif;
-    margin: 7px 0;
-    color: #304a38;
+    margin: 0;
+    color: var(--color-text-304a38);
     letter-spacing: -0.025em;
-  }
-  .hello {
-    color: #758178;
   }
   a {
     text-decoration: none;
@@ -27,7 +24,6 @@ export const Head = styled.div`
     gap: 12px;
     margin-bottom: 16px;
     h1 { font-size: 25px; margin: 3px 0; white-space: nowrap; }
-    .hello { display: none; }
     a {
       flex: 0 0 auto;
       margin-left: auto;
@@ -52,9 +48,9 @@ export const EmptyState = styled.section`
   max-width: 620px;
   margin: clamp(36px, 9vh, 92px) auto;
   padding: clamp(28px, 5vw, 48px);
-  border: 1px solid #dce6d9;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, .82);
+  border: 1px solid var(--color-brand-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-palette-ffffff-a820);
   text-align: center;
   .icon {
     display: grid;
@@ -62,11 +58,11 @@ export const EmptyState = styled.section`
     height: 52px;
     place-items: center;
     border-radius: 16px;
-    background: #e9f1e5;
-    color: #52764b;
+    background: var(--color-brand-soft);
+    color: var(--color-text-52764b);
   }
-  h2 { margin: 4px 0 0; color: #304a38; font: 600 22px var(--font-heading), serif; }
-  p { max-width: 440px; margin: 0; color: #758178; line-height: 1.65; }
+  h2 { margin: 4px 0 0; color: var(--color-text-304a38); font: 600 22px var(--font-heading), serif; }
+  p { max-width: 440px; margin: 0; color: var(--color-text-758178); line-height: 1.65; }
 `;
 export const SectionTitle = styled.div`
   grid-column: 1 / -1;
@@ -78,7 +74,7 @@ export const SectionTitle = styled.div`
   padding: 0 3px;
   h2 {
     margin: 0;
-    color: #3a5441;
+    color: var(--color-text-3a5441);
     font:
       600 24px var(--font-heading),
       serif;
@@ -89,17 +85,17 @@ export const SectionTitle = styled.div`
     height: 28px;
     padding: 0 8px;
     place-items: center;
-    border: 1px solid #dce6d9;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.58);
-    color: #708075;
+    background: var(--color-palette-ffffff-a580);
+    color: var(--color-text-708075);
     font-size: 11px;
     font-weight: 700;
   }
   &.drafts {
     margin-top: 20px;
     padding-top: 24px;
-    border-top: 1px solid #dce5da;
+    border-top: 1px solid var(--color-brand-soft);
   }
 `;
 export const SurveyCard = styled(Card)`
@@ -107,8 +103,8 @@ export const SurveyCard = styled(Card)`
   flex-direction: column;
   container-name: survey-card;
   container-type: inline-size;
-  border-radius: 18px;
-  border-color: #e1e8df;
+  border-radius: var(--radius-card);
+  border-color: var(--color-brand-soft);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -125,8 +121,8 @@ export const SurveyCard = styled(Card)`
     padding: 18px 20px 16px;
   }
   &:hover {
-    border-color: #d2ded0;
-    box-shadow: 0 17px 44px rgba(48, 70, 54, 0.08);
+    border-color: var(--color-border-strong);
+    box-shadow: 0 2px 8px var(--color-brand-alpha-040);
   }
   .card-head {
     grid-area: head;
@@ -155,7 +151,7 @@ export const SurveyCard = styled(Card)`
     border: 0;
     border-radius: 10px;
     background: transparent;
-    color: #74837a;
+    color: var(--color-text-74837a);
     box-shadow: none;
     transition:
       background 0.15s ease,
@@ -163,17 +159,17 @@ export const SurveyCard = styled(Card)`
   }
   .card-tools .tool-button:hover,
   .card-tools .tool-button:focus-visible {
-    background: #edf3eb;
-    color: #45624e;
+    background: var(--color-brand-soft);
+    color: var(--color-text-45624e);
   }
   .card-tools .tool-button:focus-visible {
-    outline: 2px solid #64845c;
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
   .card-tools .archive:disabled { opacity: 0.55; cursor: wait; }
   &&&&& .card-tools .delete:hover {
-    background: #f7e3e0 !important;
-    color: #9c413a !important;
+    background: var(--color-palette-f7e3e0) !important;
+    color: var(--color-text-9c413a) !important;
     border-color: transparent !important;
     filter: none !important;
   }
@@ -182,7 +178,7 @@ export const SurveyCard = styled(Card)`
       600 21px var(--font-heading),
       serif;
     margin: 8px 0 5px;
-    color: #344e3c;
+    color: var(--color-text-344e3c);
     letter-spacing: -0.018em;
   }
   .description {
@@ -193,21 +189,21 @@ export const SurveyCard = styled(Card)`
     align-items: center;
     gap: 5px;
     font-size: 11px;
-    color: #52705a;
-    background: #e4eee1;
+    color: var(--color-text-52705a);
+    background: var(--color-brand-soft);
     padding: 5px 8px;
-    border-radius: 20px;
+    border-radius: var(--radius-card);
   }
   .draft {
-    background: #f0eee5;
-    color: #7d7255;
+    background: var(--color-palette-f0eee5);
+    color: var(--color-text-7d7255);
   }
   .archived {
-    background: #e9ece9;
-    color: #69746d;
+    background: var(--color-brand-soft);
+    color: var(--color-text-69746d);
   }
   .description {
-    color: #78847b;
+    color: var(--color-text-78847b);
     font-size: 13px;
     line-height: 1.5;
   }
@@ -222,7 +218,7 @@ export const SurveyCard = styled(Card)`
     align-items: center;
     gap: 6px;
     margin-top: 12px;
-    color: #87928b;
+    color: var(--color-text-87928b);
     font-size: 11px;
   }
   .survey-date svg {
@@ -236,8 +232,8 @@ export const SurveyCard = styled(Card)`
     gap: 12px;
     margin: 0;
     padding: 3px 0 3px 18px;
-    border-left: 1px solid #e6ece4;
-    color: #77847b;
+    border-left: 1px solid var(--color-brand-soft);
+    color: var(--color-text-77847b);
     font-size: 11px;
   }
   .metrics span {
@@ -247,12 +243,12 @@ export const SurveyCard = styled(Card)`
     white-space: normal;
   }
   .metrics svg {
-    color: #849287;
+    color: var(--color-text-849287);
     width: 16px;
     height: 16px;
   }
   .metrics b {
-    color: #42594a;
+    color: var(--color-text-42594a);
     font-size: 16px;
     font-weight: 750;
     font-variant-numeric: tabular-nums;
@@ -263,18 +259,18 @@ export const SurveyCard = styled(Card)`
   }
   .shared-attribution { display:flex; flex-direction:column; align-items:flex-start; gap:9px; min-width:0; flex:1 1 180px; }
   .shared-author { display:flex; align-items:center; gap:9px; min-width:0; }
-  .shared-author > svg { color:#647268; flex:none; }
+  .shared-author > svg { color:var(--color-text-647268); flex:none; }
   .shared-author > span { min-width:0; }
-  .shared-author small { display:block; font-size:11px; line-height:1.4; color:#647268; }
-  .shared-author strong { display:block; font-size:14px; line-height:1.5; font-weight:600; color:#344e3c; overflow-wrap:anywhere; }
-  .shared-permission { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; background:#edf3eb; color:#45624e; font-size:11px; line-height:1.5; }
+  .shared-author small { display:block; font-size:11px; line-height:1.4; color:var(--color-text-647268); }
+  .shared-author strong { display:block; font-size:14px; line-height:1.5; font-weight:600; color:var(--color-text-344e3c); overflow-wrap:anywhere; }
+  .shared-permission { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; background:var(--color-brand-soft); color:var(--color-text-45624e); font-size:11px; line-height:1.5; }
   .shared-permission > svg { flex:none; }
   .actions {
     grid-area: actions;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #e6ece4;
+    border-top: 1px solid var(--color-brand-soft);
     margin-top: 17px;
     padding-top: 12px;
     gap: 10px;
@@ -301,15 +297,15 @@ export const SurveyCard = styled(Card)`
       color 0.15s ease;
   }
   .actions .open-survey-link:hover {
-    background: #edf3eb;
-    color: #365642;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365642);
   }
   a,
   .copy,
   .publish,
   .continue,
   .archive-action {
-    color: #45624e;
+    color: var(--color-text-45624e);
     text-decoration: none;
     font-weight: 700;
     font-size: 13px;
@@ -322,7 +318,7 @@ export const SurveyCard = styled(Card)`
   .continue,
   .archive-action {
     border: 0;
-    background: #edf3eb;
+    background: var(--color-brand-soft);
     padding: 8px 10px;
     border-radius: 9px;
     cursor: pointer;
@@ -343,17 +339,17 @@ export const SurveyCard = styled(Card)`
     outline: 0;
   }
   .publish {
-    background: #557660;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
   }
   .continue {
-    background: #557660;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
     padding: 8px 10px;
     border-radius: 9px;
   }
   .publish:hover {
-    background: #45644f;
+    background: var(--color-brand);
   }
   .publish:disabled,
   .archive-action:disabled {
@@ -361,8 +357,8 @@ export const SurveyCard = styled(Card)`
     cursor: wait;
   }
   .archive-action {
-    background: #f0f2ed;
-    color: #607066;
+    background: var(--color-brand-soft);
+    color: var(--color-text-607066);
   }
   @media (max-width: 900px) {
     & > .ant-card-body {
@@ -433,11 +429,11 @@ export const SurveyCard = styled(Card)`
       gap: 3px;
     }
     .links > * { min-width: 0; justify-content: flex-start; white-space: nowrap; padding: 4px 5px; min-height: 29px; font-size: 10px; border-radius: 7px; }
-    .links .copy { background: #edf3eb; }
+    .links .copy { background: var(--color-brand-soft); }
     .links .copy-label-full { display: none; }
     .links .copy-label-short { display: inline; }
     .links .open-survey-link { min-height: 29px; }
-    .links .archive-action { min-height: 29px; background: #f0f2ed; }
+    .links .archive-action { min-height: 29px; background: var(--color-brand-soft); }
     .links:has(.continue) {
       width: 100%;
       flex: 1 1 100%;
@@ -500,8 +496,8 @@ export const SurveyCard = styled(Card)`
     min-height: 42px;
     padding: 10px 16px;
     border-radius: 9px;
-    background: #52734c;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
     font-size: 13px;
     font-weight: 700;
     line-height: 1.5;
@@ -510,9 +506,9 @@ export const SurveyCard = styled(Card)`
     white-space: nowrap;
     transition: background-color 160ms ease;
   }
-  && .actions > .results-action:hover { background: #3e5e39; color: #fff; }
-  && .actions > .results-action:active { background: #324f2e; }
-  && .actions > .results-action:focus-visible { outline: 2px solid #64845c; outline-offset: 3px; }
+  && .actions > .results-action:hover { background: var(--color-brand); color: var(--color-text-fff); }
+  && .actions > .results-action:active { background: var(--color-brand); }
+  && .actions > .results-action:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 3px; }
   .results-action svg { flex: none; }
   @media (max-width: 520px) {
     && .actions > .results-action { min-height: 40px; padding: 9px 12px; font-size: 12px; }
@@ -529,29 +525,29 @@ export const TrashBar = styled.div`
     gap: 7px;
     border: 0;
     background: transparent;
-    color: #7a877f;
+    color: var(--color-text-7a877f);
     font-size: 12px;
     padding: 9px;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
   .open-trash:hover {
-    color: #4e6956;
+    color: var(--color-text-4e6956);
   }
 `;
 export const TrashPanel = styled(Card)`
   margin-top: 8px;
   padding: 20px;
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   h2 {
     font:
       600 20px var(--font-heading),
       serif;
-    color: #3b5342;
+    color: var(--color-text-3b5342);
     margin: 0 0 5px;
   }
   .hint {
-    color: #7b887f;
+    color: var(--color-text-7b887f);
     font-size: 12px;
     margin: 0 0 14px;
   }
@@ -565,28 +561,28 @@ export const TrashPanel = styled(Card)`
     justify-content: space-between;
     gap: 14px;
     padding: 13px 14px;
-    border: 1px solid #e1e7df;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 13px;
-    background: #fbfcfa;
+    background: var(--color-surface-muted);
   }
   .item b {
     display: block;
-    color: #425848;
+    color: var(--color-text-425848);
     overflow-wrap: anywhere;
   }
   .item span {
     font-size: 11px;
-    color: #829087;
+    color: var(--color-text-829087);
   }
   .restore {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     flex: 0 0 auto;
-    border: 1px solid #cbd8ca;
+    border: 1px solid var(--color-border-strong);
     border-radius: 10px;
-    background: #fff;
-    color: #4c6954;
+    background: var(--color-surface);
+    color: var(--color-text-4c6954);
     padding: 9px 11px;
     font-weight: 750;
     font-size: 12px;
@@ -597,7 +593,7 @@ export const TrashPanel = styled(Card)`
   .empty {
     padding: 14px;
     text-align: center;
-    color: #829087;
+    color: var(--color-text-829087);
     font-size: 12px;
   }
   @media (max-width: 520px) {

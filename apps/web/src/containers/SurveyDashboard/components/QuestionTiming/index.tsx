@@ -13,19 +13,19 @@ export function formatQuestionTime(milliseconds: number) {
 const Summary = styled.section`
   min-width: 0;
   padding: 19px;
-  border: 1px solid #dde6da;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 14px;
-  background: #fff;
-  h2 { margin: 0; font-size: 18px; color: #23372a; }
-  p { color: #526557; font-size: 12px; line-height: 1.5; margin: 8px 0 14px; }
-  summary { cursor: pointer; color: #405b46; font-size: 12px; font-weight: 650; }
+  background: var(--color-surface);
+  h2 { margin: 0; font-size: 18px; color: var(--color-text-23372a); }
+  p { color: var(--color-text-526557); font-size: 12px; line-height: 1.5; margin: 8px 0 14px; }
+  summary { cursor: pointer; color: var(--color-text-405b46); font-size: 12px; font-weight: 650; }
   details { margin-bottom: 14px; }
   .scroll { overflow-x: auto; min-width: 0; max-width: 100%; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e9eee7; }
-  th { color: #526557; background: #f5f8f3; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--color-brand-soft); }
+  th { color: var(--color-text-526557); background: var(--color-surface-muted); }
   .number { white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .section { display: block; margin-bottom: 4px; color: #526557; font-size: 11px; }
+  .section { display: block; margin-bottom: 4px; color: var(--color-text-526557); font-size: 11px; }
   @media (max-width: 560px) { padding: 12px; table { min-width: 510px; } }
 `;
 

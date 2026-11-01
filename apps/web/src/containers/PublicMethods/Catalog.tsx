@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { PublicShell, Metadata, PublicLoading, PublicError } from "./shared";
-import { publicRequest } from "./types";
+import { publicRequest, formatQuestionCount } from "./types";
 import { collections, findMethods, type CatalogMethod } from "./catalogModel";
 import "./catalog.css";
 
@@ -38,7 +38,7 @@ function TestLink({ method }: { method: CatalogMethod }) {
       <div className="tc-test-copy">
         <span className="tc-test-meta">
           {method.abbreviation} ·{" "}
-          {method.questionCount ? `${method.questionCount} вопросов · ` : ""}
+          {method.questionCount ? `${formatQuestionCount(method.questionCount)} · ` : ""}
           {method.minutes}
         </span>
         <h3>

@@ -5,21 +5,21 @@ export const Form = styled(Card)`
   width: 100%;
   margin: 0;
   padding: clamp(24px, 4vw, 42px);
-  border: 1px solid #dce6da;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 8px 28px rgba(38, 57, 43, 0.045);
+  background: var(--color-surface);
+  box-shadow: 0 8px 28px var(--color-brand-alpha-045);
 
   h1 {
     margin: 0 0 10px;
-    color: #2e4935;
+    color: var(--color-text-2e4935);
     font: 650 clamp(27px, 3.2vw, 36px)/1.18 var(--font-heading), sans-serif;
     letter-spacing: -0.035em;
   }
   .intro {
     max-width: 700px;
     margin: 0;
-    color: #6e7d72;
+    color: var(--color-text-6e7d72);
     font-size: 14px;
     line-height: 1.65;
   }
@@ -29,10 +29,10 @@ export const Form = styled(Card)`
     gap: 11px;
     margin: 22px 0 28px;
     padding: 14px 16px;
-    border: 1px solid #e2ebdf;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 12px;
-    background: #f2f6f0;
-    color: #637468;
+    background: var(--color-surface-muted);
+    color: var(--color-text-637468);
     font-size: 12px;
     line-height: 1.55;
   }
@@ -44,8 +44,8 @@ export const Form = styled(Card)`
     height: 20px;
     place-items: center;
     border-radius: 50%;
-    background: #e2eddf;
-    color: #52764b;
+    background: var(--color-brand-soft);
+    color: var(--color-text-52764b);
     font-size: 12px;
     font-weight: 750;
   }
@@ -58,12 +58,12 @@ export const Form = styled(Card)`
   label {
     display: block;
     margin: 17px 0 7px;
-    color: #53675a;
+    color: var(--color-text-53675a);
     font-size: 12px;
     font-weight: 700;
     line-height: 1.4;
   }
-  .required { color: #a25f59; }
+  .required { color: var(--color-text-a25f59); }
   input {
     min-height: 46px;
     border-radius: 10px;
@@ -80,16 +80,16 @@ export const Form = styled(Card)`
     padding-inline: 17px;
     border: 0;
     border-radius: 10px;
-    background: #55784f;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
     font-size: 13px;
     font-weight: 700;
     box-shadow: none;
   }
   form > button:hover:not(:disabled) {
     border: 0;
-    background: #466a43;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
   }
   .success {
     display: flex;
@@ -97,26 +97,26 @@ export const Form = styled(Card)`
     gap: 10px;
     margin-top: 22px;
     padding: 16px;
-    border: 1px solid #d8e7d4;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 12px;
-    background: #f1f7ef;
-    color: #426848;
+    background: var(--color-surface-muted);
+    color: var(--color-text-426848);
     font-size: 14px;
     font-weight: 650;
   }
   .error {
     margin: 12px 0 0;
-    color: #a25555;
+    color: var(--color-text-a25555);
     font-size: 12px;
   }
   .history {
     margin-top: 30px;
     padding-top: 23px;
-    border-top: 1px solid #e5ebe3;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .history h2 {
     margin: 0 0 13px;
-    color: #2e4935;
+    color: var(--color-text-2e4935);
     font-size: 19px;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -128,14 +128,14 @@ export const Form = styled(Card)`
     gap: 12px;
     margin: 0;
     padding: 12px 13px;
-    border: 1px solid #e4ebe1;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 10px;
-    background: #fbfcfa;
-    color: #77847a;
+    background: var(--color-surface-muted);
+    color: var(--color-text-77847a);
     font-size: 12px;
   }
   .history p + p { margin-top: 8px; }
-  .history p b { color: #344b3a; font-weight: 700; }
+  .history p b { color: var(--color-text-344b3a); font-weight: 700; }
   @media (max-width: 620px) {
     padding: 22px 17px;
     border-radius: 15px;

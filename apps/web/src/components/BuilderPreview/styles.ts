@@ -7,7 +7,7 @@ export const Layer = styled.div`
   inset: 0;
   z-index: 100;
   overflow: auto;
-  background: #f3f6f0;
+  background: var(--color-surface-muted);
 `;
 
 export const PreviewPage = styled(Page)`
@@ -28,19 +28,19 @@ export const Toolbar = styled.div`
   gap: 14px;
   margin: 0 calc(50% - 50vw);
   padding: 10px max(16px, calc((100vw - 720px) / 2));
-  border-bottom: 1px solid #dce5da;
-  background: rgba(246, 248, 244, 0.94);
+  border-bottom: 1px solid var(--color-brand-soft);
+  background: var(--color-brand-alpha-940);
   backdrop-filter: blur(14px);
   .context {
     display: flex;
     align-items: center;
     gap: 9px;
-    color: #526f5b;
+    color: var(--color-text-526f5b);
     font-size: 12px;
   }
   .context b {
     display: block;
-    color: #344d3b;
+    color: var(--color-text-344d3b);
     font-size: 13px;
   }
   .close {
@@ -48,10 +48,10 @@ export const Toolbar = styled.div`
     align-items: center;
     gap: 7px;
     padding: 10px 13px;
-    border: 1px solid #cbd8cb;
+    border: 1px solid var(--color-border-strong);
     border-radius: 11px;
-    background: #fff;
-    color: #405b48;
+    background: var(--color-surface);
+    color: var(--color-text-405b48);
     font-weight: 750;
   }
   @media (max-width: 560px) {

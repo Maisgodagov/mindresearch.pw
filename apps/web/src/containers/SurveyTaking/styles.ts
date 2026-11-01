@@ -7,7 +7,7 @@ export const Header = styled.header`
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #526f5b;
+  color: var(--color-text-526f5b);
   font-weight: 750;
   letter-spacing: 0.02em;
 `;
@@ -20,20 +20,20 @@ export const Welcome = styled(Card)`
       500 clamp(34px, 7vw, 54px)/1.08 var(--font-heading),
       serif;
     margin: 18px 0;
-    color: #2f4938;
+    color: var(--color-text-2f4938);
     overflow-wrap: anywhere;
   }
   p {
     font-size: 17px;
     line-height: 1.65;
-    color: #5d6b61;
+    color: var(--color-text-5d6b61);
     white-space: pre-line;
   }
   .author {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #58705f;
+    color: var(--color-text-58705f);
     text-decoration: none;
     font-size: 13px;
     margin-top: 12px;
@@ -47,7 +47,7 @@ export const Welcome = styled(Card)`
   .meta {
     display: flex;
     gap: 18px;
-    color: #728077;
+    color: var(--color-text-728077);
     font-size: 14px;
     margin: 26px 0;
     flex-wrap: wrap;
@@ -78,7 +78,7 @@ export const Top = styled.div`
     align-items: center;
     justify-content: flex-end;
     gap: 5px;
-    color: #7a887f;
+    color: var(--color-text-7a887f);
     font-size: 12px;
     white-space: nowrap;
   }
@@ -97,13 +97,13 @@ export const Top = styled.div`
 `;
 export const Bar = styled.div`
   height: 5px;
-  background: #dfe7dc;
+  background: var(--color-brand-soft);
   border-radius: 9px;
   overflow: hidden;
   i {
     display: block;
     height: 100%;
-    background: #6e8e76;
+    background: var(--color-brand);
     transition: width 0.35s;
   }
 `;
@@ -121,14 +121,14 @@ export const QuestionCard = styled(Card)<{ $leaving: boolean }>`
     transform 0.18s ease;
   pointer-events: ${(p) => (p.$leaving ? "none" : "auto")};
   .eyebrow {
-    color: #738278;
+    color: var(--color-text-738278);
     font-size: 13px;
   }
   .question {
     font:
       500 clamp(25px, 5vw, 36px)/1.25 var(--font-heading),
       serif;
-    color: #293c30;
+    color: var(--color-text-293c30);
     margin: 18px 0 28px;
     overflow-wrap: anywhere;
   }
@@ -165,9 +165,9 @@ export const Choice = styled(Button)<{ $active: boolean }>`
   width: 100%;
   padding: 15px 16px;
   border-radius: 16px;
-  border: 1px solid ${(p) => (p.$active ? "#78977f" : "#dbe3da")};
-  background: ${(p) => (p.$active ? "#e5eee3" : "#fff")};
-  color: #304036;
+  border: 1px solid ${(p) => (p.$active ? "var(--color-brand)" : "var(--color-brand-soft)")};
+  background: ${(p) => (p.$active ? "var(--color-brand-soft)" : "var(--color-surface)")};
+  color: var(--color-text-304036);
   min-height: 54px;
   transition: 0.15s;
   .option-label {
@@ -178,12 +178,12 @@ export const Choice = styled(Button)<{ $active: boolean }>`
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    border: 1px solid #9bab9e;
+    border: 1px solid var(--color-brand);
     display: grid;
     place-items: center;
     flex: none;
-    background: ${(p) => (p.$active ? "#65836d" : "transparent")};
-    color: white;
+    background: ${(p) => (p.$active ? "var(--color-brand)" : "transparent")};
+    color: var(--color-surface);
   }
   .dot.checkbox {
     border-radius: 5px;
@@ -192,19 +192,19 @@ export const Choice = styled(Button)<{ $active: boolean }>`
 export const Input = styled(FieldInput)`
   width: 100%;
   border: 0;
-  border-bottom: 2px solid #b8c7ba;
+  border-bottom: 2px solid var(--color-border-strong);
   background: transparent;
   padding: 14px 4px;
   font-size: 20px;
-  color: #293c30;
+  color: var(--color-text-293c30);
   outline: none;
   &:focus {
-    border-color: #607f68;
+    border-color: var(--color-brand);
   }
 `;
 export const MultipleHint = styled.div`
   margin: -16px 0 24px;
-  color: #6e7f73;
+  color: var(--color-text-6e7f73);
   font-size: 14px;
   line-height: 1.4;
 `;
@@ -219,20 +219,20 @@ export const Closed = styled(Card)`
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: #e5eee2;
-    color: #58725f;
+    background: var(--color-brand-soft);
+    color: var(--color-text-58725f);
   }
   h1 {
     font:
       500 clamp(32px, 6vw, 48px)/1.12 var(--font-heading),
       serif;
-    color: #304a38;
+    color: var(--color-text-304a38);
     margin: 0 0 15px;
   }
   p {
     max-width: 520px;
     margin: auto;
-    color: #68766d;
+    color: var(--color-text-68766d);
     font-size: 16px;
     line-height: 1.65;
   }
@@ -245,7 +245,7 @@ export const Nav = styled.div`
   gap: 10px;
   .save {
     font-size: 12px;
-    color: #7a887f;
+    color: var(--color-text-7a887f);
     display: flex;
     align-items: center;
     gap: 5px;

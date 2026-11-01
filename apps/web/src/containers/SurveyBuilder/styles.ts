@@ -11,12 +11,12 @@ export const Header = styled.div`
   .header-copy { min-width: 0; }
   h1 {
     font: 700 27px/1.2 var(--font-heading), sans-serif;
-    color: #24332a;
+    color: var(--color-text-24332a);
     letter-spacing: -.035em;
     margin: 0 0 5px;
   }
   p {
-    color: #647268;
+    color: var(--color-text-647268);
     margin: 0;
     font-size: 13px;
     line-height: 1.45;
@@ -36,12 +36,12 @@ export const Flow = styled.div`
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #65746a;
+    color: var(--color-text-65746a);
   }
   .step:not(:last-child)::after {
     content: "›";
     margin-left: 7px;
-    color: #a0aca4;
+    color: var(--color-text-a0aca4);
   }
   .number {
     width: 20px;
@@ -50,14 +50,14 @@ export const Flow = styled.div`
     display: grid;
     place-items: center;
     border-radius: 6px;
-    background: #e5efe0;
-    color: #365532;
-    font-size: 10px;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365532);
+    font-size: 12px;
     font-weight: 800;
   }
   b {
-    color: #53675a;
-    font-size: 11px;
+    color: var(--color-text-53675a);
+    font-size: 12px;
   }
   @media (max-width: 680px) {
     overflow-x: auto;
@@ -74,16 +74,16 @@ export const WorkspaceBar = styled.div`
   gap: 14px;
   margin-bottom: 14px;
   padding: 9px 11px 9px 13px;
-  border: 1px solid #d8e3d6;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 13px;
-  background: #edf4ea;
+  background: var(--color-brand-soft);
   .save {
     display: flex;
     align-items: center;
     gap: 8px;
     min-width: 0;
-    color: #65756a;
-    font-size: 11px;
+    color: var(--color-text-65756a);
+    font-size: 12px;
   }
   .save-copy {
     white-space: nowrap;
@@ -95,11 +95,11 @@ export const WorkspaceBar = styled.div`
     height: 7px;
     flex: none;
     border-radius: 50%;
-    background: #6e9076;
-    box-shadow: 0 0 0 4px rgba(110, 144, 118, 0.12);
+    background: var(--color-brand);
+    box-shadow: 0 0 0 4px var(--color-brand-alpha-120);
   }
   .saved-at {
-    color: #87938b;
+    color: var(--color-text-87938b);
     white-space: nowrap;
   }
   .tools {
@@ -112,14 +112,14 @@ export const WorkspaceBar = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: #66766b;
-    font-size: 11px;
+    color: var(--color-text-66766b);
+    font-size: 12px;
   }
   .preview-note svg {
-    color: #55745e;
+    color: var(--color-text-55745e);
   }
   b {
-    color: #405b48;
+    color: var(--color-text-405b48);
   }
   button {
     display: inline-flex;
@@ -130,8 +130,8 @@ export const WorkspaceBar = styled.div`
     padding: 8px 12px;
     border: 0;
     border-radius: 10px;
-    background: #55745e;
-    color: #fff;
+    background: var(--color-brand);
+    color: var(--color-text-fff);
     font-size: 12px;
     font-weight: 750;
     white-space: nowrap;
@@ -141,7 +141,7 @@ export const WorkspaceBar = styled.div`
     cursor: wait;
   }
   .error {
-    color: #9a5a55;
+    color: var(--color-text-9a5a55);
     font-size: 12px;
   }
   @media (max-width: 700px) {
@@ -188,16 +188,16 @@ export const HeaderSaveStatus = styled.div`
   align-items: center;
   gap: 8px;
   flex: none;
-  color: #627166;
-  font-size: 11px;
+  color: var(--color-text-627166);
+  font-size: 12px;
   .status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #719077;
+    background: var(--color-brand);
   }
   .status-copy { font-weight: 650; }
-  .saved-time { color: #78867b; }
+  .saved-time { color: var(--color-text-78867b); }
   @media (max-width: 640px) { align-self: flex-start; }
 `;
 export const SurveyTitleField = styled.div`
@@ -206,7 +206,7 @@ export const SurveyTitleField = styled.div`
   label {
     display: block;
     margin: 0 0 7px 2px;
-    color: #526553;
+    color: var(--color-text-526553);
     font-size: 12px;
     font-weight: 700;
   }
@@ -214,22 +214,22 @@ export const SurveyTitleField = styled.div`
     width: 100%;
     min-height: 48px;
     padding: 11px 15px;
-    border: 1px solid #d5e0d2;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 11px;
-    background: #fff;
-    color: #293a2e;
+    background: var(--color-surface);
+    color: var(--color-text-293a2e);
     font-size: 16px;
     font-weight: 650;
-    box-shadow: 0 1px 2px rgba(31, 48, 34, .035);
+    box-shadow: 0 1px 2px var(--color-brand-alpha-035);
   }
-  input:focus { border-color: #83a17e; outline: 3px solid rgba(112, 150, 108, .15); }
-  input.invalid { border-color: #c96d67; background: #fff8f7; }
+  input:focus { border-color: var(--color-brand); outline: 3px solid var(--color-brand-alpha-150); }
+  input.invalid { border-color: var(--color-palette-c96d67); background: var(--color-palette-fff8f7); }
 `;
 export const SurveySettings = styled.details`
   width: 100%;
-  border: 1px solid #dce4da;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 14px;
-  background: rgba(255, 255, 255, .72);
+  background: var(--color-palette-ffffff-a720);
   overflow: hidden;
   > summary {
     display: flex;
@@ -238,43 +238,43 @@ export const SurveySettings = styled.details`
     gap: 16px;
     min-height: 54px;
     padding: 12px 17px;
-    color: #344b39;
+    color: var(--color-text-344b39);
     cursor: pointer;
     font-size: 13px;
     font-weight: 700;
     list-style: none;
   }
   > summary::-webkit-details-marker { display: none; }
-  > summary::after { content: "+"; color: #617b60; font-size: 20px; font-weight: 400; }
+  > summary::after { content: "+"; color: var(--color-text-617b60); font-size: 20px; font-weight: 400; }
   &[open] > summary::after { content: "−"; }
-  > summary:focus-visible { outline: 3px solid rgba(112, 150, 108, .25); outline-offset: -3px; }
+  > summary:focus-visible { outline: 3px solid var(--color-brand-alpha-250); outline-offset: -3px; }
   > .meta-panel { padding: 0 12px 12px; }
   .meta-panel > .ant-card { margin-top: 10px; }
 `;
 export const Panel = styled(Card)`
   padding: 21px;
   border-radius: 14px;
-  border-color: #dce4da;
-  box-shadow: 0 1px 2px rgba(31, 48, 34, .035);
+  border-color: var(--color-brand-soft);
+  box-shadow: 0 1px 2px var(--color-brand-alpha-035);
   h2 {
     font: 700 19px/1.3 var(--font-heading), sans-serif;
     letter-spacing: -.02em;
     margin: 0 0 6px;
-    color: #26362b;
+    color: var(--color-text-26362b);
   }
   .hint {
     font-size: 12px;
-    color: #68756b;
+    color: var(--color-text-68756b);
     line-height: 1.5;
   }
   &.structure-panel {
     padding: 0;
-    border-color: #d8e3d5;
-    background: #edf3ea;
+    border-color: var(--color-brand-soft);
+    background: var(--color-brand-soft);
     box-shadow: none;
-    h2 { color: #26382b; }
-    > .hint { color: #5f7062; }
-    .add-alias { background: #f9fbf8; }
+    h2 { color: var(--color-text-26382b); }
+    > .hint { color: var(--color-text-5f7062); }
+    .add-alias { background: var(--color-surface-muted); }
   }
   .field {
     margin-top: 15px;
@@ -283,7 +283,7 @@ export const Panel = styled(Card)`
     display: block;
     font-size: 12px;
     font-weight: 700;
-    color: #65736a;
+    color: var(--color-text-65736a);
     margin-bottom: 6px;
   }
   input:not([type="checkbox"]):not([type="radio"]),
@@ -291,9 +291,9 @@ export const Panel = styled(Card)`
   select {
     width: 100%;
     padding: 12px;
-    border: 1px solid #d9e2d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 9px;
-    background: #fff;
+    background: var(--color-surface);
     outline: none;
   }
   textarea {
@@ -302,22 +302,22 @@ export const Panel = styled(Card)`
   }
   input.invalid,
   textarea.invalid {
-    border-color: #c96d67;
-    background: #fff8f7;
-    box-shadow: 0 0 0 3px rgba(190, 83, 76, 0.12);
+    border-color: var(--color-palette-c96d67);
+    background: var(--color-palette-fff8f7);
+    box-shadow: 0 0 0 3px var(--color-palette-be534c-a120);
   }
   &.invalid-panel {
-    border-color: #c96d67;
+    border-color: var(--color-palette-c96d67);
     box-shadow:
-      0 0 0 3px rgba(190, 83, 76, 0.1),
-      0 20px 60px rgba(48, 70, 54, 0.08);
+      0 0 0 3px var(--color-palette-be534c-a100),
+      0 20px 60px var(--color-brand-alpha-080);
   }
   > .error {
     margin: 14px 0 0;
     padding: 11px 13px;
     border-radius: 11px;
-    background: #fff0ee;
-    color: #9b4e49;
+    background: var(--color-palette-fff0ee);
+    color: var(--color-text-9b4e49);
     font-size: 13px;
   }
   @media (max-width: 560px) {
@@ -332,15 +332,15 @@ export const Panel = styled(Card)`
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border: 1px dashed #aabca9;
+    border: 1px dashed var(--color-border-strong);
     border-radius: 12px;
-    background: #f5f9f3;
-    color: #526f5b;
+    background: var(--color-surface-muted);
+    color: var(--color-text-526f5b);
     font-weight: 750;
     cursor: pointer;
   }
   .add-alias:hover {
-    background: #eaf2e7;
+    background: var(--color-brand-soft);
   }
 `;
 export const SurveyBasics = styled.div`
@@ -381,14 +381,14 @@ export const SectionHeading = styled.div`
     gap: 6px;
     padding: 6px 9px;
     border-radius: 999px;
-    background: #edf3ea;
-    color: #56705e;
-    font-size: 11px;
+    background: var(--color-brand-soft);
+    color: var(--color-text-56705e);
+    font-size: 12px;
     font-weight: 750;
   }
   .audience.private {
-    background: #f3efe5;
-    color: #766946;
+    background: var(--color-palette-f3efe5);
+    color: var(--color-text-766946);
   }
   @media (max-width: 620px) {
     flex-direction: column;
@@ -408,18 +408,18 @@ export const PreviewCard = styled.div`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid #dce5da;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 18px;
-  background: #fff;
+  background: var(--color-surface);
   overflow: hidden;
   .preview-label {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 9px 13px;
-    border-bottom: 1px solid #e8ede6;
-    color: #728077;
-    font-size: 11px;
+    border-bottom: 1px solid var(--color-brand-soft);
+    color: var(--color-text-728077);
+    font-size: 12px;
     font-weight: 700;
   }
   .preview-label span {
@@ -438,8 +438,8 @@ export const PreviewCard = styled.div`
     align-items: center;
     gap: 5px;
     margin: 0 0 6px;
-    color: #718078;
-    font-size: 10px;
+    color: var(--color-text-718078);
+    font-size: 12px;
     font-weight: 750;
   }
   .screen {
@@ -453,23 +453,23 @@ export const PreviewCard = styled.div`
     align-items: center;
     gap: 5px;
     margin-bottom: 12px;
-    color: #55705e;
-    font-size: 11px;
+    color: var(--color-text-55705e);
+    font-size: 12px;
   }
   .done {
     padding: 5px 8px;
     border-radius: 999px;
-    background: #e5efe2;
+    background: var(--color-brand-soft);
   }
   .preview-title,
   .preview-copy {
     display: block;
     width: 100%;
     padding: 9px 11px;
-    border: 1px dashed #c5d2c3;
+    border: 1px dashed var(--color-border-strong);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.72);
-    color: #304a38;
+    background: var(--color-palette-ffffff-a720);
+    color: var(--color-text-304a38);
     resize: none;
     overflow: hidden;
     field-sizing: content;
@@ -486,51 +486,51 @@ export const PreviewCard = styled.div`
   }
   .preview-copy {
     min-height: 66px;
-    color: #67766c;
+    color: var(--color-text-67766c);
     font-size: 13px;
     line-height: 1.6;
   }
   .preview-title:hover,
   .preview-copy:hover {
-    border-color: #8fa68f;
-    background: #fff;
+    border-color: var(--color-brand);
+    background: var(--color-surface);
   }
   .preview-title:focus,
   .preview-copy:focus {
     outline: none;
     border-style: solid;
-    border-color: #6f8d76;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(95, 128, 104, 0.12);
+    border-color: var(--color-brand);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 3px var(--color-brand-alpha-120);
   }
   .preview-title.invalid,
   .preview-copy.invalid {
-    background: #fff7f6;
-    box-shadow: 0 0 0 5px #fff0ee;
-    color: #7d3834;
+    background: var(--color-palette-fff7f6);
+    box-shadow: 0 0 0 5px var(--color-palette-fff0ee);
+    color: var(--color-text-7d3834);
   }
   .mock-meta {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 12px;
-    color: #7e8a82;
-    font-size: 10px;
+    color: var(--color-text-7e8a82);
+    font-size: 12px;
   }
   .mock-button {
     display: inline-flex;
     margin-top: 17px;
     padding: 9px 14px;
     border-radius: 10px;
-    background: #56755f;
-    color: white;
-    font-size: 11px;
+    background: var(--color-brand);
+    color: var(--color-surface);
+    font-size: 12px;
     font-weight: 750;
   }
   .preview-settings {
     padding: 11px 13px;
-    border-top: 1px solid #e8ede6;
-    background: #f5f8f3;
+    border-top: 1px solid var(--color-brand-soft);
+    background: var(--color-surface-muted);
   }
   .preview-settings label {
     display: flex;
@@ -565,7 +565,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     padding: 0 14px 8px 50px;
   }
   .form-gender-label {
-    color: #526257;
+    color: var(--color-text-526257);
     font-size: 12px;
     font-weight: 500;
     line-height: 1.5;
@@ -576,7 +576,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 4px;
     padding: 4px;
     border-radius: 10px;
-    background: #f0f4ed;
+    background: var(--color-surface-muted);
   }
   .form-gender-options label {
     position: relative;
@@ -584,17 +584,19 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     place-items: center;
     min-width: 72px;
     min-height: 32px;
+    height: 32px;
+    margin: 0;
     padding: 0 12px;
     border-radius: 7px;
-    color: #526257;
+    color: var(--color-text-526257);
     font-size: 12px;
     font-weight: 500;
     line-height: 1.5;
   }
   .form-gender-options label { box-sizing: border-box; }
   .form-gender-options label > span { display: block; line-height: 20px; }
-  .form-fallback { border: 0; background: transparent; padding: 0; color: #526257; font: inherit; font-size: 11px; cursor: pointer; text-align: left; }
-  .form-fallback:focus-visible { outline: 2px solid #527a50; outline-offset: 3px; }
+  .form-fallback { border: 0; background: transparent; padding: 0; color: var(--color-text-526257); font: inherit; font-size: 12px; cursor: pointer; text-align: left; }
+  .form-fallback:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 3px; }
   .form-gender-options input {
     position: absolute;
     inset: 0;
@@ -605,31 +607,31 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     cursor: pointer;
   }
   .form-gender-options label:has(input:checked) {
-    background: #fff;
-    color: #2d5135;
+    background: var(--color-surface);
+    color: var(--color-text-2d5135);
     font-weight: 600;
-    box-shadow: 0 1px 3px rgb(35 58 39 / 10%);
+    box-shadow: none;
   }
   .form-gender-options label:has(input:focus-visible) {
-    outline: 2px solid #527a50;
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
   .form-gender-options label:has(input:hover:not(:disabled):not(:checked)) {
-    background: #e5eddf;
+    background: var(--color-brand-soft);
   }
   .form-gender-options:has(input:disabled) { opacity: 0.6; }
   .form-gender-options input:disabled { cursor: not-allowed; }
   @media (max-width: 600px) {
     .form-gender-control { padding-left: 14px; }
-    .form-gender-options label { min-height: 40px; }
+    .form-gender-options label { min-height: 40px; height: 40px; }
   }
 
 
   width: 100%;
   min-width: 0;
-  border: 1px solid #dce4da;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 12px;
-  background: #fff;
+  background: var(--color-surface);
   overflow: hidden;
   opacity: ${(p) => (p.$dragging ? 0.45 : 1)};
   transition:
@@ -637,9 +639,9 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     border-color 0.15s;
   &.fixed-screen-card {
     margin-top: 12px;
-    border-color: #cfddcb;
-    border-left: 3px solid #91aa8d;
-    background: #fff;
+    border-color: var(--color-border-strong);
+    border-left: 3px solid var(--color-brand);
+    background: var(--color-surface);
   }
   .screen-badge {
     display: inline-flex;
@@ -647,9 +649,9 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 5px;
     padding: 5px 8px;
     border-radius: 999px;
-    background: #f0f4ed;
-    color: #687a69;
-    font-size: 10px;
+    background: var(--color-surface-muted);
+    color: var(--color-text-687a69);
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
   }
@@ -664,8 +666,8 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 6px;
     min-width: 0;
     margin: 0;
-    color: #65736a;
-    font-size: 11px;
+    color: var(--color-text-65736a);
+    font-size: 12px;
     font-weight: 650;
   }
   .screen-field > span {
@@ -678,10 +680,10 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     width: 100%;
     min-height: 60px;
     padding: 9px 10px;
-    border: 1px solid #d9e2d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: #fff;
-    color: #33473a;
+    background: var(--color-surface);
+    color: var(--color-text-33473a);
     font-size: 12px;
     line-height: 1.5;
     resize: vertical;
@@ -693,8 +695,8 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 8px;
     width: fit-content;
     margin: 0;
-    color: #617166;
-    font-size: 11px;
+    color: var(--color-text-617166);
+    font-size: 12px;
     font-weight: 550;
     line-height: 20px;
     cursor: pointer;
@@ -703,11 +705,11 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     display: grid;
     gap: 8px;
     padding: 14px 0;
-    border-top: 1px solid #dce5d9;
-    border-bottom: 1px solid #dce5d9;
+    border-top: 1px solid var(--color-brand-soft);
+    border-bottom: 1px solid var(--color-brand-soft);
   }
-  .duration-label { color: #33473a; font-size: 12px; font-weight: 650; }
-  .duration-setting .hint { margin: 0 0 4px 24px; font-size: 11px; }
+  .duration-label { color: var(--color-text-33473a); font-size: 12px; font-weight: 650; }
+  .duration-setting .hint { margin: 0 0 4px 24px; font-size: 12px; }
   .duration-setting .screen-setting { font-size: 12px; width:100%; min-height:32px; }
   .duration-setting .screen-setting span { min-width:0; }
   .screen-setting input[type="checkbox"],
@@ -719,7 +721,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     flex: 0 0 16px;
     margin: 0;
     padding: 0;
-    accent-color: #52764b;
+    accent-color: var(--color-brand);
   }
   @media (max-width: 620px) {
     .screen-fields { grid-template-columns: minmax(0, 1fr); }
@@ -738,19 +740,19 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
   }
   .section-name b {
     display: block;
-    color: #2d3c31;
+    color: var(--color-text-2d3c31);
     font-size: 14px;
     line-height: 1.35;
   }
   .section-name span {
-    font-size: 11px;
-    color: #647268;
+    font-size: 12px;
+    color: var(--color-text-647268);
     line-height: 1.4;
   }
   .section-drag {
     display: grid;
     place-items: center;
-    color: #839087;
+    color: var(--color-text-839087);
     cursor: grab;
     width: 28px;
     height: 30px;
@@ -762,6 +764,15 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     background: transparent;
     touch-action: none;
     box-sizing: border-box;
+  }
+  @media (max-width: 760px) {
+    .section-drag {
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      min-height: 44px;
+      flex-basis: 44px;
+    }
   }
   .icon {
     display: grid;
@@ -775,31 +786,31 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     border: 1px solid transparent;
     border-radius: 7px;
     background: transparent;
-    color: #75847a;
+    color: var(--color-text-75847a);
     box-sizing: border-box;
     transition: background-color .15s ease, color .15s ease;
   }
   .icon:hover {
     border-color: transparent !important;
-    background: #f0f4ef;
-    color: #405f48;
+    background: var(--color-surface-muted);
+    color: var(--color-text-405f48);
   }
   .icon:last-child:hover {
     border-color: transparent !important;
-    background: #fee4e2 !important;
-    color: #b42318 !important;
+    background: var(--color-palette-fee4e2) !important;
+    color: var(--color-text-b42318) !important;
   }
   .body {
     display: grid;
     gap: 12px;
     padding: 14px 15px 15px;
-    border-top: 1px solid #e7ece5;
+    border-top: 1px solid var(--color-brand-soft);
   }
   .body .field { margin: 0; }
   .body .field > label {
     display: block;
     margin: 0 0 6px;
-    color: #65736a;
+    color: var(--color-text-65736a);
     font-size: 12px;
     font-weight: 650;
     line-height: 1.35;
@@ -811,9 +822,9 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
   }
   .body .field.shared-options-field {
     padding: 10px 12px;
-    border: 1px solid #e7ede5;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 9px;
-    background: #f6f8f5;
+    background: var(--color-surface-muted);
   }
   .body .shared-options-toggle {
     display: flex;
@@ -821,7 +832,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 9px;
     min-height: 26px;
     margin: 0;
-    color: #5e6d62;
+    color: var(--color-text-5e6d62);
     font-size: 12px;
     font-weight: 600;
     line-height: 1.4;
@@ -835,7 +846,7 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     flex: 0 0 16px;
     margin: 0;
     padding: 0;
-    accent-color: #52764b;
+    accent-color: var(--color-brand);
     vertical-align: middle;
     box-sizing: border-box;
   }
@@ -845,8 +856,8 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     margin-top: 11px;
   }
   .shared-answer-label {
-    color: #68776c;
-    font-size: 11px;
+    color: var(--color-text-68776c);
+    font-size: 12px;
     font-weight: 650;
     line-height: 1.4;
   }
@@ -857,9 +868,9 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     width: fit-content;
     max-width: 100%;
     padding: 3px;
-    border: 1px solid #e0e8dd;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 9px;
-    background: #edf2ea;
+    background: var(--color-brand-soft);
   }
   .shared-answer-options button {
     min-height: 30px;
@@ -867,22 +878,22 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     border: 1px solid transparent;
     border-radius: 6px;
     background: transparent;
-    color: #657468;
-    font-size: 11px;
+    color: var(--color-text-657468);
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.2;
     cursor: pointer;
     transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
   }
   .shared-answer-options button:hover {
-    background: #f7f9f6;
-    color: #3e5f43;
+    background: var(--color-surface-muted);
+    color: var(--color-text-3e5f43);
   }
   .shared-answer-options button.selected {
-    border-color: #d5e0d1;
-    background: #fff;
-    color: #365532;
-    box-shadow: 0 1px 2px rgba(36, 63, 32, .08);
+    border-color: var(--color-border-strong);
+    background: var(--color-surface);
+    color: var(--color-text-365532);
+    box-shadow: 0 1px 2px var(--color-brand-alpha-080);
   }
   .options {
     display: grid;
@@ -905,16 +916,16 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     display: grid;
     place-items: center;
     padding: 0;
-    border: 1px solid #d9e2d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: #fff;
-    color: #77867c;
+    background: var(--color-surface);
+    color: var(--color-text-77867c);
     cursor: pointer;
   }
   .option .tiny:hover {
     border-color: transparent !important;
-    background: #fee4e2 !important;
-    color: #b42318 !important;
+    background: var(--color-palette-fee4e2) !important;
+    color: var(--color-text-b42318) !important;
   }
   .add-option {
     justify-self: start;
@@ -925,8 +936,8 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     padding: 7px 10px;
     border: 0 !important;
     border-radius: 8px;
-    background: #f5f8f3;
-    color: #49684e;
+    background: var(--color-surface-muted);
+    color: var(--color-text-49684e);
     font-size: 12px;
     font-weight: 650;
     cursor: pointer;
@@ -935,13 +946,13 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     transition: background-color .15s ease, color .15s ease;
   }
   .add-option:hover {
-    background: #eaf1e7;
-    color: #365532;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365532);
   }
   .library-questions {
     padding: 14px;
-    border-top: 1px solid #e4ebe2;
-    background: #f7f9f6;
+    border-top: 1px solid var(--color-brand-soft);
+    background: var(--color-surface-muted);
   }
   .library-note {
     display: flex;
@@ -949,10 +960,10 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 7px;
     margin: 0 0 12px;
     padding: 9px 11px;
-    border: 1px solid #e0e8dc;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: #fff;
-    color: #5f6d62;
+    background: var(--color-surface);
+    color: var(--color-text-5f6d62);
     font-size: 12px;
     line-height: 1.45;
   }
@@ -964,9 +975,9 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     gap: 11px;
     padding: 13px;
     margin-top: 8px;
-    border: 1px solid #e0e7de;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 9px;
-    background: #fff;
+    background: var(--color-surface);
   }
   .readonly-question .number {
     width: 30px;
@@ -975,21 +986,21 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
     place-items: center;
     border-radius: 9px;
     border-radius: 7px;
-    background: #e5efe0;
-    color: #365532;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365532);
     font-size: 12px;
     font-weight: 800;
   }
   .readonly-question b {
     display: block;
-    color: #29382e;
+    color: var(--color-text-29382e);
     font-size: 13px;
     line-height: 1.5;
   }
   .question-meta {
     margin-top: 4px;
-    color: #69766c;
-    font-size: 10px;
+    color: var(--color-text-69766c);
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -1002,20 +1013,20 @@ export const SectionCard = styled.div<{ $dragging?: boolean }>`
   }
   .readonly-options span {
     padding: 5px 8px;
-    border: 1px solid #dce5da;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 999px;
-    background: #f5f8f3;
-    color: #617268;
-    font-size: 11px;
+    background: var(--color-surface-muted);
+    color: var(--color-text-617268);
+    font-size: 12px;
     line-height: 1.2;
   }
 `;
 export const QuestionBox = styled.div<{ $dragging?: boolean }>`
   padding: 12px;
   margin: 0;
-  border: 1px solid #e0e7de;
+  border: 1px solid var(--color-brand-soft);
   border-radius: 10px;
-  background: #fff;
+  background: var(--color-surface);
   opacity: ${(p) => (p.$dragging ? 0.45 : 1)};
   transition: 0.15s;
   .qhead {
@@ -1033,7 +1044,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     min-width: 0;
   }
   .qtitle b {
-    color: #2d3c31;
+    color: var(--color-text-2d3c31);
     font-size: 14px;
     font-weight: 650;
     line-height: 1.35;
@@ -1041,7 +1052,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
   .drag {
     display: grid;
     place-items: center;
-    color: #8b978e;
+    color: var(--color-text-8b978e);
     cursor: grab;
     border: 0;
     background: transparent;
@@ -1073,14 +1084,14 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     border: 1px solid transparent;
     border-radius: 7px;
     box-sizing: border-box;
-    color: #718078;
+    color: var(--color-text-718078);
     background: transparent;
     transition: background-color .15s ease, color .15s ease;
   }
   .qactions .tiny:hover {
     border-color: transparent !important;
-    background: #f0f4ef;
-    color: #405f48;
+    background: var(--color-surface-muted);
+    color: var(--color-text-405f48);
   }
   .qactions .tiny:nth-child(3) {
     width: auto;
@@ -1088,12 +1099,12 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     flex: 0 0 auto;
     gap: 5px;
     padding: 0 7px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .qactions .tiny:last-child:hover {
     border-color: transparent !important;
-    background: #fee4e2 !important;
-    color: #b42318 !important;
+    background: var(--color-palette-fee4e2) !important;
+    color: var(--color-text-b42318) !important;
   }
   .qgrid {
     display: grid;
@@ -1126,7 +1137,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
   .tiny {
     border: 1px solid transparent;
     background: transparent;
-    color: #687970;
+    color: var(--color-text-687970);
     font-size: 12px;
     padding: 0;
     display: inline-flex;
@@ -1140,16 +1151,16 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     min-height: 38px;
     flex: 0 0 38px;
     justify-content: center;
-    border: 1px solid #d9e2d8;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 8px;
-    background: #fff;
-    color: #77867c;
+    background: var(--color-surface);
+    color: var(--color-text-77867c);
     cursor: pointer;
   }
   .option .tiny:hover {
     border-color: transparent !important;
-    background: #fee4e2 !important;
-    color: #b42318 !important;
+    background: var(--color-palette-fee4e2) !important;
+    color: var(--color-text-b42318) !important;
   }
   .add-option {
     display: inline-flex;
@@ -1159,8 +1170,8 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     min-height: 32px;
     border: 0 !important;
     border-radius: 8px;
-    background: #f5f8f3;
-    color: #49684e;
+    background: var(--color-surface-muted);
+    color: var(--color-text-49684e);
     padding: 7px 10px;
     font-size: 12px;
     font-weight: 650;
@@ -1170,8 +1181,8 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     transition: background-color .15s ease, color .15s ease;
   }
   .add-option:hover {
-    background: #eaf1e7;
-    color: #365532;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365532);
   }
   .required {
     display: flex;
@@ -1179,7 +1190,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     width: fit-content;
     gap: 8px;
     font-size: 12px;
-    color: #718078;
+    color: var(--color-text-718078);
     margin: 10px 0 0;
     line-height: 20px;
     font-weight: 500;
@@ -1196,7 +1207,7 @@ export const QuestionBox = styled.div<{ $dragging?: boolean }>`
     flex: 0 0 16px;
     margin: 0;
     padding: 0;
-    accent-color: #52764b;
+    accent-color: var(--color-brand);
   }
   @media (max-width: 560px) {
     padding: 10px;
@@ -1211,10 +1222,10 @@ export const AddQuestionButton = styled(Button)`
   min-height: 42px;
   margin-top: 2px;
   padding: 7px 12px;
-  border: 1px dashed #bdcdb8;
+  border: 1px dashed var(--color-border-strong);
   border-radius: 9px;
-  background: #fbfcfa;
-  color: #49684e;
+  background: var(--color-surface-muted);
+  color: var(--color-text-49684e);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1227,13 +1238,13 @@ export const AddQuestionButton = styled(Button)`
     width: 22px;
     height: 22px;
     border-radius: 6px;
-    background: #e5efe0;
+    background: var(--color-brand-soft);
     display: grid;
     place-items: center;
   }
   &:hover {
-    background: #edf4ea;
-    color: #365532;
+    background: var(--color-brand-soft);
+    color: var(--color-text-365532);
   }
 `;
 export const Toolbar = styled.div`
@@ -1249,10 +1260,10 @@ export const Toolbar = styled.div`
   box-sizing: border-box;
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid #ccd9ca;
+  border: 1px solid var(--color-border-strong);
   border-radius: 13px;
-  background: #e5ede2;
-  box-shadow: 0 4px 12px rgba(48, 70, 54, 0.08);
+  background: var(--color-brand-soft);
+  box-shadow: 0 4px 12px var(--color-brand-alpha-080);
   backdrop-filter: blur(12px);
   .toolbar-start,
   .toolbar-end {
@@ -1270,25 +1281,25 @@ export const Toolbar = styled.div`
     min-width: 0;
     flex: 0 1 auto;
     padding: 0 7px 0 3px;
-    border-right: 1px solid #cfdacc;
+    border-right: 1px solid var(--color-border-strong);
   }
   .save-status .dot {
     width: 8px;
     height: 8px;
     flex: 0 0 8px;
     border-radius: 50%;
-    background: #6e9076;
-    box-shadow: 0 0 0 3px rgba(110, 144, 118, 0.12);
+    background: var(--color-brand);
+    box-shadow: 0 0 0 3px var(--color-brand-alpha-120);
   }
   .save-copy {
-    color: #52675a;
-    font-size: 11px;
+    color: var(--color-text-52675a);
+    font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
   }
   .saved-at {
-    color: #849087;
-    font-size: 10px;
+    color: var(--color-text-849087);
+    font-size: 12px;
     white-space: nowrap;
   }
   .catalog-actions { min-width: 0; flex: 0 1 auto; }
@@ -1315,24 +1326,24 @@ export const Toolbar = styled.div`
     gap: 6px;
     min-height: 38px;
     padding-inline: 11px;
-    border: 1px solid #d5e1d3;
+    border: 1px solid var(--color-brand-soft);
     border-radius: 9px;
-    background: #fff;
-    color: #4f6a57;
+    background: var(--color-surface);
+    color: var(--color-text-4f6a57);
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
   }
   .preview-action:hover:not(:disabled) {
-    border-color: #abc0aa !important;
-    background: #edf4ea !important;
-    color: #405d49 !important;
+    border-color: var(--color-border-strong) !important;
+    background: var(--color-brand-soft) !important;
+    color: var(--color-text-405d49) !important;
   }
   .preview-error {
     max-width: 190px;
     overflow: hidden;
-    color: #a05252;
-    font-size: 10px;
+    color: var(--color-text-a05252);
+    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -1350,7 +1361,7 @@ export const Toolbar = styled.div`
     gap: 8px;
     white-space: nowrap;
     margin: 0;
-    color: #53675a;
+    color: var(--color-text-53675a);
     font-size: 12px;
     font-weight: 650;
   }
@@ -1359,7 +1370,7 @@ export const Toolbar = styled.div`
     height: 18px;
     margin: 0;
     flex: 0 0 18px;
-    accent-color: #5b7a63;
+    accent-color: var(--color-brand);
   }
   .create-survey {
     display: inline-flex;
@@ -1367,18 +1378,18 @@ export const Toolbar = styled.div`
     gap: 7px;
     min-height: 42px;
     padding-inline: 17px;
-    border: 1px solid #496b54 !important;
+    border: 1px solid var(--color-brand) !important;
     border-radius: 10px;
-    background: #526f5b !important;
-    color: #fff !important;
-    box-shadow: 0 4px 12px rgba(48, 70, 54, 0.16);
+    background: var(--color-brand) !important;
+    color: var(--color-text-fff) !important;
+    box-shadow: 0 4px 12px var(--color-brand-alpha-160);
     font-weight: 750;
     white-space: nowrap;
   }
   .create-survey:hover:not(:disabled) {
-    border-color: #425d4b !important;
-    background: #425d4b !important;
-    color: #fff !important;
+    border-color: var(--color-brand) !important;
+    background: var(--color-brand) !important;
+    color: var(--color-text-fff) !important;
   }
   .create-survey:disabled { opacity: 0.68; }
   .create-custom,
@@ -1389,14 +1400,14 @@ export const Toolbar = styled.div`
     .toolbar-start,
     .toolbar-end { gap: 7px; }
     .save-status { padding-right: 7px; }
-    .save-copy { font-size: 10px; }
+    .save-copy { font-size: 12px; }
     .saved-at { display: none; }
     .catalog-actions .create-custom,
-    .catalog-actions .choose-method { padding-inline: 8px; font-size: 11px; }
+    .catalog-actions .choose-method { padding-inline: 8px; font-size: 12px; }
     .catalog-actions .choose-method { padding-right: 39px; }
-    .preview-action { padding-inline: 8px; font-size: 11px; }
+    .preview-action { padding-inline: 8px; font-size: 12px; }
     .publish-and-submit { gap: 7px; }
-    .publish-and-submit label { gap: 6px; font-size: 11px; }
+    .publish-and-submit label { gap: 6px; font-size: 12px; }
     .create-survey { min-height: 40px; padding-inline: 11px; font-size: 12px; }
   }
   @media (max-width: 620px) {
