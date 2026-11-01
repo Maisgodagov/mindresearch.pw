@@ -7,6 +7,10 @@ import { gsesInstrument } from "../data/gses.js";
 import { scoreRses } from "../scoring/rses.js";
 import { scoreGses } from "../scoring/gses.js";
 import { scoreMspss } from "../scoring/mspss.js";
+import { methodology as swls } from "../data/methodologies/method-2462.js";
+import { methodology as shs } from "../data/methodologies/method-2433.js";
+import { bitRuInstrument, bitRuScoring } from "../data/bitRu.js";
+import { calculateConfigurableScores } from "../scoring/configurable.js";
 import type { SeedSection } from "../types.js";
 
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -16,8 +20,11 @@ export const contentSchema = z
       "rosenberg-self-esteem",
       "general-self-efficacy",
       "perceived-social-support",
+      "satisfaction-with-life",
+      "subjective-happiness",
+      "brief-thriving",
     ]),
-    code: z.enum(["test_17", "test_19", "test_1"]),
+    code: z.enum(["test_17", "test_19", "test_1", "test_2480", "test_2451", "test_59"]),
     title: text(120),
     name: text(180),
     abbreviation: text(20),
@@ -86,15 +93,16 @@ export function definition(method: PublicMethod): Definition {
       400,
       "Код и версия методики не могут изменяться через редактор публикации",
     );
-  const instrument =
-    method.code === "test_17"
-      ? rsesInstrument
-      : method.code === "test_19"
-        ? gsesInstrument
-        : (survey.find((item) => item.code === "test_1") as
-            | SeedSection
-            | undefined);
-  if (!instrument) throw new Error("Не найден бланк MSPSS");
+  const instruments: Record<string, SeedSection | undefined> = {
+    test_17: rsesInstrument,
+    test_19: gsesInstrument,
+    test_1: survey.find((item) => item.code === "test_1") as SeedSection | undefined,
+    test_2480: swls.instrument,
+    test_2451: shs.instrument,
+    test_59: bitRuInstrument,
+  };
+  const instrument = instruments[method.code];
+  if (!instrument) throw failure(400, "Не найден бланк публичной методики");
   const snapshot = { method, questions: instrument.questions };
   return {
     ...snapshot,
@@ -163,7 +171,7 @@ export function calculate(
     ];
     explanation =
       "Шкала описывает уверенность в своих возможностях. Здесь нет универсального порога «нормы»: балл не определяет, справитесь ли вы с конкретной задачей.";
-  } else {
+  } else if (def.method.code === "test_1") {
     const score = scoreMspss(input);
     if (!score) throw failure(400, "Не удалось рассчитать показатели");
     scales = [score.overall, ...Object.values(score.scales)].map((s) => ({
@@ -177,6 +185,24 @@ export function calculate(
     }));
     explanation =
       "Общий показатель — среднее всех ответов. Остальные шкалы помогают увидеть, насколько доступной ощущается поддержка из разных источников. Значимый другой — важный для вас человек.";
+  } else {
+    const variants = {
+      test_2480: { scoring: swls.scoringConfig!, key: "total", label: "Удовлетворённость жизнью", min: 5, max: 35,
+        meaning: "Чем выше балл, тем больше удовлетворённость жизнью отражена в ответах.",
+        explanation: "Шкала описывает вашу общую оценку жизни по собственным критериям. Балл не является диагнозом или универсальной оценкой того, насколько хорошо вы живёте." },
+      test_2451: { scoring: shs.scoringConfig!, key: "shs", label: "Субъективное счастье", min: 1, max: 7,
+        meaning: "Чем выше балл, тем более счастливым человеком вы описываете себя.",
+        explanation: "Это средний балл четырёх вопросов с обратным кодированием последнего. Он описывает ваше восприятие счастья, а не процент счастья и не нормативный уровень." },
+      test_59: { scoring: bitRuScoring, key: "thriving", label: "Психологическое благополучие", min: 10, max: 50,
+        meaning: "Чем выше балл, тем больше признаков психологического благополучия отражено в ответах.",
+        explanation: "Общий показатель объединяет ответы о смысле, отношениях, энергии и достижении целей. Краткая версия не оценивает каждую область отдельно. Универсальный порог нормы не применяется." },
+    };
+    const variant = variants[def.method.code as keyof typeof variants];
+    if (!variant) throw failure(400, "Не найден расчёт публичной методики");
+    const score = calculateConfigurableScores(variant.scoring, Object.fromEntries(input));
+    if (!score || !Number.isFinite(score[variant.key])) throw failure(400, "Не удалось рассчитать показатель");
+    scales = [{ label: variant.label, value: score[variant.key], min: variant.min, max: variant.max, explanation: variant.meaning }];
+    explanation = variant.explanation;
   }
   return {
     method: def.method,

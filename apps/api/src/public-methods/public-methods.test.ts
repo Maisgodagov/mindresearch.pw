@@ -74,7 +74,7 @@ describe("public assessments isolated from research", () => {
   }
   it("serves only curated methods with source pages and crawlable text", async () => {
     const list = await (await request("/api/public/methods")).json();
-    expect(list).toHaveLength(3);
+    expect(list).toHaveLength(initialCatalog.length);
     const doc = await (
       await request("/api/public/methods/document?slug=general-self-efficacy")
     ).json();
@@ -87,6 +87,22 @@ describe("public assessments isolated from research", () => {
     );
     expect((await request("/api/public/methods/unknown")).status).toBe(404);
     expect((await request("/methods/unknown")).status).toBe(404);
+  });
+  it.each([
+    ["satisfaction-with-life", 4, 20, 5],
+    ["subjective-happiness", 1, 2.5, 4],
+    ["brief-thriving", 3, 30, 10],
+  ])("completes and restores %s anonymously with the exact instrument", async (slug, answer, expected, count) => {
+    const { a, cookie } = await start(String(slug));
+    expect(a.definition.questions).toHaveLength(Number(count));
+    const answers = Object.fromEntries(a.definition.questions.map(q => [q.code, answer]));
+    const path = `/api/public/assessments/${a.id}`;
+    const response = await request(path + "/complete", { answers, position: Number(count) - 1, revision: 0 }, cookie);
+    expect(response.status).toBe(200);
+    const restored = await (await request(path, undefined, cookie)).json();
+    expect(restored.result.scales[0].value).toBe(expected);
+    expect(restored.result.method.slug).toBe(slug);
+    expect((await request(path)).status).toBe(404);
   });
   it("requires adult confirmation and blocks cross-origin writes", async () => {
     expect(
@@ -368,7 +384,7 @@ describe("shared scoring and safe document rendering", () => {
         );
       const r = calculate(d, answers);
       expect(r.scales[0].value).toBe(
-        m.code === "test_17" ? 15 : m.code === "test_19" ? 10 : 1,
+        ({ test_17: 15, test_19: 10, test_1: 1, test_2480: 5, test_2451: 2.5, test_59: 10 })[m.code],
       );
     }
     const d = definition(initialCatalog[0]),
@@ -408,5 +424,29 @@ describe("shared scoring and safe document rendering", () => {
     expect(html).not.toContain("<title>old");
     expect(html).toContain("Как рассчитывается результат");
     expect(html).toContain("canonical");
+  });
+});
+
+
+describe("well-being score boundaries", () => {
+  const cases: [string, number[], number, number, number][] = [
+    ["satisfaction-with-life", [1,1,1,1,1], 5, 5, 35],
+    ["satisfaction-with-life", [7,7,7,7,7], 35, 5, 35],
+    ["satisfaction-with-life", [1,2,3,4,5], 15, 5, 35],
+    ["subjective-happiness", [1,1,1,7], 1, 1, 7],
+    ["subjective-happiness", [7,7,7,1], 7, 1, 7],
+    ["subjective-happiness", [1,1,1,1], 2.5, 1, 7],
+    ["subjective-happiness", [2,3,4,5], 3, 1, 7],
+    ["brief-thriving", Array(10).fill(1), 10, 10, 50],
+    ["brief-thriving", Array(10).fill(5), 50, 10, 50],
+    ["brief-thriving", [1,2,3,4,5,1,2,3,4,5], 30, 10, 50],
+  ];
+  it.each(cases)("scores %s with %j", (slug, values, expected, min, max) => {
+    const def = definition(initialCatalog.find(m => m.slug === slug)!);
+    expect(def.questions).toHaveLength(values.length);
+    const answers = Object.fromEntries(def.questions.map((q, i) => [q.code, values[i]]));
+    expect(calculate(def, answers).scales[0]).toMatchObject({value: expected, min, max});
+    expect(() => calculate(def, {})).toThrow();
+    expect(() => calculate(def, {...answers, [def.questions[0].code]: 0})).toThrow();
   });
 });

@@ -27,7 +27,7 @@ describe("public test SEO", () => {
     const graph = publicStructuredData(initialCatalog, method)["@graph"];
     expect(graph.some(item => item["@type"] === "BreadcrumbList")).toBe(true);
     const list = publicStructuredData(initialCatalog)["@graph"].find(item => item["@type"] === "CollectionPage") as any;
-    expect(list.mainEntity.itemListElement).toHaveLength(3);
+    expect(list.mainEntity.itemListElement).toHaveLength(initialCatalog.length);
     expect(JSON.stringify(graph)).not.toMatch(/AggregateRating|MedicalTest/);
   });
   it("supports editorial snippets without changing scoring fields", () => {

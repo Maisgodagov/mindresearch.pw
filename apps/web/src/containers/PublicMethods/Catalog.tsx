@@ -15,6 +15,10 @@ import { collections, findMethods, type CatalogMethod } from "./catalogModel";
 import "./catalog.css";
 
 const topicCopy: Record<string, { title: string; text: string }> = {
+  Благополучие: {
+    title: "Как вы ощущаете свою жизнь?",
+    text: "Удовлетворённость жизнью, субъективное счастье и психологическое благополучие — три разных взгляда на ваш опыт.",
+  },
   Самооценка: {
     title: "Как вы относитесь к себе?",
     text: "Принятие себя и ощущение собственной ценности. Посмотрите, как вы оцениваете себя сейчас.",

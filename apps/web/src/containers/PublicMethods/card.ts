@@ -7,8 +7,8 @@ import { formatScore } from "./types";
 export async function resultCard(result: PublicResult): Promise<Blob> {
   await Promise.all([
     document.fonts.load('700 32px "Manrope Variable"'),
-    document.fonts.load('600 32px "Onest Variable"', "Мой результат Поддержка семьи 0123456789,из"),
-    document.fonts.load('400 32px "Prata"', "Моя самоэффективность Моё отношение к себе Моя опора Моя поддержка"),
+    document.fonts.load('600 32px "Onest Variable"', "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ абвгдеёжзийклмнопрстуфхцчшщъыьэюя 0123456789,из"),
+    document.fonts.load('400 32px "Prata"', "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ абвгдеёжзийклмнопрстуфхцчшщъыьэюя"),
   ]);
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
@@ -29,6 +29,9 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
     : mix([247, 181, 132], [208, 235, 119], (position - 0.5) * 2);
   const highlight = position < 0.5 ? "#e67f55" : "#c8e878";
   const titles: Record<string, string[]> = {
+    "satisfaction-with-life": ["Моя жизнь.", "Мои ощущения."],
+    "subjective-happiness": ["Моё ощущение", "счастья"],
+    "brief-thriving": ["Моё", "благополучие"],
     "general-self-efficacy": ["Моя", "самоэффективность"],
     "rosenberg-self-esteem": ["Моё отношение", "к себе"],
     "perceived-social-support": ["Моя опора.", "Моя поддержка."],
