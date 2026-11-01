@@ -167,7 +167,7 @@ export function PlatformSidebar({
               {links
                 .filter(
                   (link) =>
-                    link.to === "/app/profile" || link.to === "/methods",
+                    link.to === "/app/profile" || link.to === "/methods/",
                 )
                 .map(renderLink)}
               {reportButton}

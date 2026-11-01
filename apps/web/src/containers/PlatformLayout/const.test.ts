@@ -1,3 +1,7 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
+import { PlatformSidebar } from "../../components/PlatformSidebar";
 import { describe, expect, it } from "vitest";
 import { getSidebarLinks } from "./const";
 describe("public and private section navigation", () => {
@@ -17,4 +21,18 @@ describe("public and private section navigation", () => {
     expect(paths).toContain("/app/admin/public-methods");
     expect(paths.filter(path => path === "/methods/")).toHaveLength(1);
   });
+});
+
+
+it.each(["researcher", "admin", "owner"])("renders the public test catalogue for signed-in %s", role => {
+  const html = renderToStaticMarkup(createElement(MemoryRouter, {},
+    createElement(PlatformSidebar, {
+      collapsed: false,
+      links: getSidebarLinks(role),
+      onToggle: () => {},
+      onLogout: () => {},
+    }),
+  ));
+  expect(html).toContain('href="/methods/"');
+  expect(html).toContain("Тесты и методики");
 });
