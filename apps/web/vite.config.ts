@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
               ctx.originalUrl || ctx.path,
               "http://localhost",
             ).pathname;
-            if (!ctx.server || (path !== "/for-researchers" && !/^\/methods(?:\/[^/]+)?\/?$/.test(path)))
+            if (!ctx.server || (!/^\/for-researchers\/?$/.test(path) && !/^\/methods(?:\/[^/]+)?\/?$/.test(path)))
               return html;
             const slug = path.split("/").filter(Boolean)[1];
             const target =
@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
               "http://127.0.0.1:4011";
             try {
               const response = await fetch(
-                path === "/for-researchers" ? `${target}/api/public/researcher-document` : `${target}/api/public/methods/document${slug ? `?slug=${encodeURIComponent(slug)}` : ""}`,
+                /^\/for-researchers\/?$/.test(path) ? `${target}/api/public/researcher-document` : `${target}/api/public/methods/document${slug ? `?slug=${encodeURIComponent(slug)}` : ""}`,
               );
               if (!response.ok) return html;
               const doc = (await response.json()) as {

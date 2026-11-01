@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 export const platformTitle =
   "Платформа для психологических исследований - mindresearch";
@@ -12,6 +12,17 @@ export function usePageTitle(title: string | undefined) {
 }
 export function PageTitles() {
   const { pathname, search } = useLocation();
+  useEffect(() => {
+    if (/^\/for-researchers\/?$/.test(pathname) || /^\/methods(?:\/[^/]+)?\/?$/.test(pathname)) return;
+    // Run after page metadata cleanups when navigating away from a public article.
+    const frame = requestAnimationFrame(() => {
+      let robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+      if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.append(robots); }
+      robots.content = "noindex,nofollow";
+      document.head.querySelectorAll('link[rel="canonical"], #public-methods-schema, #researcher-schema').forEach(node => node.remove());
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname, search]);
   useLayoutEffect(() => {
     const staticTitles: Record<string, string> = {
       "/for-researchers": "Для исследователей",

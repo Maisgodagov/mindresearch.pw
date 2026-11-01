@@ -1,5 +1,5 @@
 import { PlatformLayout } from "../PlatformLayout";
-import content from "../../../../api/src/data/researcherLanding.json";
+import content from "../../../../api/src/data/researcherLanding.json" with { type: "json" };
 import { LandingMetadata } from "./LandingMetadata";
 import { BrandWordmark } from "../../components/BrandWordmark";
 import { useEffect, useRef, useState } from "react";
@@ -65,7 +65,7 @@ export function Landing() {
     const canonical = existing ?? document.createElement("link");
     const previous = existing?.href;
     canonical.rel = "canonical";
-    canonical.href = "https://mindresearch.pro/for-researchers";
+    canonical.href = "https://mindresearch.pro/for-researchers/";
     if (!existing) document.head.append(canonical);
     void initializeAuth()
       .then((token) => {

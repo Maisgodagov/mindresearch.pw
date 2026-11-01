@@ -7,7 +7,7 @@ import { methodPath, PUBLIC_ORIGIN } from "./seo.js";
 
 export function methodsSitemap(publications: Publication[]) {
   const entries = [
-    `<url><loc>${PUBLIC_ORIGIN}/for-researchers</loc></url>`,
+    `<url><loc>${PUBLIC_ORIGIN}/for-researchers/</loc></url>`,
     `<url><loc>${PUBLIC_ORIGIN + methodPath()}</loc></url>`,
     ...publications.filter(item => item.published).map(item => {
       const lastmod = item.publishedAt && !Number.isNaN(Date.parse(item.publishedAt))
@@ -18,7 +18,7 @@ export function methodsSitemap(publications: Publication[]) {
   return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries.join("")}</urlset>`;
 }
 export function privateDocument(template: string, title: string) {
-  return template.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)} | mindresearch</title>`)
+  return template.replace(/<meta[^>]+name=["']robots["'][^>]*>/gi, "").replace(/<link[^>]+rel=["']canonical["'][^>]*>/gi, "").replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)} | mindresearch</title>`)
     .replace("</head>", '<meta name="robots" content="noindex,nofollow"></head>');
 }
 

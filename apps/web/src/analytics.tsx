@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { api, getCurrentUser, sendAnalyticsOnUnload } from "./api";
+import { hasAnalyticsConsent, useAnalyticsConsent } from "./analyticsConsent";
 
 type Event = {
   id: string;
@@ -54,7 +55,7 @@ const labels: Record<string, string> = {
   "Скрыть показатели качества": "quality.collapse",
 };
 function event(type: string, name: string, durationMs = 0) {
-  if (!page || !sessionId) return;
+  if (!hasAnalyticsConsent() || !page || !sessionId) return;
   lastEvent = Date.now();
   queue.push({
     id: crypto.randomUUID(),
@@ -70,19 +71,21 @@ function event(type: string, name: string, durationMs = 0) {
   if (queue.length > 200) queue.shift();
 }
 async function flush() {
+  if (!hasAnalyticsConsent()) { queue = []; return; }
   if (sending || !queue.length) return;
   sending = true;
   const batch = queue.splice(0, 50);
   try {
     await api.post("/account/analytics/events", { events: batch });
   } catch {
-    queue.unshift(...batch);
+    if (hasAnalyticsConsent()) queue.unshift(...batch);
     queue = queue.slice(-200);
   } finally {
     sending = false;
   }
 }
 async function flushReplay() {
+  if (!hasAnalyticsConsent()) { replay = []; return; }
   if (replaySending || !replay.length) return;
   replaySending = true;
   const events = replay.splice(0, 500),
@@ -125,11 +128,13 @@ export function trackApi(method: string, url: string, status: number) {
 }
 export function ProductAnalytics() {
   const location = useLocation();
+  const consent = useAnalyticsConsent();
   useEffect(() => {
     let live = true;
     stopReplay?.();
     stopReplay = undefined;
     page = "";
+    if (consent !== "allow") { queue = []; replay = []; owner = ""; sessionId = ""; return; }
     if (
       !location.pathname.startsWith("/app") ||
       location.pathname.startsWith("/app/admin")
@@ -138,7 +143,7 @@ export function ProductAnalytics() {
     const path = analyticsPage(location.pathname);
     void getCurrentUser()
       .then(async (user) => {
-        if (!live) return;
+        if (!live || !hasAnalyticsConsent()) return;
         // New recording segment per screen; IDs never persist across accounts/logouts.
         if (owner !== user.id || Date.now() - lastEvent > 30 * 60_000) {
           queue = [];
@@ -158,7 +163,7 @@ export function ProductAnalytics() {
             import("@rrweb/record"),
             import("@rrweb/packer"),
           ]);
-          if (!live) return;
+          if (!live || !hasAnalyticsConsent()) return;
           stopReplay = record({
             maskAllInputs: true,
             maskTextSelector: "*",
@@ -168,7 +173,7 @@ export function ProductAnalytics() {
             inlineStylesheet: true,
             sampling: { mousemove: 200, scroll: 300 },
             emit: (e) => {
-              if (!live) return;
+              if (!live || !hasAnalyticsConsent()) return;
               const clean = JSON.parse(JSON.stringify(e));
               if (clean.type === 4) clean.data.href = path;
               // Attributes may contain labels, URLs or stored values even with text masking.
@@ -221,7 +226,7 @@ export function ProductAnalytics() {
       const target = (e.target as Element)?.closest(
         'button,a,[role="button"],[role="tab"]',
       ) as HTMLElement | null;
-      if (!target) return;
+      if (!target || target.closest("[data-analytics-private]")) return;
       const label = (target.textContent ?? "").trim().replace(/\s+/g, " ");
       const explicit = target.dataset.analytics;
       let name =
@@ -279,6 +284,6 @@ export function ProductAnalytics() {
       window.removeEventListener("unhandledrejection", error);
       window.removeEventListener("pagehide", unload);
     };
-  }, [location.pathname]);
+  }, [location.pathname, consent]);
   return null;
 }

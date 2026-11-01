@@ -40,7 +40,7 @@ export const AdminWorkspace = styled.div`
     margin: 24px 0;
     flex-wrap: wrap;
   }
-  .tabs button[aria-pressed="true"] {
+  && .tabs .ant-btn[aria-pressed="true"] {
     background: var(--color-brand);
     color: var(--color-surface);
   }
@@ -77,6 +77,9 @@ export const AdminWorkspace = styled.div`
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 20px;
   }
+  &.analytics-workspace .columns { align-items: start; }
+  &.analytics-overview .summary-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media(max-width: 760px) { &.analytics-overview .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .profile {
     display: flex;
     gap: 22px;

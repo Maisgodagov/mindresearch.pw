@@ -13,7 +13,7 @@ const font = name => readFileSync(resolve(root, "node_modules/@fontsource-variab
     const page = await browser.newPage();
     const fonts = [font("manrope-cyrillic-wght-normal.woff2"), font("manrope-latin-wght-normal.woff2")];
     mkdirSync(output, {recursive: true});
-    for (const method of [{slug:"catalog",name:"Психологические тесты онлайн",abbreviation:"",topic:"Без регистрации · С пояснениями и источниками"}, ...methods]) {
+    for (const method of [{slug:"researchers",name:"Опросы и статистика для исследований",abbreviation:"",topic:"Методики · Сбор ответов · Анализ данных · Excel"}, {slug:"catalog",name:"Психологические тесты онлайн",abbreviation:"",topic:"Без регистрации · С пояснениями и источниками"}, ...methods]) {
       if (!/^[a-z0-9-]+$/.test(method.slug)) throw new Error("Unsafe image slug");
       const data = await page.evaluate(async ({method, fonts}) => {
         const faces = fonts.map((font, i) => new FontFace("Social", `url(data:font/woff2;base64,${font})`, {weight:"200 800",unicodeRange:i===0?"U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116":"U+0000-00FF,U+2000-206F"}));

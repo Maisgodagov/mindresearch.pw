@@ -1,4 +1,5 @@
 import { trackApi } from "./analytics";
+import { hasAnalyticsConsent } from "./analyticsConsent";
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { CurrentUser } from "./types/user";
 const baseURL = import.meta.env.VITE_API_URL ?? "/api";
@@ -76,11 +77,11 @@ export function hasAccessToken() {
   return Boolean(accessToken);
 }
 // Keep final click/page events when the tab closes. Browser keepalive has a 64 KB limit.
-export function sendAnalyticsOnUnload(events: unknown[]) {
-  if (!accessToken || !events.length) return;
+export function sendAnalyticsOnUnload(events: unknown[], publicPage = false) {
+  if (!hasAnalyticsConsent() || (!accessToken && !publicPage) || !events.length) return;
   const body=JSON.stringify({events:events.slice(0,50)});
   if(new Blob([body]).size>60_000)return;
-  void fetch(`${baseURL}/account/analytics/events`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${accessToken}`},body,credentials:'include',keepalive:true}).catch(()=>{});
+  void fetch(`${baseURL}/${publicPage ? "analytics/events" : "account/analytics/events"}`,{method:'POST',headers:{'Content-Type':'application/json',...(accessToken ? {Authorization:`Bearer ${accessToken}`} : {})},body,credentials:'include',keepalive:true}).catch(()=>{});
 }
 export function getCachedCurrentUser(): CurrentUser | null {
   return currentUser;

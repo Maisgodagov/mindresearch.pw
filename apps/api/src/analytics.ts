@@ -1,7 +1,10 @@
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { db } from "./db.js";
+import { analyticsReport } from "./analytics-report.js";
 import { requireAuth, requireRole, type AuthRequest } from "./auth.js";
+import { CONSENT_ALLOWED, CONSENT_COOKIE, publicAnalyticsPath } from "./analytics-policy.js";
 
 export const analyticsRouter = Router();
 export const eventSchema = z.object({
@@ -25,6 +28,70 @@ export const eventSchema = z.object({
   at: z.number().int().min(0),
 });
 const batchSchema = z.object({ events: z.array(eventSchema).min(1).max(100) });
+export const publicEventSchema = eventSchema.extend({
+  page: z.string().max(200).refine(path => publicAnalyticsPath(path) === path),
+  type: z.enum(["page_view", "click", "active_time"]),
+  name: z.enum(["screen.open", "screen.active", "control.click", "test.start", "test.share"]),
+  surveyId: z.null().default(null),
+});
+const cookie = (header: string | undefined, name: string) => header?.split(";").map(part => part.trim()).find(part => part.startsWith(name + "="))?.slice(name.length + 1);
+const consentRequired: RequestHandler = (req, res, next) => {
+  if (cookie(req.headers.cookie, CONSENT_COOKIE) !== CONSENT_ALLOWED)
+    return res.status(403).json({ message: "Аналитика отключена" });
+  next();
+};
+const sameOrigin: RequestHandler = (req, res, next) => {
+  const origin = req.get("origin");
+  const allowed = ["https://mindresearch.pro", ...(process.env.CLIENT_URL?.split(",") ?? []), `${req.protocol}://${req.get("host")}`];
+  const local = process.env.NODE_ENV !== "production" && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin ?? "");
+  if (req.get("sec-fetch-site") === "cross-site" || (origin && !allowed.includes(origin) && !local))
+    return res.status(403).json({ message: "Запрос с другого сайта запрещён" });
+  next();
+};
+const visitorCookie = "mindresearch_visitor";
+const visitorOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/api" };
+const signVisitor = (id: string) => createHmac("sha256", process.env.JWT_SECRET!).update("analytics:" + id).digest("hex");
+function visitorIdentity(header: string | undefined) {
+  const token = cookie(header, visitorCookie);
+  if (token && /^[0-9a-f-]{36}\.[0-9a-f]{64}$/.test(token)) {
+    const [id, signature] = token.split(".");
+    if (timingSafeEqual(Buffer.from(signature), Buffer.from(signVisitor(id)))) return id;
+  }
+  return randomUUID();
+}
+const publicLimits = new Map<string, { count: number; until: number }>();
+const publicLimit: RequestHandler = (req, res, next) => {
+  const now = Date.now();
+  for (const [key, value] of publicLimits) if (value.until < now) publicLimits.delete(key);
+  const key = createHmac("sha256", process.env.JWT_SECRET!).update(req.ip ?? "unknown").digest("hex");
+  const entry = publicLimits.get(key) ?? { count: 0, until: now + 60_000 };
+  if (++entry.count > 120 || (!publicLimits.has(key) && publicLimits.size >= 5000)) return res.status(429).json({ message: "Лимит аналитики" });
+  publicLimits.set(key, entry);
+  next();
+};
+
+analyticsRouter.post("/analytics/forget", sameOrigin, (_req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.clearCookie(visitorCookie, visitorOptions).json({ ok: true });
+});
+analyticsRouter.post("/analytics/events", sameOrigin, consentRequired, publicLimit,
+  (req, res, next) => req.headers.authorization ? requireAuth(req, res, next) : next(),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { events } = z.object({ events: z.array(publicEventSchema).min(1).max(50) }).parse(req.body);
+      const visitorId = req.user ? null : visitorIdentity(req.headers.cookie);
+      const [count] = await db.query<any[]>("SELECT COUNT(*) n FROM product_events WHERE (visitor_id=? OR user_id=?) AND received_at>DATE_SUB(NOW(),INTERVAL 1 DAY)", [visitorId, req.user?.id ?? null]);
+      if (Number(count[0].n) + events.length > 10000) return res.status(429).json({ message: "Лимит аналитики" });
+      const values = events.map(e => [e.id, req.user?.id ?? null, visitorId, e.sessionId, e.type, e.page, e.name, null,
+        req.get("user-agent")?.slice(0,320) ?? null, e.durationMs,
+        new Date(Math.max(Date.now() - 86_400_000, Math.min(Date.now() + 60_000, e.at)))]);
+      await db.query("INSERT IGNORE INTO product_events(id,user_id,visitor_id,session_id,type,page,name,survey_id,user_agent,duration_ms,occurred_at) VALUES ?", [values]);
+      res.setHeader("Cache-Control", "no-store");
+      if (visitorId) res.cookie(visitorCookie, `${visitorId}.${signVisitor(visitorId)}`, { ...visitorOptions, maxAge: 90 * 86400_000 });
+      void cleanup().catch(console.error);
+      res.json({ ok: true });
+    } catch (error) { next(error); }
+  });
 const replaySchema = z.object({
   sessionId: z.string().uuid(),
   sequence: z.number().int().min(0).max(2000),
@@ -59,6 +126,7 @@ async function cleanup() {
 analyticsRouter.post(
   "/account/analytics/events",
   requireAuth,
+  consentRequired,
   async (req: AuthRequest, res, next) => {
     try {
       const { events } = batchSchema.parse(req.body);
@@ -100,6 +168,7 @@ analyticsRouter.post(
 analyticsRouter.post(
   "/account/analytics/replay",
   requireAuth,
+  consentRequired,
   async (req: AuthRequest, res, next) => {
     try {
       const body = replaySchema.parse(req.body),
@@ -124,67 +193,12 @@ analyticsRouter.post(
   },
 );
 
-const range = (value: unknown) =>
-  z.coerce.number().int().min(1).max(90).default(30).parse(value);
-async function report(userId: string | null, days: number) {
-  const where = `received_at>=DATE_SUB(NOW(),INTERVAL ? DAY)${userId ? " AND user_id=?" : ""}`,
-    params = userId ? [days, userId] : [days];
-  const [
-    [summary],
-    [daily],
-    [pages],
-    [actions],
-    [sessions],
-    [events],
-    [funnel],
-  ] = await Promise.all([
-    db.query<any[]>(
-      `SELECT COUNT(*) events,COUNT(DISTINCT user_id) users,COUNT(DISTINCT user_id,session_id) sessions,COALESCE(SUM(type='page_view'),0) pageViews,COALESCE(SUM(type='click'),0) clicks,COALESCE(SUM(type IN ('client_error','api_error')),0) errors,COALESCE(SUM(duration_ms),0) activeMs,MIN(received_at) trackingSince FROM product_events WHERE ${where}`,
-      params,
-    ),
-    db.query<any[]>(
-      `SELECT DATE(received_at) day,COUNT(DISTINCT user_id) users,COUNT(*) events,SUM(type='page_view') views,SUM(duration_ms) activeMs FROM product_events WHERE ${where} GROUP BY DATE(received_at) ORDER BY day`,
-      params,
-    ),
-    db.query<any[]>(
-      `SELECT page,COUNT(*) views,COUNT(DISTINCT user_id) users FROM product_events WHERE ${where} AND type='page_view' GROUP BY page ORDER BY views DESC LIMIT 30`,
-      params,
-    ),
-    db.query<any[]>(
-      `SELECT e.name,COUNT(*) count,COUNT(DISTINCT user_id) users,MAX(i.title) instrumentTitle FROM product_events e LEFT JOIN instruments i ON i.code=SUBSTRING_INDEX(e.name,'.',-1) WHERE ${where} AND type IN ('click','feature') GROUP BY e.name ORDER BY count DESC LIMIT 40`,
-      params,
-    ),
-    db.query<any[]>(
-      `SELECT e.user_id userId,e.session_id id,MIN(e.occurred_at) startedAt,MAX(e.occurred_at) lastAt,SUM(e.duration_ms) activeMs,COUNT(*) events,MIN(u.name) userName,MIN(e.user_agent) userAgent,SUM(e.type='click') clicks,SUM(e.type IN ('client_error','api_error')) errors,EXISTS(SELECT 1 FROM product_replay_chunks r WHERE r.user_id=e.user_id AND r.session_id=e.session_id) hasReplay FROM product_events e JOIN users u ON u.id=e.user_id WHERE ${where} GROUP BY e.user_id,e.session_id ORDER BY lastAt DESC LIMIT 50`,
-      params,
-    ),
-    db.query<any[]>(
-      `SELECT e.id,e.user_id userId,u.name userName,e.session_id sessionId,e.type,e.page,e.name,e.survey_id surveyId,s.title surveyTitle,i.title instrumentTitle,e.duration_ms durationMs,e.occurred_at at FROM product_events e JOIN users u ON u.id=e.user_id LEFT JOIN surveys s ON s.id=e.survey_id LEFT JOIN instruments i ON i.code=SUBSTRING_INDEX(e.name,'.',-1) WHERE ${where} AND type<>'active_time' ORDER BY e.occurred_at DESC,e.id DESC LIMIT 100`,
-      params,
-    ),
-    db.query<any[]>(
-      `SELECT page,COUNT(DISTINCT user_id) users FROM product_events WHERE ${where} AND type='page_view' AND page IN ('/app','/app/surveys/new','/app/surveys/:id/edit','/app/surveys/:id/results') GROUP BY page`,
-      params,
-    ),
-  ]);
-  return {
-    days,
-    summary: summary[0],
-    daily,
-    pages,
-    actions,
-    sessions,
-    events,
-    funnel,
-    retention: { eventsDays: 90, replayDays: 14 },
-  };
-}
 analyticsRouter.get(
   "/admin/analytics",
   requireRole("owner", "admin"),
   async (req, res, next) => {
     try {
-      res.json(await report(null, range(req.query.days)));
+      res.json(await analyticsReport(null, req.query));
     } catch (error) {
       next(error);
     }
@@ -195,10 +209,22 @@ analyticsRouter.get(
   requireRole("owner", "admin"),
   async (req, res, next) => {
     try {
-      res.json(await report(String(req.params.id), range(req.query.days)));
+      res.json(await analyticsReport(String(req.params.id), req.query));
     } catch (error) {
       next(error);
     }
+  },
+);
+analyticsRouter.get(
+  "/admin/analytics/guests/:visitorId/sessions/:sessionId",
+  requireRole("owner", "admin"),
+  async (req, res, next) => {
+    try {
+      const visitorId = z.string().uuid().parse(req.params.visitorId);
+      const sessionId = z.string().uuid().parse(req.params.sessionId);
+      const [events] = await db.query<any[]>("SELECT type,page,name,duration_ms durationMs,occurred_at at FROM product_events WHERE user_id IS NULL AND visitor_id=? AND session_id=? ORDER BY occurred_at,id LIMIT 2000", [visitorId, sessionId]);
+      res.json({events,replay:[]});
+    } catch (error) { next(error); }
   },
 );
 analyticsRouter.get(

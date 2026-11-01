@@ -23,7 +23,8 @@ vi.mock("./db.js", () => ({
 }));
 import { adminManagementRouter } from "./admin-management.js";
 import { canReadSurvey } from "./admin-access.js";
-import { analyticsRouter, eventSchema } from "./analytics.js";
+import { analyticsRouter, eventSchema, publicEventSchema } from "./analytics.js";
+import { analyticsPeriod, publicAnalyticsPath } from "./analytics-policy.js";
 let server: Server, base: string;
 beforeEach(async () => {
   vi.resetAllMocks();
@@ -77,6 +78,7 @@ const request = (path: string, id = "actor", options: any = {}) =>
     headers: {
       authorization: `Bearer ${signToken({ id, role: "owner" })}`,
       "content-type": "application/json",
+      cookie: "mindresearch_analytics_consent=v1.allow",
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
@@ -193,6 +195,65 @@ describe("administrator inspection and deletion", () => {
   });
 });
 describe("product analytics", () => {
+  it("requires consent for authenticated events and replay", async () => {
+    for (const path of ["/account/analytics/events", "/account/analytics/replay"]) {
+      const response = await fetch(base + path, {method:"POST",headers:{authorization:`Bearer ${signToken({id:"researcher",role:"researcher"})}`,"content-type":"application/json"},body:"{}"});
+      expect(response.status).toBe(403);
+    }
+    expect(mocks.query.mock.calls.some(([sql]) => sql.startsWith("INSERT"))).toBe(false);
+  });
+  it("tracks consenting guests with a server identity and refuses cross-site requests", async () => {
+    mocks.query.mockImplementation(async (sql: string) => sql.includes("COUNT(*)") ? [[{n:0}]] : [[]]);
+    const e = {id:crypto.randomUUID(),sessionId:crypto.randomUUID(),type:"page_view",page:"/methods",name:"screen.open",at:Date.now(),userId:"forged",visitorId:"forged",score:20};
+    const options = {method:"POST",headers:{"content-type":"application/json",cookie:"mindresearch_analytics_consent=v1.allow"},body:JSON.stringify({events:[e]})};
+    expect((await fetch(base + "/analytics/events", {...options,headers:{"content-type":"application/json"}})).status).toBe(403);
+    expect((await fetch(base + "/analytics/events", {...options,headers:{...options.headers,origin:"https://untrusted.example"}})).status).toBe(403);
+    const first = await fetch(base + "/analytics/events",options);
+    expect(first.status).toBe(200);
+    const visitor = first.headers.get("set-cookie")!.split(";")[0];
+    expect(first.headers.get("set-cookie")).toContain("HttpOnly");
+    await fetch(base + "/analytics/events",{...options,headers:{...options.headers,cookie:options.headers.cookie+"; "+visitor}});
+    const inserts = mocks.query.mock.calls.filter(([sql])=>sql.startsWith("INSERT IGNORE"));
+    expect(inserts[0][1][0][0][1]).toBeNull();
+    expect(inserts[0][1][0][0][2]).toMatch(/^[a-f0-9-]{36}$/);
+    expect(inserts[1][1][0][0][2]).toBe(inserts[0][1][0][0][2]);
+    expect(publicEventSchema.parse(e)).not.toHaveProperty("score");
+    expect((await fetch(base+"/analytics/forget",{method:"POST"})).headers.get("set-cookie")).toContain("Expires=Thu, 01 Jan 1970");
+  });
+  it("keeps answers, private identifiers and arbitrary text out of public events", () => {
+    const e = {id:crypto.randomUUID(),sessionId:crypto.randomUUID(),type:"click",page:"/methods/rosenberg-self-esteem",name:"control.click",at:Date.now()};
+    for (const page of ["/assessment/result?id=secret","/s/private-survey","/p/person","/methods?q=private","/app"]) expect(publicEventSchema.safeParse({...e,page}).success).toBe(false);
+    expect(publicEventSchema.safeParse({...e,name:"answer.20"}).success).toBe(false);
+    expect(publicEventSchema.safeParse({...e,type:"replay"}).success).toBe(false);
+    expect(publicAnalyticsPath("/methods/")).toBe("/methods");
+  });
+  it("attributes public-page events to authenticated users without creating a guest", async () => {
+    mocks.query.mockImplementation(async (sql: string, args: any[]) => sql.includes("SELECT id,role") ? [[{id:args[0],role:"researcher"}]] : sql.includes("COUNT(*)") ? [[{n:0}]] : [[]]);
+    const response = await request("/analytics/events","researcher",{method:"POST",body:{events:[{id:crypto.randomUUID(),sessionId:crypto.randomUUID(),type:"page_view",page:"/methods",name:"screen.open",at:Date.now(),userId:"forged"}]}});
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie")).toBeNull();
+    const insert = mocks.query.mock.calls.find(([sql])=>sql.startsWith("INSERT IGNORE"));
+    expect(insert?.[1][0][0].slice(1,3)).toEqual(["researcher",null]);
+  });
+  it("uses Moscow calendar days and an independent rolling 24 hour period", () => {
+    const now = Date.parse("2026-11-02T00:30:00Z");
+    expect(analyticsPeriod("today",now).from).toBe(Date.parse("2026-11-01T21:00:00Z"));
+    expect(analyticsPeriod("yesterday",now)).toEqual({from:Date.parse("2026-10-31T21:00:00Z"),to:Date.parse("2026-11-01T21:00:00Z"),hourly:true});
+    expect(analyticsPeriod("24h",now).from).toBe(now-86400_000);
+    expect(()=>analyticsPeriod("999",now)).toThrow();
+  });
+  it("keeps guest reports admin-only and applies audience and time filters", async () => {
+    expect((await request("/admin/analytics?period=today&audience=guests","researcher")).status).toBe(403);
+    const response = await request("/admin/analytics?period=yesterday&audience=guests");
+    expect(response.status).toBe(200);
+    const report = await response.json();
+    expect(report.hourly).toHaveLength(24);
+    expect(report.daily).toHaveLength(1);
+    expect(mocks.query.mock.calls.some(([sql])=>sql.includes("e.user_id IS NULL AND e.visitor_id IS NOT NULL") && sql.includes("FROM_UNIXTIME"))).toBe(true);
+    expect(mocks.query.mock.calls.some(([sql])=>sql.includes("LEFT JOIN users u"))).toBe(true);
+    expect((await request("/admin/analytics?period=invalid")).status).toBe(400);
+    expect((await request(`/admin/analytics/guests/${crypto.randomUUID()}/sessions/${crypto.randomUUID()}`,"researcher")).status).toBe(403);
+  });
   it("rejects unauthenticated uploads and non-admin analytics reads", async () => {
     expect(
       (

@@ -1,6 +1,8 @@
 import "./theme/colors.css";
 import { resolveThemeValue } from "./theme/resolveThemeValue";
 import { ProductAnalytics } from "./analytics";
+import { PublicAnalytics } from "./publicAnalytics";
+import { CookieConsent } from "./components/CookieConsent";
 import { PageTitles } from "./pageTitle";
 import React, { Suspense } from "react";
 import { ConfigProvider } from "antd";
@@ -149,6 +151,7 @@ function App() {
       }}
     >
       <GlobalStyle />
+      <CookieConsent />
       <Suspense fallback={<RouteSkeleton />}>
         <Routes>
           <Route path="/methods" element={<PublicMethods/>}/>
@@ -210,7 +213,7 @@ function App() {
               </AuthGuard>
             }
           />
-          <Route path="*" element={<Navigate to="/register" replace />} />
+          <Route path="*" element={<PlatformLayout publicAccess><main style={{padding:32}}><h1>Страница не найдена</h1><p>Проверьте адрес или перейдите в <a href="/methods/">каталог психологических тестов</a>.</p><a href="/for-researchers/">Для исследователей</a></main></PlatformLayout>} />
         </Routes>
       </Suspense>
     </ConfigProvider>
@@ -219,7 +222,7 @@ function App() {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter><PageTitles/><ProductAnalytics />
+    <BrowserRouter><PageTitles/><ProductAnalytics /><PublicAnalytics />
       <App />
     </BrowserRouter>
   </React.StrictMode>,

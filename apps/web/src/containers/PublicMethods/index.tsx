@@ -204,6 +204,7 @@ export function PublicAssessment() {
               <button
                 className="pm-button pm-primary"
                 disabled={!adult || busy}
+                data-analytics="test.start"
                 onClick={start}
               >
                 {busy ? (
@@ -428,7 +429,7 @@ export function PublicAssessmentResult() {
                   <div className="pm-story-skeleton" role="status" aria-label="Создаём карточку результата" />
                 )}
                 <div className="pm-story-share">
-                  <button className="pm-button pm-primary" disabled={busy || !preview} onClick={() => void shareCard()}>
+                  <button className="pm-button pm-primary" data-analytics="test.share" disabled={busy || !preview} onClick={() => void shareCard()}>
                     {busy ? <LoaderCircle size={18} className="pm-spin" /> : <Share2 size={18} />}
                     Поделиться
                   </button>

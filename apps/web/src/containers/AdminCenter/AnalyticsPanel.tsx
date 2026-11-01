@@ -8,7 +8,8 @@ import "rrweb-player/dist/style.css";
 
 type Session = {
   id: string;
-  userId: string;
+  userId: string | null;
+  visitorId?: string;
   startedAt: string;
   lastAt: string;
   activeMs: number;
@@ -33,10 +34,15 @@ type Event = {
   surveyTitle?: string | null;
 };
 type Report = {
-  days: number;
+  period: string;
+  from: string;
+  to: string;
+  hourly: {hour:string;users:number;events:number;views:number;activeMs:number}[];
   summary: {
     events: number;
     users: number;
+    registeredUsers: number;
+    guests: number;
     sessions: number;
     pageViews: number;
     clicks: number;
@@ -79,6 +85,8 @@ const names: Record<string, string> = {
   "runtime.error": "Ошибка интерфейса",
   "support.sent": "Отправлено сообщение",
   "method.requested": "Запрошена методика",
+  "test.start": "Начать публичный тест",
+  "test.share": "Поделиться результатом",
 };
 const coreActions: Record<string, string> = {
   "survey.create": "Начать создание опроса",
@@ -95,6 +103,10 @@ const coreActions: Record<string, string> = {
   "method.requested": "Запросить методику",
   "support.sent": "Отправить сообщение",
 };
+const publicActions: Record<string,string> = {
+  "test.start": "Начать публичный тест",
+  "test.share": "Поделиться результатом",
+};
 const actionName = (key: string) =>
   names[key] ??
   coreActions[key] ??
@@ -104,6 +116,11 @@ const actionName = (key: string) =>
       ? "Описание методики · " + key.split(".").at(-1)
       : key);
 const pages: Record<string, string> = {
+  "/for-researchers": "Для исследователей",
+  "/methods": "Каталог тестов",
+  "/assessment/result": "Результат публичного теста",
+  "/login": "Вход",
+  "/register": "Регистрация",
   "/app": "Мои опросы",
   "/app/profile": "Профиль",
   "/app/surveys/new": "Создание опроса",
@@ -115,6 +132,7 @@ export const dateTime = (value: string | null) =>
     ? new Date(value).toLocaleString("ru-RU", {
         dateStyle: "medium",
         timeStyle: "short",
+        timeZone: "Europe/Moscow",
       })
     : "Нет данных";
 const device = (ua: string | null) =>
@@ -166,7 +184,8 @@ function Bars({ items }: { items: { label: string; value: number }[] }) {
   );
 }
 export function AnalyticsPanel({ userId }: { userId?: string }) {
-  const [days, setDays] = useState(30),
+  const [period, setPeriod] = useState("today"),
+    [audience, setAudience] = useState("all"),
     [report, setReport] = useState<Report | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
@@ -181,18 +200,20 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
   useEffect(() => {
     let live = true;
     setLoading(true);
+    setReport(null);
     setError("");
     api
       .get<Report>(
         userId ? `/admin/users/${userId}/analytics` : "/admin/analytics",
-        { params: { days } },
+        { params: { period, audience } },
       )
       .then((r) => {
+        if (!r.data.period || !Array.isArray(r.data.hourly)) throw new Error("analytics-version");
         if (live) setReport(r.data);
       })
-      .catch(() => {
+      .catch((cause) => {
         if (live)
-          setError("Не удалось загрузить аналитику. Повторите попытку.");
+          setError(cause instanceof Error && cause.message === "analytics-version" ? "На сервере ещё прежняя версия аналитики. Для новых периодов и учёта гостей нужно обновить API вместе с интерфейсом." : "Не удалось загрузить аналитику. Повторите попытку.");
       })
       .finally(() => {
         if (live) setLoading(false);
@@ -200,7 +221,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
     return () => {
       live = false;
     };
-  }, [days, userId, refresh]);
+  }, [period, audience, userId, refresh]);
   useEffect(() => {
     if (!session) return;
     let live = true;
@@ -208,7 +229,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
     setDetailError("");
     setDetailLoading(true);
     api
-      .get(`/admin/users/${session.userId}/analytics/sessions/${session.id}`)
+      .get(session.userId ? `/admin/users/${session.userId}/analytics/sessions/${session.id}` : `/admin/analytics/guests/${session.visitorId}/sessions/${session.id}`)
       .then(async (r) => {
         const { unpack } = await import("@rrweb/packer");
         if (live)
@@ -230,7 +251,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
     };
   }, [session]);
   const summary = report?.summary;
-  const coreUsage = Object.entries(coreActions).map(([key, label]) => ({
+  const coreUsage = Object.entries(audience === "guests" ? publicActions : {...coreActions,...publicActions}).map(([key, label]) => ({
     label,
     value:
       report?.actions
@@ -242,27 +263,31 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
         .reduce((n, a) => n + Number(a.count), 0) ?? 0,
   }));
   return (
-    <AdminWorkspace>
+    <AdminWorkspace className={userId ? "analytics-workspace" : "analytics-workspace analytics-overview"}>
       <div className="top">
         <div>
           <h2>{userId ? "Активность пользователя" : "Аналитика платформы"}</h2>
           <span className="muted">
-            Посещения, действия, активное время и ошибки в кабинете.
+            {userId ? "Посещения, действия и активное время пользователя." : "Посещения публичных страниц и активность в кабинете — с согласия на аналитику."}
           </span>
         </div>
         <div className="tabs">
-          {[7, 30, 90].map((d) => (
+          {[["today","Сегодня"],["yesterday","Вчера"],["24h","24 часа"],["7","7 дней"],["30","30 дней"],["90","90 дней"]].map(([value,label]) => (
             <Button
-              key={d}
-              aria-pressed={days === d}
-              onClick={() => setDays(d)}
+              key={value}
+              aria-pressed={period === value}
+              onClick={() => setPeriod(value)}
             >
-              {d} дней
+              {label}
             </Button>
           ))}
           <Button onClick={() => setRefresh((v) => v + 1)}>Обновить</Button>
         </div>
       </div>
+      {!userId && <div className="tabs" aria-label="Аудитория">
+        {[["all","Все посетители"],["registered","Зарегистрированные"],["guests","Гости"]].map(([value,label]) => <Button key={value} aria-pressed={audience === value} onClick={() => setAudience(value)}>{label}</Button>)}
+      </div>}
+      <p className="muted">Дни и часы — по Москве (UTC+3). «24 часа» — скользящий период. Учитываются только посетители, разрешившие аналитику.</p>
       {error && (
         <p role="alert" className="error">
           {error}
@@ -274,7 +299,8 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
         <>
           <div className="summary-metrics">
             {[
-              [summary.users, "активных пользователей"],
+              [summary.users, "посетителей"],
+              ...(!userId ? [[summary.registeredUsers,"зарегистрированных"],[summary.guests,"гостевых браузеров"]] : []),
               [summary.sessions, "сессий"],
               [summary.pageViews, "открытий экранов"],
               [summary.clicks, "нажатий"],
@@ -306,7 +332,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
               <Bars items={coreUsage} />
             </section>
           </div>
-          <section className="panel">
+          {audience !== "guests" && <section className="panel">
             <h2>Путь к исследованию</h2>
             <p className="muted">
               Число пользователей, открывших каждый экран за период. Этапы
@@ -323,11 +349,11 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
                 value: report!.funnel.find((f) => f.page === p)?.users ?? 0,
               }))}
             />
-          </section>
+          </section>}
           <section className="panel">
-            <h2>Активность по дням</h2>
+            <h2>{report!.hourly.length ? "Посещения по часам" : "Посещения по дням"}</h2>
             <Bars
-              items={report!.daily.map((d) => ({
+              items={report!.hourly.length ? report!.hourly.map(h => ({label:new Date(h.hour).toLocaleString("ru-RU",{timeZone:"Europe/Moscow",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}),value:h.views})) : report!.daily.map((d) => ({
                 label: new Date(d.day).toLocaleDateString("ru-RU"),
                 value: d.views,
               }))}
@@ -349,14 +375,14 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
                 </thead>
                 <tbody>
                   {report!.sessions.map((s) => (
-                    <tr key={`${s.userId}:${s.id}`}>
+                    <tr key={`${s.userId ?? s.visitorId}:${s.id}`}>
                       <td>
                         {dateTime(s.startedAt)}
                         {!userId && (
                           <div>
-                            <Link to={`/app/admin/users/${s.userId}`}>
+                            {s.userId ? <Link to={`/app/admin/users/${s.userId}`}>
                               {s.userName || "Пользователь"}
-                            </Link>
+                            </Link> : <span className="muted">Гость</span>}
                           </div>
                         )}
                       </td>
@@ -392,32 +418,33 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
                     </small>
                   </div>
                   <small>{dateTime(e.at)}</small>
+                  {!userId && <small>{e.userId ? e.userName || "Пользователь" : "Гость"}</small>}
                 </li>
               ))}
             </ul>
           </section>
         </>
-      ) : (
+      ) : !error ? (
         <div className="panel empty">
           <h2>За выбранный период нет истории действий</h2>
           <p>
-            События появятся после использования кабинета с новой версией.
+            События появятся после посещения платформы с разрешённой аналитикой.
             Действия до включения аналитики восстановить невозможно. Выберите
             другой период или обновите данные позже.
           </p>
         </div>
-      )}
+      ) : null}
       <p className="retention">
         События хранятся 90 дней, записи экранов — 14 дней. Активное время
         учитывается во вкладке на переднем плане после действий пользователя.
-        Тексты, поля ввода и экраны ответов респондентов в записи скрыты.
+        Тексты и поля ввода скрыты, экраны результатов не записываются. Для гостей записи экранов не собираются. Гости считаются по браузерам: другой браузер или удаление cookies создают нового посетителя. Отказавшие в аналитике не учитываются.
       </p>
       <Modal
         open={!!session}
         onCancel={() => setSession(null)}
         footer={null}
         width={1000}
-        title="Сессия пользователя"
+        title={session?.userId ? "Сессия пользователя" : "Сессия гостя"}
         destroyOnHidden
       >
         <AdminWorkspace>

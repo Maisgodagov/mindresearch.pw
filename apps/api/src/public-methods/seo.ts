@@ -6,12 +6,17 @@ type SeoMethod = {
 };
 export const PUBLIC_ORIGIN = "https://mindresearch.pro";
 export const methodPath = (slug?: string) => slug ? `/methods/${slug}/` : "/methods/";
+const searchTitles: Record<string, string> = {
+  "rosenberg-self-esteem": "Тест на самооценку Розенберга (RSES) онлайн | mindresearch",
+  "general-self-efficacy": "Тест на самоэффективность Шварцера и Ерусалема (GSES) | mindresearch",
+  "perceived-social-support": "Тест социальной поддержки (MSPSS) онлайн | mindresearch",
+};
 export function publicSeo(method?: SeoMethod) {
   const title = method?.seoTitle || (method
-    ? `${method.name} (${method.abbreviation}) — тест онлайн | mindresearch`
+    ? searchTitles[method.slug] || `${method.name} (${method.abbreviation}) — тест онлайн | mindresearch`
     : "Психологические тесты онлайн без регистрации | mindresearch");
   const description = method?.seoDescription || method?.intro ||
-    "Психологические тесты онлайн: самооценка, уверенность в своих силах и поддержка близких. Пройдите без регистрации и получите результат с пояснениями и источниками.";
+    "Психологические тесты онлайн: самооценка, самоэффективность, социальная поддержка, счастье и удовлетворённость жизнью. Без регистрации, с результатами и источниками.";
   const url = PUBLIC_ORIGIN + methodPath(method?.slug);
   const image = `${PUBLIC_ORIGIN}/images/tests/${method?.slug || "catalog"}.png`;
   return { title, description, url, image };

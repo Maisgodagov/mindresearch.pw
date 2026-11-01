@@ -233,15 +233,18 @@ export function createPublicMethodsRouter(
         .send(
           '<!doctype html><html lang="ru"><meta charset="utf-8"><title>Методика не найдена</title><h1>Методика не опубликована</h1><a href="/methods">Все методики</a></html>',
         );
-    if (req.path !== methodPath(slug)) return res.redirect(301, methodPath(slug));
+    if (req.path !== methodPath(slug)) return res.redirect(301, methodPath(slug) + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""));
     const template = await readFile(
       fileURLToPath(new URL("../../../web/dist/index.html", import.meta.url)),
       "utf8",
     );
     res.setHeader("Cache-Control", "no-cache");
-    res
-      .type("html")
-      .send(injectDocument(template, publicDocument(methods, method)));
+    const document = publicDocument(methods, method);
+    if ("q" in req.query || "topic" in req.query) {
+      res.setHeader("X-Robots-Tag", "noindex, follow");
+      document.head = document.head.replace(/index,follow,max-image-preview:large/g, "noindex,follow");
+    }
+    res.type("html").send(injectDocument(template, document));
   });
   router.get("/api/public/researcher-document",(_req,res)=>res.json(researcherDocument()));
   router.get("/for-researchers",async(_req,res)=>{
