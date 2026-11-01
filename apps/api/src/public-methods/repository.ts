@@ -11,6 +11,7 @@ export type Publication = {
   draft: PublicMethod;
   published: PublicMethod | null;
   revision: number;
+  publishedAt?: string;
 };
 export type Assessment = {
   id: string;
@@ -43,7 +44,7 @@ export function mysqlRepository(): Repository {
   return {
     async publications() {
       const [rows] = await db.query<any[]>(
-        "SELECT slug,draft,published,revision FROM public_method_publications ORDER BY slug",
+        "SELECT slug,draft,published,revision,DATE_FORMAT(published_at, '%Y-%m-%dT%H:%i:%s.000Z') publishedAt FROM public_method_publications ORDER BY slug",
       );
       return rows.map((row) => ({
         ...row,

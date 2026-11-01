@@ -100,14 +100,14 @@ export function PublicMethodsAdmin() {
           rows={3}
           value={String(content?.[key] ?? "")}
           onChange={(e) =>
-            setContent((c) => (c ? { ...c, [key]: e.target.value } : c))
+            setContent((c) => (c ? { ...c, [key]: ["seoTitle", "seoDescription"].includes(key) ? e.target.value || undefined : e.target.value } : c))
           }
         />
       ) : (
         <input
           value={String(content?.[key] ?? "")}
           onChange={(e) =>
-            setContent((c) => (c ? { ...c, [key]: e.target.value } : c))
+            setContent((c) => (c ? { ...c, [key]: ["seoTitle", "seoDescription"].includes(key) ? e.target.value || undefined : e.target.value } : c))
           }
         />
       )}
@@ -122,7 +122,7 @@ export function PublicMethodsAdmin() {
             Описание и источники редактируются отдельно от вопросов и правил
             подсчёта.
           </p>
-          <Link className="pm-text" to="/methods">
+          <Link className="pm-text" to="/methods/">
             Открыть каталог
           </Link>
         </header>
@@ -174,6 +174,8 @@ export function PublicMethodsAdmin() {
                   {field("Тема", "topic")}
                   {field("Время прохождения", "minutes")}
                   {field("Короткое описание", "intro", true)}
+                  {field("Заголовок для поиска (необязательно)", "seoTitle")}
+                  {field("Описание для поиска (необязательно)", "seoDescription", true)}
                   {field("Аудитория", "audience", true)}
                   {field("Инструкция", "instruction", true)}
                   <h2>Содержание страницы</h2>

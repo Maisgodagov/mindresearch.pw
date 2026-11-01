@@ -25,6 +25,8 @@ export const contentSchema = z
     minutes: text(30),
     version: text(100),
     intro: text(800),
+    seoTitle: text(160).optional(),
+    seoDescription: text(350).optional(),
     audience: text(1200),
     instruction: text(1200),
     sections: z

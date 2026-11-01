@@ -1,0 +1,4 @@
+interface:
+  display_name: "Публичные тесты mindresearch"
+  short_description: "Добавление тестов с проверкой расчётов и SEO"
+  default_prompt: "Используй $mindresearch-public-tests, чтобы добавить новую методику в публичный каталог mindresearch с источниками, расчётом, карточкой и SEO."

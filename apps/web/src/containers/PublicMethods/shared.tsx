@@ -1,31 +1,38 @@
+import { publicSeo, publicStructuredData } from "../../../../api/src/public-methods/seo";
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ExternalLink, RotateCcw } from "lucide-react";
 import { PlatformLayout } from "../PlatformLayout";
 import type { PublicMethod } from "./types";
 import "./public-methods.css";
+const noMethods: PublicMethod[] = [];
 export function Metadata({
   method,
   privatePage = false,
+  methods = noMethods,
 }: {
   method?: PublicMethod;
   privatePage?: boolean;
+  methods?: PublicMethod[];
 }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   useEffect(() => {
-    document.title = privatePage
-      ? "Ваше прохождение | mindresearch"
-      : method
-        ? `${method.name} (${method.abbreviation}) — пройти онлайн | mindresearch`
-        : "Психологические тесты онлайн без регистрации | mindresearch";
+    const seo = publicSeo(method);
+    const filtered = new URLSearchParams(search).has("q") || new URLSearchParams(search).has("topic");
+    document.title = privatePage ? "Ваше прохождение | mindresearch" : seo.title;
     const values: [string, string, string][] = [
-      ["name", "robots", privatePage ? "noindex,nofollow" : "index,follow"],
-      [
-        "name",
-        "description",
-        method?.intro ??
-          "Психологические тесты онлайн: самооценка, уверенность в своих силах и поддержка близких. Без регистрации, с результатами, пояснениями и источниками методик.",
-      ],
+      ["name", "robots", privatePage ? "noindex,nofollow" : filtered ? "noindex,follow" : "index,follow,max-image-preview:large"],
+      ["name", "description", privatePage ? "Личное прохождение психологического теста." : seo.description],
+      ...(!privatePage ? [
+        ["property", "og:site_name", "mindresearch"],
+        ["property", "og:title", seo.title], ["property", "og:description", seo.description],
+        ["property", "og:url", seo.url], ["property", "og:type", "website"],
+        ["property", "og:locale", "ru_RU"], ["property", "og:image", seo.image],
+        ["property", "og:image:width", "1200"], ["property", "og:image:height", "630"],
+        ["property", "og:image:alt", method?.name || "Психологические тесты mindresearch"],
+        ["name", "twitter:card", "summary_large_image"], ["name", "twitter:title", seo.title],
+        ["name", "twitter:description", seo.description], ["name", "twitter:image", seo.image],
+      ] as [string, string, string][] : []),
     ];
     const changes: (() => void)[] = [];
     for (const [attribute, key, value] of values) {
@@ -54,14 +61,31 @@ export function Metadata({
       canonical.rel = "canonical";
       document.head.append(canonical);
     }
-    canonical.href = `https://mindresearch.pro${privatePage ? "/methods" : pathname.replace(/\/$/, "")}`;
+    canonical.href = seo.url;
     const current = canonical;
+    let structured = document.getElementById("public-methods-schema") as HTMLScriptElement | null;
+    const previousStructured = structured?.textContent;
+    if (privatePage && structured) structured.remove();
+    if (!privatePage) {
+      if (!structured) {
+        structured = document.createElement("script");
+        structured.id = "public-methods-schema";
+        structured.type = "application/ld+json";
+        document.head.append(structured);
+      }
+      structured.textContent = JSON.stringify(publicStructuredData(methods, method));
+    }
     return () => {
       changes.forEach((undo) => undo());
+      if (structured && privatePage && previousStructured !== undefined) document.head.append(structured);
+      if (structured && !privatePage) {
+        if (previousStructured === undefined) structured.remove();
+        else structured.textContent = previousStructured ?? "";
+      }
       if (prior) current.href = prior;
       else current.remove();
     };
-  }, [method, privatePage, pathname]);
+  }, [method, methods, privatePage, pathname, search]);
   return null;
 }
 export function PublicShell({ children }: { children: React.ReactNode }) {
@@ -102,7 +126,7 @@ export function PublicError({
           Повторить
         </button>
       )}
-      <Link className="pm-text" to="/methods">
+      <Link className="pm-text" to="/methods/">
         Вернуться к методикам
       </Link>
     </div>

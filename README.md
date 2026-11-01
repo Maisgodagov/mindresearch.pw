@@ -65,3 +65,10 @@ npm run seed      # идемпотентный импорт анкеты
 Сборка: `npm ci`, затем `npm run build`. Тесты: `npm test`. Вычислительный движок использует Python и зависимости из `apps/api/statistics/requirements.txt`; путь к интерпретатору можно задать через `STATISTICS_PYTHON`.
 
 Скриншоты, тестовые выгрузки и разовые эксперименты сохраняйте в игнорируемой `.work/`. Секреты — только в локальных `.env`-файлах. Исходники, тесты, документация и воспроизводимые инструменты обслуживания хранятся в Git.
+
+
+## Добавление публичных тестов и SEO
+
+Используйте скилл `.agents/skills/mindresearch-public-tests/SKILL.md` (`$mindresearch-public-tests`). Он описывает выбор версии/источников, подключение бланка и scorer, публикацию, карточки и SEO.
+
+Текущая SEO-настройка и действия в Search Console/Яндекс Вебмастере: `docs/public-tests-seo.md`. Production формирует HTML и sitemap из опубликованных материалов на старте и после publish/unpublish. Новые OG-превью генерируются `scripts/generate-public-test-images.cjs`.

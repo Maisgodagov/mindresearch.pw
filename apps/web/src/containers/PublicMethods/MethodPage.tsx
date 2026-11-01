@@ -1,3 +1,4 @@
+import { relatedMethods } from "../../../../api/src/public-methods/seo";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -49,10 +50,17 @@ export function PublicMethodPage() {
       });
     return () => controller.abort();
   }, [slug]);
+  const [related, setRelated] = useState<PublicMethod[]>([]);
+  useEffect(() => {
+    const controller = new AbortController();
+    publicRequest<PublicMethod[]>("methods", undefined, "GET", controller.signal)
+      .then(setRelated).catch(() => {});
+    return () => controller.abort();
+  }, []);
   const m = data?.method;
   return (
     <PublicShell>
-      <Metadata method={m} />
+      <Metadata method={m} privatePage={Boolean(error)} />
       {error ? (
         <PublicError message={error} />
       ) : !m || !data ? (
@@ -60,7 +68,7 @@ export function PublicMethodPage() {
       ) : (
         <div className="test-document">
           <nav className="td-breadcrumb" aria-label="Навигация">
-            <Link to="/methods">
+            <Link to="/methods/">
               <ArrowLeft size={16} />
               Все тесты
             </Link>
@@ -86,7 +94,7 @@ export function PublicMethodPage() {
                 <span><FileText size={18} />{data.questionCount} вопросов</span>
                 <span><Clock3 size={18} />{m.minutes}</span>
               </div>
-              <Link className="pm-button pm-primary" to={`/methods/${m.slug}/start`}>
+              <Link className="pm-button pm-primary" to={`/methods/${m.slug}/start/`}>
                 Пройти тест <ArrowRight size={18} />
               </Link>
             </aside>
@@ -147,6 +155,12 @@ export function PublicMethodPage() {
               </AuthenticatedOnly>
             </div>
           </div>
+          {related.some(item => item.slug !== m.slug) && <section className="td-related">
+            <h2>Другие психологические тесты</h2>
+            <ul>{relatedMethods(related, m).map(item => (
+              <li key={item.slug}><Link to={`/methods/${item.slug}/`}>{item.name}<ArrowRight size={17} /></Link></li>
+            ))}</ul>
+          </section>}
           <section className="td-finish">
             <div>
               <h2>Начните с нескольких минут для себя</h2>
@@ -157,7 +171,7 @@ export function PublicMethodPage() {
             </div>
             <Link
               className="pm-button pm-primary"
-              to={`/methods/${m.slug}/start`}
+              to={`/methods/${m.slug}/start/`}
             >
               Пройти тест <ArrowRight size={18} />
             </Link>

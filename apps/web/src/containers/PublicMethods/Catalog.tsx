@@ -38,13 +38,13 @@ function TestLink({ method }: { method: CatalogMethod }) {
           {method.minutes}
         </span>
         <h3>
-          <Link to={`/methods/${method.slug}`}>{method.name}</Link>
+          <Link to={`/methods/${method.slug}/`}>{method.name}</Link>
         </h3>
         <p>{method.intro}</p>
       </div>
       <Link
         className="pm-button pm-soft tc-test-action"
-        to={`/methods/${method.slug}`}
+        to={`/methods/${method.slug}/`}
       >
         Подробнее о тесте <ArrowRight size={18} />
       </Link>
@@ -75,7 +75,7 @@ export function PublicMethods() {
   };
   return (
     <PublicShell>
-      <Metadata />
+      <Metadata methods={methods ?? undefined} privatePage={Boolean(error)} />
       <div className="test-catalog">
         <header className="tc-intro">
           <h1>

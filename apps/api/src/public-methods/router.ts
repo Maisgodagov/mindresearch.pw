@@ -1,3 +1,5 @@
+import { methodPath } from "./seo.js";
+import { methodsSitemap } from "./static-pages.js";
 import { researcherDocument } from "./landing.js";
 import { Router, type RequestHandler } from "express";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -38,6 +40,7 @@ function cookieToken(req: Parameters<RequestHandler>[0]) {
 export function createPublicMethodsRouter(
   repository: Repository,
   admin: RequestHandler[],
+  onPublicationChange?: () => Promise<void>,
 ) {
   const router = Router();
   const limits = new Map<string, { count: number; until: number }>();
@@ -209,6 +212,13 @@ export function createPublicMethodsRouter(
         input.action,
         input.revision,
       );
+      if (input.action !== "draft") {
+        try { await onPublicationChange?.(); }
+        catch (error) {
+          console.error("Public test HTML synchronization failed", error);
+          throw failure(503, "Публикация сохранена, но обновить HTML не удалось. Обновите страницу редактора и повторите публикацию.");
+        }
+      }
       res.json({ revision: input.revision + 1 });
     },
   );
@@ -223,6 +233,7 @@ export function createPublicMethodsRouter(
         .send(
           '<!doctype html><html lang="ru"><meta charset="utf-8"><title>Методика не найдена</title><h1>Методика не опубликована</h1><a href="/methods">Все методики</a></html>',
         );
+    if (req.path !== methodPath(slug)) return res.redirect(301, methodPath(slug));
     const template = await readFile(
       fileURLToPath(new URL("../../../web/dist/index.html", import.meta.url)),
       "utf8",
@@ -241,7 +252,7 @@ export function createPublicMethodsRouter(
     res
       .type("application/xml")
       .send(
-        `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://mindresearch.pro/for-researchers</loc></url><url><loc>https://mindresearch.pro/methods</loc></url>${(await published()).map(method => `<url><loc>https://mindresearch.pro/methods/${method.slug}</loc></url>`).join("")}</urlset>`,
+        methodsSitemap(await repository.publications()),
       ),
   );
   return router;

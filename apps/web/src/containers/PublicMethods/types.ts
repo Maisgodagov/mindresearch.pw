@@ -9,6 +9,8 @@ export type PublicMethod = {
   minutes: string;
   version: string;
   intro: string;
+  seoTitle?: string;
+  seoDescription?: string;
   audience: string;
   instruction: string;
   sections: { title: string; text: string }[];

@@ -1,6 +1,4 @@
 User-agent: *
-Disallow: /methods/*/start
-Disallow: /assessment
 Disallow: /app
 Disallow: /admin
 Disallow: /api/

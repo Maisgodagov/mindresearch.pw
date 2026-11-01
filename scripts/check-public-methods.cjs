@@ -39,13 +39,14 @@ mkdirSync(output, { recursive: true });
         );
       };
       await page.goto(base + "/methods");
-      await page.getByRole("heading", { name: "Методики", exact: true }).waitFor();
-      await page.locator(".ml-method").first().waitFor();
-      assert.equal(await page.locator(".ml-method").count(), 3);
+      await page.locator(".tc-intro h1").waitFor();
+      await page.locator(".tc-test").first().waitFor();
+      const catalogue = await (await context.request.get(base + "/api/public/methods")).json();
+      assert.equal(await page.locator(".tc-test").count(), catalogue.length);
       await capture("catalog");
-      await page.getByRole("textbox", { name: "Поиск методики" }).fill("zzzz");
-      await page.getByRole("heading", { name: "Методики не найдены" }).waitFor();
-      await page.getByRole("button", { name: "Сбросить поиск" }).click();
+      await page.getByRole("textbox", { name: "Найти психологический тест" }).fill("zzzz");
+      await page.getByText(/ничего не нашлось/i).waitFor();
+      await page.getByRole("button", { name: "Очистить поиск" }).click();
       await page
         .getByRole("link", { name: "Шкала самооценки Розенберга", exact: true })
         .click();
@@ -54,7 +55,7 @@ mkdirSync(output, { recursive: true });
         .waitFor();
       await capture("article");
       await page
-        .getByRole("link", { name: "Пройти методику", exact: true })
+        .getByRole("link", { name: "Пройти тест", exact: true }).first()
         .click();
       await page.locator(".pm-consent input").check();
       await page.getByRole("button", { name: "Начать", exact: true }).click();
@@ -65,7 +66,7 @@ mkdirSync(output, { recursive: true });
           await page.route("**/api/public/assessments/*/save", (route) =>
             route.abort(),
           );
-        await page.getByRole("radio").first().check();
+        await page.locator(".pm-option").first().click();
         if (i === 1) {
           await page
             .getByRole("alert")
@@ -103,28 +104,21 @@ mkdirSync(output, { recursive: true });
             .getByText(`Вопрос ${i + 2} из 10`, { exact: true })
             .waitFor();
       }
-      await page.locator(".pm-result-value").waitFor();
-      assert.equal(
-        await page.locator(".pm-result-value strong").textContent(),
-        "15",
-      );
-      await capture("result");
-      await page
-        .getByRole("button", { name: "Карточка результата", exact: true })
-        .click();
-      const image = page.getByAltText(
-        "Предпросмотр карточки вашего результата",
-      );
+      const image = page.locator(".pm-story-image");
       await image.waitFor();
-      await image.evaluate((img) => img.decode());
-      assert.equal(await image.evaluate((img) => img.naturalWidth), 1080);
-      assert.equal(await image.evaluate((img) => img.naturalHeight), 1920);
+      const assessmentId = new URL(page.url()).searchParams.get("id");
+      const saved = await (await context.request.get(base + "/api/public/assessments/" + assessmentId)).json();
+      assert.equal(saved.result.scales[0].value, 15);
+      await capture("result");
+      await image.evaluate(img => img.decode());
+      assert.equal(await image.evaluate(img => img.naturalWidth), 1080);
+      assert.equal(await image.evaluate(img => img.naturalHeight), 1920);
+      await page.evaluate(() => Object.defineProperty(navigator, "canShare", { configurable: true, value: () => false }));
       const [download] = await Promise.all([
         page.waitForEvent("download"),
-        page.getByRole("link", { name: "Скачать PNG", exact: true }).click(),
+        page.getByRole("button", {name: "Поделиться", exact:true}).click(),
       ]);
       await download.saveAs(resolve(output, `${name}-result-card.png`));
-      await page.locator(".ant-modal-close").click();
       // The same URL gives another browser no access to the private result.
       const outsider = await browser.newContext();
       const forbidden = await outsider.request.get(
@@ -161,21 +155,15 @@ mkdirSync(output, { recursive: true });
         return a.id;
       });
       await page.goto(base + "/assessment/result?id=" + mspss);
-      await page.locator(".pm-result-value").waitFor();
-      assert.equal(await page.locator(".pm-scale").count(), 4);
+      await page.locator(".pm-story-image").waitFor();
+      const multiResult = await (await context.request.get(base + "/api/public/assessments/" + mspss)).json();
+      assert.equal(multiResult.result.scales.length, 4);
       await capture("mspss");
-      await page
-        .getByRole("button", { name: "Карточка результата", exact: true })
-        .click();
-      await page
-        .getByAltText("Предпросмотр карточки вашего результата")
-        .waitFor();
       const [multiDownload] = await Promise.all([
         page.waitForEvent("download"),
-        page.getByRole("link", { name: "Скачать PNG", exact: true }).click(),
+        page.getByRole("button", {name: "Поделиться", exact:true}).click(),
       ]);
       await multiDownload.saveAs(resolve(output, `${name}-mspss-card.png`));
-      await page.locator(".ant-modal-close").click();
       await page
         .getByRole("button", { name: "Удалить моё прохождение", exact: true })
         .click();
@@ -188,7 +176,7 @@ mkdirSync(output, { recursive: true });
         .waitFor();
       results.push({
         viewport: name,
-        publicMethods: 3,
+        publicMethods: catalogue.length,
         completed: true,
         resume: true,
         offlineRecovery: true,
@@ -212,7 +200,7 @@ mkdirSync(output, { recursive: true });
     );
     assert.equal(
       await page.locator("link[rel=canonical]").getAttribute("href"),
-      "https://mindresearch.pro/methods/general-self-efficacy",
+      "https://mindresearch.pro/methods/general-self-efficacy/",
     );
     await nojs.close();
     assert.deepEqual(errors, []);

@@ -104,7 +104,7 @@ export function PublicAssessment() {
         },
       );
       setAssessment(a);
-      if (finishing) navigate(`/assessment/result?id=${a.id}`);
+      if (finishing) navigate(`/assessment/result/?id=${a.id}`);
       else document.querySelector<HTMLElement>(".pm-question-title")?.focus();
     } catch (e) {
       setError((e as Error).message);
@@ -151,7 +151,7 @@ export function PublicAssessment() {
         <PublicError message={error || "Методика не опубликована"} />
       ) : (
         <div className="pm-taking">
-          <Link className="pm-text pm-back" to={`/methods/${method.slug}`}>
+          <Link className="pm-text pm-back" to={`/methods/${method.slug}/`}>
             <ArrowLeft size={16} />О методике
           </Link>
           {assessment?.result ? (
@@ -391,7 +391,7 @@ export function PublicAssessmentResult() {
     try {
       await publicRequest(`assessments/${a.id}`, undefined, "DELETE");
       rememberAssessment(a.definition.method.slug);
-      navigate(`/methods/${a.definition.method.slug}`);
+      navigate(`/methods/${a.definition.method.slug}/`);
     } catch (e) {
       setError((e as Error).message);
       setConfirmDelete(false);
@@ -414,7 +414,7 @@ export function PublicAssessmentResult() {
           <>
             <Link
               className="pm-text pm-back"
-              to={`/methods/${result.method.slug}`}
+              to={`/methods/${result.method.slug}/`}
             >
               <ArrowLeft size={16} />О методике
             </Link>
@@ -444,7 +444,7 @@ export function PublicAssessmentResult() {
                   <h2>Что важно учитывать</h2>
                   <p>{result.method.limitations}</p>
                 </section>
-                <Link className="pm-text" to="/methods">Другие тесты <ArrowRight size={17} /></Link>
+                <Link className="pm-text" to="/methods/">Другие тесты <ArrowRight size={17} /></Link>
               </div>
             </section>
             {error && (

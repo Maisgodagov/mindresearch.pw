@@ -1171,3 +1171,9 @@
   color: #435e48;
 }
 .td-method-background strong { font-weight: 650; color: #304d3a; }
+
+.td-related { padding: 24px 0 32px; }
+#root .td-related h2 { font-size: 26px; margin: 0 0 20px; }
+.td-related ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.td-related a { display: inline-flex; align-items: center; gap: 12px; color: #365532; text-underline-offset: 4px; }
+.td-related a svg { flex-shrink: 0; }
