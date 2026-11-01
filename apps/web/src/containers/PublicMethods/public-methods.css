@@ -482,11 +482,19 @@
   color: #274b2a;
 }
 .pm-option input {
-  appearance: auto;
-  accent-color: var(--pm-green);
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.pm-option:has(input:focus-visible) {
+  outline: 2px solid var(--pm-green);
+  outline-offset: 3px;
 }
 .pm-option > span {
   flex: 1;
@@ -1063,3 +1071,40 @@
     font-size: 20px;
   }
 }
+
+.pm-story-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: clamp(32px, 6vw, 80px);
+  align-items: start;
+  padding-top: 32px;
+}
+.pm-story-visual { min-width: 0; }
+.pm-story-image { display: block; width: 100%; height: auto; border-radius: 12px; }
+.pm-story-skeleton { aspect-ratio: 9 / 16; background: #e8eee3; border-radius: 12px; animation: pm-pulse 1.4s ease-in-out infinite alternate; }
+.pm-story-description { padding-top: 8px; min-width: 0; }
+.public-methods .pm-story-description h1 { font-family: "Lora Variable", serif; font-size: clamp(30px, 3vw, 42px); line-height: 1.2; margin: 0 0 16px; color: #304d3a; }
+.pm-story-method { font-weight: 650; font-size: 17px; line-height: 1.6; margin: 0 0 24px; }
+.pm-story-summary { font-size: 16px; line-height: 1.85; color: #435e48; margin-bottom: 28px; }
+.pm-story-share { margin: 20px 0 0; }
+.pm-story-share > button { width: 100%; justify-content: center; }
+.pm-story-share > p { font-size: 13px; line-height: 1.7; color: #526553; margin: 12px 0 0; }
+.pm-story-limits { border-top: 1px solid var(--pm-line); padding-top: 24px; font-size: 14px; line-height: 1.8; color: #526553; margin-bottom: 24px; }
+@media (max-width: 700px) {
+  .pm-story-layout { grid-template-columns: 1fr; gap: 32px; }
+  .pm-story-visual { width: min(100%, 340px); margin: 0 auto; }
+  .pm-story-description { padding-top: 0; }
+  .pm-story-share > button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .pm-story-skeleton { animation: none; } }
+
+.public-methods .pm-story-description h2 {
+  font-family: "Manrope Variable", sans-serif;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.pm-story-interpretation section { margin: 32px 0; }
+.pm-story-interpretation p,
+.pm-story-limits p { font-size: 15px; line-height: 1.85; margin: 0; color: #435e48; }

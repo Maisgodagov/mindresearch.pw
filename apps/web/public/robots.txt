@@ -1,5 +1,5 @@
 User-agent: *
-Disallow: /methods
+Disallow: /methods/*/start
 Disallow: /assessment
 Disallow: /app
 Disallow: /admin

@@ -148,10 +148,10 @@ function App() {
       <GlobalStyle />
       <Suspense fallback={<RouteSkeleton />}>
         <Routes>
-          <Route path="/methods" element={<AuthGuard adminOnly><PublicMethods/></AuthGuard>}/>
-          <Route path="/methods/:slug" element={<AuthGuard adminOnly><PublicMethodPage/></AuthGuard>}/>
-          <Route path="/methods/:slug/start" element={<AuthGuard adminOnly><PublicAssessment/></AuthGuard>}/>
-          <Route path="/assessment/result" element={<AuthGuard adminOnly><PublicAssessmentResult/></AuthGuard>}/>
+          <Route path="/methods" element={<PublicMethods/>}/>
+          <Route path="/methods/:slug" element={<PublicMethodPage/>}/>
+          <Route path="/methods/:slug/start" element={<PublicAssessment/>}/>
+          <Route path="/assessment/result" element={<PublicAssessmentResult/>}/>
           <Route path="/app/admin/public-methods" element={<AuthGuard adminOnly><PublicMethodsAdmin/></AuthGuard>}/>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/for-researchers" element={<Landing />} />

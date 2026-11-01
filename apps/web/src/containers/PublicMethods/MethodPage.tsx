@@ -3,11 +3,12 @@ import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
+  BookOpen,
+  Download,
+  ChartNoAxesCombined,
   ChevronDown,
   Clock3,
   FileText,
-  LockKeyhole,
 } from "lucide-react";
 import {
   PublicShell,
@@ -19,6 +20,12 @@ import {
 import { publicRequest, type PublicMethod } from "./types";
 import { AuthenticatedOnly } from "../PlatformLayout";
 import "./catalog.css";
+
+const methodBackground: Record<string, string> = {
+  "rosenberg-self-esteem": "Методика Морриса Розенберга измеряет глобальную самооценку — общее отношение к себе и ощущение собственной ценности. Здесь используется русскоязычная версия А. А. Золотарёвой (2020).",
+  "general-self-efficacy": "Методика Ральфа Шварцера и Маттиаса Ерусалема измеряет общую самоэффективность — убеждённость в своей способности действовать и справляться с трудностями. Здесь используется русская версия В. Г. Ромека, опубликованная совместно с авторами в 1996 году.",
+  "perceived-social-support": "Методика Грегори Зимета, Нэнси Далем, Сары Зимет и Гордона Фарли (1988) измеряет субъективное ощущение доступности помощи. Она позволяет отдельно рассмотреть поддержку семьи, друзей и значимого для вас человека.",
+};
 export function PublicMethodPage() {
   const { slug } = useParams();
   const [data, setData] = useState<{
@@ -63,69 +70,32 @@ export function PublicMethodPage() {
             <div className="td-hero-copy">
               <h1>{m.title}</h1>
               <p className="td-intro">{m.intro}</p>
-              <p className="td-official">
-                Методика: {m.name} · {m.abbreviation}
+              <p className="td-method-background">
+                <strong>{m.name} ({m.abbreviation}).</strong>{" "}
+                {methodBackground[m.slug] ?? m.sections[0]?.text}
               </p>
-              <div className="td-meta">
-                <span>
-                  <FileText size={17} />
-                  {data.questionCount} вопросов
-                </span>
-                <span>
-                  <Clock3 size={17} />
-                  {m.minutes}
-                </span>
-                <span>Для взрослых · 18+</span>
-              </div>
-              <div className="td-actions">
-                <Link
-                  className="pm-button pm-primary"
-                  to={`/methods/${m.slug}/start`}
-                >
-                  Пройти тест <ArrowRight size={18} />
-                </Link>
-                <a className="pm-text" href="#about-test">
-                  Сначала о тесте <ChevronDown size={17} />
-                </a>
-              </div>
-              <p className="td-privacy">
-                <LockKeyhole size={15} />
-                Без регистрации. Имя и почта не нужны.
-              </p>
+              <a className="pm-text td-about-link" href="#about-test">
+                Подробнее о тесте <ChevronDown size={17} />
+              </a>
             </div>
-            <aside className="td-result-preview">
-              <h2>Что вы получите</h2>
-              <p>Не просто число — результат, в котором можно разобраться.</p>
-              <ul>
-                {[
-                  [
-                    "Ваши показатели",
-                    "Итоговые баллы по методике с пояснениями к результату.",
-                  ],
-                  [
-                    "Понятный расчёт",
-                    "Как из ваших ответов складывается итоговый показатель.",
-                  ],
-                  [
-                    "Карточку результата",
-                    "Сохраните её для себя или поделитесь, если захотите.",
-                  ],
-                ].map(([title, text]) => (
-                  <li key={title}>
-                    <Check size={18} />
-                    <div>
-                      <h3>{title}</h3>
-                      <p>{text}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <p className="td-result-note">
-                Тест помогает исследовать свой опыт. Он не оценивает вашу
-                личность и не ставит диагноз.
-              </p>
+            <aside className="td-test-passport" aria-label="Прохождение теста">
+              <BookOpen size={25} strokeWidth={1.5} />
+              <h2>{m.name}</h2>
+              <p className="td-passport-version">{m.abbreviation} · Для взрослых, 18+</p>
+              <div className="td-meta">
+                <span><FileText size={18} />{data.questionCount} вопросов</span>
+                <span><Clock3 size={18} />{m.minutes}</span>
+              </div>
+              <Link className="pm-button pm-primary" to={`/methods/${m.slug}/start`}>
+                Пройти тест <ArrowRight size={18} />
+              </Link>
             </aside>
           </header>
+          <div className="td-outcomes" aria-label="После прохождения">
+            <div><ChartNoAxesCombined size={21} /><p><strong>Ваш результат</strong><span>Итоговые показатели с пояснениями</span></p></div>
+            <div><BookOpen size={21} /><p><strong>Прозрачный подсчёт</strong><span>Объяснение, как складывается балл</span></p></div>
+            <div><Download size={21} /><p><strong>Карточка на память</strong><span>Можно скачать и поделиться</span></p></div>
+          </div>
           <div className="td-reading-layout">
             <nav className="td-contents" aria-label="На этой странице">
               <span>О тесте</span>

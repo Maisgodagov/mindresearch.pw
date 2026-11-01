@@ -10,8 +10,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  Download,
-  Leaf,
+  Share2,
   LoaderCircle,
   RotateCcw,
   Trash2,
@@ -339,24 +338,52 @@ export function PublicAssessmentResult() {
       active = false;
     };
   }, [id]);
-  useEffect(
-    () => () => {
-      if (preview) URL.revokeObjectURL(preview.url);
-    },
-    [preview],
-  );
-  const openCard = async () => {
+  const [cardError, setCardError] = useState("");
+  const [shareNotice, setShareNotice] = useState("");
+  useEffect(() => {
     if (!a?.result) return;
+    let active = true;
+    let url: string | undefined;
+    setPreview(null);
+    setCardError("");
+    resultCard(a.result).then(blob => {
+      if (!active) return;
+      url = URL.createObjectURL(blob);
+      setPreview({ url, blob });
+    }).catch(e => { if (active) setCardError((e as Error).message); });
+    return () => { active = false; if (url) URL.revokeObjectURL(url); };
+  }, [a]);
+  const shareCard = async () => {
+    if (!preview || !a?.result) return;
     setBusy(true);
     setError("");
+    setShareNotice("");
+    const file = new File([preview.blob], `mindresearch-${a.result.method.slug}.png`, { type: "image/png" });
+    const saveFile = () => {
+      const link = document.createElement("a");
+      link.href = preview.url;
+      link.download = file.name;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setShareNotice("PNG-карточку можно прикрепить к сториз или сообщению.");
+    };
     try {
-      const blob = await resultCard(a.result);
-      setPreview({ url: URL.createObjectURL(blob), blob });
+      // Desktop Windows can advertise file sharing even when its share panel
+      // has no working targets. Use the native sheet on touch devices only.
+      const touchInterface = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      if (touchInterface && navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        saveFile();
+      }
     } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+      // Cancelling the native sheet should not initiate an unwanted download.
+      if ((e as Error).name !== "AbortError") {
+        try { saveFile(); }
+        catch { setError("Не удалось сохранить карточку. Попробуйте ещё раз."); }
+      }
+    } finally { setBusy(false); }
   };
   const remove = async () => {
     if (!a) return;
@@ -391,52 +418,34 @@ export function PublicAssessmentResult() {
             >
               <ArrowLeft size={16} />О методике
             </Link>
-            <section className="pm-result-layout">
-              <div className="pm-result-paper">
-                <div className="pm-result-top">
-                  <Leaf size={24} />
-                  <span>Ваш результат · {result.method.abbreviation}</span>
+            <section className="pm-story-layout">
+              <div className="pm-story-visual">
+                {preview ? (
+                  <img className="pm-story-image" src={preview.url} alt={`Карточка результата: ${result.method.name}. ${result.scales.map(scale => `${scale.label}: ${formatScore(scale.value)} из ${scale.max}`).join(". ")}`} />
+                ) : cardError ? (
+                  <p role="alert">{cardError}</p>
+                ) : (
+                  <div className="pm-story-skeleton" role="status" aria-label="Создаём карточку результата" />
+                )}
+                <div className="pm-story-share">
+                  <button className="pm-button pm-primary" disabled={busy || !preview} onClick={() => void shareCard()}>
+                    {busy ? <LoaderCircle size={18} className="pm-spin" /> : <Share2 size={18} />}
+                    Поделиться
+                  </button>
+                  {shareNotice && <p role="status">{shareNotice}</p>}
                 </div>
-                <h1>{result.method.name}</h1>
-                <div className="pm-result-value">
-                  <strong>{formatScore(result.scales[0].value)}</strong>
-                  <span>из {result.scales[0].max}</span>
-                </div>
-                <h2>{result.scales[0].label}</h2>
-                <ScaleProfile result={result} />
-                <p className="pm-result-explanation">{result.explanation}</p>
               </div>
-              <aside className="pm-result-aside">
-                <h2>Сохраните для себя</h2>
-                <p>
-                  Вертикальная карточка с вашим результатом и логотипом
-                  mindresearch. Без имени и ответов на отдельные вопросы.
-                </p>
-                <button
-                  className="pm-button pm-primary"
-                  disabled={busy}
-                  onClick={() => void openCard()}
-                >
-                  {busy ? (
-                    <LoaderCircle size={18} className="pm-spin" />
-                  ) : (
-                    <Download size={18} />
-                  )}
-                  Карточка результата
-                </button>
-                <p className="pm-secondary">
-                  PNG · 1080 × 1920
-                  <br />
-                  Публикуйте только то, чем готовы поделиться.
-                </p>
-                <div className="pm-note">
-                  <h3>Это не диагноз</h3>
+              <div className="pm-story-description">
+                <h1>Как понимать результат</h1>
+                <p className="pm-story-method">{result.method.name}</p>
+                <p className="pm-story-summary">{result.explanation}</p>
+                <ResultInterpretation result={result} />
+                <section className="pm-story-limits">
+                  <h2>Что важно учитывать</h2>
                   <p>{result.method.limitations}</p>
-                </div>
-                <Link className="pm-text" to="/methods">
-                  Посмотреть другие методики <ArrowRight size={17} />
-                </Link>
-              </aside>
+                </section>
+                <Link className="pm-text" to="/methods">Другие тесты <ArrowRight size={17} /></Link>
+              </div>
             </section>
             {error && (
               <p role="alert" className="pm-inline-error">
@@ -464,7 +473,10 @@ export function PublicAssessmentResult() {
                   Результат не пересчитывается при обновлении страницы методики.
                 </p>
               </details>
-              <Sources method={result.method} />
+              <details>
+                <summary>Источники и версия</summary>
+                <Sources method={result.method} hideTitle />
+              </details>
               <div className="pm-private-data">
                 <p>
                   Результат доступен в этом браузере до{" "}
@@ -480,34 +492,6 @@ export function PublicAssessmentResult() {
                 </button>
               </div>
             </div>
-            <Modal
-              title="Карточка результата"
-              open={Boolean(preview)}
-              onCancel={() => setPreview(null)}
-              footer={null}
-              width={430}
-            >
-              {preview && (
-                <div className="pm-card-preview">
-                  <img
-                    src={preview.url}
-                    alt="Предпросмотр карточки вашего результата"
-                  />
-                  <a
-                    className="pm-download"
-                    href={preview.url}
-                    download={`mindresearch-${result.method.slug}.png`}
-                  >
-                    <Download size={18} />
-                    Скачать PNG
-                  </a>
-                  <p>
-                    Изображение создаётся в вашем браузере и не публикуется на
-                    сайте.
-                  </p>
-                </div>
-              )}
-            </Modal>
             <Modal
               title="Удалить прохождение?"
               open={confirmDelete}
@@ -540,39 +524,22 @@ export function PublicAssessmentResult() {
     </PublicShell>
   );
 }
-function ScaleProfile({ result }: { result: PublicResult }) {
+function ResultInterpretation({ result }: { result: PublicResult }) {
+  const groups = new Map<string, string[]>();
+  for (const scale of result.scales) {
+    const explanation = scale.explanation.trim();
+    if (!explanation || explanation === result.explanation.trim()) continue;
+    groups.set(explanation, [...(groups.get(explanation) ?? []), scale.label]);
+  }
   return (
-    <div className="pm-scale-profile">
-      {result.scales.map((s) => (
-        <div className="pm-scale" key={s.label}>
-          {result.scales.length > 1 && (
-            <div className="pm-scale-label">
-              <span>{s.label}</span>
-              <strong>
-                {formatScore(s.value)} / {s.max}
-              </strong>
-            </div>
-          )}
-          <div
-            className="pm-scale-track"
-            role="meter"
-            aria-label={s.label}
-            aria-valuemin={s.min}
-            aria-valuemax={s.max}
-            aria-valuenow={s.value}
-          >
-            <span
-              style={{
-                width: `${Math.max(0, Math.min(1, (s.value - s.min) / (s.max - s.min))) * 100}%`,
-              }}
-            />
-          </div>
-          <div className="pm-scale-ends">
-            <span>{s.min}</span>
-            <span>{s.max}</span>
-          </div>
-          <p>{s.explanation}</p>
-        </div>
+    <div className="pm-story-interpretation">
+      {[...groups].map(([explanation, labels]) => (
+        <section key={explanation}>
+          <h2>{labels.length === result.scales.length
+            ? "Что говорят ваши ответы"
+            : labels.join(" · ")}</h2>
+          <p>{explanation}</p>
+        </section>
       ))}
     </div>
   );

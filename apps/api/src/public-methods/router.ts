@@ -38,15 +38,8 @@ function cookieToken(req: Parameters<RequestHandler>[0]) {
 export function createPublicMethodsRouter(
   repository: Repository,
   admin: RequestHandler[],
-  previewAccess: RequestHandler[] = [],
 ) {
   const router = Router();
-  // Unreleased catalogue and assessment data use the same server-side access gate.
-  if (previewAccess.length) {
-    router.use(["/api/public/methods", "/api/public/assessments", "/methods", "/assessment"],
-      (_req, res, next) => { res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Robots-Tag", "noindex, nofollow"); next(); },
-      ...previewAccess);
-  }
   const limits = new Map<string, { count: number; until: number }>();
   const limit: RequestHandler = (req, res, next) => {
     const now = Date.now();
@@ -248,7 +241,7 @@ export function createPublicMethodsRouter(
     res
       .type("application/xml")
       .send(
-        `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://mindresearch.pro/for-researchers</loc></url></urlset>`,
+        `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://mindresearch.pro/for-researchers</loc></url><url><loc>https://mindresearch.pro/methods</loc></url>${(await published()).map(method => `<url><loc>https://mindresearch.pro/methods/${method.slug}</loc></url>`).join("")}</urlset>`,
       ),
   );
   return router;

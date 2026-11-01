@@ -19,7 +19,7 @@ export function Metadata({
         ? `${method.name} (${method.abbreviation}) — пройти онлайн | mindresearch`
         : "Психологические тесты онлайн без регистрации | mindresearch";
     const values: [string, string, string][] = [
-      ["name", "robots", "noindex,nofollow"],
+      ["name", "robots", privatePage ? "noindex,nofollow" : "index,follow"],
       [
         "name",
         "description",
@@ -108,10 +108,10 @@ export function PublicError({
     </div>
   );
 }
-export function Sources({ method }: { method: PublicMethod }) {
+export function Sources({ method, hideTitle = false }: { method: PublicMethod; hideTitle?: boolean }) {
   return (
     <section id="sources" className="pm-article-section">
-      <h2>Источники и версия</h2>
+      {!hideTitle && <h2>Источники и версия</h2>}
       <p className="pm-secondary">{method.version}</p>
       <ol className="pm-sources">
         {method.sources.map((s) => (

@@ -63,6 +63,24 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_PROXY_TARGET || "https://mindresearch.pro",
           changeOrigin: true,
           secure: true,
+          configure(proxy) {
+            proxy.on("proxyReq", (proxyReq, req) => {
+              // Vite changes Host, but leaves the browser's local Origin intact.
+              // Translate only same-origin requests to match the API target.
+              const origin = req.headers.origin;
+              if (!origin) return;
+              try {
+                if (new URL(origin).host === req.headers.host) {
+                  proxyReq.setHeader(
+                    "origin",
+                    new URL(env.VITE_API_PROXY_TARGET || "https://mindresearch.pro").origin,
+                  );
+                }
+              } catch {
+                // Malformed or external origins remain subject to API checks.
+              }
+            });
+          },
         },
       },
     },
