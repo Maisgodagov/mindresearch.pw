@@ -41,8 +41,21 @@ jobs:
           VPS_HOST: 45.67.57.126
         run: |
           release="/opt/mindresearch/releases/${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          remote=(ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -i ~/.ssh/deploy_key "deploy@$VPS_HOST")
+          remote=(ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -i ~/.ssh/deploy_key "deploy@$VPS_HOST")
           "${remote[@]}" "mkdir '$release'"
-          tar -czf - package.json package-lock.json apps/api/package.json apps/web/package.json apps/api/dist apps/web/dist deploy/release.sh |
-            "${remote[@]}" "tar -xzf - -C '$release'"
+          staging="$(mktemp -d)"
+          tar -czf "$staging/release.tar.gz" package.json package-lock.json apps/api/package.json apps/web/package.json apps/api/dist apps/web/dist deploy/release.sh
+          split -b 512K -d "$staging/release.tar.gz" "$staging/part-"
+          for part in "$staging"/part-*; do
+            uploaded=false
+            for attempt in 1 2 3; do
+              if "${remote[@]}" "cat > '$release/${part##*/}'" < "$part"; then
+                uploaded=true
+                break
+              fi
+            done
+            "$uploaded"
+          done
+          checksum="$(sha256sum "$staging/release.tar.gz" | cut -d ' ' -f 1)"
+          "${remote[@]}" "cd '$release' && cat part-* > release.tar.gz && echo '$checksum  release.tar.gz' | sha256sum -c && tar -xzf release.tar.gz && rm -- part-* release.tar.gz"
           "${remote[@]}" "bash '$release/deploy/release.sh' '$release'"
