@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 import { sidebarWidth, sidebarTransitionMs } from "../../components/PlatformSidebar/const";
 
 export const Frame = styled.div.attrs<{ "data-sidebar-motion": boolean }>({ "data-sidebar-motion": true })<{ $collapsed: boolean }>`
@@ -10,9 +11,9 @@ export const Frame = styled.div.attrs<{ "data-sidebar-motion": boolean }>({ "dat
   @media (max-width: 760px) { grid-template-columns: 1fr; padding-top: calc(56px + env(safe-area-inset-top)); padding-bottom: 0; }
 `;
 
-export const Main = styled.main`
-  width: min(100% - 48px, 1320px); container-name: platform-main; container-type: inline-size;
-  margin: 0 auto; padding: 32px 0 64px; min-width: 0;
+export const Main = styled(PageContainer).attrs({ as: "main" })`
+  container-name: platform-main; container-type: inline-size;
+  padding-block: 32px 64px;
   &&& h1 {
     font-family: var(--font-heading), serif;
     font-size: 32px;
@@ -23,8 +24,7 @@ export const Main = styled.main`
     white-space: normal;
   }
   @media (max-width: 600px) { &&& h1 { font-size: 28px; } }
-  @media (max-width: 760px) { width: min(100% - 32px, 1320px); padding-top: 24px; padding-bottom: 32px; }
-  @media (max-width: 420px) { width: min(100% - 32px, 1320px); }
+  @media (max-width: 760px) { padding-block: 24px 32px; }
 `;
 
 export const FloatingReportButton = styled(Button)`

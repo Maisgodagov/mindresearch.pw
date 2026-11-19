@@ -113,6 +113,7 @@ export function SurveyBuilder() {
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [structureLocked, setStructureLocked] = useState(false);
+  const [canEditRecoveredQuestions, setCanEditRecoveredQuestions] = useState(false);
   const draftSurveyId = useRef("");
   const autosaveStarted = useRef(false);
   const surveyVersion=useRef(0);
@@ -181,7 +182,7 @@ export function SurveyBuilder() {
         .get(`/account/surveys/${surveyId}`)
         .then(({ data }) => {
           surveyVersion.current=data.version??0;conflicted.current=false;
-          setCanChangeStatus(data.canChangeStatus!==false);
+          setCanChangeStatus(data.canChangeStatus!==false);setCanEditRecoveredQuestions(data.canEditRecoveredQuestions===true);
           setMeta({
             title: data.title,
             description: data.description ?? "",
@@ -220,7 +221,7 @@ export function SurveyBuilder() {
               ),
           );
           autosaveDraft.current =
-            Boolean(data.builderState) || data.status === "draft";
+            Number(data.responseCount) === 0 && (Boolean(data.builderState) || data.status === "draft");
           setDraftRestored(Boolean(data.builderState));
           setStructureLocked(Number(data.responseCount) > 0);
           setBuilderReady(true);
@@ -234,7 +235,7 @@ export function SurveyBuilder() {
       setMeta({ ...initialMeta.current });
       setSections([]);
       setOpen({});
-      setStructureLocked(false);
+      setStructureLocked(false);setCanEditRecoveredQuestions(false);
       setBuilderReady(true);
     }
   }, [surveyId]);
@@ -331,7 +332,7 @@ export function SurveyBuilder() {
       return copy;
     });
   const reorderSections = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return;
+    if (structureLocked || !over || active.id === over.id) return;
     setSections((current) => {
       const from = current.findIndex((section) => section.id === active.id),
         to = current.findIndex((section) => section.id === over.id);
@@ -450,7 +451,7 @@ export function SurveyBuilder() {
     sectionId: string,
     { active, over }: DragEndEvent,
   ) => {
-    if (!over || active.id === over.id) return;
+    if (structureLocked || !over || active.id === over.id) return;
     updateSection(sectionId, (s) => {
       const questions = [...(s.questions ?? [])],
         from = questions.findIndex((x) => x.id === active.id),
@@ -521,12 +522,14 @@ export function SurveyBuilder() {
       ...meta,
       sections: sections.map((s) =>
         s.kind === "library"
-          ? { kind: "library", instrumentId: s.instrumentId, formGender: s.formGender ?? "male", formFallback: s.formFallback ?? "male" }
+          ? { id: s.id, kind: "library", instrumentId: s.instrumentId, formGender: s.formGender ?? "male", formFallback: s.formFallback ?? "male" }
           : {
+              id: s.id,
               kind: "custom",
               title: s.title,
               description: "",
               questions: s.questions?.map((q) => ({
+                id: q.id,
                 text: q.text,
                 type: q.type,
                 required: q.required,
@@ -591,10 +594,10 @@ export function SurveyBuilder() {
           tabIndex={invalidFields.includes("sections") ? -1 : undefined}
         >
           <h2>Содержание опроса</h2>
-          <p className="hint">{`${sections.length + 3} блока · ${count} вопросов. Экраны закреплены сверху и снизу; методики и вопросы можно перемещать.`}</p>
+          <p className="hint">{`${sections.length + 3} блока · ${count} вопросов. ${structureLocked ? "Удаление и перестановка блоков и вопросов заблокированы." : "Экраны закреплены сверху и снизу; методики и вопросы можно перемещать."}`}</p>
           <div
             style={
-              structureLocked ? { pointerEvents: "none", opacity: 0.65 } : {}
+              structureLocked && !canEditRecoveredQuestions ? { pointerEvents: "none", opacity: 0.65 } : {}
             }
           >
             <SurveyScreenSection
@@ -660,7 +663,7 @@ export function SurveyBuilder() {
                   {sections.map((section, index) => (
                     <SortableSection
                       key={section.id}
-                      id={section.id}
+                      disabled={structureLocked} id={section.id}
                     >
                       {(sectionHandle) => (
                         <>
@@ -676,14 +679,14 @@ export function SurveyBuilder() {
                             </div>
                             <Button
                               className="icon"
-                              aria-label="Переместить блок выше"
+                              disabled={structureLocked} aria-label="Переместить блок выше"
                               onClick={() => move(index, -1)}
                             >
                               <ArrowUp size={15} />
                             </Button>
                             <Button
                               className="icon"
-                              aria-label="Переместить блок ниже"
+                              disabled={structureLocked} aria-label="Переместить блок ниже"
                               onClick={() => move(index, 1)}
                             >
                               <ArrowDown size={15} />
@@ -717,7 +720,7 @@ export function SurveyBuilder() {
                             </Button>
                             <Button
                               className="icon delete-action"
-                              aria-label="Удалить блок"
+                              disabled={structureLocked} aria-label="Удалить блок"
                               onClick={() =>
                                 setSections((s) =>
                                   s.filter((x) => x.id !== section.id),
@@ -739,7 +742,7 @@ export function SurveyBuilder() {
                                       aria-label={form.value === "auto" ? "По полу респондента" : `${form.label} бланк`}
                                       value={form.value}
                                       checked={(section.formGender ?? "male") === form.value}
-                                      disabled={structureLocked}
+                                      disabled={structureLocked && !canEditRecoveredQuestions}
                                       onChange={() => {
                                         updateSection(section.id, current => ({ ...current, formGender: form.value, questions: undefined }));
                                         setOpen(current => ({ ...current, [section.id]: false }));
@@ -749,7 +752,7 @@ export function SurveyBuilder() {
                                   </label>
                                 ))}
                               </div>
-                              {section.formGender === "auto" && <button type="button" className="form-fallback" disabled={structureLocked} onClick={() => {
+                              {section.formGender === "auto" && <button type="button" className="form-fallback" disabled={structureLocked && !canEditRecoveredQuestions} onClick={() => {
                                 updateSection(section.id, current => ({ ...current, formFallback: current.formFallback === "female" ? "male" : "female", questions: undefined }));
                                 setOpen(current => ({ ...current, [section.id]: false }));
                               }}>Если пол не указан: <u>{section.formFallback === "female" ? "женский" : "мужской"}</u></button>}
@@ -1011,7 +1014,7 @@ export function SurveyBuilder() {
                                   strategy={verticalListSortingStrategy}
                                 >
                                   {section.questions?.map((q, qi) => (
-                                    <SortableQuestion key={q.id} id={q.id}>
+                                    <SortableQuestion key={q.id} id={q.id} disabled={structureLocked}>
                                       {(questionHandle) => (
                                         <>
                                           <div className="qhead">
@@ -1022,7 +1025,7 @@ export function SurveyBuilder() {
                                             <div className="qactions">
                                               <Button
                                                 className="tiny"
-                                                aria-label="Выше"
+                                                disabled={structureLocked} aria-label="Выше"
                                                 onClick={() =>
                                                   moveQuestion(
                                                     section.id,
@@ -1035,7 +1038,7 @@ export function SurveyBuilder() {
                                               </Button>
                                               <Button
                                                       className="tiny"
-                                                aria-label="Ниже"
+                                                disabled={structureLocked} aria-label="Ниже"
                                                 onClick={() =>
                                                   moveQuestion(
                                                     section.id,
@@ -1047,7 +1050,7 @@ export function SurveyBuilder() {
                                                 <ArrowDown size={14} />
                                               </Button>
                                               <Button
-                                                className="tiny"
+                                                disabled={structureLocked} className="tiny"
                                                 onClick={() =>
                                                   duplicateQuestion(
                                                     section.id,
@@ -1057,7 +1060,7 @@ export function SurveyBuilder() {
                                               >
                                                 <Copy size={14} /> Копировать
                                               </Button>
-                                              <Button
+                                              <Button disabled={structureLocked}
                                                 className="tiny delete-action"
                                                 onClick={() =>
                                                   updateSection(
@@ -1338,7 +1341,7 @@ export function SurveyBuilder() {
                                   ))}
                                 </SortableContext>
                               </DndContext>
-                              <AddQuestionButton
+                              <AddQuestionButton disabled={structureLocked}
                                 onClick={() => {
                                   updateSection(section.id, (s) => ({
                                     ...s,

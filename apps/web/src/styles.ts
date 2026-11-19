@@ -2,6 +2,7 @@ import { createGlobalStyle } from "styled-components";
 export const GlobalStyle = createGlobalStyle`
   :root{
     --font-heading:"Manrope Variable";
+    --font-editorial:"Lora Variable",serif;
     --font-body:"Manrope Variable",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
     --radius-control:8px;
     --radius-card:16px;

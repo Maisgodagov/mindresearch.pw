@@ -6,15 +6,15 @@ import { dragHandleLabels } from "./const";
 import { sortableItemStyle } from "./styles";
 import type { SortableBlockProps } from "./types";
 
-export function SortableSection({ id, children }: SortableBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const handle = <Button type="button" className="section-drag" aria-label={dragHandleLabels.section} {...attributes} {...listeners}><GripVertical size={17} /></Button>;
+export function SortableSection({ id, children, disabled = false }: SortableBlockProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
+  const handle = <Button disabled={disabled} type="button" className="section-drag" aria-label={dragHandleLabels.section} {...attributes} {...listeners}><GripVertical size={17} /></Button>;
   return <SectionCard ref={setNodeRef} style={sortableItemStyle(transform, transition, isDragging)} $dragging={isDragging}>{children(handle, isDragging)}</SectionCard>;
 }
 
-export function SortableQuestion({ id, children }: SortableBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const handle = <Button type="button" className="drag" aria-label={dragHandleLabels.question} {...attributes} {...listeners}><GripVertical size={16} /></Button>;
+export function SortableQuestion({ id, children, disabled = false }: SortableBlockProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
+  const handle = <Button disabled={disabled} type="button" className="drag" aria-label={dragHandleLabels.question} {...attributes} {...listeners}><GripVertical size={16} /></Button>;
   return <QuestionBox ref={setNodeRef} style={sortableItemStyle(transform, transition, isDragging)} $dragging={isDragging}>{children(handle, isDragging)}</QuestionBox>;
 }
 

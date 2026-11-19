@@ -39,6 +39,7 @@ mkdirSync(output, { recursive: true });
         );
       };
       await page.goto(base + "/methods");
+      await page.getByRole('button', {name: 'Отказаться', exact: true}).click();
       await page.locator(".tc-intro h1").waitFor();
       await page.locator(".tc-test").first().waitFor();
       const catalogue = await (await context.request.get(base + "/api/public/methods")).json();
@@ -59,50 +60,31 @@ mkdirSync(output, { recursive: true });
         .click();
       await page.locator(".pm-consent input").check();
       await page.getByRole("button", { name: "Начать", exact: true }).click();
-      await page.locator(".pm-option").first().waitFor();
-      await capture("question");
+      const choices = () => page.locator('.respondent-option, .rating-buttons button');
+      await choices().first().waitFor();
+      await capture('question');
       for (let i = 0; i < 10; i++) {
+        await page.getByText(`Вопрос ${i + 1} из 10`, { exact: true }).waitFor();
         if (i === 1)
-          await page.route("**/api/public/assessments/*/save", (route) =>
-            route.abort(),
-          );
-        await page.locator(".pm-option").first().click();
+          await page.route('**/api/public/assessments/*/save', route => route.abort());
+        await choices().first().click();
         if (i === 1) {
-          await page
-            .getByRole("alert")
-            .filter({ hasText: "Нет соединения с сервером" })
-            .waitFor();
-          await page.unroute("**/api/public/assessments/*/save");
+          await page.getByRole('alert').filter({ hasText: 'Нет соединения с сервером' }).waitFor();
+          assert.equal(await page.getByText('Вопрос 2 из 10', { exact: true }).count(), 1);
+          await page.unroute('**/api/public/assessments/*/save');
+          // Same selected answer can be clicked again after a failed save.
+          await choices().first().click();
         }
-        await page
-          .getByRole("button", {
-            name: i === 9 ? "Посмотреть результат" : "Далее",
-            exact: true,
-          })
-          .waitFor({ state: "visible" });
-        await page.waitForFunction(
-          () =>
-            !document.querySelector(".pm-question-controls button:last-child")
-              .disabled,
-        );
+        if (i < 9) await page.getByText(`Вопрос ${i + 2} из 10`, { exact: true }).waitFor();
         if (i === 0) {
           await page.reload();
-          await page.locator(".pm-option").first().waitFor();
-          assert(
-            await page.getByRole("radio").first().isChecked(),
-            "Answer survives reload",
-          );
+          await page.getByText('Вопрос 2 из 10', { exact: true }).waitFor();
+          await page.getByRole('button', { name: 'Назад', exact: true }).click();
+          await page.getByText('Вопрос 1 из 10', { exact: true }).waitFor();
+          assert.equal(await choices().first().getAttribute('aria-pressed'), 'true', 'Answer survives reload');
+          await choices().first().click();
+          await page.getByText('Вопрос 2 из 10', { exact: true }).waitFor();
         }
-        await page
-          .getByRole("button", {
-            name: i === 9 ? "Посмотреть результат" : "Далее",
-            exact: true,
-          })
-          .click();
-        if (i < 9)
-          await page
-            .getByText(`Вопрос ${i + 2} из 10`, { exact: true })
-            .waitFor();
       }
       const image = page.locator(".pm-story-image");
       await image.waitFor();
@@ -170,7 +152,7 @@ mkdirSync(output, { recursive: true });
       await page.getByRole("button", { name: "Удалить", exact: true }).click();
       await page
         .getByRole("heading", {
-          name: "На чью поддержку вы опираетесь",
+          name: catalogue.find(method => method.slug === "perceived-social-support").name,
           exact: true,
         })
         .waitFor();

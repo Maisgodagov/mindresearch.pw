@@ -18,7 +18,7 @@ export function Metadata({
   const { pathname, search } = useLocation();
   useEffect(() => {
     const seo = publicSeo(method);
-    const filtered = new URLSearchParams(search).has("q") || new URLSearchParams(search).has("topic");
+    const filtered = ["q", "topic", "section", "page"].some(key => new URLSearchParams(search).has(key));
     document.title = privatePage ? "Ваше прохождение | mindresearch" : seo.title;
     const values: [string, string, string][] = [
       ["name", "robots", privatePage ? "noindex,nofollow" : filtered ? "noindex,follow" : "index,follow,max-image-preview:large"],

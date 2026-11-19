@@ -7,11 +7,18 @@ import { gsesInstrument } from "../data/gses.js";
 import { scoreRses } from "../scoring/rses.js";
 import { scoreGses } from "../scoring/gses.js";
 import { scoreMspss } from "../scoring/mspss.js";
+import { publicBsmasInstrument } from "./instruments.js";
+import { fomosRuInstrument } from "../data/fomosRu.js";
+import { nmpqRuInstrument } from "../data/nmpqRu.js";
+import { scoreBsmasRu } from "../scoring/bsmasRu.js";
+import { scoreFomosRu } from "../scoring/fomosRu.js";
+import { scoreNmpqRu } from "../scoring/nmpqRu.js";
 import { methodology as swls } from "../data/methodologies/method-2462.js";
 import { methodology as shs } from "../data/methodologies/method-2433.js";
 import { bitRuInstrument, bitRuScoring } from "../data/bitRu.js";
 import { calculateConfigurableScores } from "../scoring/configurable.js";
 import type { SeedSection } from "../types.js";
+import { additionalInstruments, calculateAdditional } from "./additional.js";
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 export const contentSchema = z
@@ -23,8 +30,13 @@ export const contentSchema = z
       "satisfaction-with-life",
       "subjective-happiness",
       "brief-thriving",
+      "social-media-use",
+      "fear-of-missing-out",
+      "nomophobia",
+      "personality-tipi", "autonomous-functioning", "stress-mindset", "belonging-exclusion", "cyber-aggression", "career-adaptability", "self-compassion", "acceptance-action", "anxiety-gad7", "anxiety-depression-phq4",
+      "achievement-motivation", "alexithymia-paq-short", "self-development", "metacognitive-regulation", "identity-development", "adult-identity", "student-career-motivation",
     ]),
-    code: z.enum(["test_17", "test_19", "test_1", "test_2480", "test_2451", "test_59"]),
+    code: z.enum(["test_17", "test_19", "test_1", "test_2480", "test_2451", "test_59", "test_25", "test_27", "test_28", "test_14", "test_24", "test_829", "test_44", "test_29", "test_23", "test_2434", "test_1168", "test_918", "test_1616", "test_21", "test_22", "test_265", "test_2205", "test_39", "test_40", "test_576"]),
     title: text(120),
     name: text(180),
     abbreviation: text(20),
@@ -41,6 +53,11 @@ export const contentSchema = z
       .min(1)
       .max(12),
     limitations: text(1800),
+    resultCopy: z.object({
+      summary: text(2400),
+      cardNote: text(240).optional(),
+      scales: z.array(z.object({ label: text(180), explanation: text(1600), cardExplanation: text(160) }).strict()).min(1).max(15),
+    }).strict().optional(),
     rights: text(1800),
     sources: z
       .array(
@@ -67,6 +84,7 @@ export type Definition = {
   revision: string;
 };
 export type Scale = {
+  cardExplanation?: string;
   label: string;
   value: number;
   min: number;
@@ -74,6 +92,8 @@ export type Scale = {
   explanation: string;
 };
 export type PublicResult = {
+  cardNote?: string;
+  presentation?: "profile" | "scales";
   method: PublicMethod;
   revision: string;
   completedAt: string;
@@ -94,15 +114,23 @@ export function definition(method: PublicMethod): Definition {
       "Код и версия методики не могут изменяться через редактор публикации",
     );
   const instruments: Record<string, SeedSection | undefined> = {
+    ...additionalInstruments,
     test_17: rsesInstrument,
     test_19: gsesInstrument,
     test_1: survey.find((item) => item.code === "test_1") as SeedSection | undefined,
     test_2480: swls.instrument,
     test_2451: shs.instrument,
     test_59: bitRuInstrument,
+    test_25: publicBsmasInstrument,
+    test_27: fomosRuInstrument,
+    test_28: nmpqRuInstrument,
   };
   const instrument = instruments[method.code];
   if (!instrument) throw failure(400, "Не найден бланк публичной методики");
+  if (method.resultCopy && original.resultCopy && (
+    method.resultCopy.scales.length !== original.resultCopy.scales.length ||
+    method.resultCopy.scales.some((scale, i) => scale.label !== original.resultCopy!.scales[i].label)
+  )) throw failure(400, "Пояснения не соответствуют шкалам методики");
   const snapshot = { method, questions: instrument.questions };
   return {
     ...snapshot,
@@ -139,6 +167,9 @@ export function calculate(
 ): PublicResult {
   validateAnswers(def, answers, true);
   const input = new Map(def.questions.map((q, i) => [i + 1, answers[q.code]]));
+  if (additionalInstruments[def.method.code]) {
+    return editorialResult({ method: def.method, revision: def.revision, completedAt, ...calculateAdditional(def.method.code, input) });
+  }
   let scales: Scale[];
   let explanation: string;
   if (def.method.code === "test_17") {
@@ -185,6 +216,20 @@ export function calculate(
     }));
     explanation =
       "Общий показатель — среднее всех ответов. Остальные шкалы помогают увидеть, насколько доступной ощущается поддержка из разных источников. Значимый другой — важный для вас человек.";
+  } else if (["test_25", "test_27", "test_28"].includes(def.method.code)) {
+    const score = def.method.code === "test_25" ? scoreBsmasRu(input)
+      : def.method.code === "test_27" ? scoreFomosRu(input) : scoreNmpqRu(input);
+    if (!score) throw failure(400, "Не удалось рассчитать показатели");
+    const { overall, ...subscales } = score.scales;
+    scales = [overall, ...Object.values(subscales)].map(s => ({
+      label: s.label, value: s.score, min: s.min, max: s.max,
+      explanation: "Более высокий балл отражает большую выраженность описанных переживаний. Это не диагноз и не нормативный уровень.",
+    }));
+    explanation = def.method.code === "test_25"
+      ? "Сумма шести ответов за последний год. Русская версия исследовалась на подростках 13–18 лет; взрослые нормы и диагностический порог здесь не применяются. Балл не показывает время в соцсетях."
+      : def.method.code === "test_27"
+        ? "Общий балл — сумма шести ответов; две подшкалы — суммы по три пункта. Используется русская шестипунктовая адаптация 2024 года, а не оригинальная десятипунктовая шкала."
+        : "Общий балл — сумма двадцати ответов по русской пятибалльной версии 2025 года. Четыре подшкалы имеют разное число пунктов: их сырые суммы нельзя напрямую сравнивать. Пороги оригинальной семибалльной версии не применяются.";
   } else {
     const variants = {
       test_2480: { scoring: swls.scoringConfig!, key: "total", label: "Удовлетворённость жизнью", min: 5, max: 35,
@@ -204,11 +249,22 @@ export function calculate(
     scales = [{ label: variant.label, value: score[variant.key], min: variant.min, max: variant.max, explanation: variant.meaning }];
     explanation = variant.explanation;
   }
-  return {
+  return editorialResult({
     method: def.method,
     revision: def.revision,
     completedAt,
     scales,
     explanation,
-  };
+  });
+}
+
+// Copy belongs to the creation-time publication snapshot, not today's catalogue.
+// Legacy assessments without resultCopy retain their original interpretation.
+function editorialResult(result: PublicResult): PublicResult {
+  const copy = result.method.resultCopy;
+  if (!copy) return result;
+  if (copy.scales.length !== result.scales.length || copy.scales.some((s,i)=>s.label!==result.scales[i].label))
+    throw failure(400, "Пояснения не соответствуют шкалам методики");
+  return { ...result, explanation: copy.summary, cardNote: copy.cardNote,
+    scales: result.scales.map((scale,i)=>({...scale, explanation:copy.scales[i].explanation, cardExplanation:copy.scales[i].cardExplanation})) };
 }

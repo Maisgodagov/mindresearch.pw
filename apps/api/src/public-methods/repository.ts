@@ -22,7 +22,12 @@ export type Assessment = {
   revision: number;
   expiresAt: string;
 };
+export type MethodStats = { slug: string; views: number; completions: number };
+
 export interface Repository {
+  recordView(slug: string, sessionHash: string): Promise<void>;
+  stats(): Promise<MethodStats[]>;
+  publishedMethods(): Promise<PublicMethod[]>;
   publications(): Promise<Publication[]>;
   savePublication(
     slug: string,
@@ -42,6 +47,28 @@ const json = <T>(value: T | string): T =>
   typeof value === "string" ? JSON.parse(value) : value;
 export function mysqlRepository(): Repository {
   return {
+    async recordView(slug, sessionHash) {
+      await db.execute(
+        `INSERT INTO public_method_events (slug, kind, event_key)
+         SELECT slug, 'view', ? FROM public_method_publications
+         WHERE slug=? AND published IS NOT NULL
+         ON DUPLICATE KEY UPDATE event_key=public_method_events.event_key`,
+        [sessionHash, slug],
+      );
+    },
+    async stats() {
+      const [rows] = await db.query<any[]>(
+        `SELECT slug, SUM(kind='view') AS views, SUM(kind='completion') AS completions
+         FROM public_method_events GROUP BY slug`,
+      );
+      return rows.map(({ slug, views, completions }) => ({
+        slug, views: Number(views), completions: Number(completions),
+      }));
+    },
+    async publishedMethods() {
+      const [rows] = await db.query<any[]>("SELECT published FROM public_method_publications WHERE published IS NOT NULL ORDER BY slug");
+      return rows.map(row => json<PublicMethod>(row.published));
+    },
     async publications() {
       const [rows] = await db.query<any[]>(
         "SELECT slug,draft,published,revision,DATE_FORMAT(published_at, '%Y-%m-%dT%H:%i:%s.000Z') publishedAt FROM public_method_publications ORDER BY slug",
@@ -107,7 +134,14 @@ export function mysqlRepository(): Repository {
           revision: row.revision,
           expiresAt: row.expiresAt,
         };
+        const wasCompleted = assessment.result !== null;
         const result = await operation(assessment);
+        if (!wasCompleted && assessment.result) {
+          await c.execute(
+            "INSERT INTO public_method_events (slug, kind, event_key) VALUES (?, 'completion', SHA2(?, 256))",
+            [assessment.definition.method.slug, id],
+          );
+        }
         await c.execute(
           "UPDATE public_assessments SET answers=?,result=?,position=?,revision=?,expires_at=? WHERE id=?",
           [

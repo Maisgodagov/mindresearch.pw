@@ -33,20 +33,84 @@ export async function storedQualities(surveyId:string,options:{summary?:boolean;
 async function workerTask(task:string,surveyId:string,items:Item[],people:Participant[],baseline:Baseline|null,progress?:(done:number,total:number)=>void,highQualityIds?:string[]){
   return new Promise<any>((resolve,reject)=>{const worker=createQualityWorker();let settled=false;const finish=(error?:Error,value?:unknown)=>{if(settled)return;settled=true;void worker.terminate();error?reject(error):resolve(value)};worker.on('message',m=>{if(m.type==='progress')progress?.(m.done,m.total);else if(m.type==='error')finish(new Error(m.message));else if(m.type==='result')finish(undefined,m.value)});worker.on('error',e=>finish(e));worker.on('exit',code=>{if(!settled)finish(new Error(`Quality worker exited ${code}`))});worker.postMessage({task,surveyId,items,people,baseline,highQualityIds});});
 }
-export async function freezeBaseline(surveyId:string,cohort?:string){const{items,people}=await loadQualityInputs(surveyId),qualities=await storedQualities(surveyId),high=people.filter(p=>(qualities[p.id]?.overall.score??0)>=QUALITY_V2_CONFIG.reference.highQualityScore&&qualities[p.id].overall.confidence>=QUALITY_V2_CONFIG.reference.highQualityConfidence).map(p=>p.id),selected=cohort?people.filter(p=>cohort==='trusted'?p.trusted:p.cohort===cohort):people;
-  if(!selected.some(p=>p.status==='completed'))throw new Error('Нет завершённых прохождений в выбранной reference группе');
-  const baseline:Baseline=await workerTask('baseline',surveyId,items,selected,null,undefined,high);
-  await db.execute(`INSERT IGNORE INTO quality_baselines(id,survey_id,algorithm_version,config_hash,snapshot) VALUES (?,?,?,?,?)`,[baseline.id,surveyId,baseline.config.version,baseline.configHash,JSON.stringify(baseline)]);await db.execute(`INSERT INTO quality_settings(survey_id,active_baseline) VALUES (?,?) ON DUPLICATE KEY UPDATE active_baseline=VALUES(active_baseline)`,[surveyId,baseline.id]);return baseline;
+async function buildBaseline(surveyId: string, items: Item[], people: Participant[], cohort?: string, usePreviousQuality = true) {
+  const qualities = usePreviousQuality ? await storedQualities(surveyId) : {};
+  const high = people.filter(p => {
+    const overall = qualities[p.id]?.overall;
+    return overall && (overall.score ?? 0) >= QUALITY_V2_CONFIG.reference.highQualityScore &&
+      overall.confidence >= QUALITY_V2_CONFIG.reference.highQualityConfidence;
+  }).map(p => p.id);
+  const selected = cohort ? people.filter(p => cohort === 'trusted' ? p.trusted : p.cohort === cohort) : people;
+  if (!selected.some(p => p.status === 'completed')) throw new Error('Нет завершённых прохождений в выбранной reference группе');
+  const baseline: Baseline = await workerTask('baseline', surveyId, items, selected, null, undefined, high);
+  await db.execute(
+    'INSERT IGNORE INTO quality_baselines(id,survey_id,algorithm_version,config_hash,snapshot) VALUES (?,?,?,?,?)',
+    [baseline.id, surveyId, baseline.config.version, baseline.configHash, JSON.stringify(baseline)],
+  );
+  return baseline;
 }
-export async function recompute(surveyId:string,options:{sessionId?:string;cohort?:string;baselineVersion?:string}={},progress?:(done:number,total:number)=>void){const{items,people}=await loadQualityInputs(surveyId);let baseline=await activeBaseline(surveyId);if(options.baselineVersion){const[rows]=await db.query<any[]>('SELECT snapshot FROM quality_baselines WHERE id=? AND survey_id=?',[options.baselineVersion,surveyId]);if(!rows.length)throw new Error('Baseline не найден');baseline=json<Baseline>(rows[0].snapshot);}let refreshAll=false;
-  if(!baseline&&eligibleReferenceCount(people)>=10){baseline=await freezeBaseline(surveyId);refreshAll=true;}
-  if(baseline&&baseline.config.version!==QUALITY_V2_CONFIG.version&&!options.baselineVersion)throw new Error('Algorithm version changed; create a new baseline');
-  if(baseline&&baseline.itemHash!==hash(items))throw new Error('Структура вопросов изменилась; создайте новую версию baseline');
-  if (!options.baselineVersion && !options.cohort && shouldGrowBaseline(baseline, eligibleReferenceCount(people))) {
-    baseline=await freezeBaseline(surveyId);refreshAll=true;
+
+async function activateBaseline(surveyId: string, baseline: Baseline | null) {
+  await db.execute(
+    'INSERT INTO quality_settings(survey_id,active_baseline) VALUES (?,?) ON DUPLICATE KEY UPDATE active_baseline=VALUES(active_baseline)',
+    [surveyId, baseline?.id ?? null],
+  );
+}
+
+export async function freezeBaseline(surveyId: string, cohort?: string) {
+  const { items, people } = await loadQualityInputs(surveyId);
+  const baseline = await buildBaseline(surveyId, items, people, cohort);
+  await activateBaseline(surveyId, baseline);
+  return baseline;
+}
+
+export async function recompute(
+  surveyId: string,
+  options: { sessionId?: string; cohort?: string; baselineVersion?: string } = {},
+  progress?: (done: number, total: number) => void,
+) {
+  const { items, people } = await loadQualityInputs(surveyId);
+  let baseline = await activeBaseline(surveyId);
+  if (options.baselineVersion) {
+    const [rows] = await db.query<any[]>('SELECT snapshot FROM quality_baselines WHERE id=? AND survey_id=?', [options.baselineVersion, surveyId]);
+    if (!rows.length) throw new Error('Baseline не найден');
+    baseline = json<Baseline>(rows[0].snapshot);
   }
-  const selected=people.filter(p=>(refreshAll||!options.sessionId||p.id===options.sessionId)&&(!options.cohort||(options.cohort==='trusted'?p.trusted:p.cohort===options.cohort)));
-  const data=await workerTask(!refreshAll&&(options.sessionId||options.cohort)?'calculate_subset':'calculate',surveyId,items,selected,baseline,progress);for(const p of selected){const result:QualityV2|undefined=data.results[p.id];if(!result)continue;await db.execute(`INSERT IGNORE INTO quality_results(session_id,algorithm_version,baseline_version,input_hash,result,input_snapshot) VALUES (?,?,?,?,?,?)`,[p.id,result.algorithm_version,result.baseline_version??'none',result.input_hash,JSON.stringify(result),JSON.stringify({items,participant:p})]);await db.execute('INSERT INTO quality_result_heads(session_id,algorithm_version,baseline_version,input_hash) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE input_hash=VALUES(input_hash)',[p.id,result.algorithm_version,result.baseline_version??'none',result.input_hash]);}return{count:Object.keys(data.results).length,baseline_version:baseline?.version??null,diagnostics:data.diagnostics};
+
+  const incompatible = baseline !== null &&
+    (baseline.itemHash !== hash(items) || baseline.config.version !== QUALITY_V2_CONFIG.version);
+  if (incompatible && (options.baselineVersion || options.cohort)) {
+    throw new Error('Калибровка не соответствует текущим вопросам или версии алгоритма');
+  }
+
+  const eligible = eligibleReferenceCount(people);
+  const refreshAll = !options.baselineVersion && !options.cohort &&
+    (incompatible || (!baseline && eligible >= 10) || shouldGrowBaseline(baseline, eligible));
+  if (refreshAll) {
+    baseline = eligible >= 10 ? await buildBaseline(surveyId, items, people, undefined, !incompatible) : null;
+  }
+
+  const selected = people.filter(p =>
+    (refreshAll || !options.sessionId || p.id === options.sessionId) &&
+    (!options.cohort || (options.cohort === 'trusted' ? p.trusted : p.cohort === options.cohort)),
+  );
+  const task = !refreshAll && (options.sessionId || options.cohort) ? 'calculate_subset' : 'calculate';
+  const data = await workerTask(task, surveyId, items, selected, baseline, progress);
+  for (const participant of selected) {
+    const result: QualityV2 | undefined = data.results[participant.id];
+    if (!result) continue;
+    await db.execute(
+      'INSERT IGNORE INTO quality_results(session_id,algorithm_version,baseline_version,input_hash,result,input_snapshot) VALUES (?,?,?,?,?,?)',
+      [participant.id, result.algorithm_version, result.baseline_version ?? 'none', result.input_hash, JSON.stringify(result), JSON.stringify({ items, participant })],
+    );
+    await db.execute(
+      'INSERT INTO quality_result_heads(session_id,algorithm_version,baseline_version,input_hash) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE input_hash=VALUES(input_hash)',
+      [participant.id, result.algorithm_version, result.baseline_version ?? 'none', result.input_hash],
+    );
+  }
+  // Keep the old scores readable until the replacement has been fully stored.
+  if (refreshAll) await activateBaseline(surveyId, baseline);
+  return { count: Object.keys(data.results).length, baseline_version: baseline?.version ?? null, diagnostics: data.diagnostics };
 }
 let running=false;
 export async function enqueueQuality(surveyId:string,kind='recompute',options:Record<string,unknown>={}){if(!qualityEnabled())return null;const id=randomUUID();await db.execute('INSERT INTO quality_jobs(id,survey_id,kind,options) VALUES (?,?,?,?)',[id,surveyId,kind,JSON.stringify(options)]);void runJobs();return id;}
@@ -105,4 +169,45 @@ async function recoverGrowingBaselines() {
     if (!pending.length) await enqueueQuality(row.survey_id);
   }
 }
-export async function resumeQualityJobs(){await db.execute("UPDATE quality_jobs SET status='queued',error='Resumed after server restart' WHERE status='running'");await recoverGrowingBaselines();void runJobs();const interval=setInterval(()=>{void runJobs()},30000);interval.unref();}
+let recovering = false;
+async function recoverMissingQualities() {
+  if (recovering || !qualityEnabled()) return;
+  recovering = true;
+  try {
+    const [rows] = await db.query<{ surveyId: string }[] & import('mysql2').RowDataPacket[]>(`
+      SELECT DISTINCT rs.survey_id AS surveyId
+      FROM response_sessions rs
+      JOIN surveys s ON s.id=rs.survey_id AND s.deleted_at IS NULL
+      LEFT JOIN quality_settings settings ON settings.survey_id=s.id
+      LEFT JOIN quality_result_heads h ON h.session_id=rs.id
+        AND h.algorithm_version=? AND h.baseline_version=COALESCE(settings.active_baseline,'none')
+      WHERE rs.status='completed' AND rs.deleted_at IS NULL AND h.session_id IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM quality_jobs j WHERE j.survey_id=s.id AND
+          (j.status IN ('queued','running') OR
+           (j.status='failed' AND j.updated_at > UTC_TIMESTAMP() - INTERVAL 15 MINUTE))
+        )
+      ORDER BY rs.survey_id LIMIT 25
+    `, [QUALITY_V2_CONFIG.version]);
+    for (const { surveyId } of rows) await enqueueQuality(surveyId);
+  } catch (error) {
+    console.error('Quality V2 recovery failed', error);
+  } finally {
+    recovering = false;
+  }
+}
+
+export async function resumeQualityJobs() {
+  if (!qualityEnabled()) return;
+  const interval = setInterval(() => void runJobs(), 30_000);
+  interval.unref();
+  try {
+    await db.execute("UPDATE quality_jobs SET status='queued',error='Resumed after server restart' WHERE status='running'");
+    await recoverGrowingBaselines();
+  } catch (error) {
+    console.error('Quality V2 startup recovery failed', error);
+  }
+  void runJobs();
+  void recoverMissingQualities();
+  setInterval(() => void recoverMissingQualities(), 5 * 60_000).unref();
+}

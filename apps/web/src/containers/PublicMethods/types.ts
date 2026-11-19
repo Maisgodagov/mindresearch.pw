@@ -15,10 +15,12 @@ export type PublicMethod = {
   instruction: string;
   sections: { title: string; text: string }[];
   limitations: string;
+  resultCopy?: {summary: string; cardNote?: string; scales: {label: string; explanation: string; cardExplanation: string}[]};
   rights: string;
   sources: { title: string; url: string }[];
 };
 export type Scale = {
+  cardExplanation?: string;
   label: string;
   value: number;
   min: number;
@@ -26,6 +28,8 @@ export type Scale = {
   explanation: string;
 };
 export type PublicResult = {
+  cardNote?: string;
+  presentation?: "profile" | "scales";
   method: PublicMethod;
   revision: string;
   completedAt: string;
@@ -55,7 +59,8 @@ export async function publicRequest<T>(
   method = "POST",
   signal?: AbortSignal,
 ): Promise<T> {
-  const token = await initializeAuth();
+  const contentRead = body === undefined && (method === "GET" || method === "POST") && /^(?:catalog(?:\?|$)|methods(?:\/[^/?]+)?(?:\?|$))/.test(path);
+  const token = contentRead ? null : await initializeAuth();
   const response = await fetch(`/api/public/${path}`, {
     method: body === undefined && method === "POST" ? "GET" : method,
     credentials: "same-origin",
@@ -70,9 +75,7 @@ export async function publicRequest<T>(
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(
-      error.message || "Не удалось загрузить данные. Попробуйте ещё раз.",
-    );
+    throw Object.assign(new Error(error.message || "Не удалось загрузить данные. Попробуйте ещё раз."), { status: response.status });
   }
   return response.status === 204 ? (undefined as T) : response.json();
 }

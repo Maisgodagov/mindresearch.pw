@@ -7,7 +7,31 @@ import { z } from "zod";
 import { createPublicMethodsRouter } from "./router.js";
 import { memoryRepository } from "./testing.js";
 const app = express();
+const repository = memoryRepository();
 app.use(express.json({ limit: "200kb" }));
+app.get("/api/admin/public-methods/stats", async (req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  const authorization = req.get("authorization");
+  if (!authorization?.startsWith("Bearer ")) {
+    res.sendStatus(401);
+    return;
+  }
+  const account = await fetch("https://mindresearch.pro/api/account/me", {
+    headers: { authorization },
+    redirect: "error",
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!account.ok) {
+    res.sendStatus(account.status === 401 ? 401 : 403);
+    return;
+  }
+  const user = z.object({ role: z.string() }).parse(await account.json());
+  if (!["owner", "admin"].includes(user.role)) {
+    res.sendStatus(403);
+    return;
+  }
+  res.json(await repository.stats());
+});
 // Count registered instruments for the database-free preview; production counts active DB rows.
 app.get("/api/public/catalogue-summary",async(_req,res,next)=>{try{
  const codes=new Set(baseSurvey.map(s=>s.code).filter(c=>c.startsWith("test_")));
@@ -20,7 +44,7 @@ app.get("/api/public/catalogue-summary",async(_req,res,next)=>{try{
 // The isolated preview has no researcher accounts; use the normal guest status.
 app.post("/api/auth/refresh", (_req, res) => res.status(401).json({ message: "Войдите в аккаунт" }));
 app.use(
-  createPublicMethodsRouter(memoryRepository(), [
+  createPublicMethodsRouter(repository, [
     (_req, res) => {
       res
         .status(403)

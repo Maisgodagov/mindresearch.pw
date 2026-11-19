@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const Stack = styled.div`
-  display: grid; gap: 14px; max-width: 900px;
+  display: grid; gap: 14px; width: 100%;
   h1 { font: 500 38px var(--font-heading), serif; color: var(--color-text-304a38); }
   .item { padding: 23px; border-radius: 18px; }
   .meta { color: var(--color-text-78857c); font-size: 12px; }

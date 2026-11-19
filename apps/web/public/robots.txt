@@ -1,9 +1,19 @@
 # Public HTML is crawlable; service pages carry noindex in the source HTML.
 User-agent: *
 Disallow: /api/
+Allow: /api/public/catalog?
+Allow: /api/public/catalog$
+Allow: /api/public/methods$
+Allow: /api/public/methods/
+Disallow: /api/public/methods/*/assessments
 
 User-agent: Yandex
 Disallow: /api/
+Allow: /api/public/catalog?
+Allow: /api/public/catalog$
+Allow: /api/public/methods$
+Allow: /api/public/methods/
+Disallow: /api/public/methods/*/assessments
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid /
 
 Sitemap: https://mindresearch.pro/sitemap.xml

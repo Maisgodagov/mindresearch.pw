@@ -150,6 +150,11 @@ export const Options = styled.div`
   margin: auto 0;
 `;
 export const Choice = styled(Button)<{ $active: boolean }>`
+  &&&.ant-btn-default:not(.ant-btn-dangerous) {
+    background: ${(p) => p.$active ? "var(--color-brand-soft)" : "var(--color-surface)"};
+    border-color: ${(p) => p.$active ? "var(--color-brand)" : "var(--color-brand-soft)"};
+    color: var(--color-text-304036);
+  }
   && {
     justify-content: flex-start !important;
     text-align: left;

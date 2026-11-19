@@ -3,7 +3,7 @@
   --muted: var(--color-secondary);
   background: var(--color-surface-muted);
   color: var(--ink);
-  font-family: "Manrope Variable", sans-serif;
+  font-family: var(--font-body);
   line-height: 1.65;
 }
 .landing * {
@@ -68,7 +68,7 @@
 }
 .landing h1,
 .landing h2 {
-  font-family: Lora, serif;
+  font-family: var(--font-editorial);
   font-weight: 500;
   letter-spacing: -2px;
   line-height: 1.13;
@@ -720,7 +720,7 @@
   outline: 6px solid var(--color-surface-muted);
 }
 .landing-workflow h3 {
-  font-family: Lora, serif;
+  font-family: var(--font-editorial);
   font-size: clamp(23px, 2.1vw, 29px);
   font-weight: 500;
   line-height: 1.25;
@@ -781,7 +781,7 @@
   gap: 32px;
 }
 .landing.landing-in-app .landing-hero.landing-wrap h1 {
-  font-family: "Lora Variable", serif;
+  font-family: var(--font-editorial);
   font-size: 48px;
   line-height: 1.16;
   font-weight: 500;
@@ -891,8 +891,8 @@
 
 /* Live components occupy the former screenshot slots. Keep product controls at usable sizes. */
 .landing-in-app {
-  max-width: 1400px;
-  margin: auto;
+  width: 100%;
+  margin: 0;
 }
 .landing-in-app .landing-hero-image {
   transform: none;
@@ -909,7 +909,7 @@
 }
 .landing-component-surface h2,
 .landing-component-surface h3 {
-  font-family: Manrope, sans-serif !important;
+  font-family: var(--font-body) !important;
   letter-spacing: -0.02em !important;
   line-height: 1.4 !important;
 }
@@ -1197,11 +1197,11 @@
   > .landing-content
   > section:not(.landing-component)
   h2 {
-  font-family: "Lora Variable", serif;
+  font-family: var(--font-editorial);
 }
 .landing.landing-in-app .landing-component-surface h2,
 .landing.landing-in-app .landing-component-surface h3 {
-  font-family: "Manrope Variable", sans-serif;
+  font-family: var(--font-body);
 }
 .landing-component-surface.media-scales {
   padding: 22px;
@@ -1622,7 +1622,7 @@
   min-width: 0;
 }
 .landing.landing-in-app .landing-hero.landing-wrap .research-intro h1 {
-  font-family: "Lora Variable", serif;
+  font-family: var(--font-editorial);
   font-size: clamp(34px, 3vw, 44px);
   font-weight: 500;
   letter-spacing: -0.03em;
@@ -2080,7 +2080,7 @@
 .landing .landing-publish{display:flex;flex-direction:column;gap:36px;padding-top:80px;padding-bottom:80px}.publish-intro{width:100%}.publish-intro h2{margin:0 0 20px!important}.publish-intro>p{font-size:17px;line-height:1.8;color:var(--color-text-596e5c);margin:0;max-width:none}.publish-benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px 64px;width:100%}.publish-benefits article{display:grid;grid-template-columns:24px minmax(0,1fr);gap:18px;align-items:start}.publish-benefits article>svg{color:var(--color-text-638253);margin-top:3px;stroke-width:1.6}.landing .publish-benefits h3{font-size:18px;font-weight:650;line-height:1.5;margin:0 0 10px;letter-spacing:-.015em}.publish-benefits p{font-size:15px;line-height:1.85;color:var(--color-text-596e5c);margin:0}.publish-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;width:100%;padding-top:24px;border-top:1px solid var(--color-brand-soft)}.publish-footer>span{font-size:14px;line-height:1.7;color:var(--color-text-52694e)}@media(max-width:700px){.landing .landing-publish{padding-top:52px;padding-bottom:52px;gap:28px}.publish-intro>p{font-size:15px;line-height:1.8}.publish-benefits{grid-template-columns:1fr;gap:28px}.publish-benefits article{gap:14px}.landing .publish-benefits h3{font-size:17px}.publish-benefits p{font-size:14px}.publish-footer{align-items:flex-start;flex-direction:column;padding-top:22px}.publish-footer>span{font-size:13px}}
 
 /* Respondent experience: the actual single-choice flow, fitted to believable device frames. */
-.landing-in-app .landing-respondent{padding:44px 36px 28px;border-radius:20px;overflow:visible}.landing-respondent .landing-section-heading{grid-template-columns:1fr;gap:18px;margin-bottom:30px}.landing-respondent .landing-section-heading>p{max-width:none!important;margin:0}.respondent-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-bottom:30px}.respondent-benefits article{display:flex;align-items:flex-start;gap:12px}.respondent-benefits svg{color:var(--color-brand);flex:none;margin-top:3px;stroke-width:1.6}.landing .respondent-benefits h3{font-size:16px;line-height:1.5;margin:0 0 9px}.respondent-benefits p{font-size:14px;line-height:1.8;margin:0;color:var(--color-brand)}.taking-demo-caption{font-size:12px;line-height:1.7;color:var(--color-brand);margin:0 0 20px;max-width:90ch}.landing-in-app .landing-devices{display:grid;grid-template-columns:minmax(0,1fr) 244px;gap:24px;max-width:1050px;padding:0;align-items:center}.landing-in-app .landing-phone{display:block;position:static;width:100%;min-width:0;padding:0;background:transparent;border-radius:0;box-shadow:none}.landing-phone>.landing-component-surface.media-phone{aspect-ratio:9 / 19.5;height:auto;max-height:none;box-sizing:border-box;border:6px solid var(--color-ink);border-radius:28px;padding:12px;background:var(--color-surface-muted);overflow:hidden}.landing-component-surface.media-desktop{max-height:none;overflow:visible;padding:22px;background:var(--color-surface-muted)}.landing-taking-demo .demo-save-status{display:flex;justify-content:flex-end;align-items:center;gap:4px;color:var(--color-brand);font-size:12px;line-height:1.5;margin:0 0 6px}.landing-taking-demo>header{padding-bottom:6px}.landing .landing-taking-demo .inline-question-card{padding:24px!important;margin-top:20px!important}.landing .landing-taking-demo .question{font-family:Manrope,sans-serif;font-size:clamp(20px,2vw,26px)!important;line-height:1.35;margin:16px 0 22px;min-height:106px}.landing .landing-taking-demo .demo-answer{border:1px solid transparent!important;box-shadow:none!important;background:var(--color-surface);min-height:46px;padding:12px 14px;border-radius:10px}.landing .landing-taking-demo .demo-answer:hover:not(:disabled){border-color:transparent!important;background:var(--color-brand-soft)!important;color:var(--color-ink)!important}.landing .landing-taking-demo .demo-answer[aria-pressed=true]{background:var(--color-brand-soft)!important}.landing .landing-taking-demo .demo-answer:disabled{opacity:1;color:var(--color-ink)}.landing .landing-taking-demo .inline-taking-nav{margin-top:16px}.landing .landing-taking-demo .inline-taking-nav button{width:34px;min-width:34px;height:34px;padding:6px;border:0!important;box-shadow:none!important;background:transparent}.landing .landing-taking-demo .inline-taking-nav button:hover{background:var(--color-brand-soft)!important}.landing .is-phone .inline-question-card{padding:14px!important;margin-top:16px!important}.landing .is-phone .question{font-size:14px!important;line-height:1.4;min-height:105px;margin:14px 0 16px}.landing .is-phone .demo-answer{font-size:11px;min-height:36px;padding:8px 10px;border-radius:8px}.landing .is-phone .demo-save-status{font-size:8px}.landing .is-phone>header{font-size:11px}.landing .is-phone .eyebrow{font-size:10px}.landing .is-phone .inline-taking-nav{margin-top:12px}.landing .is-phone .inline-taking-nav button{width:26px;min-width:26px;height:26px;padding:4px}.landing .inline-taking-done{padding:24px 4px}.landing .is-phone .inline-taking-done h3{font-size:16px!important}.landing .is-phone .inline-taking-done p{font-size:12px;line-height:1.7}@media(max-width:1100px){.landing-in-app .landing-devices{grid-template-columns:minmax(0,1fr) 230px;gap:18px}.respondent-benefits{grid-template-columns:1fr;gap:22px}.landing-in-app .landing-respondent{padding:32px 24px}.landing .landing-taking-demo .inline-question-card{padding:18px!important}.landing .is-phone .inline-question-card{padding:12px!important}}@media(max-width:760px){.landing-in-app .landing-devices{display:block}.landing-in-app .landing-phone{display:none}.landing-in-app .landing-respondent{padding:28px 16px}.landing-component-surface.media-desktop{padding:12px;border-width:4px}.landing .landing-taking-demo .question{font-size:21px!important;min-height:120px}.landing .landing-taking-demo .demo-answer{font-size:13px;min-height:45px}.respondent-benefits p{font-size:14px}.taking-demo-caption{font-size:11px}.landing .landing-taking-demo .inline-question-card{padding:16px!important}}
+.landing-in-app .landing-respondent{padding:44px 36px 28px;border-radius:20px;overflow:visible}.landing-respondent .landing-section-heading{grid-template-columns:1fr;gap:18px;margin-bottom:30px}.landing-respondent .landing-section-heading>p{max-width:none!important;margin:0}.respondent-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-bottom:30px}.respondent-benefits article{display:flex;align-items:flex-start;gap:12px}.respondent-benefits svg{color:var(--color-brand);flex:none;margin-top:3px;stroke-width:1.6}.landing .respondent-benefits h3{font-size:16px;line-height:1.5;margin:0 0 9px}.respondent-benefits p{font-size:14px;line-height:1.8;margin:0;color:var(--color-brand)}.taking-demo-caption{font-size:12px;line-height:1.7;color:var(--color-brand);margin:0 0 20px;max-width:90ch}.landing-in-app .landing-devices{display:grid;grid-template-columns:minmax(0,1fr) 244px;gap:24px;max-width:1050px;padding:0;align-items:center}.landing-in-app .landing-phone{display:block;position:static;width:100%;min-width:0;padding:0;background:transparent;border-radius:0;box-shadow:none}.landing-phone>.landing-component-surface.media-phone{aspect-ratio:9 / 19.5;height:auto;max-height:none;box-sizing:border-box;border:6px solid var(--color-ink);border-radius:28px;padding:12px;background:var(--color-surface-muted);overflow:hidden}.landing-component-surface.media-desktop{max-height:none;overflow:visible;padding:22px;background:var(--color-surface-muted)}.landing-taking-demo .demo-save-status{display:flex;justify-content:flex-end;align-items:center;gap:4px;color:var(--color-brand);font-size:12px;line-height:1.5;margin:0 0 6px}.landing-taking-demo>header{padding-bottom:6px}.landing .landing-taking-demo .inline-question-card{padding:24px!important;margin-top:20px!important}.landing .landing-taking-demo .question{font-family: var(--font-body);font-size:clamp(20px,2vw,26px)!important;line-height:1.35;margin:16px 0 22px;min-height:106px}.landing .landing-taking-demo .demo-answer{border:1px solid transparent!important;box-shadow:none!important;background:var(--color-surface);min-height:46px;padding:12px 14px;border-radius:10px}.landing .landing-taking-demo .demo-answer:hover:not(:disabled){border-color:transparent!important;background:var(--color-brand-soft)!important;color:var(--color-ink)!important}.landing .landing-taking-demo .demo-answer[aria-pressed=true]{background:var(--color-brand-soft)!important}.landing .landing-taking-demo .demo-answer:disabled{opacity:1;color:var(--color-ink)}.landing .landing-taking-demo .inline-taking-nav{margin-top:16px}.landing .landing-taking-demo .inline-taking-nav button{width:34px;min-width:34px;height:34px;padding:6px;border:0!important;box-shadow:none!important;background:transparent}.landing .landing-taking-demo .inline-taking-nav button:hover{background:var(--color-brand-soft)!important}.landing .is-phone .inline-question-card{padding:14px!important;margin-top:16px!important}.landing .is-phone .question{font-size:14px!important;line-height:1.4;min-height:105px;margin:14px 0 16px}.landing .is-phone .demo-answer{font-size:11px;min-height:36px;padding:8px 10px;border-radius:8px}.landing .is-phone .demo-save-status{font-size:8px}.landing .is-phone>header{font-size:11px}.landing .is-phone .eyebrow{font-size:10px}.landing .is-phone .inline-taking-nav{margin-top:12px}.landing .is-phone .inline-taking-nav button{width:26px;min-width:26px;height:26px;padding:4px}.landing .inline-taking-done{padding:24px 4px}.landing .is-phone .inline-taking-done h3{font-size:16px!important}.landing .is-phone .inline-taking-done p{font-size:12px;line-height:1.7}@media(max-width:1100px){.landing-in-app .landing-devices{grid-template-columns:minmax(0,1fr) 230px;gap:18px}.respondent-benefits{grid-template-columns:1fr;gap:22px}.landing-in-app .landing-respondent{padding:32px 24px}.landing .landing-taking-demo .inline-question-card{padding:18px!important}.landing .is-phone .inline-question-card{padding:12px!important}}@media(max-width:760px){.landing-in-app .landing-devices{display:block}.landing-in-app .landing-phone{display:none}.landing-in-app .landing-respondent{padding:28px 16px}.landing-component-surface.media-desktop{padding:12px;border-width:4px}.landing .landing-taking-demo .question{font-size:21px!important;min-height:120px}.landing .landing-taking-demo .demo-answer{font-size:13px;min-height:45px}.respondent-benefits p{font-size:14px}.taking-demo-caption{font-size:11px}.landing .landing-taking-demo .inline-question-card{padding:16px!important}}
 
 
 

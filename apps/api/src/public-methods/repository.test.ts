@@ -22,6 +22,12 @@ vi.mock("../db.js", () => ({
 import { mysqlRepository, type Assessment } from "./repository.js";
 import { definition, initialCatalog } from "./model.js";
 describe("MySQL assessment persistence contracts", () => {
+  it("loads only published catalogue data, without draft content", async () => {
+    mocks.query.mockResolvedValue([[{ published: JSON.stringify(initialCatalog[0]) }]]);
+    expect(await mysqlRepository().publishedMethods()).toEqual([initialCatalog[0]]);
+    expect(mocks.query.mock.calls[0][0]).toContain("WHERE published IS NOT NULL");
+    expect(mocks.query.mock.calls[0][0]).not.toContain("draft");
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getConnection.mockResolvedValue(mocks.connection);

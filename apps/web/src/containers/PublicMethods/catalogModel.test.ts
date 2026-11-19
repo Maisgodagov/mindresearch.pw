@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import catalog from "../../../../api/src/public-methods/catalog.json";
-import { collections, findMethods, methodCount } from "./catalogModel";
+import { collections, findMethods, methodCount, sectionForTopic } from "./catalogModel";
 describe("public catalogue discovery", () => {
   it("keeps all themes when the catalogue grows", () => {
     const methods = Array.from({ length: 40 }, (_, i) => ({
@@ -23,5 +23,12 @@ describe("public catalogue discovery", () => {
       "11 методик",
       "21 методика",
     ]);
+  });
+  it("combines selected topics with OR and search with AND", () => {
+    const selected = ["Самооценка", "Цифровые привычки"];
+    expect(findMethods(catalog, selected, "")).toHaveLength(4);
+    expect(findMethods(catalog, selected, "FoMO")).toHaveLength(1);
+    expect(findMethods(catalog, selected, "MSPSS")).toHaveLength(0);
+    expect(sectionForTopic("Новая тема")).toBe("Другие темы");
   });
 });

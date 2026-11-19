@@ -1,4 +1,3 @@
-import { relatedMethods } from "../../../../api/src/public-methods/seo";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -10,6 +9,7 @@ import {
   ChevronDown,
   Clock3,
   FileText,
+  UserRound,
 } from "lucide-react";
 import {
   PublicShell,
@@ -20,9 +20,15 @@ import {
 } from "./shared";
 import { publicRequest, formatQuestionCount, type PublicMethod } from "./types";
 import { AuthenticatedOnly } from "../PlatformLayout";
+import { MethodContents, scrollToMethodSection } from "./MethodContents";
 import "./catalog.css";
+import { publicBootstrap } from "./bootstrap";
+import { MethodStatsBadge, useMethodStats } from "./stats";
 
 const methodBackground: Record<string, string> = {
+  "fear-of-missing-out": "Шкала Przybylski и соавторов (2013) описывает страх упустить переживания и встречи. Здесь используется шестипунктовая русская адаптация В. В. Ардисламова, П. Р. Кляхиной и Э. Р. Шаиповой (2024).",
+  "nomophobia": "NMP-Q разработан Caglar Yildirim и Ana-Paula Correia (2015). Используется русская пятибалльная версия А. А. Максименко, А. А. Золотарёвой, С. В. Курапова и А. С. Кураповой (2025).",
+  "social-media-use": "Шкала C. S. Andreassen и соавторов (2016) оценивает опыт использования социальных сетей. Используется бланк из публикации Д. С. Корниенко и соавторов (2023); русская форма проверялась на подростках 13–18 лет, взрослые нормы здесь не применяются.",
   "satisfaction-with-life": "Шкала Эда Динера, Роберта Эммонса, Рэнди Ларсена и Шэрон Гриффин (1985) измеряет общую удовлетворённость жизнью по вашим собственным критериям. Используется русскоязычная версия Елшанского и соавторов (2015).",
   "subjective-happiness": "Методика Сони Любомирски и Хайди Леппер (1999) измеряет общее субъективное ощущение счастья. Здесь используется русскоязычная форма Е. Н. Осина и Д. А. Леонтьева, описанная в публикации 2020 года.",
   "brief-thriving": "Краткий опросник Жун Су, Луиса Тэя и Эда Динера (2014) оценивает психологическое благополучие в целом. Используется русскоязычная адаптация В. Ю. Костенко, У. А. Набиевой и А. А. Лебедевой (2025).",
@@ -36,11 +42,15 @@ export function PublicMethodPage() {
   const [data, setData] = useState<{
       method: PublicMethod;
       questionCount: number;
-    } | null>(null),
+    } | null>(() => publicBootstrap(`/methods/${slug}/`)),
     [error, setError] = useState("");
+  const [notFound, setNotFound] = useState(false);
   useEffect(() => {
-    setData(null);
+    const snapshot = publicBootstrap<{method: PublicMethod; questionCount: number}>(`/methods/${slug}/`);
+    setData(snapshot);
     setError("");
+    setNotFound(false);
+    if (snapshot) return;
     const controller = new AbortController();
     publicRequest<{ method: PublicMethod; questionCount: number }>(
       `methods/${slug}`,
@@ -50,21 +60,16 @@ export function PublicMethodPage() {
     )
       .then(setData)
       .catch((e) => {
-        if (e.name !== "AbortError") setError(e.message);
+        if (e.name !== "AbortError") { setError(e.message); setNotFound(e.status === 404); }
       });
     return () => controller.abort();
   }, [slug]);
-  const [related, setRelated] = useState<PublicMethod[]>([]);
-  useEffect(() => {
-    const controller = new AbortController();
-    publicRequest<PublicMethod[]>("methods", undefined, "GET", controller.signal)
-      .then(setRelated).catch(() => {});
-    return () => controller.abort();
-  }, []);
   const m = data?.method;
+  const countsFor = useMethodStats(m?.slug === slug ? m?.slug : undefined);
+  const counts = m ? countsFor(m.slug) : undefined;
   return (
     <PublicShell>
-      <Metadata method={m} privatePage={Boolean(error)} />
+      <Metadata method={m} privatePage={notFound} />
       {error ? (
         <PublicError message={error} />
       ) : !m || !data ? (
@@ -80,47 +85,41 @@ export function PublicMethodPage() {
           </nav>
           <header className="td-hero">
             <div className="td-hero-copy">
-              <h1>{m.title}</h1>
-              <p className="td-intro">{m.intro}</p>
-              <p className="td-method-background">
-                <strong>{m.name} ({m.abbreviation}).</strong>{" "}
-                {methodBackground[m.slug] ?? m.sections[0]?.text}
-              </p>
-              <a className="pm-text td-about-link" href="#about-test">
-                Подробнее о тесте <ChevronDown size={17} />
-              </a>
-            </div>
-            <aside className="td-test-passport" aria-label="Прохождение теста">
-              <BookOpen size={25} strokeWidth={1.5} />
-              <h2>Пройти тест</h2>
-              <p className="td-passport-version">{m.abbreviation} · Для взрослых, 18+</p>
-              <div className="td-meta">
-                <span><FileText size={18} />{formatQuestionCount(data.questionCount)}</span>
-                <span><Clock3 size={18} />{m.minutes}</span>
+              <h1>{m.name}</h1>
+              {counts && <MethodStatsBadge counts={counts} />}
+              <div className="td-meta" aria-label="Параметры теста">
+                <span className="td-abbreviation">{m.abbreviation}</span>
+                <span><FileText size={17} strokeWidth={1.75} aria-hidden="true" />{formatQuestionCount(data.questionCount)}</span>
+                <span><Clock3 size={17} strokeWidth={1.75} aria-hidden="true" />{m.minutes}</span>
+                <span><UserRound size={17} strokeWidth={1.75} aria-hidden="true" />Для взрослых, 18+</span>
               </div>
+              <p className="td-intro">{m.intro}</p>
+              <div className="td-actions">
               <Link className="pm-button pm-primary" to={`/methods/${m.slug}/start/`}>
-                Пройти тест <ArrowRight size={18} />
+                Пройти тест <ArrowRight size={18} aria-hidden="true" />
               </Link>
+              <a className="pm-text td-about-link" href="#about-test" onClick={scrollToMethodSection}>
+                О методике <ChevronDown size={17} aria-hidden="true" />
+              </a>
+              </div>
+            </div>
+            <aside className="td-result-overview" aria-label="После прохождения">
+              <h2>Что будет в результате</h2>
+              <ul>
+                <li><ChartNoAxesCombined size={20} strokeWidth={1.75} aria-hidden="true" /><div><strong>Баллы и пояснения</strong><p>Ваши показатели и что они означают</p></div></li>
+                <li><BookOpen size={20} strokeWidth={1.75} aria-hidden="true" /><div><strong>Понятный расчёт</strong><p>Как ответы складываются в результат</p></div></li>
+                <li><Download size={20} strokeWidth={1.75} aria-hidden="true" /><div><strong>Карточка результата</strong><p>Можно скачать и поделиться</p></div></li>
+              </ul>
+              <p className="td-result-note">Для самопознания. Результат не является диагнозом.</p>
             </aside>
           </header>
-          <div className="td-outcomes" aria-label="После прохождения">
-            <div><ChartNoAxesCombined size={21} /><p><strong>Ваш результат</strong><span>Итоговые показатели с пояснениями</span></p></div>
-            <div><BookOpen size={21} /><p><strong>Прозрачный подсчёт</strong><span>Объяснение, как складывается балл</span></p></div>
-            <div><Download size={21} /><p><strong>Карточка на память</strong><span>Можно скачать и поделиться</span></p></div>
-          </div>
           <div className="td-reading-layout">
-            <nav className="td-contents" aria-label="На этой странице">
-              <span>О тесте</span>
-              <a href="#about-test">Что он измеряет</a>
-              <a href="#before-test">Как отвечать</a>
-              <a href="#test-details">Подсчёт и объяснение</a>
-              <a href="#test-limits">Границы результата</a>
-              <a href="#sources">Источники и версия</a>
-            </nav>
+            <MethodContents slug={m.slug} />
             <div className="td-article">
               <section id="about-test">
                 <h2>Что помогает понять этот тест</h2>
                 <p>{m.sections[0]?.text}</p>
+                {(methodBackground[m.slug] || m.sections.find(s => s.title === "Авторы и используемая версия")?.text) && <p className="td-method-background">{methodBackground[m.slug] || m.sections.find(s => s.title === "Авторы и используемая версия")?.text}</p>}
               </section>
               <section id="before-test" className="td-before">
                 <h2>Как пройти тест</h2>
@@ -159,12 +158,6 @@ export function PublicMethodPage() {
               </AuthenticatedOnly>
             </div>
           </div>
-          {related.some(item => item.slug !== m.slug) && <section className="td-related">
-            <h2>Другие психологические тесты</h2>
-            <ul>{relatedMethods(related, m).map(item => (
-              <li key={item.slug}><Link to={`/methods/${item.slug}/`}>{item.name}<ArrowRight size={17} /></Link></li>
-            ))}</ul>
-          </section>}
           <section className="td-finish">
             <div>
               <h2>Начните с нескольких минут для себя</h2>

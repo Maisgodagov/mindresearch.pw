@@ -1,5 +1,7 @@
-import { publicSeo, publicStructuredData, methodPath, relatedMethods } from "./seo.js";
+import { publicSeo, publicStructuredData, methodPath } from "./seo.js";
 import type { PublicMethod } from "./model.js";
+import { definition } from "./model.js";
+import { discoverMethods } from "./discovery.js";
 export const escapeHtml = (value: string) =>
   value.replace(
     /[&<>"']/g,
@@ -9,20 +11,27 @@ export const escapeHtml = (value: string) =>
       ]!,
   );
 const e = escapeHtml;
-export function publicDocument(methods: PublicMethod[], method?: PublicMethod) {
+export function publicDocument(methods: PublicMethod[], method?: PublicMethod, catalogSnapshot?: {queryKey: string; data: ReturnType<typeof discoverMethods>}) {
   const {title, description, url, image} = publicSeo(method);
   const path = methodPath(method?.slug);
   const header =
     '<aside class="pm-ssr-sidebar"><a class="pm-ssr-brand" href="/">mindresearch</a><nav aria-label="Основное меню"><a href="/for-researchers">Для исследователей</a><a class="pm-ssr-active" href="/methods/">Методики</a></nav><a class="pm-ssr-login" href="/login">Войти</a></aside>';
   const body = method
-    ? `<a href="/methods/">Все методики</a><h1>${e(method.title)}</h1><p>${e(method.name)} · ${e(method.abbreviation)}</p><p>${e(method.intro)}</p><p>${e(method.minutes)} · Без регистрации · 18+</p><a class="pm-button" href="${path}start/">Пройти методику</a><p>${e(method.audience)}</p>${method.sections.map((s) => `<section><h2>${e(s.title)}</h2><p>${e(s.text)}</p></section>`).join("")}<section><h2>Ограничения</h2><p>${e(method.limitations)}</p></section><section><h2>Источники и версия</h2><p>${e(method.version)}</p><ol>${method.sources.map((s) => `<li><a href="${e(s.url)}" rel="noopener noreferrer">${e(s.title)}</a></li>`).join("")}</ol><p>${e(method.rights)}</p></section><a class="pm-button" href="${path}start/">Пройти методику</a><section><h2>Другие тесты</h2><ul>${relatedMethods(methods, method).map(item => `<li><a href="${methodPath(item.slug)}">${e(item.name)}</a></li>`).join("")}</ul></section>`
+    ? `<a href="/methods/">Все методики</a><h1>${e(method.name)}</h1><p>${e(method.title)} · ${e(method.abbreviation)}</p><p>${e(method.intro)}</p><p>${e(method.minutes)} · Без регистрации · 18+</p><a class="pm-button" href="${path}start/">Пройти методику</a><p>${e(method.audience)}</p>${method.sections.map((s) => `<section><h2>${e(s.title)}</h2><p>${e(s.text)}</p></section>`).join("")}<section><h2>Ограничения</h2><p>${e(method.limitations)}</p></section><section><h2>Источники и версия</h2><p>${e(method.version)}</p><ol>${method.sources.map((s) => `<li><a href="${e(s.url)}" rel="noopener noreferrer">${e(s.title)}</a></li>`).join("")}</ol><p>${e(method.rights)}</p></section><a class="pm-button" href="${path}start/">Пройти методику</a>`
     : `<h1>Психологические тесты, чтобы лучше понять себя</h1><p>${e(description)}</p><div class="pm-list">${methods.map((m) => `<article><p>${e(m.topic)} · ${e(m.minutes)}</p><h2><a href="${methodPath(m.slug)}">${e(m.name)}</a></h2><p>${e(m.intro)}</p><a href="${methodPath(m.slug)}">О методике и прохождение</a></article>`).join("")}</div>`;
   const structured = publicStructuredData(methods, method);
+  const snapshot = method
+    ? { path, queryKey: "", data: { method, questionCount: definition(method).questions.length } }
+    : { path, queryKey: catalogSnapshot?.queryKey ?? "", data: {
+        ...(catalogSnapshot?.data ?? discoverMethods(methods, {})),
+        items: (catalogSnapshot?.data ?? discoverMethods(methods, {})).items.map(m => ({ ...m, questionCount: definition(m).questions.length })),
+      } };
+  const bootstrap = `<script id="public-methods-data" type="application/json">${JSON.stringify(snapshot).replace(/</g, "\\u003c")}</script>`;
   const head = `<title>${e(title)}</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${url}"><meta property="og:site_name" content="mindresearch"><meta property="og:title" content="${e(title)}"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${url}"><meta property="og:type" content="website"><meta property="og:locale" content="ru_RU"><meta property="og:image" content="${image}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="${e(method?.name || "Психологические тесты mindresearch")}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${e(title)}"><meta name="twitter:description" content="${e(description)}"><meta name="twitter:image" content="${image}"><meta name="robots" content="index,follow,max-image-preview:large"><script id="public-methods-schema" type="application/ld+json">${JSON.stringify(structured).replace(/</g, "\\u003c")}</script>`;
   return {
     title,
     description,
-    head,
+    head: head + bootstrap,
     body: `<div class="pm-ssr">${header}<main>${body}</main></div>`,
   };
 }

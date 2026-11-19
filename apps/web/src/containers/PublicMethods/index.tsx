@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Link,
   useNavigate,
@@ -9,12 +9,18 @@ import { Modal } from "antd";
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
   Share2,
   LoaderCircle,
   RotateCcw,
   Trash2,
+  Leaf,
+  Cloud,
+  CloudOff,
 } from "lucide-react";
+import { Page, Shell, Button } from "../../ui";
+import { Top, Header, Bar, QuestionCard, Options, Choice, Nav } from "../SurveyTaking/styles";
+import { AnchoredRating, isAnchoredRating } from "../../components/AnchoredRating";
+import { formatOptionLabel } from "../../utils/formatOptionLabel";
 import { PublicShell, Metadata, PublicLoading, PublicError, Sources } from "./shared";
 import {
   publicRequest,
@@ -27,12 +33,27 @@ import {
 } from "./types";
 import { resultCard } from "./card";
 import "./public-methods.css";
+import "./respondent.css";
+
+function RespondentFrame({ children }: { children: ReactNode }) {
+  return <Page><Shell className="public-assessment-respondent">{children}</Shell></Page>;
+}
+function answerPause(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const abort = () => { window.clearTimeout(timer); reject(new DOMException("Cancelled", "AbortError")); };
+    const timer = window.setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, ms);
+    signal.addEventListener("abort", abort, { once: true });
+    if (signal.aborted) abort();
+  });
+}
 
 export { PublicMethods } from "./Catalog";
 export { PublicMethodPage } from "./MethodPage";
 export function PublicAssessment() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const operation = useRef<AbortController | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
   const [method, setMethod] = useState<PublicMethod | null>(null),
     [assessment, setAssessment] = useState<Assessment | null>(null),
     [adult, setAdult] = useState(false),
@@ -43,6 +64,9 @@ export function PublicAssessment() {
     let active = true;
     setLoading(true);
     setAssessment(null);
+    setBusy(false);
+    setTransitioning(false);
+    setAdult(false);
     setError("");
     publicRequest<{ method: PublicMethod }>(`methods/${slug}`)
       .then(async (data) => {
@@ -66,6 +90,8 @@ export function PublicAssessment() {
       });
     return () => {
       active = false;
+      operation.current?.abort();
+      operation.current = null;
     };
   }, [slug]);
   const start = async () => {
@@ -86,34 +112,33 @@ export function PublicAssessment() {
     }
   };
   const move = async (direction: number) => {
-    if (!assessment) return;
+    if (!assessment || busy || operation.current) return;
+    const controller = new AbortController();
+    operation.current = controller;
     setBusy(true);
     setError("");
-    const finishing =
-      direction === 1 &&
-      assessment.position === assessment.definition.questions.length - 1;
     try {
       const a = await publicRequest<Assessment>(
-        `assessments/${assessment.id}/${finishing ? "complete" : "save"}`,
+        `assessments/${assessment.id}/save`,
         {
           answers: assessment.answers,
-          position: finishing
-            ? assessment.position
-            : assessment.position + direction,
+          position: assessment.position + direction,
           revision: assessment.revision,
-        },
+        }, "POST", controller.signal,
       );
       setAssessment(a);
-      if (finishing) navigate(`/assessment/result/?id=${a.id}`);
-      else document.querySelector<HTMLElement>(".pm-question-title")?.focus();
     } catch (e) {
-      setError((e as Error).message);
+      if (!controller.signal.aborted) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (operation.current === controller) operation.current = null;
+      if (!controller.signal.aborted) setBusy(false);
     }
   };
   const choose = async (value: number) => {
-    if (!assessment || busy) return;
+    if (!assessment || busy || operation.current) return;
+    const controller = new AbortController();
+    operation.current = controller;
+    const finishing = assessment.position === assessment.definition.questions.length - 1;
     const answers = {
       ...assessment.answers,
       [assessment.definition.questions[assessment.position].code]: value,
@@ -123,18 +148,24 @@ export function PublicAssessment() {
     setError("");
     try {
       const a = await publicRequest<Assessment>(
-        `assessments/${assessment.id}/save`,
+        `assessments/${assessment.id}/${finishing ? "complete" : "save"}`,
         {
           answers,
-          position: assessment.position,
+          position: finishing ? assessment.position : assessment.position + 1,
           revision: assessment.revision,
-        },
+        }, "POST", controller.signal,
       );
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      await answerPause(reducedMotion ? 0 : 320, controller.signal);
+      setTransitioning(true);
+      await answerPause(reducedMotion ? 0 : 180, controller.signal);
       setAssessment(a);
+      if (finishing) navigate(`/assessment/result/?id=${a.id}`);
     } catch (e) {
-      setError((e as Error).message);
+      if (!controller.signal.aborted) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (operation.current === controller) operation.current = null;
+      if (!controller.signal.aborted) { setBusy(false); setTransitioning(false); }
     }
   };
   useEffect(() => {
@@ -142,8 +173,10 @@ export function PublicAssessment() {
       document.querySelector<HTMLElement>(".pm-question-title")?.focus();
   }, [assessment?.id, assessment?.position]);
   const q = assessment?.definition.questions[assessment.position];
+  const answering = Boolean(assessment && !assessment.result);
+  const Frame = answering ? RespondentFrame : PublicShell;
   return (
-    <PublicShell>
+    <Frame>
       <Metadata method={method ?? undefined} privatePage />
       {loading ? (
         <PublicLoading />
@@ -151,9 +184,9 @@ export function PublicAssessment() {
         <PublicError message={error || "Методика не опубликована"} />
       ) : (
         <div className="pm-taking">
-          <Link className="pm-text pm-back" to={`/methods/${method.slug}/`}>
+          {!answering && <Link className="pm-text pm-back" to={`/methods/${method.slug}/`}>
             <ArrowLeft size={16} />О методике
-          </Link>
+          </Link>}
           {assessment?.result ? (
             <section className="pm-start">
               <h1>Вы уже прошли эту методику</h1>
@@ -217,77 +250,44 @@ export function PublicAssessment() {
             </section>
           ) : (
             q && (
-              <section className="pm-question" aria-busy={busy}>
-                <div className="pm-question-meta">
-                  <span>{assessment.definition.method.abbreviation}</span>
-                  <span>
-                    Вопрос {assessment.position + 1} из{" "}
-                    {assessment.definition.questions.length}
-                  </span>
-                </div>
-                <progress
-                  aria-label="Прогресс прохождения"
-                  max={assessment.definition.questions.length}
-                  value={assessment.position + 1}
-                />
-                <h1 className="pm-question-title" tabIndex={-1}>
+              <>
+                <Top>
+                  <Header><Leaf aria-hidden="true" /><span>mindresearch</span></Header>
+                  <div className="save-line"><span className="save" role="status">{error ? <><CloudOff size={14} aria-hidden="true" />Не удалось сохранить</> : <><Cloud size={14} aria-hidden="true" />{busy ? "Сохраняем…" : "Сохранено"}</>}</span></div>
+                  <Bar role="progressbar" aria-label="Прогресс прохождения" aria-valuemin={0} aria-valuemax={assessment.definition.questions.length} aria-valuenow={assessment.position + 1}><i style={{width: `${(assessment.position + 1) / assessment.definition.questions.length * 100}%`}} /></Bar>
+                </Top>
+                <QuestionCard $leaving={transitioning} className="respondent-question" aria-busy={busy}>
+                <span className="eyebrow">Вопрос {assessment.position + 1} из {assessment.definition.questions.length}</span>
+                <h1 id="public-question" className="question pm-question-title" tabIndex={-1}>
                   {q.text}
                 </h1>
-                <fieldset disabled={busy}>
-                  <legend className="pm-sr-only">Выберите один ответ</legend>
+                {isAnchoredRating("single", q.options) ? <AnchoredRating key={q.code} options={q.options!} value={assessment.answers[q.code] === undefined ? undefined : String(assessment.answers[q.code])} disabled={transitioning} onChange={value => void choose(Number(value))} /> : <Options role="group" aria-labelledby="public-question">
                   {q.options?.map((option) => (
-                    <label
-                      className={`pm-option ${assessment.answers[q.code] === Number(option.value) ? "is-selected" : ""}`}
-                      key={option.value}
+                    <Choice
+                      className="respondent-option"
+                      key={`${q.code}:${option.value}`}
+                      $active={assessment.answers[q.code] === Number(option.value)}
+                      aria-pressed={assessment.answers[q.code] === Number(option.value)}
+                      disabled={transitioning}
+                      onClick={() => void choose(Number(option.value))}
                     >
-                      <input
-                        type="radio"
-                        name={q.code}
-                        value={option.value}
-                        checked={
-                          assessment.answers[q.code] === Number(option.value)
-                        }
-                        onChange={() => void choose(Number(option.value))}
-                      />
-                      <span>{option.label}</span>
-                      {assessment.answers[q.code] === Number(option.value) && (
-                        <Check size={19} />
-                      )}
-                    </label>
+                      <span className="option-label">{formatOptionLabel(option.label, option.value)}</span>
+                    </Choice>
                   ))}
-                </fieldset>
-                <div className="pm-question-controls">
-                  <button
-                    className="pm-button pm-soft"
-                    disabled={busy || assessment.position === 0}
+                </Options>}
+                <Nav>
+                  <Button
+                    aria-label="Назад"
+                    disabled={busy || transitioning || assessment.position === 0}
                     onClick={() => void move(-1)}
+                    style={{background: "transparent", color: "var(--color-text-526f5b)", padding: "12px"}}
                   >
                     <ArrowLeft size={17} />
-                    Назад
-                  </button>
-                  <span className="pm-save-state" role="status">
-                    {busy
-                      ? "Сохраняем…"
-                      : error
-                        ? "Не удалось сохранить"
-                        : "Ответы сохраняются автоматически"}
-                  </span>
-                  <button
-                    className="pm-button pm-primary"
-                    disabled={
-                      busy || !Object.hasOwn(assessment.answers, q.code)
-                    }
-                    onClick={() => void move(1)}
-                  >
-                    {busy && <LoaderCircle size={17} className="pm-spin" />}
-                    {assessment.position ===
-                    assessment.definition.questions.length - 1
-                      ? "Посмотреть результат"
-                      : "Далее"}
-                    <ArrowRight size={17} />
-                  </button>
-                </div>
-              </section>
+                  </Button>
+                </Nav>
+                </QuestionCard>
+                <Link className="respondent-about" to={`/methods/${method.slug}/`}><ArrowLeft size={16} aria-hidden="true" />О методике</Link>
+              </>
             )
           )}
           {error && (
@@ -305,7 +305,7 @@ export function PublicAssessment() {
           )}
         </div>
       )}
-    </PublicShell>
+    </Frame>
   );
 }
 export function PublicAssessmentResult() {

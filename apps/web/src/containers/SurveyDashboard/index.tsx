@@ -187,6 +187,37 @@ export function Dashboard({ embedded = false, inspectionOwnerId }: { embedded?: 
     return () => controller.abort();
   }, [result.sections]);
   const survey = surveys.find((s) => s.id === surveyId) ?? surveys[0];
+  const qualitySurveyId = survey?.id;
+  useEffect(() => {
+    if (!qualitySurveyId || loading) return;
+    let pending: AbortController | undefined;
+    const timer = window.setInterval(async () => {
+      if (pending || document.visibilityState !== "visible") return;
+      pending = new AbortController();
+      const generation = resultGeneration.current;
+      try {
+        const { data } = await api.get<Record<string, NonNullable<Result["respondents"][number]["qualityV2"]>>>(
+          `/admin/surveys/${qualitySurveyId}/quality-v2/results`,
+          { params: { summary: 1 }, signal: pending.signal },
+        );
+        if (generation !== resultGeneration.current) return;
+        setResult(current => ({
+          ...current,
+          respondents: current.respondents.map(person => ({
+            ...person, qualityV2: data[person.id] ?? null,
+          })),
+        }));
+      } catch {
+        // Keep the last successful snapshot until the next poll.
+      } finally {
+        pending = undefined;
+      }
+    }, 60_000);
+    return () => {
+      window.clearInterval(timer);
+      pending?.abort();
+    };
+  }, [qualitySurveyId, loading]);
   usePageTitle(survey?.title?`${survey.title} — статистика`:undefined);
   const [questionChoices,setQuestionChoices]=useState<Record<string,{value:string|number;label:string}[]>>({});
   useEffect(()=>{

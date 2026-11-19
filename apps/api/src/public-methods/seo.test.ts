@@ -23,7 +23,9 @@ describe("public test SEO", () => {
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain('content="1200"');
     expect(html).toContain(method.sources[0].url);
-    expect(html).toContain('/methods/general-self-efficacy/');
+    expect(html).toContain('href="/methods/"');
+    expect(html).toContain(`<h1>${method.name}</h1>`);
+    expect(html).not.toContain('<h2>Другие тесты</h2>');
     const graph = publicStructuredData(initialCatalog, method)["@graph"];
     expect(graph.some(item => item["@type"] === "BreadcrumbList")).toBe(true);
     const list = publicStructuredData(initialCatalog)["@graph"].find(item => item["@type"] === "CollectionPage") as any;

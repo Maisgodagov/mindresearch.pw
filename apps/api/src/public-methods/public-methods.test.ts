@@ -72,6 +72,35 @@ describe("public assessments isolated from research", () => {
     const a = (await response.json()) as Assessment;
     return { a, cookie };
   }
+  it("counts one view per tab session and completion once, with private stats", async () => {
+    const slug = "rosenberg-self-esteem";
+    const view = `/api/public/methods/${slug}/view`;
+    const stats = "/api/admin/public-methods/stats";
+    const session = "4a36fec8-ffd1-4b70-8903-973e4f3a6510";
+    const repeated = await Promise.all([request(view, { session }), request(view, { session })]);
+    expect(repeated.map(response => response.status)).toEqual([204, 204]);
+    await request(view, { session: "4a36fec8-ffd1-4b70-8903-973e4f3a6511" });
+    expect((await request(stats)).status).toBe(403);
+    const { a, cookie } = await start(slug);
+    const path = `/api/public/assessments/${a.id}`;
+    const answers = Object.fromEntries(a.definition.questions.map(q => [q.code, 1]));
+    const payload = { answers, position: 0, revision: 0 };
+    await request(path + "/save", payload, cookie);
+    const readStats = async () => {
+      const response = await request(stats, undefined, "", "GET", true);
+      expect(response.headers.get("cache-control")).toContain("no-store");
+      return (await response.json()).find((row: { slug: string }) => row.slug === slug);
+    };
+    expect(await readStats()).toEqual({ slug, views: 2, completions: 0 });
+    const complete = { ...payload, revision: 1 };
+    const retries = await Promise.all([
+      request(path + "/complete", complete, cookie),
+      request(path + "/complete", complete, cookie),
+    ]);
+    expect(retries.map(response => response.status)).toEqual([200, 200]);
+    await request(path, undefined, cookie, "DELETE");
+    expect(await readStats()).toEqual({ slug, views: 2, completions: 1 });
+  });
   it("serves only curated methods with source pages and crawlable text", async () => {
     const list = await (await request("/api/public/methods")).json();
     expect(list).toHaveLength(initialCatalog.length);
@@ -92,6 +121,9 @@ describe("public assessments isolated from research", () => {
     ["satisfaction-with-life", 4, 20, 5],
     ["subjective-happiness", 1, 2.5, 4],
     ["brief-thriving", 3, 30, 10],
+    ["fear-of-missing-out", 3, 18, 6],
+    ["nomophobia", 3, 60, 20],
+    ["social-media-use", 3, 18, 6],
   ])("completes and restores %s anonymously with the exact instrument", async (slug, answer, expected, count) => {
     const { a, cookie } = await start(String(slug));
     expect(a.definition.questions).toHaveLength(Number(count));
@@ -384,7 +416,9 @@ describe("shared scoring and safe document rendering", () => {
         );
       const r = calculate(d, answers);
       expect(r.scales[0].value).toBe(
-        ({ test_17: 15, test_19: 10, test_1: 1, test_2480: 5, test_2451: 2.5, test_59: 10 })[m.code],
+        ({ test_17: 15, test_19: 10, test_1: 1, test_2480: 5, test_2451: 2.5, test_59: 10, test_25: 6, test_27: 6, test_28: 20,
+          test_14: 4, test_24: 1, test_829: 4, test_44: 36, test_29: 12, test_23: 24, test_2434: 3, test_1168: 7, test_918: 7, test_1616: 2,
+          test_21: 13, test_22: 6, test_265: 14, test_2205: 1, test_39: 1, test_40: 6, test_576: 11 })[m.code],
       );
     }
     const d = definition(initialCatalog[0]),
@@ -448,5 +482,37 @@ describe("well-being score boundaries", () => {
     expect(calculate(def, answers).scales[0]).toMatchObject({value: expected, min, max});
     expect(() => calculate(def, {})).toThrow();
     expect(() => calculate(def, {...answers, [def.questions[0].code]: 0})).toThrow();
+  });
+});
+
+describe("digital habit methods: published forms and score profiles", () => {
+  it.each([
+    ["social-media-use", [1,1,1,1,1,1], [6]],
+    ["social-media-use", [5,5,5,5,5,5], [30]],
+    ["social-media-use", [1,2,3,4,5,1], [16]],
+    ["fear-of-missing-out", [1,1,1,1,1,1], [6,3,3]],
+    ["fear-of-missing-out", [5,5,5,5,5,5], [30,15,15]],
+    ["fear-of-missing-out", [1,2,3,4,5,1], [16,6,10]],
+    ["nomophobia", Array(20).fill(1), [20,4,5,6,5]],
+    ["nomophobia", Array(20).fill(5), [100,20,25,30,25]],
+    ["nomophobia", Array.from({length:20}, (_,i)=>i%5+1), [60,10,15,20,15]],
+  ])("scores %s without invented cutoffs", (slug, values, expected) => {
+    const def = definition(initialCatalog.find(m=>m.slug===slug)!);
+    const answers = Object.fromEntries(def.questions.map((q,i)=>[q.code, values[i]]));
+    expect(calculate(def,answers).scales.map(s=>s.value)).toEqual(expected);
+    for (const invalid of [0,6,7,1.5]) {
+      expect(()=>calculate(def,{...answers,[def.questions[0].code]:invalid})).toThrow();
+    }
+    const missing={...answers}; delete missing[def.questions[0].code];
+    expect(()=>calculate(def,missing)).toThrow();
+  });
+  it("keeps the source BSMAS appendix wording and distinct public snapshot version", () => {
+    const method=initialCatalog.find(m=>m.code==='test_25')!;
+    const def=definition(method);
+    expect(def.questions[4].text).toContain('если тебе запретили');
+    expect(method.version).toBe('bsmas-ru-kornienko-2023-public-source-v1');
+    expect(method.audience).toContain('13–18');
+    expect(method.rights).toContain('CC BY-NC');
+    expect(()=>definition({...method,code:'test_28'})).toThrow();
   });
 });

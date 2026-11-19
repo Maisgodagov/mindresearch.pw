@@ -1,6 +1,7 @@
 import { methodPath } from "./seo.js";
 import { methodsSitemap } from "./static-pages.js";
 import { researcherDocument } from "./landing.js";
+import { discoverMethods, discoveryQuery, catalogQueryKey } from "./discovery.js";
 import { Router, type RequestHandler } from "express";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -17,6 +18,30 @@ import {
 import type { Repository } from "./repository.js";
 import { injectDocument, publicDocument } from "./render.js";
 const DAY = 86400000;
+function catalogueDocument(methods: Parameters<typeof discoverMethods>[0], query: Parameters<typeof discoveryQuery.parse>[0]) {
+  const input = discoveryQuery.parse(query);
+  const result = discoverMethods(methods, input);
+  const params = new URLSearchParams({q: input.q, section: input.section, page: String(input.page)});
+  (typeof input.topic === "string" ? [input.topic] : input.topic ?? []).forEach(topic => params.append("topic", topic));
+  const document = publicDocument(result.items, undefined, {queryKey: catalogQueryKey(params), data: result});
+  if (result.pageCount > 1) {
+    const input = discoveryQuery.parse(query);
+    const href = (page: number) => {
+      const params = new URLSearchParams();
+      if (input.q) params.set("q", input.q);
+      if (input.section) params.set("section", input.section);
+      const topics = typeof input.topic === "string" ? [input.topic] : input.topic ?? [];
+      topics.forEach(topic => params.append("topic", topic));
+      if (page > 1) params.set("page", String(page));
+      return `/methods/?${params}`.replaceAll("&", "&amp;");
+    };
+    const links = `${result.page > 1 ? `<a href="${href(result.page - 1)}">Назад</a>` : ""} <span>Страница ${result.page} из ${result.pageCount}</span> ${result.page < result.pageCount ? `<a href="${href(result.page + 1)}">Далее</a>` : ""}`;
+    document.body = document.body.replace("</main>", `<nav aria-label="Страницы тестов">${links}</nav></main>`);
+  }
+  if (Object.keys(query as object).some(key => ["q", "topic", "section", "page"].includes(key)))
+    document.head = document.head.replace(/index,follow,max-image-preview:large/g, "noindex,follow");
+  return document;
+}
 const hash = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 const identifier = z.string().uuid();
@@ -82,13 +107,25 @@ export function createPublicMethodsRouter(
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
     next();
   });
-  const published = async () =>
-    (await repository.publications()).flatMap((p) =>
-      p.published ? [p.published] : [],
-    );
+  const published = () => repository.publishedMethods();
+  router.post("/api/public/methods/:slug/view", sameOrigin, async (req, res) => {
+    const slug = z.string().max(100).regex(/^[a-z0-9-]+$/).parse(req.params.slug);
+    const { session } = z.object({ session: identifier }).strict().parse(req.body);
+    await repository.recordView(slug, hash(session));
+    res.setHeader("Cache-Control", "no-store");
+    res.status(204).end();
+  });
+  router.get("/api/admin/public-methods/stats", ...admin, async (_req, res) => {
+    res.setHeader("Cache-Control", "private, no-store");
+    res.json(await repository.stats());
+  });
   router.get("/api/public/methods", async (_req, res) =>
     res.json((await published()).map(method => ({...method, questionCount: definition(method).questions.length}))),
   );
+  router.get("/api/public/catalog", async (req, res) => {
+    const result = discoverMethods(await published(), discoveryQuery.parse(req.query));
+    res.json({ ...result, items: result.items.map(method => ({ ...method, questionCount: definition(method).questions.length })) });
+  });
   router.get("/api/public/methods/document", async (req, res) => {
     const methods = await published();
     const method = req.query.slug
@@ -96,7 +133,7 @@ export function createPublicMethodsRouter(
       : undefined;
     if (req.query.slug && !method)
       throw failure(404, "Методика не опубликована");
-    res.json(publicDocument(methods, method));
+    res.json(method ? publicDocument(methods, method) : catalogueDocument(methods, req.query));
   });
   router.get("/api/public/methods/:slug", async (req, res) => {
     const method = (await published()).find((m) => m.slug === req.params.slug);
@@ -239,8 +276,8 @@ export function createPublicMethodsRouter(
       "utf8",
     );
     res.setHeader("Cache-Control", "no-cache");
-    const document = publicDocument(methods, method);
-    if ("q" in req.query || "topic" in req.query) {
+    const document = method ? publicDocument(methods, method) : catalogueDocument(methods, req.query);
+    if (["q", "topic", "section", "page"].some(key => key in req.query)) {
       res.setHeader("X-Robots-Tag", "noindex, follow");
       document.head = document.head.replace(/index,follow,max-image-preview:large/g, "noindex,follow");
     }

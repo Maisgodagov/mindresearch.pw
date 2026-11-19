@@ -6,6 +6,8 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
+  const apiTarget = env.VITE_API_PROXY_TARGET || "https://mindresearch.pro";
+  const publicMethodsTarget = env.VITE_PUBLIC_METHODS_TARGET || "http://127.0.0.1:4011";
   return {
     plugins: [
       react(),
@@ -25,27 +27,19 @@ export default defineConfig(({ mode }) => {
             if (!ctx.server || (!/^\/for-researchers\/?$/.test(path) && !/^\/methods(?:\/[^/]+)?\/?$/.test(path)))
               return html;
             const slug = path.split("/").filter(Boolean)[1];
-            const target =
-              env.VITE_PUBLIC_METHODS_TARGET ||
-              env.VITE_API_PROXY_TARGET ||
-              "http://127.0.0.1:4011";
+            const documentParams = new URLSearchParams(new URL(ctx.originalUrl || ctx.path, "http://localhost").search);
+            if (slug) documentParams.set("slug", slug);
+            const target = publicMethodsTarget;
             try {
               const response = await fetch(
-                /^\/for-researchers\/?$/.test(path) ? `${target}/api/public/researcher-document` : `${target}/api/public/methods/document${slug ? `?slug=${encodeURIComponent(slug)}` : ""}`,
+                /^\/for-researchers\/?$/.test(path) ? `${target}/api/public/researcher-document` : `${target}/api/public/methods/document?${documentParams}`,
               );
               if (!response.ok) return html;
               const doc = (await response.json()) as {
                 head: string;
                 body: string;
               };
-              return html
-                .replace(/<title>[\s\S]*?<\/title>/i, "")
-                .replace(/<meta[^>]+name=["']description["'][^>]*>/gi, "")
-                .replace("</head>", `${doc.head}</head>`)
-                .replace(
-                  '<div id="root"></div>',
-                  `<div id="root">${doc.body}</div>`,
-                );
+              return injectDocument(html, doc);
             } catch {
               return html;
             }
@@ -59,8 +53,16 @@ export default defineConfig(({ mode }) => {
         allow: [resolve("../.."), realpathSync(resolve("../../node_modules"))],
       },
       proxy: {
+        "^/api/admin/public-methods/stats(?:[?]|$)": {
+          target: publicMethodsTarget,
+          changeOrigin: true,
+        },
+        "^/api/public/(?:methods|catalog|assessments|catalogue-summary|researcher-document)(?:/|[?]|$)": {
+          target: publicMethodsTarget,
+          changeOrigin: true,
+        },
         "/api": {
-          target: env.VITE_API_PROXY_TARGET || "https://mindresearch.pro",
+          target: apiTarget,
           changeOrigin: true,
           secure: true,
           configure(proxy) {
@@ -73,7 +75,7 @@ export default defineConfig(({ mode }) => {
                 if (new URL(origin).host === req.headers.host) {
                   proxyReq.setHeader(
                     "origin",
-                    new URL(env.VITE_API_PROXY_TARGET || "https://mindresearch.pro").origin,
+                    new URL(apiTarget).origin,
                   );
                 }
               } catch {

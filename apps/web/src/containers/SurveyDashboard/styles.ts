@@ -1,16 +1,14 @@
 import styled from "styled-components";
 import { Button, Card } from "../../ui";
+import { PageContainer } from "../../components/PageContainer";
 
-export const Wrap = styled.div<{ $embedded: boolean }>`
+export const Wrap = styled(PageContainer)<{ $embedded: boolean }>`
   display: grid;
   align-content: start;
   gap: 14px;
-  width: ${(p) => (p.$embedded ? "100%" : "min(100% - 32px, 1440px)")};
   min-width: 0;
-  margin: auto;
   padding-bottom: 60px;
 @media (max-width: 560px) {
-    width: ${(p) => (p.$embedded ? "100%" : "calc(100% - 24px)")};
     gap: 10px;
     padding-bottom: 76px;
   }

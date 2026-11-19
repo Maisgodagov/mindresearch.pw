@@ -1,11 +1,8 @@
 import styled from "styled-components";
+import { PageContainer } from "../../components/PageContainer";
 
-export const ProfileShell = styled.div<{ $embedded?: boolean }>`
-  width: ${({ $embedded }) =>
-    $embedded ? "100%" : "min(calc(100% - 64px), 1060px)"};
-  max-width: 1060px;
-  margin: ${({ $embedded }) => ($embedded ? "0" : "0 auto")};
-  padding: ${({ $embedded }) => ($embedded ? "0 0 32px" : "28px 0 64px")};
+export const ProfileShell = styled(PageContainer)`
+  padding-block: ${({ $embedded }) => ($embedded ? "0 32px" : "28px 64px")};
   color: var(--color-text-304d3a);
   .public-brand {
     display: inline-flex;
@@ -80,7 +77,6 @@ export const ProfileShell = styled.div<{ $embedded?: boolean }>`
     text-underline-offset: 4px;
   }
   @media (max-width: 600px) {
-    width: ${({ $embedded }) => ($embedded ? "100%" : "calc(100% - 32px)")};
     padding-top: ${({ $embedded }) => ($embedded ? "0" : "20px")};
     .public-brand {
       font-size: 16px;

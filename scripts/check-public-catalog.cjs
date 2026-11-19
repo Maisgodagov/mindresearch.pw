@@ -1,0 +1,45 @@
+// Local synthetic API only; exercises the catalogue without touching research data.
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict');const {mkdirSync}=require('node:fs');
+const base=process.env.PUBLIC_METHODS_PREVIEW||'http://127.0.0.1:5181';
+if(!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base))throw Error('Local preview only');
+mkdirSync('.work/public-methods/catalog-approved',{recursive:true});
+(async()=>{const browser=await chromium.launch({channel:'msedge'});const errors=[];
+try{for(const width of [1440,390]){
+ const page=await browser.newPage({viewport:{width,height:1000}});page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(base+'/methods/');await page.getByRole('button',{name:'Отказаться',exact:true}).click();
+ await page.locator('.tc-test').first().waitFor();const total=(await(await page.request.get(base+'/api/public/methods')).json()).length;
+ await page.waitForFunction(total=>document.querySelectorAll('.tc-test').length===total,total);assert.equal(await page.locator('.tc-test').count(),total);assert.equal(await page.locator('.tc-guide').count(),0);
+ assert.equal(await page.locator('h1').innerText(),'Психологические тесты онлайн');
+ await page.evaluate(()=>document.fonts.ready);
+ await page.screenshot({path:`.work/public-methods/catalog-approved/${width}.png`,fullPage:false});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ const group=page.getByRole('group',{name:'Разделы тестов'});
+ await group.getByRole('button',{name:'Цифровая жизнь',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('.tc-test').length===3);
+ await page.locator('.tc-topic-picker summary').click();
+ await page.getByRole('checkbox',{name:/Цифровые привычки/}).click();
+ await page.waitForFunction(()=>document.querySelectorAll('.tc-selected-topics button').length===2);
+ await page.getByRole('checkbox',{name:/Самооценка/}).click();
+ await page.waitForFunction(()=>document.querySelectorAll('.tc-test').length===4);
+ assert.equal(new URL(page.url()).searchParams.getAll('topic').length,2);
+ const topicSearch=page.getByRole('textbox',{name:'Найти тему',exact:true});await topicSearch.fill('нет-такой-темы');
+ await page.getByText('Такой темы пока нет. Попробуйте другое название.',{exact:true}).waitFor();await topicSearch.fill('');
+ await page.screenshot({path:`.work/public-methods/catalog-approved/topics-${width}.png`,fullPage:false});
+ await page.getByRole('button',{name:/Показать результаты/}).click();
+ await page.getByRole('button',{name:'Убрать тему: Самооценка',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelectorAll('.tc-test').length===3);
+ const search=page.getByRole('textbox',{name:'Найти психологический тест'});const searchHeight=await page.locator('.tc-search').evaluate(e=>e.offsetHeight);await search.fill('FoMO');
+ await page.waitForFunction(()=>document.querySelectorAll('.tc-test').length===1);assert.equal(await page.locator('.tc-test').count(),1);assert.equal(new URL(page.url()).searchParams.get('q'),'FoMO');assert.equal(await page.locator('.tc-search').evaluate(e=>e.offsetHeight),searchHeight,'Clear button must not change search height');
+ await page.reload();await page.locator('.tc-test').first().waitFor();assert.equal(await search.inputValue(),'FoMO');
+ assert.equal(await page.getByRole('button',{name:'Убрать тему: Цифровые привычки',exact:true}).count(),1);
+ await page.getByRole('button',{name:'Очистить поиск',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('.tc-test').length===3);assert.equal(await page.locator('.tc-test').count(),3);
+ await group.getByRole('button',{name:'Все тесты',exact:true}).click();await page.waitForFunction(total=>document.querySelectorAll('.tc-test').length===total,total);assert.equal(await page.locator('.tc-test').count(),total);
+ await search.fill('no-such-test');await page.getByRole('heading',{name:'Пока ничего не нашлось'}).waitFor();
+ await page.getByRole('button',{name:'Сбросить фильтры'}).click();await page.waitForFunction(total=>document.querySelectorAll('.tc-test').length===total,total);assert.equal(await page.locator('.tc-test').count(),total);
+ assert.equal(await search.inputValue(),'');assert.equal(await page.locator('link[rel=canonical]').count(),1);
+ await page.getByRole('link',{name:'Шкала самооценки Розенберга',exact:true}).click();
+ await page.getByRole('heading',{name:'Шкала самооценки Розенберга',exact:true,level:1}).waitFor();
+ await page.getByRole('heading',{name:'Источники и версия',exact:true}).waitFor();
+ await page.close();console.log(`PASS ${width}px: approved catalogue, filters, query, reload, empty state, method link`);
+}assert.deepEqual(errors,[]);}finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -18,8 +18,24 @@ export function memoryRepository(): Repository {
     string,
     { assessment: Assessment; tokenHash: string }
   >();
+  const views = new Map<string, Set<string>>();
+  const completions = new Map<string, number>();
   let tail = Promise.resolve();
   return {
+    async recordView(slug, sessionHash) {
+      if (!publications.get(slug)?.published) return;
+      const sessionsForMethod = views.get(slug) ?? new Set<string>();
+      sessionsForMethod.add(sessionHash);
+      views.set(slug, sessionsForMethod);
+    },
+    async stats() {
+      return [...publications.keys()].map(slug => ({
+        slug, views: views.get(slug)?.size ?? 0, completions: completions.get(slug) ?? 0,
+      }));
+    },
+    async publishedMethods() {
+      return structuredClone([...publications.values()].flatMap(publication => publication.published ? [publication.published] : []));
+    },
     async publications() {
       return structuredClone([...publications.values()]);
     },
@@ -58,6 +74,10 @@ export function memoryRepository(): Repository {
           throw failure(404, "Прохождение недоступно или срок хранения истёк");
         const copy = structuredClone(row.assessment);
         const result = await operation(copy);
+        if (!row.assessment.result && copy.result) {
+          const slug = copy.definition.method.slug;
+          completions.set(slug, (completions.get(slug) ?? 0) + 1);
+        }
         row.assessment = copy;
         return result;
       } finally {

@@ -13,6 +13,12 @@ export async function migratePublicMethods() {
     expires_at DATETIME NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_public_assessment_expiry (expires_at)
   )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS public_method_events (
+    slug VARCHAR(100) NOT NULL,
+    kind ENUM('view', 'completion') NOT NULL,
+    event_key CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    PRIMARY KEY (slug, kind, event_key)
+  )`);
   for (const method of initialCatalog) {
     await db.execute(
       "INSERT IGNORE INTO public_method_publications (slug,draft,published,published_at) VALUES (?,?,?,CURRENT_TIMESTAMP)",

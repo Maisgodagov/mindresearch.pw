@@ -4,6 +4,52 @@ import "@fontsource/prata";
 import type { PublicResult } from "./types";
 import { formatScore } from "./types";
 
+// Independent scales have equal visual weight. No first-scale-as-total shortcut.
+async function profileCard(canvas: HTMLCanvasElement, c: CanvasRenderingContext2D, result: PublicResult, ink: string, paper: string): Promise<Blob> {
+  c.fillStyle = paper;
+  c.fillRect(0, 0, canvas.width, canvas.height);
+  c.fillStyle = ink;
+  c.font = '750 42px "Manrope Variable", sans-serif';
+  c.fillText("mindresearch.pro", 70, 110);
+  const wrap = (value: string, y: number, size: number, maxWidth = 940) => {
+    c.font = `500 ${size}px "Onest Variable", sans-serif`;
+    let row = "";
+    for (const word of value.split(/\s+/)) {
+      if (row && c.measureText(`${row} ${word}`).width > maxWidth) {
+        c.fillText(row, 70, y); y += size * 1.3; row = word;
+      } else row = `${row} ${word}`.trim();
+    }
+    if (row) { c.fillText(row, 70, y); y += size * 1.3; }
+    return y;
+  };
+  let y = wrap(result.method.name, 230, 48);
+  y = wrap(`${result.method.abbreviation} · ${result.presentation === "profile" ? "Профиль отдельных шкал" : "Результаты методики"}`, y + 20, 29);
+  const rowHeight = Math.min(190, (1420 - y) / result.scales.length);
+  for (const s of result.scales) {
+    y += 38;
+    // Reserve a second line for long labels; keep the numerical result separate.
+    wrap(s.label, y, 30, 900);
+    c.font = '650 40px "Onest Variable", sans-serif';
+    c.fillText(formatScore(s.value), 70, y + 88);
+    c.font = '500 25px "Onest Variable", sans-serif';
+    c.fillText(`Диапазон ${formatScore(s.min)}–${formatScore(s.max)}`, 310, y + 87);
+    const width = 940;
+    c.globalAlpha = 0.12; c.fillRect(70, y + 108, width, 5); c.globalAlpha = 1;
+    c.fillRect(70, y + 108, width * Math.max(0, Math.min(1, (s.value - s.min) / (s.max - s.min))), 5);
+    y += rowHeight - 38;
+  }
+  const notes: Record<string, string> = {
+    "self-compassion": "Выше общий балл — больше сочувствия к себе. Выше самокритика, самоизоляция и чрезмерная идентификация — больше трудностей.",
+    "stress-mindset": "Вторая шкала обратная: выше балл — меньше согласие с дезорганизующим влиянием стресса.",
+    "autonomous-functioning": "Шкалы независимы. Выше восприимчивость к контролю — больше давления, а не автономности.",
+    "career-adaptability": "Русская проверка: 15–19 лет. Для старших возрастов — ознакомительно, без подтверждённых взрослых норм.",
+  };
+  wrap(result.cardNote || notes[result.method.slug] || (result.presentation === "profile" ? "Шкалы независимы. Общий балл не рассчитывается." : "Показаны общий показатель и отдельные шкалы."), 1535, 29);
+  wrap("Полные пояснения и ограничения — на странице результата. Полосы показывают положение в диапазоне шкалы, не процент населения.", 1670, 27);
+  wrap("Результат описывает ваши ответы и не является диагнозом.", 1830, 27);
+  return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Не удалось создать карточку")), "image/png"));
+}
+
 // One drawing supplies both the on-page preview and the shared story image.
 export async function resultCard(result: PublicResult): Promise<Blob> {
   await Promise.all([
@@ -17,6 +63,7 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   const c = canvas.getContext("2d");
   if (!c) throw new Error("Браузер не поддерживает создание изображения");
   const ink = resolveThemeValue("var(--color-story-203e32)"), paper = resolveThemeValue("var(--color-story-fff5da)");
+  if (result.presentation && result.scales.length > 1) return profileCard(canvas, c, result, ink, paper);
   const main = result.scales[0];
   const additional = result.scales.slice(1);
   const multiple = additional.length > 0;
@@ -35,6 +82,13 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
     : mix(mid, high, (position - 0.5) * 2);
   const highlight = position < 0.5 ? resolveThemeValue("var(--color-story-e67f55)") : resolveThemeValue("var(--color-story-c8e878)");
   const titles: Record<string, string[]> = {
+    "achievement-motivation": ["Мотивация", "успеха"],
+    "alexithymia-paq-short": ["Понимание", "своих эмоций"],
+    "anxiety-gad7": ["Тревожные", "переживания"],
+    "acceptance-action": ["Переживания", "и действия"],
+    "fear-of-missing-out": ["Страх упустить", "важное"],
+    "nomophobia": ["Мои ощущения", "без смартфона"],
+    "social-media-use": ["Я и", "социальные сети"],
     "satisfaction-with-life": ["Моя жизнь.", "Мои ощущения."],
     "subjective-happiness": ["Моё ощущение", "счастья"],
     "brief-thriving": ["Моё", "благополучие"],
@@ -140,8 +194,8 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   if (multiple) {
     c.fillStyle = ink;
     text(main.label, 540, 1335, 920, 36, 1.3, 650);
-    text(main.explanation, 540, 1390, 920, 28, 1.3, 500);
-    const columns = Math.min(3, additional.length);
+    text(main.cardExplanation ?? main.explanation, 540, 1390, 920, 28, 1.3, 500);
+    const columns = additional.length === 4 ? 2 : Math.min(3, additional.length);
     const rows = Math.ceil(additional.length / columns);
     const rowHeight = 430 / rows;
     const miniRadius = Math.min(108, (rowHeight - 130) / 2);
@@ -178,13 +232,13 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
       c.fillText(value, x, y + 10);
       font(26, 600);
       c.fillText(`из ${formatScore(scale.max)}`, x, y + 48);
-      text(scale.label, x, y + miniRadius + 60, columnWidth - 38, 32, 1.3, 650);
+      text(scale.label, x, y + miniRadius + 60, columnWidth - 38, additional.length > 3 ? 28 : 32, 1.3, 650);
     }
   } else {
     font(28, 600);
     c.fillText(`Диапазон шкалы ${formatScore(main.min)}–${formatScore(main.max)}`, 540, 1635);
     text(main.label, 540, 1710, 900, 44, 1.3, 650);
-    text(main.explanation, 540, 1790, 900, 32, 1.4, 500);
+    text(main.cardExplanation ?? main.explanation, 540, 1790, 900, 32, 1.4, 500);
   }
   c.textAlign = "left";
   return new Promise((resolve, reject) => canvas.toBlob(
