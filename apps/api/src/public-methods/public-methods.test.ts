@@ -418,7 +418,7 @@ describe("shared scoring and safe document rendering", () => {
       expect(r.scales[0].value).toBe(
         ({ test_17: 15, test_19: 10, test_1: 1, test_2480: 5, test_2451: 2.5, test_59: 10, test_25: 6, test_27: 6, test_28: 20,
           test_14: 4, test_24: 1, test_829: 4, test_44: 36, test_29: 12, test_23: 24, test_2434: 3, test_1168: 7, test_918: 7, test_1616: 2,
-          test_21: 13, test_22: 6, test_265: 14, test_2205: 1, test_39: 1, test_40: 6, test_576: 11 })[m.code],
+          test_21: 13, test_22: 6, test_265: 14, test_2205: 1, test_39: 1, test_40: 6, test_576: 11, test_16: 3, test_11: 1, test_56: 3 })[m.code],
       );
     }
     const d = definition(initialCatalog[0]),

@@ -1,3 +1,8 @@
+import { miniIpipInstrument } from "../data/miniIpip.js";
+import { ppsInstrument } from "../data/pps.js";
+import { genderPersonalityTypeTitovaRuInstrument, genderPersonalityTypeTitovaRuScoring } from "../data/genderPersonalityTypeTitovaRu.js";
+import { scoreMiniIpip } from "../scoring/miniIpip.js";
+import { scorePps } from "../scoring/pps.js";
 // Public versions are isolated from research instruments and stored in assessment snapshots.
 import { tipiRuInstrument } from "../data/tipiRu.js";
 import { iafRuInstrument } from "../data/iafRu.js";
@@ -17,7 +22,7 @@ import { methodology as metacognition } from "../data/methodologies/method-2191.
 import { scoreTipiRu } from "../scoring/tipiRu.js";
 import { scoreIafRu } from "../scoring/iafRu.js";
 import { scoreCavRu } from "../scoring/cavRu.js";
-import { calculateConfigurableScores, type ConfigurableScoring } from "../scoring/configurable.js";
+import { calculateConfigurableScores, configurableScaleBounds, type ConfigurableScoring } from "../scoring/configurable.js";
 import type { SeedSection } from "../types.js";
 import type { Scale } from "./model.js";
 
@@ -26,6 +31,7 @@ import { isriRuInstrument, isriRuScoring } from "../data/isriRu.js";
 import { methodology as careerMotivation } from "../data/methodologies/method-0543.js";
 
 export const additionalInstruments: Record<string, SeedSection> = Object.fromEntries([
+  miniIpipInstrument, ppsInstrument, genderPersonalityTypeTitovaRuInstrument,
   tipiRuInstrument, iafRuInstrument, cavRuInstrument, caasRuInstrument,
   belongingExclusionRuInstrument, smmg.instrument, scs.instrument, aaq.instrument, gad.instrument, phq.instrument,
   munInstrument, paqShortRuInstrument, development.instrument, metacognition.instrument,
@@ -37,9 +43,11 @@ const neutral = "Более высокий балл означает больш�
 function configured(config: ConfigurableScoring, input: Map<number, number>) {
   const values = calculateConfigurableScores(config, Object.fromEntries(input));
   if (!values) throw new Error("Не удалось рассчитать показатели");
-  return config.scales.map(s => scale(s.label, values[s.key],
-    s.aggregation === "mean" ? config.min : config.min * s.items.length,
-    s.aggregation === "mean" ? config.max : config.max * s.items.length, neutral));
+  return config.scales.map(s => {
+    const bounds = configurableScaleBounds(config, s);
+    if (!bounds) throw new Error("Не определён диапазон шкалы");
+    return scale(s.label, values[s.key], ...bounds, neutral);
+  });
 }
 
 export function calculateAdditional(code: string, input: Map<number, number>): { scales: Scale[]; explanation: string; presentation: "profile" | "scales" } {
@@ -47,6 +55,27 @@ export function calculateAdditional(code: string, input: Map<number, number>): {
   let explanation: string;
   let presentation: "profile" | "scales" = "profile";
   switch (code) {
+    case "test_16": {
+      const result = scoreMiniIpip(input);
+      if (!result) throw new Error("Неполный протокол Mini-IPIP");
+      const labels = ["Экстраверсия", "Доброжелательность", "Добросовестность", "Нейротизм", "Интеллект и воображение"];
+      scales = Object.values(result.scales).map((row, index) => scale(labels[index], row.average, row.min, row.max, neutral));
+      explanation = "Пять отдельных средних баллов от 1 до 5. Общий балл не рассчитывается.";
+      break;
+    }
+    case "test_11": {
+      const result = scorePps(input);
+      if (!result) throw new Error("Неполный протокол PPS-12");
+      const labels = ["Прокрастинация", "Откладывание решений", "Откладывание действий", "Опоздания и сроки"];
+      scales = [result.overall, ...Object.values(result.scales)].map((row, index) => scale(labels[index], row.average, row.min, row.max, neutral));
+      presentation = "scales";
+      explanation = "Общий результат — среднее по 12 пунктам. Дополнительно показаны средние по трём группам пунктов.";
+      break;
+    }
+    case "test_56":
+      scales = configured(genderPersonalityTypeTitovaRuScoring, input);
+      explanation = "Четыре суммы и два индекса по авторскому ключу, без типологической классификации.";
+      break;
     case "test_21": {
       const result = scoreMun(input);
       if (!result) throw new Error("Неполный протокол МУН");
