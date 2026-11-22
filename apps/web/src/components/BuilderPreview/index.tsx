@@ -103,7 +103,7 @@ export function BuilderPreview({ meta, questions, onClose,closeLabel="Верну
             <div className="context"><Eye size={18} /><span><b>Предпросмотр опроса</b>Ответы здесь не сохраняются</span></div>
             <Button className="close" onClick={onClose}><X size={16} /> {closeLabel}</Button>
           </Toolbar>
-          <TakingHeader><Leaf /> <BrandWordmark /></TakingHeader>
+          <TakingHeader><Leaf /> <BrandWordmark showAuthor={false} /></TakingHeader>
 
           {screen === "welcome" && (
             <TakingWelcome>

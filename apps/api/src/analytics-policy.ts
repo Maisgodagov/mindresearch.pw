@@ -2,6 +2,8 @@ export const CONSENT_COOKIE = "mindresearch_analytics_consent";
 export const CONSENT_ALLOWED = "v1.allow";
 export const publicAnalyticsPath = (path: string) => {
   const clean = path.replace(/\/+$/, "") || "/";
+  if (clean === "/") return clean;
+  if (/^\/s\/[^/]+$/.test(clean)) return "/s/:slug";
   return /^(?:\/for-researchers|\/methods(?:\/[a-z0-9-]+(?:\/start)?)?|\/assessment\/result|\/login|\/register)$/.test(clean)
     ? clean : null;
 };

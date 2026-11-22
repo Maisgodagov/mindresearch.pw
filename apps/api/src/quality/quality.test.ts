@@ -67,3 +67,25 @@ it('reference selection excludes confirmed duplicates and failed eligibility onl
 it('pair dictionary limits every item to three pairs',()=>{const count=new Map<string,number>();baseline.full.pairs.forEach(p=>[p.a,p.b].forEach(id=>count.set(id,(count.get(id)??0)+1)));expect(Math.max(...count.values())).toBeLessThanOrEqual(config.response.pairs.maxPerItem);});
 
 it('blank and invalid mandatory answers fail completeness without a score penalty rule',()=>{const p=fixturePerson('missing-required');p.answers[items[0].id].value='';expect(result(p).hard_checks.completeness.complete).toBe(false);});
+
+describe('Expanded response quality',()=>{
+  it('uses verified numeric scoring keys and their reverse directions',()=>{
+    const key=keyFor('configured',2,{min:1,max:5,scales:[
+      {key:'scale',label:'Scale',aggregation:'sum',items:[1,2],reverseItems:[2]},
+      {key:'formula',label:'Formula',aggregation:'formula',formula:'Q2',items:[2],reverseItems:[]},
+    ]});
+    expect(key).toEqual({min:1,max:5,scales:[{id:'configured:scale',label:'Scale',reverse:true}]});
+  });
+
+  it('scores unkeyed blocks against eligible peers without counting the respondent',()=>{
+    const unkeyed=items.slice(0,12).map(item=>({...item,psychological:false,min:null,max:null,scales:[]}));
+    const people=fixturePeople().slice(0,51);
+    const reference=createBaseline('unkeyed',unkeyed,people);
+    const person=people[0];
+    expect(reference.folds[reference.memberFold[person.id]].patterns.battery.run?.n).toBeLessThan(50);
+    const value=calculateV2(person,unkeyed,reference,now);
+    expect(value.response.components.patterning.score).not.toBeNull();
+    expect(value.response.metrics.patterns).toMatchObject({battery:{run_reference:{n:50}}});
+    expect(value.response.components.rpr.score).toBeNull();
+  });
+});

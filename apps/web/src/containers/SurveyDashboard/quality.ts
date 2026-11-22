@@ -2,7 +2,7 @@ import { methodSortValue } from './selection';
 import type { Respondent } from './types';
 export type { QualityV2 as Quality, Index, Flag } from '../../../../api/src/quality/types';
 import type { QualityV2 as Quality } from '../../../../api/src/quality/types';
-export const QUALITY_VERSION = '2.0.0';
+export const QUALITY_VERSION = '2.1.0';
 export const COHORTS = { unassigned: 'Не размечена', trusted: 'Личное приглашение', public: 'Публичный набор', admin_test: 'Проверка администратора' };
 export const STATUS = { high: 'Высокий', acceptable: 'Приемлемый', review: 'Проверить', high_concern: 'Выраженные признаки', insufficient_data: 'Недостаточно данных' };
 export const METRICS = [

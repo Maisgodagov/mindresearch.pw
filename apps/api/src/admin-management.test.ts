@@ -226,6 +226,10 @@ describe("product analytics", () => {
     expect(publicEventSchema.safeParse({...e,name:"answer.20"}).success).toBe(false);
     expect(publicEventSchema.safeParse({...e,type:"replay"}).success).toBe(false);
     expect(publicAnalyticsPath("/methods/")).toBe("/methods");
+    expect(publicAnalyticsPath("/s/private-survey")).toBe("/s/:slug");
+    expect(publicEventSchema.safeParse({...e,page:"/s/:slug",name:"respondent.completed",entryPage:"/s/:slug",source:"yandex"}).success).toBe(true);
+    expect(publicEventSchema.safeParse({...e,page:"/s/:slug",entryPage:"/s/private-survey"}).success).toBe(false);
+    expect(publicEventSchema.safeParse({...e,source:"https://example.test/?token=secret"}).success).toBe(false);
   });
   it("attributes public-page events to authenticated users without creating a guest", async () => {
     mocks.query.mockImplementation(async (sql: string, args: any[]) => sql.includes("SELECT id,role") ? [[{id:args[0],role:"researcher"}]] : sql.includes("COUNT(*)") ? [[{n:0}]] : [[]]);

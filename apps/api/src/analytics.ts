@@ -31,9 +31,16 @@ const batchSchema = z.object({ events: z.array(eventSchema).min(1).max(100) });
 export const publicEventSchema = eventSchema.extend({
   page: z.string().max(200).refine(path => publicAnalyticsPath(path) === path),
   type: z.enum(["page_view", "click", "active_time"]),
-  name: z.enum(["screen.open", "screen.active", "control.click", "test.start", "test.share"]),
+  name: z.enum(["screen.open", "screen.active", "control.click", "test.start", "test.share", "test.started", "test.completed", "respondent.started", "respondent.completed"]),
+  entryPage: z.string().max(200).refine(path => publicAnalyticsPath(path) === path).optional(),
+  source: z.string().regex(/^[a-z0-9._-]{1,160}$/i).optional(),
+  medium: z.string().regex(/^[a-z0-9._-]{1,80}$/i).optional(),
+  campaign: z.string().regex(/^[a-z0-9._-]{1,120}$/i).optional(),
   surveyId: z.null().default(null),
-});
+}).refine(event =>
+  event.name.startsWith("respondent.") ? event.page === "/s/:slug" && event.type === "click"
+    : !event.name.startsWith("test.") || (event.page.startsWith("/methods/") || event.page === "/assessment/result"),
+);
 const cookie = (header: string | undefined, name: string) => header?.split(";").map(part => part.trim()).find(part => part.startsWith(name + "="))?.slice(name.length + 1);
 const consentRequired: RequestHandler = (req, res, next) => {
   if (cookie(req.headers.cookie, CONSENT_COOKIE) !== CONSENT_ALLOWED)
@@ -79,13 +86,18 @@ analyticsRouter.post("/analytics/events", sameOrigin, consentRequired, publicLim
   async (req: AuthRequest, res, next) => {
     try {
       const { events } = z.object({ events: z.array(publicEventSchema).min(1).max(50) }).parse(req.body);
-      const visitorId = req.user ? null : visitorIdentity(req.headers.cookie);
-      const [count] = await db.query<any[]>("SELECT COUNT(*) n FROM product_events WHERE (visitor_id=? OR user_id=?) AND received_at>DATE_SUB(NOW(),INTERVAL 1 DAY)", [visitorId, req.user?.id ?? null]);
+      if (/bot|crawler|spider|headlesschrome|lighthouse|google-inspectiontool/i.test(req.get("user-agent") ?? ""))
+        return res.json({ ok: true });
+      const respondent = events.some(e => e.page === "/s/:slug");
+      if (respondent && events.some(e => e.page !== "/s/:slug")) return res.sendStatus(400);
+      const userId = respondent ? null : req.user?.id ?? null;
+      const visitorId = userId ? null : visitorIdentity(req.headers.cookie);
+      const [count] = await db.query<any[]>("SELECT COUNT(*) n FROM product_events WHERE (visitor_id=? OR user_id=?) AND received_at>DATE_SUB(NOW(),INTERVAL 1 DAY)", [visitorId, userId]);
       if (Number(count[0].n) + events.length > 10000) return res.status(429).json({ message: "Лимит аналитики" });
-      const values = events.map(e => [e.id, req.user?.id ?? null, visitorId, e.sessionId, e.type, e.page, e.name, null,
-        req.get("user-agent")?.slice(0,320) ?? null, e.durationMs,
+      const values = events.map(e => [e.id, userId, visitorId, e.sessionId, e.type, e.page, e.name, null,
+        req.get("user-agent")?.slice(0,320) ?? null, e.durationMs, e.source ?? null, e.medium ?? null, e.campaign ?? null, e.entryPage ?? null,
         new Date(Math.max(Date.now() - 86_400_000, Math.min(Date.now() + 60_000, e.at)))]);
-      await db.query("INSERT IGNORE INTO product_events(id,user_id,visitor_id,session_id,type,page,name,survey_id,user_agent,duration_ms,occurred_at) VALUES ?", [values]);
+      await db.query("INSERT IGNORE INTO product_events(id,user_id,visitor_id,session_id,type,page,name,survey_id,user_agent,duration_ms,traffic_source,traffic_medium,traffic_campaign,entry_page,occurred_at) VALUES ?", [values]);
       res.setHeader("Cache-Control", "no-store");
       if (visitorId) res.cookie(visitorCookie, `${visitorId}.${signVisitor(visitorId)}`, { ...visitorOptions, maxAge: 90 * 86400_000 });
       void cleanup().catch(console.error);

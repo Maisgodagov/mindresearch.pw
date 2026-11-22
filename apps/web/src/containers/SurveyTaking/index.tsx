@@ -1,3 +1,4 @@
+import { trackPublicLifecycle } from "../../publicAnalytics";
 import {respondentForm} from "../../utils/respondentForm";
 import {AnchoredRating,isAnchoredRating} from "../../components/AnchoredRating";
 import { usePageTitle } from "../../pageTitle";
@@ -123,10 +124,12 @@ export function SurveyPage() {
       setIndex(resume.position);
       setAnswers(resume.answers);
       setStarted(true);
+      trackPublicLifecycle("respondent.started");
       return;
     }
     const r = await api.post(`/public/surveys/${slug}/sessions`);
     localStorage.setItem(`survey_session_${slug}`, r.data.token);
+    trackPublicLifecycle("respondent.started");
     setToken(r.data.token);
     setStarted(true);
   }
@@ -183,7 +186,7 @@ export function SurveyPage() {
       }
     }
     if (index === survey.questions.length - 1) {
-      try { const response=await api.post(`/public/sessions/${token}/complete`);setCommunityResult(response.data?.community??null); }
+      try { const response=await api.post(`/public/sessions/${token}/complete`);setCommunityResult(response.data?.community??null); trackPublicLifecycle("respondent.completed"); }
       catch { setOffline(true); questionTiming.resume(); return; }
       localStorage.removeItem(`survey_session_${slug}`);
       sessionStorage.setItem(`survey_result_${slug}`, token);

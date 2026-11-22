@@ -19,6 +19,11 @@ type Session = {
   hasReplay: boolean;
   userAgent: string | null;
   userName?: string;
+  source?: string | null;
+  entryPage?: string | null;
+  respondent?: number;
+  respondentStarted?: number;
+  respondentCompleted?: number;
 };
 type Event = {
   id?: string;
@@ -59,11 +64,17 @@ type Report = {
   }[];
   pages: { page: string; views: number; users: number }[];
   actions: { name: string; count: number; users: number }[];
+  traffic?: {source:string;medium:string|null;campaign:string|null;entryPage:string;visits:number;starts:number;completions:number}[];
   sessions: Session[];
   events: Event[];
   funnel: { page: string; users: number }[];
 };
+const sourceLabel = (source?: string | null) => ({google:"Google",yandex:"Яндекс",unknown:"Источник неизвестен"}[source ?? "unknown"] ?? source);
 const names: Record<string, string> = {
+  "test.started": "Публичный тест начат",
+  "test.completed": "Публичный тест завершён",
+  "respondent.started": "Опрос начат",
+  "respondent.completed": "Опрос завершён",
   "survey.create": "Создать опрос",
   "survey.publish": "Опубликовать",
   "survey.published": "Опрос опубликован",
@@ -285,7 +296,7 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
         </div>
       </div>
       {!userId && <div className="tabs" aria-label="Аудитория">
-        {[["all","Все посетители"],["registered","Зарегистрированные"],["guests","Гости"]].map(([value,label]) => <Button key={value} aria-pressed={audience === value} onClick={() => setAudience(value)}>{label}</Button>)}
+        {[["all","Все посетители"],["registered","Зарегистрированные"],["guests","Гости"],["respondents","Респонденты"]].map(([value,label]) => <Button key={value} aria-pressed={audience === value} onClick={() => setAudience(value)}>{label}</Button>)}
       </div>}
       <p className="muted">Дни и часы — по Москве (UTC+3). «24 часа» — скользящий период. Учитываются только посетители, разрешившие аналитику.</p>
       {error && (
@@ -332,7 +343,20 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
               <Bars items={coreUsage} />
             </section>
           </div>
-          {audience !== "guests" && <section className="panel">
+          {report?.traffic && <section className="panel">
+            <h2>Источники и страницы входа</h2>
+            <div className="table-scroll">
+              <table>
+                <thead><tr><th>Источник</th><th>Страница входа</th><th>Визиты</th><th>Старты</th><th>Завершения</th><th>Доля завершивших</th></tr></thead>
+                <tbody>{!report.traffic.length && <tr><td colSpan={6}>За этот период источники ещё не собраны</td></tr>}{report.traffic.map(row => <tr key={JSON.stringify([row.source,row.medium,row.campaign,row.entryPage])}>
+                  <td>{[sourceLabel(row.source),row.medium,row.campaign].filter(Boolean).join(" · ")}</td>
+                  <td>{row.entryPage === "/s/:slug" ? "Опрос респондента" : row.entryPage}</td>
+                  <td>{row.visits}</td><td>{row.starts}</td><td>{row.completions}</td><td>{Math.round(100 * row.completions / row.visits)}%</td>
+                </tr>)}</tbody>
+              </table>
+            </div>
+          </section>}
+          {audience !== "guests" && audience !== "respondents" && <section className="panel">
             <h2>Путь к исследованию</h2>
             <p className="muted">
               Число пользователей, открывших каждый экран за период. Этапы
@@ -378,15 +402,16 @@ export function AnalyticsPanel({ userId }: { userId?: string }) {
                     <tr key={`${s.userId ?? s.visitorId}:${s.id}`}>
                       <td>
                         {dateTime(s.startedAt)}
+                        {s.respondent ? <div className="muted">Последняя активность {dateTime(s.lastAt)}</div> : null}
                         {!userId && (
                           <div>
-                            {s.userId ? <Link to={`/app/admin/users/${s.userId}`}>
+                            {s.respondent ? <span>Респондент · {s.respondentCompleted ? "Завершил опрос" : s.respondentStarted ? "Начал опрос" : "Открыл опрос"}</span> : s.userId ? <Link to={`/app/admin/users/${s.userId}`}>
                               {s.userName || "Пользователь"}
                             </Link> : <span className="muted">Гость</span>}
                           </div>
                         )}
                       </td>
-                      <td>{device(s.userAgent)}</td>
+                      <td>{device(s.userAgent)}{s.entryPage && <div className="muted">{sourceLabel(s.source)} · {s.entryPage === "/s/:slug" ? "Опрос" : s.entryPage}</div>}</td>
                       <td>{minutes(s.activeMs)}</td>
                       <td>{s.clicks}</td>
                       <td>{s.errors}</td>

@@ -1,3 +1,4 @@
+import { trackPublicLifecycle } from "../../publicAnalytics";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Link,
@@ -103,6 +104,7 @@ export function PublicAssessment() {
         `methods/${method.slug}/assessments`,
         { adult: true },
       );
+      trackPublicLifecycle("test.started");
       rememberAssessment(method.slug, a.id);
       setAssessment(a);
     } catch (e) {
@@ -155,6 +157,7 @@ export function PublicAssessment() {
           revision: assessment.revision,
         }, "POST", controller.signal,
       );
+      if (finishing && a.result) trackPublicLifecycle("test.completed");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       await answerPause(reducedMotion ? 0 : 320, controller.signal);
       setTransitioning(true);

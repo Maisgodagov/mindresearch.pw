@@ -1,5 +1,5 @@
 export const QUALITY_V2_CONFIG = {
-  version: '2.0.0', seed: 'mindresearch-quality-v2', epsilon: 1,
+  version: '2.1.0', seed: 'mindresearch-quality-v2', epsilon: 1,
   status: { high: 85, acceptable: 70, review: 55 },
   overall: { behavioral: .5, response: .5, partialConfidenceCap: .6 },
   reference: { minQuestionN: 20, minCalibrationN: 50, stableTailN: 100, folds: 5, minFoldTrainingN: 30, highQualityScore: 85, highQualityConfidence: .7, completedConfidence: .8, blockConfidence: .85, typeConfidence: .7, conservativeMadMultiplier: 3, madFloor: .001, tailTransitionFloor: .05 },

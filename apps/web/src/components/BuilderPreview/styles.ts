@@ -35,12 +35,11 @@ export const Toolbar = styled.div`
     display: flex;
     align-items: center;
     gap: 9px;
-    color: var(--color-text-526f5b);
+    color: var(--color-surface);
     font-size: 12px;
   }
   .context b {
     display: block;
-    color: var(--color-text-344d3b);
     font-size: 13px;
   }
   .close {

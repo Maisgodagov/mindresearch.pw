@@ -1,5 +1,5 @@
 import { hash, shuffled, stats } from './math.js';
-import { referenceModel, rpr, pairConsistency } from './psychometrics.js';
+import { referenceModel, rpr, pairConsistency, patterns } from './psychometrics.js';
 import { QUALITY_V2_CONFIG, type QualityConfig } from './config.js';
 import type { Baseline, Item, Participant } from './types.js';
 export function createBaseline(surveyId:string,items:Item[],people:Participant[],config:QualityConfig=QUALITY_V2_CONFIG,highQualityIds:string[]=[]):Baseline{
@@ -14,6 +14,7 @@ export function createBaseline(surveyId:string,items:Item[],people:Participant[]
   const folds=Array.from({length:config.reference.folds},(_,fold)=>withTimeFallback(referenceModel(items,members.filter(p=>memberFold[p.id]!==fold),config,seed),completed.filter(p=>memberFold[p.id]!==fold)));
   const full=withTimeFallback(referenceModel(items,members,config,seed),completed),calibrationObservations:Baseline['calibrationObservations']={};
   for(const person of members){const model=folds[memberFold[person.id]];calibrationObservations[person.id]={rpr:rpr(person,items,model.splits,config).value,pairs:pairConsistency(person,items,model.pairs,config).value};}
-  return{id:version,surveyId,version,createdAt:new Date().toISOString(),config,configHash,itemHash,items,source,memberIds:members.map(p=>p.id),memberFold,full,folds,calibrationObservations,
+  const patternObservations=Object.fromEntries(members.map(person=>[person.id,patterns(person,items,config)]));
+  return{id:version,patternObservations,surveyId,version,createdAt:new Date().toISOString(),config,configHash,itemHash,items,source,memberIds:members.map(p=>p.id),memberFold,full,folds,calibrationObservations,
     calibration:{rpr:stats(Object.values(calibrationObservations).flatMap(v=>v.rpr===null?[]:[v.rpr])),pairs:stats(Object.values(calibrationObservations).flatMap(v=>v.pairs===null?[]:[v.pairs]))},trainingSnapshotHash,frozen:true};
 }

@@ -41,6 +41,10 @@ export async function migrate() {
   for (const sql of statements) await db.query(sql);
   const ensureColumn=async(table:string,column:string,definition:string)=>{const[rows]=await db.query<any[]>(`SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?`,[table,column]);if(!rows.length)await db.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`)};
   await ensureColumn('question_timings','recorded_at','TIMESTAMP NULL DEFAULT NULL');
+  await ensureColumn('product_events','traffic_source','VARCHAR(160) NULL');
+  await ensureColumn('product_events','traffic_medium','VARCHAR(80) NULL');
+  await ensureColumn('product_events','traffic_campaign','VARCHAR(120) NULL');
+  await ensureColumn('product_events','entry_page','VARCHAR(200) NULL');
   await ensureColumn('product_events','visitor_id','CHAR(36) NULL, ADD INDEX idx_product_visitor_time(visitor_id,received_at)');
   const [analyticsUserColumn] = await db.query<any[]>("SELECT IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='product_events' AND COLUMN_NAME='user_id'");
   if (analyticsUserColumn[0]?.IS_NULLABLE === 'NO') await db.query('ALTER TABLE product_events MODIFY user_id CHAR(36) NULL');

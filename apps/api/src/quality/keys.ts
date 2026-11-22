@@ -4,10 +4,19 @@ import { SCCS_REVERSE_ITEMS } from '../scoring/sccs.js';
 import { NSPS_ITEMS } from '../scoring/nsps.js';
 import { SHOPP_KEYS } from '../scoring/shopp.js';
 import { DEBQ_ITEMS } from '../scoring/debq.js';
+import type { ConfigurableScoring } from '../scoring/configurable.js';
 import type { Item } from './types.js';
-export function keyFor(instrument:string,number:number):Pick<Item,'min'|'max'|'scales'> {
+export function keyFor(instrument:string,number:number,scoring?:ConfigurableScoring|null):Pick<Item,'min'|'max'|'scales'> {
   const scales:Item['scales']=[];
   const add=(name:string,label:string,reverse:boolean)=>scales.push({id:`${instrument}:${name}`,label,reverse});
+  if(scoring){
+    for(const scale of scoring.scales){
+      if(scale.aggregation!=='sum'&&scale.aggregation!=='mean')continue;
+      if(scale.itemScores||scale.weights?.[number]!==undefined&&scale.weights[number]<=0)continue;
+      if(scale.items.includes(number))add(scale.key,scale.label,scale.reverseItems.includes(number));
+    }
+    return{min:scoring.min,max:scoring.max,scales};
+  }
   if(instrument==='test_1'&&number>=1&&number<=12){for(const[name,d]of Object.entries(definitions))if((d.items as readonly number[]).includes(number))add(name,d.label,false);return{min:1,max:7,scales}}
   if(instrument==='test_2'&&number>=1&&number<=52){for(const[name,d]of Object.entries(SSPM_2011_SCALES)){if(d.yes.includes(number))add(name,d.label,true);if(d.no.includes(number))add(name,d.label,false)}return{min:1,max:4,scales}}
   if(instrument==='test_3'&&number>=1&&number<=12){add('overall','Ясность Я-концепции',SCCS_REVERSE_ITEMS.includes(number));return{min:1,max:5,scales}}
