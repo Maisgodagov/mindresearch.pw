@@ -27,6 +27,7 @@ const SurveyInvitation = React.lazy(() => import('./components/SurveySharing').t
 const SharedSurveyPreview = React.lazy(() => import('./components/SurveySharing').then(m=>({default:m.SharedSurveyPreview})));
 
 const Community = React.lazy(() => import("./containers/Community").then(m => ({ default: m.Community })));
+const ResultCardGallery = import.meta.env.DEV ? React.lazy(() => import("./containers/PublicMethods/CardGallery")) : null;
 const SurveyPage = React.lazy(() =>
   import("./containers/SurveyTaking").then((m) => ({ default: m.SurveyPage })),
 );
@@ -155,6 +156,7 @@ function App() {
       <CookieConsent />
       <Suspense fallback={<RouteSkeleton />}>
         <Routes>
+          {ResultCardGallery && <Route path="/dev/result-card-gallery" element={<ResultCardGallery />} />}
           <Route path="/methods" element={<PublicMethods/>}/>
           <Route path="/methods/:slug" element={<PublicMethodPage/>}/>
           <Route path="/methods/:slug/start" element={<PublicAssessment/>}/>

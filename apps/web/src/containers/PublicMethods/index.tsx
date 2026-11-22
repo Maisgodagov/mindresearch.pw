@@ -33,6 +33,8 @@ import {
   type PublicResult,
 } from "./types";
 import { resultCard } from "./card";
+import { resultReading } from "./resultInterpretation";
+import { cardChoices, characterAtlases, characterColumns, characters, type Character } from "./cardScenes";
 import "./public-methods.css";
 import "./respondent.css";
 
@@ -342,21 +344,40 @@ export function PublicAssessmentResult() {
       active = false;
     };
   }, [id]);
+  const [sceneIndex, setSceneIndex] = useState(0);
+  const [character, setCharacter] = useState<Character | null>(null);
+  const [personIndex, setPersonIndex] = useState({ woman: 0, man: 0 });
+  const [cardRetry, setCardRetry] = useState(0);
+  const choices = a?.result ? cardChoices(a.result, a.id) : null;
+  const location = choices?.locations[sceneIndex] ?? choices?.locations[0];
+  const selectedCharacter = character ?? choices?.character ?? "none";
+  const availablePeople = selectedCharacter === "none" ? [] : choices?.people[selectedCharacter] ?? [];
+  const person = selectedCharacter === "none" ? 0 : availablePeople[personIndex[selectedCharacter]] ?? 0;
   const [cardError, setCardError] = useState("");
   const [shareNotice, setShareNotice] = useState("");
   useEffect(() => {
-    if (!a?.result) return;
+    if (!a?.result || !location || !choices) return;
     let active = true;
     let url: string | undefined;
     setPreview(null);
     setCardError("");
-    resultCard(a.result).then(blob => {
+    resultCard(a.result, {character: selectedCharacter, layout: "tiles", art:{row:location.row, column:location.column, person, personRow:choices.row}}).then(blob => {
       if (!active) return;
       url = URL.createObjectURL(blob);
       setPreview({ url, blob });
     }).catch(e => { if (active) setCardError((e as Error).message); });
     return () => { active = false; if (url) URL.revokeObjectURL(url); };
-  }, [a]);
+  }, [a, location?.row, location?.column, choices?.row, selectedCharacter, person, cardRetry]);
+  function recoverPreview(failed: NonNullable<typeof preview>) {
+    if (!failed.url.startsWith("blob:")) return setCardError("Не удалось показать карточку");
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result;
+      if (typeof url === "string") setPreview(current => current === failed ? { ...failed, url } : current);
+    };
+    reader.onerror = () => setCardError("Не удалось показать карточку");
+    reader.readAsDataURL(failed.blob);
+  }
   const shareCard = async () => {
     if (!preview || !a?.result) return;
     setBusy(true);
@@ -424,13 +445,61 @@ export function PublicAssessmentResult() {
             </Link>
             <section className="pm-story-layout">
               <div className="pm-story-visual">
-                {preview ? (
-                  <img className="pm-story-image" src={preview.url} alt={`Карточка результата: ${result.method.name}. ${result.scales.map(scale => `${scale.label}: ${formatScore(scale.value)} из ${scale.max}`).join(". ")}`} />
-                ) : cardError ? (
-                  <p role="alert">{cardError}</p>
+                {cardError ? (
+                  <div><p role="alert">{cardError}</p><button type="button" className="pm-button" onClick={() => setCardRetry(value=>value+1)}>Создать карточку заново</button></div>
+                ) : preview ? (
+                  <img className="pm-story-image" src={preview.url} onError={() => recoverPreview(preview)} alt={`Карточка результата: ${result.method.name}. ${result.scales.map(scale => `${scale.label}: ${formatScore(scale.value)} из ${scale.max}`).join(". ")}`} />
                 ) : (
                   <div className="pm-story-skeleton" role="status" aria-label="Создаём карточку результата" />
                 )}
+                {choices && location && <details className="pm-card-settings">
+                  <summary>Настроить карточку</summary>
+                  <div className="pm-card-controls">
+                  <fieldset>
+                    <legend>Сцена</legend>
+                    <div className="pm-card-options pm-card-scenes">
+                      {choices.locations.map(({ label, row, column }, index) => (
+                        <label key={label} title={label}>
+                          <input type="radio" name="card-scene" aria-label={label} checked={sceneIndex === index}
+                            onChange={() => setSceneIndex(index)} />
+                          <span className="pm-card-thumbnail" aria-hidden="true" style={{
+                            backgroundImage: 'url("/images/result-cards/scenes-atlas.webp")',
+                            backgroundPosition: `${column * 25}% ${row * 50}%`,
+                          }} />
+                        </label>
+                      ))}
+                    </div>
+                    <span className="pm-card-scene-name">{location.label}</span>
+                  </fieldset>
+                  <fieldset>
+                    <legend>Персонаж</legend>
+                    <div className="pm-card-character-types">
+                      {(["woman", "man", "none"] as const).map(value => (
+                        <label key={value}>
+                          <input type="radio" name="card-character-type" checked={selectedCharacter === value}
+                            onChange={() => setCharacter(value)} />
+                          <span>{characters[value]}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {selectedCharacter !== "none" && (
+                      <div className="pm-card-options pm-card-portraits">
+                        {availablePeople.map((portrait, index) => (
+                          <label key={portrait}>
+                            <input type="radio" name="card-portrait" aria-label={`Персонаж ${index + 1}`}
+                              checked={person === portrait}
+                              onChange={() => setPersonIndex(current => ({ ...current, [selectedCharacter]: index }))} />
+                            <span className="pm-card-thumbnail" aria-hidden="true" style={{
+                              backgroundImage: `url("/images/result-cards/${selectedCharacter}-${characterAtlases[Math.floor(portrait / characterColumns)]}.webp")`,
+                              backgroundPosition: `${(portrait % characterColumns) * 25}% ${choices.row * 50}%`,
+                            }} />
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </fieldset>
+                  </div>
+                </details>}
                 <div className="pm-story-share">
                   <button className="pm-button pm-primary" data-analytics="test.share" disabled={busy || !preview} onClick={() => void shareCard()}>
                     {busy ? <LoaderCircle size={18} className="pm-spin" /> : <Share2 size={18} />}
@@ -442,6 +511,7 @@ export function PublicAssessmentResult() {
               <div className="pm-story-description">
                 <h1>Как понимать результат</h1>
                 <p className="pm-story-method">{result.method.name}</p>
+                <p className="pm-story-summary">{resultReading(result).detail}</p>
                 <p className="pm-story-summary">{result.explanation}</p>
                 <ResultInterpretation result={result} />
                 <section className="pm-story-limits">

@@ -1,248 +1,310 @@
-import { resolveThemeValue } from "../../theme/resolveThemeValue";
 import "@fontsource-variable/onest";
 import "@fontsource/prata";
 import type { PublicResult } from "./types";
 import { formatScore } from "./types";
+import { resultReading } from "./resultInterpretation";
+import { cardScenes, characterAtlases, characterColumns, rangePosition, scenesFor, type Character, type Layout, type Scene } from "./cardScenes";
 
-// Independent scales have equal visual weight. No first-scale-as-total shortcut.
-async function profileCard(canvas: HTMLCanvasElement, c: CanvasRenderingContext2D, result: PublicResult, ink: string, paper: string): Promise<Blob> {
-  c.fillStyle = paper;
-  c.fillRect(0, 0, canvas.width, canvas.height);
-  c.fillStyle = ink;
-  c.font = '750 42px "Manrope Variable", sans-serif';
-  c.fillText("mindresearch.pro", 70, 110);
-  const wrap = (value: string, y: number, size: number, maxWidth = 940) => {
-    c.font = `500 ${size}px "Onest Variable", sans-serif`;
-    let row = "";
-    for (const word of value.split(/\s+/)) {
-      if (row && c.measureText(`${row} ${word}`).width > maxWidth) {
-        c.fillText(row, 70, y); y += size * 1.3; row = word;
-      } else row = `${row} ${word}`.trim();
-    }
-    if (row) { c.fillText(row, 70, y); y += size * 1.3; }
-    return y;
-  };
-  let y = wrap(result.method.name, 230, 48);
-  y = wrap(`${result.method.abbreviation} · ${result.presentation === "profile" ? "Профиль отдельных шкал" : "Результаты методики"}`, y + 20, 29);
-  const footerOffset = canvas.height - 1920;
-  const rowHeight = Math.min(190, (1420 + footerOffset - y) / result.scales.length);
-  for (const s of result.scales) {
-    y += 38;
-    // Reserve a second line for long labels; keep the numerical result separate.
-    wrap(s.label, y, 30, 900);
-    c.font = '650 40px "Onest Variable", sans-serif';
-    c.fillText(formatScore(s.value), 70, y + 88);
-    c.font = '500 25px "Onest Variable", sans-serif';
-    c.fillText(`Диапазон ${formatScore(s.min)}–${formatScore(s.max)}`, 310, y + 87);
-    const width = 940;
-    c.globalAlpha = 0.12; c.fillRect(70, y + 108, width, 5); c.globalAlpha = 1;
-    c.fillRect(70, y + 108, width * Math.max(0, Math.min(1, (s.value - s.min) / (s.max - s.min))), 5);
-    y += rowHeight - 38;
-  }
-  const notes: Record<string, string> = {
-    "self-compassion": "Выше общий балл — больше сочувствия к себе. Выше самокритика, самоизоляция и чрезмерная идентификация — больше трудностей.",
-    "stress-mindset": "Вторая шкала обратная: выше балл — меньше согласие с дезорганизующим влиянием стресса.",
-    "autonomous-functioning": "Шкалы независимы. Выше восприимчивость к контролю — больше давления, а не автономности.",
-    "career-adaptability": "Русская проверка: 15–19 лет. Для старших возрастов — ознакомительно, без подтверждённых взрослых норм.",
-  };
-  wrap(result.cardNote || notes[result.method.slug] || (result.presentation === "profile" ? "Шкалы независимы. Общий балл не рассчитывается." : "Показаны общий показатель и отдельные шкалы."), 1535 + footerOffset, 29);
-  wrap("Полные пояснения и ограничения — на странице результата. Полосы показывают положение в диапазоне шкалы, не процент населения.", 1670 + footerOffset, 27);
-  wrap("Результат описывает ваши ответы и не является диагнозом.", 1830 + footerOffset, 27);
-  return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Не удалось создать карточку")), "image/png"));
+const assetRoot = "/images/result-cards/";
+const assets = new Map<string, Promise<HTMLImageElement>>();
+function loadArt(name: string) {
+  const cached = assets.get(name);
+  if (cached) return cached;
+  const request = new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Не удалось загрузить иллюстрацию"));
+    img.src = assetRoot + name + ".webp";
+  }).catch(error => { assets.delete(name); throw error; });
+  assets.set(name,request);
+  return request;
 }
 
-// One drawing supplies both the on-page preview and the shared story image.
-export async function resultCard(result: PublicResult): Promise<Blob> {
-  await Promise.all([
-    document.fonts.load('700 32px "Manrope Variable"'),
-    document.fonts.load('600 32px "Onest Variable"', "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ абвгдеёжзийклмнопрстуфхцчшщъыьэюя 0123456789,из"),
-    document.fonts.load('400 32px "Prata"', "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ абвгдеёжзийклмнопрстуфхцчшщъыьэюя"),
+type Options = { scene?: Scene; character?: Character; layout?: Layout; resultShape?: "organic" | "rounded"; art?: { row: number; column: number; person: number; personRow?: number } };
+
+export async function resultCard(result: PublicResult, options: Options = {}): Promise<Blob> {
+  const choices = scenesFor(result);
+  const scene = cardScenes[options.scene && choices.includes(options.scene) ? options.scene : choices[0]];
+  const art = options.art;
+  const character = options.character ?? "none";
+  const journal = options.layout === "journal";
+  const tiles = options.layout === "tiles";
+  const rounded = options.resultShape === "rounded";
+  const illustrated = tiles && !rounded;
+  const cyrillic = "Методика результата АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ 0123456789";
+  const [atlas, people, background, person] = await Promise.all([
+    art ? loadArt("scenes-atlas").catch(() => null) : null,
+    art && character !== "none" ? loadArt(`${character}-${characterAtlases[Math.floor(art.person / characterColumns)]}`).catch(() => null) : null,
+    loadArt("scenes").catch(() => null),
+    character === "none" ? null : loadArt(character).catch(() => null),
+    document.fonts.load('400 48px Prata',cyrillic).catch(() => []),
+    document.fonts.load('680 78px "Lora Variable"',cyrillic).catch(() => []),
+    document.fonts.load('780 78px "Onest Variable"',cyrillic).catch(() => []),
+    document.fonts.load('650 28px "Onest Variable"',cyrillic).catch(() => []),
   ]);
   const canvas = document.createElement("canvas");
-  canvas.width = 1080;
-  canvas.height = 1920 + Math.max(0, result.scales.length - 6) * 190;
   const c = canvas.getContext("2d");
   if (!c) throw new Error("Браузер не поддерживает создание изображения");
-  const ink = resolveThemeValue("var(--color-story-203e32)"), paper = resolveThemeValue("var(--color-story-fff5da)");
-  if (result.presentation && result.scales.length > 1) return profileCard(canvas, c, result, ink, paper);
-  const main = result.scales[0];
-  const additional = result.scales.slice(1);
-  const multiple = additional.length > 0;
-  // Continuous visual variation, not clinical thresholds or population norms.
-  const span = main.max - main.min;
-  const position = span > 0 ? Math.max(0, Math.min(1, (main.value - main.min) / span)) : 0;
-  const mix = (a: number[], b: number[], t: number) =>
-    `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`;
-  const rgb = (name: string) => {
-    const hex = resolveThemeValue(`var(${name})`).slice(1);
-    return [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
-  };
-  const low = rgb("--color-chart-low"), mid = rgb("--color-chart-mid"), high = rgb("--color-chart-high");
-  const accent = position < 0.5
-    ? mix(low, mid, position * 2)
-    : mix(mid, high, (position - 0.5) * 2);
-  const highlight = position < 0.5 ? resolveThemeValue("var(--color-story-e67f55)") : resolveThemeValue("var(--color-story-c8e878)");
-  const titles: Record<string, string[]> = {
-    "achievement-motivation": ["Мотивация", "успеха"],
-    "alexithymia-paq-short": ["Понимание", "своих эмоций"],
-    "anxiety-gad7": ["Тревожные", "переживания"],
-    "acceptance-action": ["Переживания", "и действия"],
-    "fear-of-missing-out": ["Страх упустить", "важное"],
-    "nomophobia": ["Мои ощущения", "без смартфона"],
-    "social-media-use": ["Я и", "социальные сети"],
-    "satisfaction-with-life": ["Моя жизнь.", "Мои ощущения."],
-    "subjective-happiness": ["Моё ощущение", "счастья"],
-    "brief-thriving": ["Моё", "благополучие"],
-    "general-self-efficacy": ["Моя", "самоэффективность"],
-    "rosenberg-self-esteem": ["Моё отношение", "к себе"],
-    "perceived-social-support": ["Моя опора.", "Моя поддержка."],
-  };
-  const title = titles[result.method.slug] ?? [result.method.title];
-  const font = (size: number, weight = 500, serif = false) => {
-    c.font = `${serif ? 400 : weight} ${size}px "${serif ? "Prata" : "Onest Variable"}", ${serif ? "serif" : "sans-serif"}`;
-  };
-  const text = (value: string, x: number, y: number, width: number, size: number, line = 1.4, weight = 500) => {
-    font(size, weight);
-    let row = "", cursor = y;
-    for (const word of value.split(/\s+/)) {
-      if (c.measureText((row + " " + word).trim()).width > width && row) {
-        c.fillText(row, x, cursor);
-        cursor += size * line;
-        row = word;
-      } else row = (row + " " + word).trim();
-    }
-    if (row) c.fillText(row, x, cursor);
-    return cursor + size * line;
-  };
-  c.fillStyle = paper;
-  c.fillRect(0, 0, 1080, 1920);
-  c.fillStyle = ink;
-  c.font = '750 44px "Manrope Variable", sans-serif';
-  c.fillText("mindresearch.pro", 70, 118);
-  c.textAlign = "right";
-  font(27, 650);
-  c.fillText(result.method.abbreviation, 1000, 116);
-  c.textAlign = "left";
-  let y = 290;
-  for (const row of title) {
-    let size = 102;
-    font(size, 600, true);
-    while (c.measureText(row).width > 940 && size > 46) font(--size, 600, true);
-    c.fillText(row, 70, y);
-    y += 118;
-  }
-  text(result.method.name, 74, 495, 920, 37, 1.35, 650);
+  canvas.width = 1080;
+  const width = canvas.width;
+  const ink = "#203e32", paper = "#fff4dd", accent = scene.dark ? "#875854" : "#52764d";
+  const font = (size:number, weight=500) => `${weight} ${size}px "Onest Variable", sans-serif`;
+  const lines = (text:string, max:number) => text.trim().split(/\s+/).reduce((rows:string[], word) => {
+    const last = rows.at(-1);
+    if (last && c.measureText(last + " " + word).width <= max) rows[rows.length-1] += " " + word;
+    else rows.push(word);
+    return rows;
+  },[]);
+  const titleFont = journal ? font(90,780) : tiles ? (rounded ? font(82,780) : '680 82px "Lora Variable", serif') : '400 64px Prata, serif';
+  const titleLeading = journal ? 92 : tiles ? 89 : 75;
+  const titleTop = journal ? 217 : tiles ? (illustrated ? 233 : 205) : 229;
+  c.font = titleFont;
+  const title = lines(result.method.name, journal ? 910 : tiles ? 820 : 545);
+  const titleBottom = titleTop + (title.length - 1) * titleLeading;
+  const hasTotal = result.presentation !== "profile" && result.scales.length > 0;
+  const total = hasTotal ? result.scales[0] : undefined;
+  const rows = hasTotal ? result.scales.slice(1) : result.scales;
+  const explanation = resultReading(result).card;
+  const rowFont = tiles ? font(37,650) : font(32,650);
+  const rowLeading = tiles ? 45 : 39;
+  c.font = rowFont;
+  const rowLabels = rows.map(scale => lines(scale.label, tiles ? 680 : journal ? 655 : 465));
+  const rowHeights = rowLabels.map(row => row.length * rowLeading + (tiles ? 58 : journal ? 62 : 34));
+  const scalesHeight = rowHeights.reduce((sum,height) => sum+height,0);
+  const explanationLeading = 40;
+  const explanationFont = font(31);
+  c.font = explanationFont;
+  const explanationLines = explanation ? lines(explanation,illustrated ? 810 : 865) : [];
+  const totalHeight = journal ? 245 : illustrated ? 165 : tiles ? 242 : 0;
+  c.font = font(25);
+  const footer = result.cardNote ? lines(result.cardNote,865) : [];
+  const panelInset = illustrated ? 102 : 60;
+  const explanationGap = illustrated ? 72 : 34;
+  const contentHeight = panelInset + (total ? totalHeight : 45) + scalesHeight
+    + (explanationLines.length ? explanationGap + explanationLines.length*explanationLeading : 0) + footer.length*34 + 54;
+  const minimumPanelTop = Math.max(795, titleBottom + (!journal && !tiles && total ? 395 : 270));
+  canvas.height = Math.max(1920, minimumPanelTop + contentHeight + 28);
+  const panelTop = canvas.height - contentHeight - (tiles ? 48 : 28);
+  const artHeight = canvas.height;
 
-  // A single continuous ring encodes position within the method's scale range.
-  const centerX = 540, centerY = multiple ? 940 : 1100, radius = multiple ? 290 : 430;
-  const orbitRadius = radius + 70;
-  const start = -Math.PI / 2;
-  const end = start + position * Math.PI * 2;
-  // Keep the orbit quiet; depth belongs to the filled arc, not extra badges.
-  c.lineCap = "round";
-  c.strokeStyle = ink;
-  c.lineWidth = 2;
-  c.beginPath();
-  c.arc(centerX, centerY, orbitRadius - 12, Math.PI * 0.76, Math.PI * 1.64);
-  c.stroke();
-  c.strokeStyle = highlight;
-  c.lineWidth = 9;
-  c.beginPath();
-  c.arc(centerX, centerY, orbitRadius - 12, Math.PI * 1.82, Math.PI * 2.1);
-  c.stroke();
-  c.fillStyle = resolveThemeValue("var(--color-story-fff9e9)");
-  c.beginPath();
-  c.arc(centerX, centerY, radius - 46, 0, Math.PI * 2);
-  c.fill();
-  const ringWidth = multiple ? 54 : 72;
-  c.lineWidth = ringWidth;
-  c.strokeStyle = accent;
-  c.beginPath();
-  c.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  c.stroke();
-  if (position > 0) {
-    const shading = c.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-    shading.addColorStop(0, resolveThemeValue("var(--color-story-203e32)"));
-    shading.addColorStop(1, resolveThemeValue("var(--color-story-527b61)"));
-    c.strokeStyle = shading;
+  c.fillStyle = paper; c.fillRect(0,0,width,canvas.height);
+  c.fillStyle = scene.fill; c.fillRect(0,0,width,artHeight);
+  if (art && atlas) {
+    const tileW = Math.floor(atlas.width/5), tileH = Math.floor(atlas.height/3);
+    const sourceW = Math.min(tileW, tileH*width/artHeight);
+    c.drawImage(atlas, art.column*tileW+(tileW-sourceW)/2, art.row*tileH, sourceW, tileH, 0, 0, width, artHeight);
+  } else if (background) {
+    const tileW = Math.floor(background.width/2), tileH = Math.floor(background.height/2);
+    const cropHeight = Math.min(artHeight, 1920);
+    const fit = Math.max(width/tileW,cropHeight/tileH);
+    const sourceW=width/fit, sourceH=cropHeight/fit;
+    c.drawImage(background,scene.column*tileW+(tileW-sourceW)*(tiles ? .2 : .5),scene.row*tileH+(tileH-sourceH)/2,sourceW,sourceH,0,0,width,artHeight);
+  }
+  if (person || (art && people)) {
+    const personBottom=illustrated ? Math.max(panelTop+245,1405) : panelTop+170;
+    const h = illustrated
+      ? Math.min(1120,personBottom-titleBottom-30)
+      : Math.min(780,artHeight-(220+title.length*72));
+
+    c.filter = scene.dark ? "brightness(0.79) saturate(0.82)" : "none";
+    if (art && people) {
+      const tileW = Math.floor(people.width / characterColumns), tileH = Math.floor(people.height/3);
+      const w = h*tileW/tileH;
+      c.drawImage(people, (art.person % characterColumns)*tileW, (art.personRow ?? art.row)*tileH, tileW, tileH, width-w+45, personBottom-h,w,h);
+    } else if (person) {
+      const w = h * person.width / person.height;
+      c.drawImage(person, journal ? (width-w)/2 : width-w+65, personBottom-h,w,h);
+    }
+    c.filter = "none";
+  }
+  if(!tiles){
+    const wash=c.createLinearGradient(0,0,0,Math.min(panelTop,Math.max(830,titleBottom+(!journal && total ? 402 : 230))));
+    wash.addColorStop(0,scene.dark?"rgba(25,27,45,.94)":"rgba(255,245,220,.98)");
+    wash.addColorStop(.55,scene.dark?"rgba(25,27,45,.57)":"rgba(255,245,220,.72)");
+    wash.addColorStop(1,"transparent");
+    c.fillStyle=wash;c.fillRect(0,0,width,artHeight);
+  }
+
+  const line = (value:string,x:number,y:number) => c.fillText(value,x,y);
+  if(!journal && !tiles){
+    const column=c.createLinearGradient(0,0,750,0);
+    column.addColorStop(0,"#fbefcf");
+    column.addColorStop(.72,"rgba(251,239,207,.97)");
+    column.addColorStop(1,"rgba(251,239,207,0)");
+    c.fillStyle=column;c.fillRect(0,0,750,panelTop+8);
+  }
+  const headerInk=scene.dark && (journal || tiles) ? "#fff4dd" : ink;
+  if(tiles){
+    if(illustrated && result.method.abbreviation){
+      c.fillStyle=scene.dark?"#f4cca0":"#f0ce83";
+      c.font=font(27,700);
+      const badgeWidth=c.measureText(result.method.abbreviation).width+60;
+      c.beginPath();c.roundRect(width-56-badgeWidth,45,badgeWidth,60,30);c.fill();
+      c.strokeStyle="#fff1d2";c.lineWidth=2;c.stroke();
+    }
+    c.fillStyle=headerInk;
+    c.font=font(54,750);line("mindresearch.pro",67,91);
+    c.textAlign="right";c.font=font(27,700);
+    if(illustrated)c.fillStyle=ink;
+    line(result.method.abbreviation,width-(illustrated?86:67),illustrated?84:91);
+    c.fillStyle=headerInk;
+    c.textAlign="left";c.font=titleFont;
+    title.forEach((value,i)=>line(value,67,titleTop+i*titleLeading));
+    if(illustrated){
+      c.strokeStyle=scene.dark?"#f3bd79":"#a16819";
+      c.lineWidth=5;c.lineCap="round";c.beginPath();c.moveTo(70,titleBottom+40);
+      c.bezierCurveTo(195,titleBottom+2,376,titleBottom+5,284,titleBottom+38);
+      c.bezierCurveTo(233,titleBottom+57,353,titleBottom+40,477,titleBottom+33);
+      c.stroke();c.lineCap="butt";
+    }
+  }else{
+    c.fillStyle=headerInk;
+    c.font=font(journal?33:40,750);
+    if(journal)c.textAlign="center";
+    line("mindresearch.pro",journal ? width/2 : 65,86);
+    c.textAlign="left";
+    if(!journal){
+      c.font=font(28,650);c.textAlign="right";line(result.method.abbreviation,555,86);
+      c.fillRect(65,122,490,2);
+    }
+    c.textAlign=journal ? "center" : "left";
+    c.font=titleFont;
+    title.forEach((value,i)=>line(value,journal ? width/2 : 65,titleTop+i*titleLeading));
+    c.textAlign="left";
+  }
+
+  const panelX=journal?0:30;
+  const left=journal ? 80 : panelX+48, right=width-left;
+  const resultInk=journal ? "#fff8e8" : ink;
+  const muted=journal ? "#d5e2cb" : "#4a6354";
+  const rule=journal ? "#607c6a" : "rgba(48, 71, 57, .24)";
+  if(journal){
+    c.fillStyle="rgba(28, 58, 46, .98)";
+    c.beginPath();c.moveTo(0,panelTop+68);
+    c.lineTo(width,panelTop-135);
+    c.lineTo(width,canvas.height);c.lineTo(0,canvas.height);c.closePath();c.fill();
+  }else if(tiles){
+    c.fillStyle=scene.dark ? "#f8e0cf" : "#fff4da";
+    const x=35, edge=width-x, bottom=canvas.height-34;
     c.beginPath();
-    c.arc(centerX, centerY, radius, start, end);
-    c.stroke();
-  }
-  // A compact endpoint with a clean paper keyline replaces the bulky badge.
-  const markerX = centerX + Math.cos(end) * radius;
-  const markerY = centerY + Math.sin(end) * radius;
-  c.fillStyle = paper;
-  c.beginPath();
-  c.arc(markerX, markerY, ringWidth * 0.44, 0, Math.PI * 2);
-  c.fill();
-  c.fillStyle = highlight;
-  c.beginPath();
-  c.arc(markerX, markerY, ringWidth * 0.3, 0, Math.PI * 2);
-  c.fill();
-  c.textAlign = "center";
-  c.fillStyle = ink;
-  font(32, 650);
-  c.fillText(multiple ? "Общий результат" : "Мой результат", 540, centerY - (multiple ? 105 : 160));
-  const value = formatScore(main.value);
-  let scoreSize = multiple ? 200 : 290;
-  font(scoreSize, 600);
-  while (c.measureText(value).width > (multiple ? 430 : 610) && scoreSize > 100) font(--scoreSize, 600);
-  c.fillText(value, 540, centerY + (multiple ? 75 : 110));
-  font(multiple ? 38 : 49, 650);
-  c.fillText(`из ${formatScore(main.max)}`, 540, centerY + (multiple ? 150 : 200));
-
-  if (multiple) {
-    c.fillStyle = ink;
-    text(main.label, 540, 1335, 920, 36, 1.3, 650);
-    text(main.cardExplanation ?? main.explanation, 540, 1390, 920, 28, 1.3, 500);
-    const columns = additional.length === 4 ? 2 : Math.min(3, additional.length);
-    const rows = Math.ceil(additional.length / columns);
-    const rowHeight = 430 / rows;
-    const miniRadius = Math.min(108, (rowHeight - 130) / 2);
-    for (let i = 0; i < additional.length; i++) {
-      const scale = additional[i];
-      const columnWidth = 1000 / columns;
-      const x = 40 + columnWidth * (i % columns + 0.5);
-      const y = 1490 + miniRadius + Math.floor(i / columns) * rowHeight;
-      const range = scale.max - scale.min;
-      const fraction = range > 0 ? Math.max(0, Math.min(1, (scale.value - scale.min) / range)) : 0;
-      const color = fraction < 0.5
-        ? mix([153, 199, 223], [247, 181, 132], fraction * 2)
-        : mix([247, 181, 132], [208, 235, 119], (fraction - 0.5) * 2);
-      c.lineWidth = 18;
-      c.strokeStyle = color;
-      c.beginPath();
-      c.arc(x, y, miniRadius, 0, Math.PI * 2);
-      c.stroke();
-      if (fraction > 0) {
-        const shading = c.createLinearGradient(x - miniRadius, y - miniRadius, x + miniRadius, y + miniRadius);
-        shading.addColorStop(0, resolveThemeValue("var(--color-story-203e32)"));
-        shading.addColorStop(1, resolveThemeValue("var(--color-story-527b61)"));
-        c.strokeStyle = shading;
-        c.beginPath();
-        c.arc(x, y, miniRadius, start, start + fraction * Math.PI * 2);
-        c.stroke();
-      }
-      c.fillStyle = ink;
-      c.textAlign = "center";
-      let size = 60;
-      font(size, 750);
-      const value = formatScore(scale.value);
-      while (c.measureText(value).width > miniRadius * 1.6 && size > 24) font(--size, 750);
-      c.fillText(value, x, y + 10);
-      font(26, 600);
-      c.fillText(`из ${formatScore(scale.max)}`, x, y + 48);
-      text(scale.label, x, y + miniRadius + 60, columnWidth - 38, additional.length > 3 ? 28 : 32, 1.3, 650);
+    if(rounded){
+      c.roundRect(x,panelTop,edge-x,bottom-panelTop,64);
+    }else{
+      c.moveTo(x,panelTop+170);
+      c.bezierCurveTo(x,panelTop-24,206,panelTop-35,460,panelTop-32);
+      c.bezierCurveTo(645,panelTop-29,596,panelTop+33,765,panelTop+33);
+      c.bezierCurveTo(929,panelTop+33,edge,panelTop+49,edge,panelTop+178);
+      c.lineTo(edge,bottom-55);
+      c.quadraticCurveTo(edge,bottom,edge-55,bottom);
+      c.lineTo(x+55,bottom);
+      c.quadraticCurveTo(x,bottom,x,bottom-55);
+      c.closePath();
     }
-  } else {
-    font(28, 600);
-    c.fillText(`Диапазон шкалы ${formatScore(main.min)}–${formatScore(main.max)}`, 540, 1635);
-    text(main.label, 540, 1710, 900, 44, 1.3, 650);
-    text(main.cardExplanation ?? main.explanation, 540, 1790, 900, 32, 1.4, 500);
+    c.fill();
+    if(illustrated){c.strokeStyle="#fff9e8";c.lineWidth=3;c.stroke();}
+  }else{
+    const fade=c.createLinearGradient(0,panelTop-125,0,panelTop+54);
+    fade.addColorStop(0,"rgba(255, 248, 231, 0)");
+    fade.addColorStop(1,"rgba(255, 248, 231, .97)");
+    c.fillStyle=fade;c.fillRect(0,panelTop-125,width,canvas.height-panelTop+125);
   }
-  c.textAlign = "left";
-  return new Promise((resolve, reject) => canvas.toBlob(
-    blob => blob ? resolve(blob) : reject(new Error("Не удалось создать карточку")), "image/png",
-  ));
+  const divider=(top:number)=>{
+    c.fillStyle=rule; c.fillRect(left,top,right-left,2);
+  };
+
+  const bar=(scale:PublicResult["scales"][number],x:number,top:number,w:number)=>{
+    const fraction=rangePosition(scale);
+    if(fraction===null)return;
+    c.fillStyle=journal ? "#597263" : "#d7d6bd";c.fillRect(x,top,w,6);
+    c.fillStyle=journal ? "#cadd9c" : accent;
+    c.fillRect(x,top,w*fraction,6);
+    c.beginPath();c.arc(x+w*fraction,top+3,8,0,Math.PI*2);c.fill();
+  };
+
+  let y=panelTop+panelInset;
+  c.fillStyle=muted;c.font=font(32,650);
+  if(journal)c.textAlign="center";
+  if(journal || !total)line(total ? "Мой результат" : "Профиль шкал",journal ? width/2 : left,y);
+  c.textAlign="left";
+  if(total && !journal && !tiles){
+    const scoreTop=titleBottom+95;
+    c.fillStyle=headerInk;c.font=font(31,700);line("Мой результат",65,scoreTop);
+    const value=formatScore(total.value);
+    c.font=font(155,780);line(value,60,scoreTop+152);
+    const scoreWidth=c.measureText(value).width;
+    c.font=font(39,650);line("/ "+formatScore(total.max),80+scoreWidth,scoreTop+150);
+    c.fillStyle=scene.dark?"#bccaab":"#8b9a75";c.fillRect(66,scoreTop+190,270,4);
+    c.fillStyle=headerInk;c.fillRect(66,scoreTop+190,270*(rangePosition(total)??0),4);
+  }else if(total && illustrated){
+    const value=formatScore(total.value);
+    const scoreX=left+36;
+    c.fillStyle=ink;c.font=font(116,780);
+    c.fillText(value,scoreX,y+45,310);
+    const valueWidth=Math.min(c.measureText(value).width,310);
+    c.font=font(42,700);
+    line("/ "+formatScore(total.max),scoreX+valueWidth+18,y+45);
+    c.fillStyle=ink;c.font=font(46,750);
+    line("Мой результат",scoreX,y+99);
+    y+=totalHeight;
+  }else if(total && tiles){
+    c.fillStyle=muted;c.font=font(32,700);line("Мой результат",left,y);
+    const value=formatScore(total.value);
+    c.fillStyle=ink;c.font=font(152,780);
+    line(value,left-5,y+128);
+    const valueWidth=c.measureText(value).width;
+    c.font=font(40,700);line("из "+formatScore(total.max),left+valueWidth+14,y+126);
+    const fraction=rangePosition(total);
+    if(fraction!==null){
+      const barWidth=right-left;
+      c.fillStyle=scene.dark?"#d5b4a4":"#ded2b2";
+      c.beginPath();c.roundRect(left,y+158,barWidth,28,14);c.fill();
+      if(fraction>0){
+        c.fillStyle=accent;
+        c.beginPath();c.roundRect(left,y+158,barWidth*fraction,28,14);c.fill();
+      }
+    }
+    y+=totalHeight;
+  }else if(total){
+    const value=formatScore(total.value);
+    c.fillStyle=resultInk;c.font='400 144px Prata, serif';
+    const valueWidth=c.measureText(value).width;
+    c.textAlign="center";line(value,width/2,y+142);c.textAlign="left";
+    c.font=font(36,650);c.fillStyle=muted;
+    line("/ "+formatScore(total.max),width/2+valueWidth/2+20,y+142);
+    bar(total,left,y+176,right-left);
+    c.font=font(28,650);c.fillStyle=muted;
+    line(formatScore(total.min),left,y+215);
+    c.textAlign="right";line(formatScore(total.max),right,y+215);c.textAlign="left";
+    y+=totalHeight;
+  }else{
+    if(!tiles)divider(y+13);
+    y+=45;
+  }
+
+  rows.forEach((scale,index)=>{
+    const labels=rowLabels[index];
+    c.fillStyle=resultInk;c.font=rowFont;
+    labels.forEach((label,i)=>line(label,left,y+34+i*rowLeading));
+    const middle=y+25+(labels.length-1)*19.5;
+    if(journal || tiles)bar(scale,left,y+labels.length*rowLeading+9,right-left);
+    else bar(scale,right-335,middle-8,195);
+    c.fillStyle=resultInk;c.font=font(tiles?40:33,750);c.textAlign="right";
+    line(formatScore(scale.value)+" / "+formatScore(scale.max),right,journal||tiles?y+34:middle+6);
+    c.textAlign="left";
+    y+=rowHeights[index];
+    if(!journal && !tiles && index<rows.length-1)divider(y-20);
+  });
+  if(explanationLines.length){
+    if(illustrated){
+      c.fillStyle="#e9e8d1";
+      c.beginPath();c.roundRect(left,y+22,right-left,explanationLines.length*explanationLeading+40,24);c.fill();
+    }
+    c.fillStyle=resultInk; c.font=explanationFont; y+=explanationGap;
+    explanationLines.forEach(value=>{line(value,left+(illustrated ? 28 : 0),y); y+=explanationLeading});
+  }
+  y+=34;
+  c.font=font(25); c.fillStyle=muted;
+  footer.forEach(value=>{line(value,left,y);y+=34});
+
+  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob ? resolve(blob) : reject(new Error("Не удалось создать PNG")), "image/png"));
 }

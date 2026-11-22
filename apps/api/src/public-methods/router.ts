@@ -68,26 +68,6 @@ export function createPublicMethodsRouter(
   onPublicationChange?: () => Promise<void>,
 ) {
   const router = Router();
-  const limits = new Map<string, { count: number; until: number }>();
-  const limit: RequestHandler = (req, res, next) => {
-    const now = Date.now();
-    if (limits.size > 2000)
-      for (const [key, value] of limits)
-        if (value.until < now) limits.delete(key);
-    const key = req.ip ?? "unknown";
-    const entry = limits.get(key);
-    if (!entry || entry.until < now) {
-      if (limits.size >= 10000)
-        return res
-          .status(429)
-          .json({ message: "Слишком много запросов. Попробуйте позже" });
-      limits.set(key, { count: 1, until: now + 3600000 });
-    } else if (++entry.count > 30)
-      return res.status(429).json({
-        message: "Слишком много новых прохождений. Попробуйте через час",
-      });
-    next();
-  };
   const sameOrigin: RequestHandler = (req, _res, next) => {
     const origin = req.get("origin");
     const trusted = (process.env.CLIENT_URL ?? "").split(",").filter(Boolean);
@@ -143,7 +123,6 @@ export function createPublicMethodsRouter(
   router.post(
     "/api/public/methods/:slug/assessments",
     sameOrigin,
-    limit,
     async (req, res) => {
       z.object({ adult: z.literal(true) })
         .strict()
