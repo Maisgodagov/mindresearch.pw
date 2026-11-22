@@ -30,16 +30,14 @@ export function cardChoices(result: PublicResult, seed: string) {
   const scenesIn = (mood: 0 | 1 | 2) => locations[mood].map((label, column) => ({ label, row: mood, column }));
   const primary = scenesIn(row);
   const offset = seedNumber % primary.length;
-  const nearby = row === 1
-    ? [scenesIn(0)[offset], scenesIn(2)[offset]]
-    : [scenesIn(1)[offset], scenesIn(1)[(offset + 2) % primary.length]];
+  const otherScenes = ([0, 1, 2] as const).filter(mood => mood !== row).flatMap(scenesIn);
   const personCount = characterAtlases.length * characterColumns;
   const person = (hash >>> 8) % personCount;
-  const peopleFor = (start: number) => Array.from({ length: Math.min(10, personCount) },
+  const peopleFor = (start: number) => Array.from({ length: personCount },
     (_, index) => (start + index) % personCount);
   return {
     row,
-    locations: [...primary.slice(offset), ...primary.slice(0, offset), ...nearby],
+    locations: [...primary.slice(offset), ...primary.slice(0, offset), ...otherScenes],
     people: { woman: peopleFor(person), man: peopleFor(person + 1) },
     character: (hash & 1) === 0 ? "woman" as const : "man" as const,
   };

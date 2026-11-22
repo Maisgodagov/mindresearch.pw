@@ -1086,7 +1086,7 @@
 .pm-card-controls fieldset { min-width: 0; margin: 0; border: 0; padding: 0; }
 .pm-card-controls legend { padding: 0; margin-bottom: 7px; font-size: 14px; font-weight: 700; }
 .pm-card-options { display: grid; gap: 6px; }
-.pm-card-scenes { grid-template-columns: repeat(7, 44px); overflow-x: auto; max-width: 100%; padding: 3px 3px 5px; }
+.pm-card-scenes { grid-auto-flow: column; grid-auto-columns: 44px; overflow-x: auto; max-width: 100%; padding: 3px 3px 5px; }
 .pm-card-portraits { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 8px; }
 .pm-card-options label, .pm-card-character-types label { position: relative; min-width: 0; cursor: pointer; }
 .pm-card-controls input { position: absolute; width: 1px; height: 1px; opacity: 0; }
