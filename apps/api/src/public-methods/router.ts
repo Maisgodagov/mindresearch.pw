@@ -48,7 +48,7 @@ const identifier = z.string().uuid();
 const saveSchema = z
   .object({
     answers: answersSchema,
-    position: z.number().int().min(0).max(100),
+    position: z.number().int().min(0).max(119),
     revision: z.number().int().min(0),
   })
   .strict();

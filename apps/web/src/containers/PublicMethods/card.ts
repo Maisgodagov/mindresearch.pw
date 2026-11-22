@@ -24,7 +24,8 @@ async function profileCard(canvas: HTMLCanvasElement, c: CanvasRenderingContext2
   };
   let y = wrap(result.method.name, 230, 48);
   y = wrap(`${result.method.abbreviation} · ${result.presentation === "profile" ? "Профиль отдельных шкал" : "Результаты методики"}`, y + 20, 29);
-  const rowHeight = Math.min(190, (1420 - y) / result.scales.length);
+  const footerOffset = canvas.height - 1920;
+  const rowHeight = Math.min(190, (1420 + footerOffset - y) / result.scales.length);
   for (const s of result.scales) {
     y += 38;
     // Reserve a second line for long labels; keep the numerical result separate.
@@ -44,9 +45,9 @@ async function profileCard(canvas: HTMLCanvasElement, c: CanvasRenderingContext2
     "autonomous-functioning": "Шкалы независимы. Выше восприимчивость к контролю — больше давления, а не автономности.",
     "career-adaptability": "Русская проверка: 15–19 лет. Для старших возрастов — ознакомительно, без подтверждённых взрослых норм.",
   };
-  wrap(result.cardNote || notes[result.method.slug] || (result.presentation === "profile" ? "Шкалы независимы. Общий балл не рассчитывается." : "Показаны общий показатель и отдельные шкалы."), 1535, 29);
-  wrap("Полные пояснения и ограничения — на странице результата. Полосы показывают положение в диапазоне шкалы, не процент населения.", 1670, 27);
-  wrap("Результат описывает ваши ответы и не является диагнозом.", 1830, 27);
+  wrap(result.cardNote || notes[result.method.slug] || (result.presentation === "profile" ? "Шкалы независимы. Общий балл не рассчитывается." : "Показаны общий показатель и отдельные шкалы."), 1535 + footerOffset, 29);
+  wrap("Полные пояснения и ограничения — на странице результата. Полосы показывают положение в диапазоне шкалы, не процент населения.", 1670 + footerOffset, 27);
+  wrap("Результат описывает ваши ответы и не является диагнозом.", 1830 + footerOffset, 27);
   return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Не удалось создать карточку")), "image/png"));
 }
 
@@ -59,7 +60,7 @@ export async function resultCard(result: PublicResult): Promise<Blob> {
   ]);
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
-  canvas.height = 1920;
+  canvas.height = 1920 + Math.max(0, result.scales.length - 6) * 190;
   const c = canvas.getContext("2d");
   if (!c) throw new Error("Браузер не поддерживает создание изображения");
   const ink = resolveThemeValue("var(--color-story-203e32)"), paper = resolveThemeValue("var(--color-story-fff5da)");

@@ -1,3 +1,9 @@
+import { gpsInstrument } from "../data/gps.js";
+import { briefCopeRuInstrument } from "../data/briefCopeRu.js";
+import { ipipNeo120Instrument } from "../data/ipipNeo120.js";
+import { scoreGps } from "../scoring/gps.js";
+import { scoreBriefCopeRu } from "../scoring/briefCopeRu.js";
+import { scoreIpipNeo120 } from "../scoring/ipipNeo120.js";
 import { miniIpipInstrument } from "../data/miniIpip.js";
 import { ppsInstrument } from "../data/pps.js";
 import { genderPersonalityTypeTitovaRuInstrument, genderPersonalityTypeTitovaRuScoring } from "../data/genderPersonalityTypeTitovaRu.js";
@@ -31,6 +37,7 @@ import { isriRuInstrument, isriRuScoring } from "../data/isriRu.js";
 import { methodology as careerMotivation } from "../data/methodologies/method-0543.js";
 
 export const additionalInstruments: Record<string, SeedSection> = Object.fromEntries([
+  gpsInstrument, briefCopeRuInstrument, ipipNeo120Instrument,
   miniIpipInstrument, ppsInstrument, genderPersonalityTypeTitovaRuInstrument,
   tipiRuInstrument, iafRuInstrument, cavRuInstrument, caasRuInstrument,
   belongingExclusionRuInstrument, smmg.instrument, scs.instrument, aaq.instrument, gad.instrument, phq.instrument,
@@ -55,6 +62,32 @@ export function calculateAdditional(code: string, input: Map<number, number>): {
   let explanation: string;
   let presentation: "profile" | "scales" = "profile";
   switch (code) {
+    case "test_10": {
+      const result = scoreGps(input);
+      if (!result) throw new Error("Неполный протокол GPS");
+      scales = [scale("Общая прокрастинация", result.overall.score, result.overall.minScore, result.overall.maxScore, neutral)];
+      presentation = "scales";
+      explanation = "Сумма 20 ответов с учётом обратного ключа, от 20 до 100.";
+      break;
+    }
+    case "test_20": {
+      const keyedAnswers = new Map(briefCopeRuInstrument.questions.map((question, index) => [
+        Number(question.code.split("_").at(-1)), input.get(index + 1)!,
+      ]));
+      const result = scoreBriefCopeRu(keyedAnswers);
+      if (!result) throw new Error("Неполный протокол Brief COPE");
+      scales = Object.values(result.scales).map(row => scale(row.label, row.average, row.min, row.max, neutral));
+      explanation = "Шесть отдельных средних от 1 до 4. Шкала избегания менее надёжна в исследовании этой версии.";
+      break;
+    }
+    case "test_15": {
+      const result = scoreIpipNeo120(input);
+      if (!result) throw new Error("Неполный протокол IPIP-NEO-120");
+      scales = [...Object.values(result.domains), ...Object.values(result.facets)]
+        .map(row => scale(row.label, row.average, row.min, row.max, neutral));
+      explanation = "Пять широких черт и тридцать более узких показателей. Баллы — средние от 1 до 5.";
+      break;
+    }
     case "test_16": {
       const result = scoreMiniIpip(input);
       if (!result) throw new Error("Неполный протокол Mini-IPIP");

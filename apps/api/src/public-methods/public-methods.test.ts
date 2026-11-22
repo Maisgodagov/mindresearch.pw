@@ -72,6 +72,19 @@ describe("public assessments isolated from research", () => {
     const a = (await response.json()) as Assessment;
     return { a, cookie };
   }
+  it("saves and resumes the last page of the 120-item assessment", async () => {
+    const { a, cookie } = await start("ipip-neo-120");
+    const path = `/api/public/assessments/${a.id}`;
+    expect(a.definition.questions).toHaveLength(120);
+    const answers = Object.fromEntries(a.definition.questions.map(q => [q.code, 3]));
+    const payload = { answers, position: 119, revision: 0 };
+    expect((await request(path + "/save", {...payload, position:120},cookie)).status).toBe(400);
+    expect((await request(path + "/save",payload,cookie)).status).toBe(200);
+    expect((await (await request(path,undefined,cookie)).json()).position).toBe(119);
+    const complete = await request(path + "/complete",{...payload,revision:1},cookie);
+    expect(complete.status).toBe(200);
+    expect((await complete.json()).result.scales.map((scale:{value:number})=>scale.value)).toEqual(Array(35).fill(3));
+  });
   it("counts one view per tab session and completion once, with private stats", async () => {
     const slug = "rosenberg-self-esteem";
     const view = `/api/public/methods/${slug}/view`;
@@ -418,7 +431,7 @@ describe("shared scoring and safe document rendering", () => {
       expect(r.scales[0].value).toBe(
         ({ test_17: 15, test_19: 10, test_1: 1, test_2480: 5, test_2451: 2.5, test_59: 10, test_25: 6, test_27: 6, test_28: 20,
           test_14: 4, test_24: 1, test_829: 4, test_44: 36, test_29: 12, test_23: 24, test_2434: 3, test_1168: 7, test_918: 7, test_1616: 2,
-          test_21: 13, test_22: 6, test_265: 14, test_2205: 1, test_39: 1, test_40: 6, test_576: 11, test_16: 3, test_11: 1, test_56: 3 })[m.code],
+          test_21: 13, test_22: 6, test_265: 14, test_2205: 1, test_39: 1, test_40: 6, test_576: 11, test_16: 3, test_11: 1, test_56: 3, test_10: 60, test_20: 1, test_15: 52/24 })[m.code],
       );
     }
     const d = definition(initialCatalog[0]),

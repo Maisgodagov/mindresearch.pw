@@ -60,10 +60,10 @@ describe("four public methods, November 12",()=>{
   expect(r.scales.map(s=>s.value)).toEqual([16/6,11/4,9/3,10/4]);
   expect(r.presentation).toBe('profile');expect(r.scales).toHaveLength(4);
  });
- it("all 29 articles remain reachable through the two server catalogue pages",()=>{
-  expect(initialCatalog).toHaveLength(29);
+ it("all 32 articles remain reachable through the two server catalogue pages",()=>{
+  expect(initialCatalog).toHaveLength(32);
   const a=discoverMethods(initialCatalog,{page:1}),b=discoverMethods(initialCatalog,{page:2});
-  expect(a.items).toHaveLength(20);expect(b.items).toHaveLength(9);
-  expect(new Set([...a.items,...b.items].map(m=>m.slug)).size).toBe(29);
+  expect(a.items).toHaveLength(20);expect(b.items).toHaveLength(12);
+  expect(new Set([...a.items,...b.items].map(m=>m.slug)).size).toBe(32);
  });
 });

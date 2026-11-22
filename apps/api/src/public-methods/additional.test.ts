@@ -20,8 +20,8 @@ describe("additional public versions", () => {
     expect(values("test_576", 2)).toEqual([14,8,8,8]);
   });
   it("registers distinct nonwithdrawn instruments with immutable snapshots and complete articles", () => {
-    expect(additions).toHaveLength(20);
-    expect(new Set(additions.map(m => m.code)).size).toBe(20);
+    expect(additions).toHaveLength(23);
+    expect(new Set(additions.map(m => m.code)).size).toBe(23);
     for (const m of additions) {
       expect(withdrawnMethodologyCodes).not.toContain(m.code);
       expect(m.sections.length).toBeGreaterThanOrEqual(5);

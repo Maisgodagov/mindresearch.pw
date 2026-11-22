@@ -11,7 +11,7 @@ const answerSet = (method: typeof initialCatalog[number]) => {
 
 describe("reviewed public-method explanations", () => {
   it("attaches reviewed copy to every actual scale without changing scoring", () => {
-    expect(reviewed).toHaveLength(25);
+    expect(reviewed).toHaveLength(28);
     for (const method of reviewed) {
       const answers = answerSet(method);
       const current = calculate(definition(method), answers);

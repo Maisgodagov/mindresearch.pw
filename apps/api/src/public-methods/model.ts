@@ -34,9 +34,9 @@ export const contentSchema = z
       "fear-of-missing-out",
       "nomophobia",
       "personality-tipi", "autonomous-functioning", "stress-mindset", "belonging-exclusion", "cyber-aggression", "career-adaptability", "self-compassion", "acceptance-action", "anxiety-gad7", "anxiety-depression-phq4",
-      "achievement-motivation", "alexithymia-paq-short", "self-development", "metacognitive-regulation", "identity-development", "adult-identity", "student-career-motivation", "mini-ipip", "pure-procrastination", "gender-role-attitudes",
+      "achievement-motivation", "alexithymia-paq-short", "self-development", "metacognitive-regulation", "identity-development", "adult-identity", "student-career-motivation", "mini-ipip", "pure-procrastination", "gender-role-attitudes", "student-procrastination", "brief-cope", "ipip-neo-120",
     ]),
-    code: z.enum(["test_17", "test_19", "test_1", "test_2480", "test_2451", "test_59", "test_25", "test_27", "test_28", "test_14", "test_24", "test_829", "test_44", "test_29", "test_23", "test_2434", "test_1168", "test_918", "test_1616", "test_21", "test_22", "test_265", "test_2205", "test_39", "test_40", "test_576", "test_16", "test_11", "test_56"]),
+    code: z.enum(["test_17", "test_19", "test_1", "test_2480", "test_2451", "test_59", "test_25", "test_27", "test_28", "test_14", "test_24", "test_829", "test_44", "test_29", "test_23", "test_2434", "test_1168", "test_918", "test_1616", "test_21", "test_22", "test_265", "test_2205", "test_39", "test_40", "test_576", "test_16", "test_11", "test_56", "test_10", "test_20", "test_15"]),
     title: text(120),
     name: text(180),
     abbreviation: text(20),
@@ -56,7 +56,7 @@ export const contentSchema = z
     resultCopy: z.object({
       summary: text(2400),
       cardNote: text(240).optional(),
-      scales: z.array(z.object({ label: text(180), explanation: text(1600), cardExplanation: text(160) }).strict()).min(1).max(15),
+      scales: z.array(z.object({ label: text(180), explanation: text(1600), cardExplanation: text(160) }).strict()).min(1).max(35),
     }).strict().optional(),
     rights: text(1800),
     sources: z
