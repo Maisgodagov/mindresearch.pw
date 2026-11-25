@@ -39,14 +39,16 @@ app.set('trust proxy',1);
 app.use('/api/admin/surveys/:id/results/distribution',express.json({limit:'2mb'}));
 app.use('/api/admin/surveys/:id/statistics',express.json({limit:'2mb'}));
 const defaultSecurity = helmet();
+const metrikaHosts = ["mc.yandex.ru", "mc.yandex.com", "mc.yandex.kz", "mc.webvisor.com", "mc.webvisor.org"];
+const metrikaHttps = metrikaHosts.map(host => `https://${host}`);
 const publicPageSecurity = helmet({
   contentSecurityPolicy: {
     directives: {
-      scriptSrc: ["'self'", "https://mc.yandex.ru", "https://yastatic.net"],
-      connectSrc: ["'self'", "https://mc.yandex.ru", "wss://mc.yandex.ru", "https://mc.webvisor.com", "https://mc.webvisor.org", "https://yastatic.net"],
-      imgSrc: ["'self'", "data:", "https://mc.yandex.ru", "https://mc.webvisor.com", "https://mc.webvisor.org", "https://yastatic.net"],
-      childSrc: ["'self'", "blob:", "https://mc.yandex.ru"],
-      frameSrc: ["'self'", "blob:", "https://mc.yandex.ru"],
+      scriptSrc: ["'self'", ...metrikaHttps, "https://yastatic.net"],
+      connectSrc: ["'self'", ...metrikaHttps, ...metrikaHosts.map(host => `wss://${host}`), "https://yastatic.net"],
+      imgSrc: ["'self'", "data:", ...metrikaHttps, "https://yastatic.net"],
+      childSrc: ["'self'", "blob:", ...metrikaHttps],
+      frameSrc: ["'self'", "blob:", ...metrikaHttps],
       frameAncestors: ["'self'", "https://metrika.yandex.ru", "https://metrica.yandex.ru"],
     },
   },
