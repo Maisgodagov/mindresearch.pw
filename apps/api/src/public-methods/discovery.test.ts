@@ -26,7 +26,7 @@ describe("server catalogue discovery", () => {
     expect(discoverMethods(initialCatalog, { topic: ["Самооценка", "Цифровые привычки"] }).total).toBe(4);
     expect(discoverMethods(initialCatalog, { topic: ["Самооценка", "Цифровые привычки"], q: "FoMO" }).total).toBe(1);
     expect(discoverMethods(initialCatalog, { section: "Отношения", q: "FoMO" }).total).toBe(0);
-    expect(discoverMethods(initialCatalog, { section: "Отношения" }).total).toBe(2);
+    expect(discoverMethods(initialCatalog, { section: "Отношения" }).total).toBe(5);
   });
   it("rejects malformed and unbounded input", () => {
     for (const page of [0, -1, 1.5, "NaN", 100001]) expect(() => discoverMethods(many, { page })).toThrow();

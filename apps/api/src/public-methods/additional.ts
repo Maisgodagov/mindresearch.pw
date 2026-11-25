@@ -3,7 +3,7 @@ import { briefCopeRuInstrument } from "../data/briefCopeRu.js";
 import { ipipNeo120Instrument } from "../data/ipipNeo120.js";
 import { scoreGps } from "../scoring/gps.js";
 import { scoreBriefCopeRu } from "../scoring/briefCopeRu.js";
-import { scoreIpipNeo120 } from "../scoring/ipipNeo120.js";
+import { ipipNeo120Facets, scoreIpipNeo120 } from "../scoring/ipipNeo120.js";
 import { miniIpipInstrument } from "../data/miniIpip.js";
 import { ppsInstrument } from "../data/pps.js";
 import { genderPersonalityTypeTitovaRuInstrument, genderPersonalityTypeTitovaRuScoring } from "../data/genderPersonalityTypeTitovaRu.js";
@@ -36,8 +36,22 @@ import { didsRuInstrument, didsScoring } from "../data/selfConstrualRu.js";
 import { isriRuInstrument, isriRuScoring } from "../data/isriRu.js";
 import { methodology as careerMotivation } from "../data/methodologies/method-0543.js";
 
+const publicIpipFacets = {
+  test_15_e3: { key: "E3", label: "Ассертивность" },
+  test_15_o1: { key: "O1", label: "Воображение" },
+  test_15_a1: { key: "A1", label: "Доверие к людям" },
+  test_15_c2: { key: "C2", label: "Организованность" },
+  test_15_c5: { key: "C5", label: "Самодисциплина" },
+} as const;
+
+
 export const additionalInstruments: Record<string, SeedSection> = Object.fromEntries([
   gpsInstrument, briefCopeRuInstrument, ipipNeo120Instrument,
+  ...Object.entries(publicIpipFacets).map(([code, { key, label }]) => ({
+    code,
+    title: label,
+    questions: ipipNeo120Facets[key].items.map(([item]) => ipipNeo120Instrument.questions[item - 1]),
+  })),
   miniIpipInstrument, ppsInstrument, genderPersonalityTypeTitovaRuInstrument,
   tipiRuInstrument, iafRuInstrument, cavRuInstrument, caasRuInstrument,
   belongingExclusionRuInstrument, smmg.instrument, scs.instrument, aaq.instrument, gad.instrument, phq.instrument,
@@ -58,6 +72,18 @@ function configured(config: ConfigurableScoring, input: Map<number, number>) {
 }
 
 export function calculateAdditional(code: string, input: Map<number, number>): { scales: Scale[]; explanation: string; presentation: "profile" | "scales" } {
+  if (Object.hasOwn(publicIpipFacets, code)) {
+    const { key, label } = publicIpipFacets[code as keyof typeof publicIpipFacets];
+    const items = ipipNeo120Facets[key].items;
+    const scales = configured({ min: 1, max: 5, scales: [{
+      key, label, aggregation: "mean",
+      items: items.map((_, index) => index + 1),
+      reverseItems: items.flatMap(([, direction], index) => direction === "-" ? [index + 1] : []),
+    }] }, input);
+    return { scales, explanation: "Среднее четырёх ответов по ключу IPIP, от 1 до 5.", presentation: "scales" };
+  }
+
+
   let scales: Scale[];
   let explanation: string;
   let presentation: "profile" | "scales" = "profile";

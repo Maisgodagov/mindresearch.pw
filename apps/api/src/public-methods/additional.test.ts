@@ -19,9 +19,22 @@ describe("additional public versions", () => {
     expect(values("test_576", 0)).toEqual([8,0,0,0]);
     expect(values("test_576", 2)).toEqual([14,8,8,8]);
   });
+  it.each([
+    ["test_15_e3", [5, 5, 5, 1], 2],
+    ["test_15_o1", [5, 5, 5, 5], 2.5],
+    ["test_15_a1", [5, 5, 5, 1], 2],
+    ["test_15_c2", [5, 1, 1, 1], 2.5],
+    ["test_15_c5", [5, 5, 1, 1], 2],
+  ] as const)("scores %s with the published facet key", (code, maximum, mixed) => {
+    expect(values(code, [...maximum])).toEqual([5]);
+    expect(values(code, maximum.map(answer => 6 - answer))).toEqual([1]);
+    const publicResult = result(code, [1, 2, 3, 4]);
+    expect(publicResult.scales[0]).toMatchObject({ min: 1, max: 5, value: mixed });
+    expect(publicResult.scales[0].cardExplanation).toBeTruthy();
+  });
   it("registers distinct nonwithdrawn instruments with immutable snapshots and complete articles", () => {
-    expect(additions).toHaveLength(23);
-    expect(new Set(additions.map(m => m.code)).size).toBe(23);
+    expect(additions).toHaveLength(28);
+    expect(new Set(additions.map(m => m.code)).size).toBe(28);
     for (const m of additions) {
       expect(withdrawnMethodologyCodes).not.toContain(m.code);
       expect(m.sections.length).toBeGreaterThanOrEqual(5);
