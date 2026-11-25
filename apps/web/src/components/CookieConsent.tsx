@@ -18,7 +18,7 @@ export function CookieConsent() {
   return (
     <Surface aria-labelledby="cookie-consent-title" data-analytics-private>
       <h2 id="cookie-consent-title">Мы используем cookies</h2>
-      <p>Cookies помогают платформе работать лучше.</p>
+      <p>С вашего согласия мы используем cookies для аналитики. На публичных страницах Яндекс Метрика с Вебвизором помогает понять, как посетители пользуются сайтом.</p>
       <div className="actions">
         <Button type="primary" onClick={() => setAnalyticsConsent("allow")}>Разрешить</Button>
         <Button onClick={() => setAnalyticsConsent("deny")}>Отказаться</Button>

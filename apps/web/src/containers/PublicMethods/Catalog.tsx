@@ -107,7 +107,7 @@ export function PublicMethods() {
           <p className="tc-intro-description">Тесты на самооценку, психологическое благополучие и цифровые привычки.<br className="tc-intro-break" /> Пройдите выбранную методику и получите результат с пояснениями.</p>
           <label className="tc-search">
             <Search size={20} aria-hidden="true" />
-            <input aria-label="Найти психологический тест" placeholder="Найти тест или тему" maxLength={200} value={query} onChange={e => filter("q", e.target.value)} />
+            <input className="ym-disable-keys" aria-label="Найти психологический тест" placeholder="Найти тест или тему" maxLength={200} value={query} onChange={e => filter("q", e.target.value)} />
             {query && <button type="button" aria-label="Очистить поиск" onClick={() => filter("q", "")}><X size={18} aria-hidden="true" /></button>}
           </label>
         </header>
@@ -121,7 +121,7 @@ export function PublicMethods() {
                 <div className="tc-topic-panel">
                   <div className="tc-topic-panel-top">
                   <div className="tc-topic-panel-head"><div><h2>Темы тестов</h2><p className="tc-topic-hint">Выберите одну или несколько тем</p></div><button type="button" aria-label="Закрыть темы" onClick={event => { const details = event.currentTarget.closest("details"); if (details) { details.open = false; details.querySelector("summary")?.focus(); } }}><X size={18} aria-hidden="true" /></button></div>
-                  <label className="tc-topic-search"><Search size={18} aria-hidden="true" /><input aria-label="Найти тему" placeholder="Найти тему" value={topicQuery} onChange={event => setTopicQuery(event.target.value)} /></label>
+                  <label className="tc-topic-search"><Search size={18} aria-hidden="true" /><input className="ym-disable-keys" aria-label="Найти тему" placeholder="Найти тему" value={topicQuery} onChange={event => setTopicQuery(event.target.value)} /></label>
                   </div>
                   <div className="tc-topic-scroll">
                   <div className="tc-topic-options">

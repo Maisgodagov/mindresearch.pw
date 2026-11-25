@@ -2,6 +2,7 @@ import "./theme/colors.css";
 import { resolveThemeValue } from "./theme/resolveThemeValue";
 import { ProductAnalytics } from "./analytics";
 import { PublicAnalytics } from "./publicAnalytics";
+import { YandexMetrika } from "./yandexMetrika";
 import { CookieConsent } from "./components/CookieConsent";
 import { PageTitles } from "./pageTitle";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -225,7 +226,7 @@ function App() {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter><ScrollToTop/><PageTitles/><ProductAnalytics /><PublicAnalytics />
+    <BrowserRouter><ScrollToTop/><PageTitles/><ProductAnalytics /><PublicAnalytics /><YandexMetrika />
       <App />
     </BrowserRouter>
   </React.StrictMode>,
