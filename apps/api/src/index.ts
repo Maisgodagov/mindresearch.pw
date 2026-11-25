@@ -18,6 +18,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { isMetrikaPage } from './analytics-policy.js';
 import bcrypt from 'bcryptjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -37,7 +38,21 @@ app.set('trust proxy',1);
 // Sample distributions accept up to 50,000 response IDs without changing other body limits.
 app.use('/api/admin/surveys/:id/results/distribution',express.json({limit:'2mb'}));
 app.use('/api/admin/surveys/:id/statistics',express.json({limit:'2mb'}));
-app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
+const defaultSecurity = helmet();
+const publicPageSecurity = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      scriptSrc: ["'self'", "https://mc.yandex.ru", "https://yastatic.net"],
+      connectSrc: ["'self'", "https://mc.yandex.ru", "wss://mc.yandex.ru", "https://mc.webvisor.com", "https://mc.webvisor.org", "https://yastatic.net"],
+      imgSrc: ["'self'", "data:", "https://mc.yandex.ru", "https://mc.webvisor.com", "https://mc.webvisor.org", "https://yastatic.net"],
+      childSrc: ["'self'", "blob:", "https://mc.yandex.ru"],
+      frameSrc: ["'self'", "blob:", "https://mc.yandex.ru"],
+      frameAncestors: ["'self'", "https://metrika.yandex.ru", "https://metrica.yandex.ru"],
+    },
+  },
+});
+app.use((req,res,next) => (isMetrikaPage(req.path) ? publicPageSecurity : defaultSecurity)(req,res,next));
+app.use(cors({origin:process.env.CLIENT_URL?.split(',')??true,credentials:true})); app.use(express.json({limit:'200kb'}));
 app.use('/api/auth',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
 app.use('/api/admin',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next()});
 app.use('/api',adminManagementRouter);

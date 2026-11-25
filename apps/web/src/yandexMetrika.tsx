@@ -1,5 +1,6 @@
 import { useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { isMetrikaPage } from "../../api/src/analytics-policy";
 import { useAnalyticsConsent } from "./analyticsConsent";
 
 const counter = 114684110;
@@ -34,11 +35,10 @@ export function YandexMetrika() {
   const consent = useAnalyticsConsent();
 
   useLayoutEffect(() => {
-    const publicPage = /^\/(?:for-researchers|methods(?:\/[a-z0-9-]+)?)\/?$/.test(pathname);
     const campaignOnly = [...new URLSearchParams(search).keys()].every(key =>
       /^utm_(?:source|medium|campaign|content|term)$/.test(key),
     );
-    const enabled = import.meta.env.PROD && publicPage && !hash && campaignOnly && consent === "allow";
+    const enabled = import.meta.env.PROD && isMetrikaPage(pathname) && !hash && campaignOnly && consent === "allow";
     document.body.classList.toggle("ym-hide-content", !enabled);
     if (!enabled) {
       if (lastPage) metrikaWindow.ym?.(counter, "destruct");

@@ -17,3 +17,6 @@ export function analyticsPeriod(value: string, now = Date.now()) {
   if (![1, 7, 30, 90].includes(days)) throw new Error("Unknown analytics period");
   return { from: now - days * day, to: now, hourly: days === 1 };
 }
+
+export const isMetrikaPage = (pathname: string) =>
+  /^\/(?:for-researchers|methods(?:\/[a-z0-9-]+)?)\/?$/.test(pathname);
